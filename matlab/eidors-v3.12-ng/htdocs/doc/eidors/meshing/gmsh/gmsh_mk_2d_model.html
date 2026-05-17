@@ -1,0 +1,171 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of gmsh_mk_2d_model</title>
+  <meta name="keywords" content="gmsh_mk_2d_model">
+  <meta name="description" content="GMSH_MK_2D_MODEL create a 2D mesh with GMSH">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">meshing</a> &gt; <a href="index.html">gmsh</a> &gt; gmsh_mk_2d_model.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/meshing/gmsh&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>gmsh_mk_2d_model
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>GMSH_MK_2D_MODEL create a 2D mesh with GMSH</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function mdl = gmsh_mk_2d_model(varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">GMSH_MK_2D_MODEL create a 2D mesh with GMSH
+ mdl = gmsh_mk_2d_model(shape)
+
+ SHAPE can be:
+  - xy (Nx2)             : a counter- clockwise list of points in 2D 
+                           defining the outer contour
+  - {xy, xy1, xy2, ...}  : allows specifying additional counter-clockwise 
+                           loops  xy1, xy2, etc, which represent holes in  
+                           the bigger contour xy contour
+  - {..., maxsz}         : specifies the characteristic length at each
+                           point (default: 0.1);
+
+ For sufficently large MAXSZ, no new points are created on the boundary.
+
+  See also NG_MK_2D_MODEL</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="call_gmsh.html" class="code" title="function status= call_gmsh(geo_file, extra)">call_gmsh</a>	call_gmsh: call Gmsh to create a vol_file from a geo_file</li><li><a href="gmsh_mk_2d_model.html" class="code" title="function mdl = gmsh_mk_2d_model(varargin)">gmsh_mk_2d_model</a>	GMSH_MK_2D_MODEL create a 2D mesh with GMSH</li><li><a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>	[srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="gmsh_mk_2d_model.html" class="code" title="function mdl = gmsh_mk_2d_model(varargin)">gmsh_mk_2d_model</a>	GMSH_MK_2D_MODEL create a 2D mesh with GMSH</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function fname = write_geo_file(shape, cl, namestem)</a></li><li><a href="#_sub2" class="code">function [shape, cl] = process_input(shape)</a></li><li><a href="#_sub3" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function mdl = gmsh_mk_2d_model(varargin)</a>
+0002 <span class="comment">%GMSH_MK_2D_MODEL create a 2D mesh with GMSH</span>
+0003 <span class="comment">% mdl = gmsh_mk_2d_model(shape)</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% SHAPE can be:</span>
+0006 <span class="comment">%  - xy (Nx2)             : a counter- clockwise list of points in 2D</span>
+0007 <span class="comment">%                           defining the outer contour</span>
+0008 <span class="comment">%  - {xy, xy1, xy2, ...}  : allows specifying additional counter-clockwise</span>
+0009 <span class="comment">%                           loops  xy1, xy2, etc, which represent holes in</span>
+0010 <span class="comment">%                           the bigger contour xy contour</span>
+0011 <span class="comment">%  - {..., maxsz}         : specifies the characteristic length at each</span>
+0012 <span class="comment">%                           point (default: 0.1);</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% For sufficently large MAXSZ, no new points are created on the boundary.</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">%  See also NG_MK_2D_MODEL</span>
+0017 
+0018 <span class="comment">%% (C) 2021 Bartlomiej Grychtol, License: GPL version 2 or version 3</span>
+0019 <span class="comment">% $Id: gmsh_mk_2d_model.m 6913 2024-05-29 20:07:53Z bgrychtol $</span>
+0020 
+0021 <span class="keyword">if</span> nargin==1 &amp;&amp; ischar(varargin{1}) &amp;&amp; strcmp(varargin{1},<span class="string">'UNIT_TEST'</span>); <a href="#_sub3" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0022 
+0023 [shape, cl] = <a href="#_sub2" class="code" title="subfunction [shape, cl] = process_input(shape)">process_input</a>(varargin{:});
+0024 
+0025 namestem = tempname;
+0026 <a href="#_sub1" class="code" title="subfunction fname = write_geo_file(shape, cl, namestem)">write_geo_file</a>(shape, cl, namestem);
+0027 <a href="call_gmsh.html" class="code" title="function status= call_gmsh(geo_file, extra)">call_gmsh</a>([namestem <span class="string">'.geo'</span>]);
+0028 [srf,vtx,fc,bc,simp,edg,mat_ind] = <a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>([namestem <span class="string">'.msh'</span>]);
+0029 mdl.type     = <span class="string">'fwd_model'</span>;
+0030 mdl.name = <span class="string">'gmsh_2d_model'</span>;
+0031 mdl.nodes    = vtx;
+0032 mdl.elems    = simp;
+0033 mdl= <a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>, mdl);
+0034 
+0035 delete([namestem <span class="string">'.geo'</span>]);
+0036 delete([namestem <span class="string">'.msh'</span>]);
+0037 
+0038 
+0039 <a name="_sub1" href="#_subfunctions" class="code">function fname = write_geo_file(shape, cl, namestem)</a>
+0040 fname = [namestem <span class="string">'.geo'</span>];
+0041 n_points = 0;
+0042 n_lines = 0;
+0043 loop_idx = [];
+0044 fid= fopen(fname,<span class="string">'w'</span>);
+0045 <span class="keyword">for</span> i = 1:length(shape)
+0046     n_sh_pts = size(shape{i},1);
+0047     <span class="keyword">for</span> p = 1:n_sh_pts
+0048         fprintf(fid,<span class="string">'Point(%d) = {%f, %f, 0, %f};\n'</span>,<span class="keyword">...</span>
+0049             n_points + p, shape{i}(p,1), shape{i}(p,2), cl);
+0050     <span class="keyword">end</span>
+0051     
+0052     <span class="keyword">for</span> p = 1:n_sh_pts-1
+0053         fprintf(fid,<span class="string">'Line(%d) = {%d, %d};\n'</span>,<span class="keyword">...</span>
+0054             n_lines + p, n_points + p, n_points + p + 1);
+0055     <span class="keyword">end</span>
+0056     fprintf(fid,<span class="string">'Line(%d) = {%d, %d};\n'</span>,<span class="keyword">...</span>
+0057         n_lines + n_sh_pts, n_points + n_sh_pts, n_points + 1);
+0058     
+0059     fprintf(fid,<span class="string">'Line Loop (%d) = {%d%s};\n'</span>,<span class="keyword">...</span>
+0060         n_lines + n_sh_pts + 1, n_lines + 1,<span class="keyword">...</span>
+0061         sprintf(<span class="string">', %d'</span>, n_lines + (2:n_sh_pts)));
+0062     
+0063     loop_idx = [loop_idx, n_lines + n_sh_pts + 1];
+0064     n_points = n_points + n_sh_pts;
+0065     n_lines = n_lines + n_sh_pts + 1;
+0066 <span class="keyword">end</span>
+0067 str = <span class="string">''</span>;
+0068 <span class="keyword">if</span> numel(loop_idx) &gt; 1
+0069     str = sprintf(<span class="string">', %d'</span>, loop_idx(2:end));
+0070 <span class="keyword">end</span>
+0071 
+0072 fprintf(fid,<span class="string">'Plane Surface (%d) = {%d%s};\n'</span>,<span class="keyword">...</span>
+0073         n_lines + 1, loop_idx(1), str);
+0074 
+0075 fprintf(fid,<span class="string">'Mesh 2;\n'</span>);
+0076         
+0077 fclose(fid);
+0078 
+0079 
+0080 <a name="_sub2" href="#_subfunctions" class="code">function [shape, cl] = process_input(shape)</a>
+0081 cl = 0.1;
+0082 <span class="keyword">if</span> ~iscell(shape)
+0083    shape = {shape};
+0084 <span class="keyword">end</span>
+0085 
+0086 <span class="keyword">if</span> numel(shape) &gt; 1 &amp;&amp; numel(shape{end}) == 1
+0087     cl = shape{end};
+0088     shape(end) = [];
+0089 <span class="keyword">end</span>
+0090 
+0091 <a name="_sub3" href="#_subfunctions" class="code">function do_unit_test</a>
+0092   th=linspace(0,2*pi,9);
+0093   th(end) = [];
+0094   xy = [cos(th);sin(th)]';
+0095   fmdl=<a href="gmsh_mk_2d_model.html" class="code" title="function mdl = gmsh_mk_2d_model(varargin)">gmsh_mk_2d_model</a>(xy);
+0096   subplot(331); <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(fmdl) 
+0097   title <span class="string">'standard'</span>
+0098 
+0099   <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'stop sign 01'</span>, max(fmdl.nodes), [1,1]);
+0100   <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'stop sign 02'</span>, min(fmdl.nodes),-[1,1]);
+0101 
+0102   fmdl=<a href="gmsh_mk_2d_model.html" class="code" title="function mdl = gmsh_mk_2d_model(varargin)">gmsh_mk_2d_model</a>({xy,0.5});
+0103   subplot(332); <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(fmdl) 
+0104   title <span class="string">'coarse'</span>
+0105 
+0106   fmdl=<a href="gmsh_mk_2d_model.html" class="code" title="function mdl = gmsh_mk_2d_model(varargin)">gmsh_mk_2d_model</a>({xy,xy*0.5,0.2});
+0107   subplot(333); <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(fmdl) 
+0108   title <span class="string">'hole'</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of subtract_rank</title>
+  <meta name="keywords" content="subtract_rank">
+  <meta name="description" content="SUBTRACK_RANK: subtract a ranked level from data">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">tools</a> &gt; subtract_rank.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/tools&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>subtract_rank
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>SUBTRACK_RANK: subtract a ranked level from data</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function out = subtract_rank(in, ranklim) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> SUBTRACK_RANK: subtract a ranked level from data
+
+  imgout = subtract_rank(imgin, 0.3)
+    subtract the 30% percentile from imgr.elem_data
+  imgout = subtract_rank(imgin, [0.1,0.3])
+    subtract an average of 10-30% percentile from imgr.elem_data
+
+ if input is a 'image' object, then operate on elem_data. Otherwise operate on value</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="subtract_rank.html" class="code" title="function out = subtract_rank(in, ranklim)">subtract_rank</a>	SUBTRACK_RANK: subtract a ranked level from data</li><li><a href="unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/interface/eidors_readdata.html" class="code" title="function [vv, auxdata, stim]= eidors_readdata( fname, format, frame_range, extra )">eidors_readdata</a>	EIDORS readdata - read data files from various EIT equipment</li><li><a href="subtract_rank.html" class="code" title="function out = subtract_rank(in, ranklim)">subtract_rank</a>	SUBTRACK_RANK: subtract a ranked level from data</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = subtract_rank(in, ranklim)</a>
+0002 <span class="comment">% SUBTRACK_RANK: subtract a ranked level from data</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">%  imgout = subtract_rank(imgin, 0.3)</span>
+0005 <span class="comment">%    subtract the 30% percentile from imgr.elem_data</span>
+0006 <span class="comment">%  imgout = subtract_rank(imgin, [0.1,0.3])</span>
+0007 <span class="comment">%    subtract an average of 10-30% percentile from imgr.elem_data</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% if input is a 'image' object, then operate on elem_data. Otherwise operate on value</span>
+0010 
+0011 <span class="comment">% (C) 2024 Andy Adler. Licence GPL v2 or v3</span>
+0012 <span class="comment">% $Id: subtract_rank.m 7124 2024-12-29 15:18:32Z aadler $</span>
+0013 
+0014 <span class="keyword">if</span> ischar(in) &amp;&amp; strcmp(in,<span class="string">'UNIT_TEST'</span>); <a href="#_sub1" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0015 
+0016 <span class="keyword">if</span> isstruct(in) &amp;&amp; strcmp(in.type, <span class="string">'image'</span>) 
+0017    use_elem_data = true;
+0018    out = in;
+0019    in = in.elem_data;
+0020 <span class="keyword">elseif</span> isnumeric(in)
+0021    use_elem_data = false;
+0022 <span class="keyword">else</span>
+0023    error(<span class="string">'Unknown type for subtract_rank'</span>);
+0024 <span class="keyword">end</span>
+0025 
+0026 [~,idx] = sort(sum(in,1));
+0027 ll = length(idx);
+0028 lim= round(ranklim([1,end])*ll);
+0029 idx_= idx(lim(1):lim(2));
+0030 
+0031 sub= in - mean(in(:,idx_),2);
+0032 <span class="keyword">if</span> use_elem_data
+0033   out.elem_data = sub;
+0034 <span class="keyword">else</span>
+0035   out  = sub;
+0036 <span class="keyword">end</span>
+0037 
+0038 <a name="_sub1" href="#_subfunctions" class="code">function do_unit_test</a>
+0039   ed = [1:10] + [0;3];
+0040   x = <a href="subtract_rank.html" class="code" title="function out = subtract_rank(in, ranklim)">subtract_rank</a>(ed,.3);
+0041   expect = [0;0] + [-2:7];
+0042   <a href="unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'subtract_rank1'</span>,x,expect);
+0043   x = <a href="subtract_rank.html" class="code" title="function out = subtract_rank(in, ranklim)">subtract_rank</a>(ed,[.1,.3]);
+0044   expect = [0;0] + [-1:8];
+0045   <a href="unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'subtract_rank2'</span>,x,expect);
+0046 
+0047   img = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'image'</span>,<span class="string">''</span>,<span class="string">'elem_data'</span>,ed);
+0048   iout = <a href="subtract_rank.html" class="code" title="function out = subtract_rank(in, ranklim)">subtract_rank</a>(img,[.1,.3]);
+0049   <a href="unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'subtract_rank3'</span>,iout.elem_data,expect);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

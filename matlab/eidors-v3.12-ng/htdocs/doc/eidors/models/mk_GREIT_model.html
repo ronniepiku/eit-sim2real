@@ -1,0 +1,889 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mk_GREIT_model</title>
+  <meta name="keywords" content="mk_GREIT_model">
+  <meta name="description" content="MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; mk_GREIT_model.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mk_GREIT_model
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach
+   [imdl, weight]= mk_GREIT_model( mdl, radius, weight, options )
+
+ Output: 
+   imdl   - GREIT inverse model
+   weight - value of the weight paramater chosed to satisfy the prescribed
+            noise figure (NF). See options.noise_figure below.
+
+ Parameters:
+   mdl    - fwd_model on which to do simulations, or
+          - image
+          - inv_model 
+          - string specifying prepackaged models
+
+   is mdl.type == 'image' then the background conductivity of the image is used
+   if mdl.type == 'inv_model' then the background conductivity in jacobian_bkgnd is used
+
+   radius - requested weighting matrix  (recommend 0.2 for 16 electrodes)
+   weight - weighting matrix (weighting of noise vs signal). Can be empty
+            options.noise_figure is specified
+   options- structure with fields:
+     imgsz         - [xsz ysz] reconstructed image size in pixels 
+                     (default: [32 32])
+     square_pixels - forces square pixels if 1 (default: 0)
+     Nsim          - number of training points (default: 1000)
+     distr         - distribution of training points:
+         0 -&gt; original (as per GREITv1)
+         1 -&gt; random, centre-heavy 
+         2 -&gt; random, uniform
+         3 -&gt; fixed, uniform (default)
+     target_size - size of simulated targets as proportion of mesh radius
+         (default: 0.02). Can be specified as [min_size max_size] for 
+         random variation
+     target_plane - the (mean) height z at which simulation targets are
+         placed. This controls the image plane. Default: mean electrode
+         height
+     target_offset - maximum allowed vertical displacement from the
+         target_plane (default: 0). Can be specified as
+         [down_offset up_offset].
+     noise_figure - the noise figure (NF) to achieve. Overwrites weight 
+         which will be optimised to achieve the target NF.     
+     noise_figure_targets - circular target(s) to use for NF calculation
+         as an array of coordinates and radius xyzr [4xN] (default: single
+         target at the center at average electrode height with radius of
+         opt.target_size. Note that multiple targets are simultaneously
+         simulated in a single measurement, meaning they should not
+         overlap.
+     image_SNR - an alternative method (apart from the NF) to specify the 
+         noise performance of the algorithm to achieve.    
+     image_SNR_targets - circular targets used for image SNR calculation 
+         see xyzr_targets in calc_image_SNR for more information
+     extra_noise - extra noise samples (such as electrode movement)
+     desired_solution_fn - specify a function to calculate the desired 
+         image. It must have the signature:
+         D = my_function( xyc, radius, options); 
+         See CALC_GREIT_RM for details.
+     keep_model_components  - if true, stores additional data of 
+         reconstruction matrix computation to be used later on, 
+         e.g. for faulty electrode compensation
+     keep_intermediate_results (DEPRECATED) - like keep_model_components, but calculates expensive parameters. For backward compatibility
+     show_NF_chosen - Show the NF value chosen
+
+ NOTE
+   currently weighting matrix must be scalar
+               
+ Examples
+   fmdl = mk_library_model('adult_male_16el');
+   fmdl.stimulation = mk_stim_patterns(16,1,'{ad}','{ad}',{},1);
+   fmdl.normalize_measurements = 1;
+   imdl = mk_GREIT_model(fmdl,0.25,5); % uses weight 5
+   OR
+   opt.noise_figure = 0.5; 
+   imdl = mk_GREIT_model(fmdl,0.25,[],opt); % optimises weight for NF=0.5
+
+ CITATION_REQUEST:
+ AUTHOR: A Adler et al.
+ TITLE: GREIT: a unified approach to 2D linear EIT reconstruction of lung
+ images
+ JOURNAL: Phys Meas
+ YEAR: 2009
+ VOL: 30
+ NUM: 6
+ PAGE: S35-55
+ LINK: http://iopscience.iop.org/0967-3334/30/6/S03
+
+ See also CALC_GREIT_RM</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>	EIDORS_MSG eidors progress and status messages</li><li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../eidors/graphics/matlab/calc_slices.html" class="code" title="function rimg = calc_slices( img, levels );">calc_slices</a>	calc_slices (img, levels, clim  ) show slices at levels of an</li><li><a href="../../eidors/graphics/matlab/mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>	MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM</li><li><a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>	out_img = show_slices (img, levels ) show slices at levels of an</li><li><a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>	FOURIER_FIT: use fourier series to interpolate onto a boundary</li><li><a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>	NG_MAKE_CYL_MODELS: create cylindrical models using netgen</li><li><a href="../../eidors/meshing/netgen/ng_mk_ellip_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_ellip_models</a>	NG_MAKE_ELLIP_MODELS: create elliptical models using netgen</li><li><a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>	ORDER_LOOP Order a list of points on a loop</li><li><a href="GREIT3D_distribution.html" class="code" title="function [imdl,distr] = GREIT3D_distribution(fmdl, vopt)">GREIT3D_distribution</a>	GREIT3D_distribution: create target distributions for 3D GREIT</li><li><a href="interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>	INTERP_MESH: calculate interpolation points onto mdl elements</li><li><a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>	MDL_NORMALIZE Check or set the normalize_measurements flag on a model.</li><li><a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>	MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach</li><li><a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>	MK_COMMON_MODEL: make EIT on reconstruction grids (GREIT)</li><li><a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="mk_library_model.html" class="code" title="function out = mk_library_model(shape,elec_pos,elec_shape,maxsz,nfft,scale)">mk_library_model</a>	MK_LIBRARY_MODEL - extruded FEM models based on curves in SHAPE_LIBRARY</li><li><a href="mk_pixel_slice.html" class="code" title="function [imdl fmdl] = mk_pixel_slice(imdl,level,opt)">mk_pixel_slice</a>	MK_PIXEL_SLICE create a pixel model to reconstruct on</li><li><a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li><li><a href="simulate_movement.html" class="code" title="function [vh,vi,xyzr,c2f]= simulate_movement( img, xyzr, UNUSED );">simulate_movement</a>	SIMULATE_MOVEMENT simulate small conductivity perturbations</li><li><a href="../../eidors/overloads/octave/fminbnd.html" class="code" title="">fminbnd</a>	</li><li><a href="../../eidors/solvers/calc_jacobian_bkgnd.html" class="code" title="function img_bkgnd = calc_jacobian_bkgnd( inv_model )">calc_jacobian_bkgnd</a>	CALC_JACOBIAN_BKGND: calculate background image around</li><li><a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>	[srf, idx] = find_boundary(simp);</li><li><a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>	FWD_SOLVE: calculate data from a fwd_model object and an image</li><li><a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>	INV_SOLVE: calculate imag from an inv_model and data</li><li><a href="../../eidors/solvers/inverse/calc_GREIT_RM.html" class="code" title="function [RM, PJt, M, noiselev] = calc_GREIT_RM(vh,vi, xyc, radius, weight, options)">calc_GREIT_RM</a>	CALCULATE GREIT reconstruction matrix</li><li><a href="../../eidors/solvers/inverse/calc_image_SNR.html" class="code" title="function [SNRmean, SE, debug] = calc_image_SNR(imdl, hyperparameter, doPlot)">calc_image_SNR</a>	% CALC_IMAGE_SNR: Calculates the signal-to-noise ratio (SNR) in the image</li><li><a href="../../eidors/solvers/inverse/calc_noise_figure.html" class="code" title="function [NF,SE] = calc_noise_figure( inv_model, hp, iterations, extraparam)">calc_noise_figure</a>	CALC_NOISE_FIGURE: calculate the noise amplification (NF) of an algorithm</li><li><a href="../../eidors/solvers/inverse/solve_use_matrix.html" class="code" title="function img= solve_use_matrix( inv_model, data1, data2)">solve_use_matrix</a>	SOLVE_USE_MATRIX solve using reconstruction matrix</li><li><a href="../../eidors/tools/citeme.html" class="code" title="function citeme(fname)">citeme</a>	CITEME Display citation requests</li><li><a href="../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>	EIDORS_CACHE Control eidors caching</li><li><a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>	PROGRESS_MSG Progress messages and timing.</li><li><a href="../../eidors/tools/test_performance.html" class="code" title="function [r, params] =  test_performance( imdls, fmdl );">test_performance</a>	TEST_PERFORMANCE: test of difference reconstruction algorithms</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/deprecated/calc_noise_params.html" class="code" title="function params = calc_noise_params(imdl, vh, vi )">calc_noise_params</a>	params = GREIT_noise_params(imdl, homg_voltage, sig_voltage)</li><li><a href="../../eidors/deprecated/solve_RM_2Dslice.html" class="code" title="function imdl = select_RM_slice(imdl, sel_fcn)">solve_RM_2Dslice</a>	SELECT_RM_SLICE: cut slices out of an inverse model with a</li><li><a href="GREIT3D_distribution.html" class="code" title="function [imdl,distr] = GREIT3D_distribution(fmdl, vopt)">GREIT3D_distribution</a>	GREIT3D_distribution: create target distributions for 3D GREIT</li><li><a href="map_RM_slice.html" class="code" title="function imdl = map_RM_slice(imdl,varargin)">map_RM_slice</a>	map_RM_slice - map a 3D reconstruction matrix to an arbitrary 2D slice</li><li><a href="mk_GN_model.html" class="code" title="function imdl = mk_GN_model(img, opt, lambda)">mk_GN_model</a>	MK_GN_MODEL: make EIDORS inverse models using the GREIT approach</li><li><a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>	MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach</li><li><a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>	MK_COMMON_MODEL: make EIT on reconstruction grids (GREIT)</li><li><a href="select_RM_slice.html" class="code" title="function imdl = select_RM_slice(imdl, sel_fcn)">select_RM_slice</a>	SELECT_RM_SLICE: cut slices out of an inverse model with a</li><li><a href="select_imdl.html" class="code" title="function [inv_mdl,opt_out]= select_imdl( mdl, options )">select_imdl</a>	SELECT_IMDL: select pre-packaged inverse model features</li><li><a href="test_GREIT_model.html" class="code" title="">test_GREIT_model</a>	</li><li><a href="../../eidors/solvers/inverse/GREIT_desired_img_FEMmesh.html" class="code" title="function PSF= GREIT_desired_img_FEMmesh(xyc, radius, opt)">GREIT_desired_img_FEMmesh</a>	GREIT_DESIRED_IMG_FEMmesh  GREIT onto a FEM mesh</li><li><a href="../../eidors/solvers/inverse/calc_noise_figure.html" class="code" title="function [NF,SE] = calc_noise_figure( inv_model, hp, iterations, extraparam)">calc_noise_figure</a>	CALC_NOISE_FIGURE: calculate the noise amplification (NF) of an algorithm</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [imdl, weight]= mk_GREIT_model_calc( fmdl, imdl, imgs, radius, weight, opt)</a></li><li><a href="#_sub2" class="code">function [weight, NF] = bounded_search(f, weight,fms_opts);</a></li><li><a href="#_sub3" class="code">function out = to_optimise(vh,vi,xy,radius,weight, opt, imdl,</a></li><li><a href="#_sub4" class="code">function  imgs = get_prepackaged_fmdls( fmdl );</a></li><li><a href="#_sub5" class="code">function [vi,vh,xyz,opt]= stim_targets(imgs, Nsim, opt );</a></li><li><a href="#_sub6" class="code">function z = calc_offset(z0,opt,Nsim)</a></li><li><a href="#_sub7" class="code">function r = calc_radius(R,opt,Nsim)</a></li><li><a href="#_sub8" class="code">function RM = resize_if_reqd(RM,inside,rmdl)</a></li><li><a href="#_sub9" class="code">function [imdl,fmdl,imgs] = parse_fmdl(fmdl);</a></li><li><a href="#_sub10" class="code">function opt = parse_options(opt,fmdl,imdl, weight)</a></li><li><a href="#_sub11" class="code">function xyzr=mk_distributions0(Nsim,opt,ctr,maxx,maxy)</a></li><li><a href="#_sub12" class="code">function xyzr=mk_distributions1(Nsim,opt,ctr,maxx,maxy)</a></li><li><a href="#_sub13" class="code">function xyzr=mk_distributions2(Nsim,opt,ctr,maxx,maxy)</a></li><li><a href="#_sub14" class="code">function xyzr=mk_distributions3(Nsim,opt,ctr,maxx,maxy)</a></li><li><a href="#_sub15" class="code">function do_unit_test</a></li><li><a href="#_sub16" class="code">function do_very_basic_test</a></li><li><a href="#_sub17" class="code">function do_very_basic_test_3d</a></li><li><a href="#_sub18" class="code">function do_basic_tests</a></li><li><a href="#_sub19" class="code">function do_performance_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )</a>
+0002 <span class="comment">% MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach</span>
+0003 <span class="comment">%   [imdl, weight]= mk_GREIT_model( mdl, radius, weight, options )</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Output:</span>
+0006 <span class="comment">%   imdl   - GREIT inverse model</span>
+0007 <span class="comment">%   weight - value of the weight paramater chosed to satisfy the prescribed</span>
+0008 <span class="comment">%            noise figure (NF). See options.noise_figure below.</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Parameters:</span>
+0011 <span class="comment">%   mdl    - fwd_model on which to do simulations, or</span>
+0012 <span class="comment">%          - image</span>
+0013 <span class="comment">%          - inv_model</span>
+0014 <span class="comment">%          - string specifying prepackaged models</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">%   is mdl.type == 'image' then the background conductivity of the image is used</span>
+0017 <span class="comment">%   if mdl.type == 'inv_model' then the background conductivity in jacobian_bkgnd is used</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">%   radius - requested weighting matrix  (recommend 0.2 for 16 electrodes)</span>
+0020 <span class="comment">%   weight - weighting matrix (weighting of noise vs signal). Can be empty</span>
+0021 <span class="comment">%            options.noise_figure is specified</span>
+0022 <span class="comment">%   options- structure with fields:</span>
+0023 <span class="comment">%     imgsz         - [xsz ysz] reconstructed image size in pixels</span>
+0024 <span class="comment">%                     (default: [32 32])</span>
+0025 <span class="comment">%     square_pixels - forces square pixels if 1 (default: 0)</span>
+0026 <span class="comment">%     Nsim          - number of training points (default: 1000)</span>
+0027 <span class="comment">%     distr         - distribution of training points:</span>
+0028 <span class="comment">%         0 -&gt; original (as per GREITv1)</span>
+0029 <span class="comment">%         1 -&gt; random, centre-heavy</span>
+0030 <span class="comment">%         2 -&gt; random, uniform</span>
+0031 <span class="comment">%         3 -&gt; fixed, uniform (default)</span>
+0032 <span class="comment">%     target_size - size of simulated targets as proportion of mesh radius</span>
+0033 <span class="comment">%         (default: 0.02). Can be specified as [min_size max_size] for</span>
+0034 <span class="comment">%         random variation</span>
+0035 <span class="comment">%     target_plane - the (mean) height z at which simulation targets are</span>
+0036 <span class="comment">%         placed. This controls the image plane. Default: mean electrode</span>
+0037 <span class="comment">%         height</span>
+0038 <span class="comment">%     target_offset - maximum allowed vertical displacement from the</span>
+0039 <span class="comment">%         target_plane (default: 0). Can be specified as</span>
+0040 <span class="comment">%         [down_offset up_offset].</span>
+0041 <span class="comment">%     noise_figure - the noise figure (NF) to achieve. Overwrites weight</span>
+0042 <span class="comment">%         which will be optimised to achieve the target NF.</span>
+0043 <span class="comment">%     noise_figure_targets - circular target(s) to use for NF calculation</span>
+0044 <span class="comment">%         as an array of coordinates and radius xyzr [4xN] (default: single</span>
+0045 <span class="comment">%         target at the center at average electrode height with radius of</span>
+0046 <span class="comment">%         opt.target_size. Note that multiple targets are simultaneously</span>
+0047 <span class="comment">%         simulated in a single measurement, meaning they should not</span>
+0048 <span class="comment">%         overlap.</span>
+0049 <span class="comment">%     image_SNR - an alternative method (apart from the NF) to specify the</span>
+0050 <span class="comment">%         noise performance of the algorithm to achieve.</span>
+0051 <span class="comment">%     image_SNR_targets - circular targets used for image SNR calculation</span>
+0052 <span class="comment">%         see xyzr_targets in calc_image_SNR for more information</span>
+0053 <span class="comment">%     extra_noise - extra noise samples (such as electrode movement)</span>
+0054 <span class="comment">%     desired_solution_fn - specify a function to calculate the desired</span>
+0055 <span class="comment">%         image. It must have the signature:</span>
+0056 <span class="comment">%         D = my_function( xyc, radius, options);</span>
+0057 <span class="comment">%         See CALC_GREIT_RM for details.</span>
+0058 <span class="comment">%     keep_model_components  - if true, stores additional data of</span>
+0059 <span class="comment">%         reconstruction matrix computation to be used later on,</span>
+0060 <span class="comment">%         e.g. for faulty electrode compensation</span>
+0061 <span class="comment">%     keep_intermediate_results (DEPRECATED) - like keep_model_components, but calculates expensive parameters. For backward compatibility</span>
+0062 <span class="comment">%     show_NF_chosen - Show the NF value chosen</span>
+0063 <span class="comment">%</span>
+0064 <span class="comment">% NOTE</span>
+0065 <span class="comment">%   currently weighting matrix must be scalar</span>
+0066 <span class="comment">%</span>
+0067 <span class="comment">% Examples</span>
+0068 <span class="comment">%   fmdl = mk_library_model('adult_male_16el');</span>
+0069 <span class="comment">%   fmdl.stimulation = mk_stim_patterns(16,1,'{ad}','{ad}',{},1);</span>
+0070 <span class="comment">%   fmdl.normalize_measurements = 1;</span>
+0071 <span class="comment">%   imdl = mk_GREIT_model(fmdl,0.25,5); % uses weight 5</span>
+0072 <span class="comment">%   OR</span>
+0073 <span class="comment">%   opt.noise_figure = 0.5;</span>
+0074 <span class="comment">%   imdl = mk_GREIT_model(fmdl,0.25,[],opt); % optimises weight for NF=0.5</span>
+0075 <span class="comment">%</span>
+0076 <span class="comment">% CITATION_REQUEST:</span>
+0077 <span class="comment">% AUTHOR: A Adler et al.</span>
+0078 <span class="comment">% TITLE: GREIT: a unified approach to 2D linear EIT reconstruction of lung</span>
+0079 <span class="comment">% images</span>
+0080 <span class="comment">% JOURNAL: Phys Meas</span>
+0081 <span class="comment">% YEAR: 2009</span>
+0082 <span class="comment">% VOL: 30</span>
+0083 <span class="comment">% NUM: 6</span>
+0084 <span class="comment">% PAGE: S35-55</span>
+0085 <span class="comment">% LINK: http://iopscience.iop.org/0967-3334/30/6/S03</span>
+0086 <span class="comment">%</span>
+0087 <span class="comment">% See also CALC_GREIT_RM</span>
+0088 
+0089 <span class="comment">% (C) 2010 Andy Adler. License: GPL version 2 or version 3</span>
+0090 <span class="comment">% $Id: mk_GREIT_model.m 7088 2024-12-20 18:18:28Z aadler $</span>
+0091 
+0092 <span class="keyword">if</span> ischar(fmdl) &amp;&amp; strcmp(fmdl,<span class="string">'UNIT_TEST'</span>); <a href="#_sub15" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0093 
+0094 <a href="../../eidors/tools/citeme.html" class="code" title="function citeme(fname)">citeme</a>(mfilename);
+0095 
+0096 <span class="keyword">if</span> nargin &lt; 4, options = [];<span class="keyword">end</span>
+0097 [imdl,fmdl,imgs] = <a href="#_sub9" class="code" title="subfunction [imdl,fmdl,imgs] = parse_fmdl(fmdl);">parse_fmdl</a>(fmdl);
+0098 options = <a href="#_sub10" class="code" title="subfunction opt = parse_options(opt,fmdl,imdl, weight)">parse_options</a>(options,fmdl,imdl, weight);
+0099 
+0100 copt.cache_obj= { fmdl, imdl, imgs, radius, weight, options};
+0101 copt.fstr = <span class="string">'mk_GREIT_model'</span>;
+0102 params = {fmdl, imdl, imgs, radius, weight, options};
+0103 
+0104 [imdl, weight] = <a href="../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(@<a href="#_sub1" class="code" title="subfunction [imdl, weight]= mk_GREIT_model_calc( fmdl, imdl, imgs, radius, weight, opt)">mk_GREIT_model_calc</a>, params, copt);
+0105 
+0106 
+0107 <a name="_sub1" href="#_subfunctions" class="code">function [imdl, weight]= mk_GREIT_model_calc( fmdl, imdl, imgs, radius, weight, opt)</a>
+0108 
+0109 Nsim = opt.Nsim;
+0110 [vi,vh,xyz,opt]= <a href="#_sub5" class="code" title="subfunction [vi,vh,xyz,opt]= stim_targets(imgs, Nsim, opt );">stim_targets</a>(imgs, Nsim, opt );
+0111 
+0112 <span class="comment">%Calculate rec_model (if absent)</span>
+0113 <span class="keyword">if</span> ~isfield(imdl,<span class="string">'rec_model'</span>);
+0114    opt.do_coarse2fine = 0;
+0115    [imdl.rec_model imdl.fwd_model] = <a href="mk_pixel_slice.html" class="code" title="function [imdl fmdl] = mk_pixel_slice(imdl,level,opt)">mk_pixel_slice</a>(fmdl,opt.target_plane,opt);
+0116    imdl.rec_model.nodes(:,3) = []; <span class="comment">% the third dimension complicated display</span>
+0117    <span class="comment">% medical orientation</span>
+0118    imdl.rec_model.mdl_slice_mapper.y_pts = fliplr(imdl.rec_model.mdl_slice_mapper.y_pts);
+0119 <span class="keyword">end</span>
+0120 
+0121 opt.rec_model = imdl.rec_model; <span class="comment">% for desired image calculation</span>
+0122 
+0123 imdl.solve = @<a href="../../eidors/solvers/inverse/solve_use_matrix.html" class="code" title="function img= solve_use_matrix( inv_model, data1, data2)">solve_use_matrix</a>;
+0124 <span class="comment">%</span>
+0125 
+0126 <span class="keyword">if</span> ~isempty(opt.noise_figure) || ~isempty(opt.image_SNR)
+0127     <span class="keyword">if</span> ~isempty(opt.noise_figure)
+0128         <span class="comment">% we'll optimise the weight for a given noise figure (NF)</span>
+0129         target = opt.noise_figure;
+0130         NoisPerfName = <span class="string">'Noise Figure'</span>;
+0131     <span class="keyword">elseif</span> ~isempty(opt.image_SNR)
+0132         <span class="comment">% we'll optimise the weight for a given image SNR</span>
+0133         NoisPerfName = <span class="string">'Image SNR'</span>;
+0134         target = opt.image_SNR;        
+0135         <span class="keyword">if</span> isfield(opt, <span class="string">'SigmaN'</span>)
+0136             imdl.hyperparameter.SigmaN = opt.SigmaN;
+0137         <span class="keyword">end</span>
+0138         <span class="keyword">if</span> isfield(opt, <span class="string">'image_SNR_targets'</span>)
+0139             imdl.hyperparameter.xyzr_targets = opt.image_SNR_targets;
+0140         <span class="keyword">end</span>
+0141     <span class="keyword">else</span>
+0142         error(<span class="string">'internal bug: shouldn''t get here'</span>);
+0143     <span class="keyword">end</span>
+0144     
+0145     <span class="keyword">if</span> ~isempty(weight)
+0146         <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'mk_GREIT_model: Using weight parameter as a guess, options.noise_figure or opt.image_SNR is non-empty'</span>);
+0147     <span class="keyword">else</span>
+0148         <span class="keyword">if</span> ~isempty(opt.noise_figure)
+0149             weight = target;
+0150         <span class="keyword">elseif</span> ~isempty(opt.image_SNR)
+0151             weight = 1/target;   <span class="comment">% the inverse, as image SNR \propto 1/NF</span>
+0152         <span class="keyword">else</span>
+0153             error(<span class="string">'internal bug: shouldn''t get here'</span>);
+0154         <span class="keyword">end</span>
+0155     <span class="keyword">end</span>
+0156     
+0157     xyzr = opt.noise_figure_targets;
+0158     [jnk,vi_NF] = <a href="simulate_movement.html" class="code" title="function [vh,vi,xyzr,c2f]= simulate_movement( img, xyzr, UNUSED );">simulate_movement</a>(imgs,xyzr');
+0159     vi_NF = sum(vi_NF,2); <span class="comment">% sum the targets</span>
+0160     f = @(X) <a href="#_sub3" class="code" title="subfunction out = to_optimise(vh,vi,xy,radius,weight, opt, imdl, ">to_optimise</a>(vh,vi,xyz, radius, X, opt, imdl, target, vi_NF);
+0161     fms_opts.TolFun = 0.01*target; <span class="comment">%don't need higher accuracy</span>
+0162     <span class="comment">% The first call can take a long time. Take it out of the loop to</span>
+0163     <span class="comment">% allow progress messages.</span>
+0164     imdl.solve_use_matrix.RM = <a href="../../eidors/solvers/inverse/calc_GREIT_RM.html" class="code" title="function [RM, PJt, M, noiselev] = calc_GREIT_RM(vh,vi, xyc, radius, weight, options)">calc_GREIT_RM</a>(vh,vi,xyz, radius, weight, opt);
+0165     <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>([<span class="string">'mk_GREIT_model: '</span>, NoisPerfName,<span class="string">':'</span>],0,10000,struct(<span class="string">'log_level'</span>,1));
+0166     log_level = <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'log_level'</span>);
+0167     <span class="keyword">if</span>  log_level &gt; 1
+0168        log_level = <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>( <span class="string">'log_level'</span>, 1); <span class="comment">% suppress messages</span>
+0169     <span class="keyword">end</span>
+0170     [weight, NF] = <a href="#_sub2" class="code" title="subfunction [weight, NF] = bounded_search(f, weight,fms_opts);">bounded_search</a>(f, weight,fms_opts);
+0171     <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>([<span class="string">'Optimal solution gives '</span>, NoisPerfName, <span class="string">'='</span> <span class="keyword">...</span><span class="comment"> </span>
+0172         num2str(NF+target) <span class="string">' with weight='</span> num2str(weight)],inf);
+0173     assert((sqrt(NF) / target) &lt; 0.01, <span class="keyword">...</span>
+0174             [<span class="string">'Cannot find an accurate enough match for desired '</span>, NoisPerfName]');
+0175      <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>( <span class="string">'log_level'</span>, log_level); <span class="comment">% restore</span>
+0176 <span class="keyword">end</span>
+0177 <span class="comment">%</span>
+0178 [RM, PJt, M, noiselev] = <a href="../../eidors/solvers/inverse/calc_GREIT_RM.html" class="code" title="function [RM, PJt, M, noiselev] = calc_GREIT_RM(vh,vi, xyc, radius, weight, options)">calc_GREIT_RM</a>(vh,vi, xyz, radius, weight, opt );
+0179 imdl.solve_use_matrix.RM = RM;
+0180 <span class="keyword">if</span> opt.keep_model_components || opt.keep_intermediate_results
+0181    <span class="comment">% store additional data to be used for faulty electrode compensation</span>
+0182    imdl.solve_use_matrix.PJt = PJt;
+0183    imdl.solve_use_matrix.M = M;
+0184    imdl.solve_use_matrix.noiselev = noiselev;
+0185 <span class="keyword">end</span>
+0186 <span class="keyword">if</span> opt.keep_intermediate_results
+0187    <span class="comment">% DEPRECATED but compatible for older code</span>
+0188    imdl.solve_use_matrix.X = inv(M);
+0189 <span class="keyword">end</span>
+0190 <span class="comment">% imdl.solve_use_matrix.RM = resize_if_reqd(RM,inside,imdl.rec_model);</span>
+0191 imdl.jacobian_bkgnd = imgs;
+0192 <span class="comment">%imdl.solve_use_matrix.map = inside;</span>
+0193 imdl.hyperparameter.value = weight;     <span class="comment">% store the applied weight as &quot;hyperparameter&quot; value</span>
+0194 <span class="keyword">if</span> isfield(opt,<span class="string">'show_NF_chosen'</span>) &amp;&amp; opt.show_NF_chosen
+0195    xyzr = opt.noise_figure_targets;
+0196    [jnk,vi_NF] = <a href="simulate_movement.html" class="code" title="function [vh,vi,xyzr,c2f]= simulate_movement( img, xyzr, UNUSED );">simulate_movement</a>(imgs,xyzr');
+0197    NF = <a href="../../eidors/solvers/inverse/calc_noise_figure.html" class="code" title="function [NF,SE] = calc_noise_figure( inv_model, hp, iterations, extraparam)">calc_noise_figure</a>(imdl,vh, vi_NF);
+0198    imdl.show_NF_chosen = NF; 
+0199    <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>([<span class="string">'NF = '</span>, num2str(NF), <span class="string">' weight = '</span>, num2str(weight)],1);
+0200 <span class="keyword">end</span>
+0201 
+0202 <span class="comment">% standard field order</span>
+0203 imdl = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'inv_model'</span>, imdl);
+0204 
+0205 <span class="comment">% Here we search for a good NF to match</span>
+0206 <a name="_sub2" href="#_subfunctions" class="code">function [weight, NF] = bounded_search(f, weight,fms_opts);</a>
+0207     <span class="comment">% Use bounded search, but widen if necessary</span>
+0208     uplim = 2; dnlim = -2;
+0209     <span class="keyword">while</span> (1)
+0210         [weight, NF] = <a href="../../eidors/overloads/octave/fminbnd.html" class="code" title="">fminbnd</a>(@(x) f(10^x), <span class="keyword">...</span>
+0211              dnlim,uplim,fms_opts);
+0212         <span class="comment">% Check if need to widen boundary</span>
+0213         <span class="keyword">if</span>     abs(norm(weight - uplim))&lt;0.1
+0214            uplim = uplim + 2;
+0215         <span class="keyword">elseif</span> abs(norm(weight - dnlim))&lt;0.1
+0216            dnlim = dnlim - 2;
+0217         <span class="keyword">else</span>
+0218            weight = 10^weight;
+0219            <span class="keyword">break</span>
+0220         <span class="keyword">end</span>
+0221     <span class="keyword">end</span>
+0222 
+0223 
+0224     <span class="keyword">return</span>
+0225 <span class="comment">%   % original search</span>
+0226 <span class="comment">%   [weight, NF] = fminsearch(f, weight,fms_opts);</span>
+0227 
+0228 <a name="_sub3" href="#_subfunctions" class="code">function out = to_optimise(vh,vi,xy,radius,weight, opt, imdl, </a><span class="keyword">...</span>
+0229     target,vi_NF)
+0230 
+0231    <span class="comment">% calculate GREIT matrix as usual</span>
+0232    imdl.solve_use_matrix.RM = <a href="../../eidors/solvers/inverse/calc_GREIT_RM.html" class="code" title="function [RM, PJt, M, noiselev] = calc_GREIT_RM(vh,vi, xyc, radius, weight, options)">calc_GREIT_RM</a>(vh,vi,xy, radius, weight, opt);
+0233    imdl.hyperparameter.value = weight;
+0234 <span class="comment">%    imdl.solve_use_matrix.RM = resize_if_reqd(RM,inside,imdl.rec_model);</span>
+0235    <span class="keyword">if</span> ~isempty(opt.noise_figure)
+0236       NF = <a href="../../eidors/solvers/inverse/calc_noise_figure.html" class="code" title="function [NF,SE] = calc_noise_figure( inv_model, hp, iterations, extraparam)">calc_noise_figure</a>(imdl,vh, vi_NF);
+0237    <span class="keyword">elseif</span> ~isempty(opt.image_SNR)
+0238       NF = <a href="../../eidors/solvers/inverse/calc_image_SNR.html" class="code" title="function [SNRmean, SE, debug] = calc_image_SNR(imdl, hyperparameter, doPlot)">calc_image_SNR</a>(imdl);
+0239    <span class="keyword">else</span>
+0240       error(<span class="string">'internal bug: shouldn''t get here'</span>);       
+0241    <span class="keyword">end</span>
+0242 <span class="comment">%  eidors_msg(['NF = ', num2str(NF), ' weight = ', num2str(weight)],1);</span>
+0243 <span class="comment">%  pmsg = sprintf('NF=%6.4f weight=%6.4f',NF,weight)</span>
+0244 <span class="comment">%  progress_msg(pmsg,0);</span>
+0245    <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(round(NF*1e4),10000)
+0246    out = (NF - target)^2;
+0247 <span class="comment">%    out = (mean(NF) - target)^2 + std(NF);</span>
+0248 
+0249 
+0250 <a name="_sub4" href="#_subfunctions" class="code">function  imgs = get_prepackaged_fmdls( fmdl );</a>
+0251   <span class="keyword">switch</span> fmdl
+0252     <span class="keyword">case</span> <span class="string">'c=1;h=2;r=.08;ce=16;bg=1;st=1;me=1;nd'</span>
+0253       fmdl = <a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>([2,1,0.18],[16,1],[0.05]); 
+0254       fmdl.stimulation = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,1],[0,1],{},1);
+0255       fmdl = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl,1);
+0256       imgs= <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>( fmdl, 1);
+0257     <span class="keyword">otherwise</span>
+0258       error(<span class="string">'specified fmdl (%s) is not understood'</span>, fmdl);
+0259   <span class="keyword">end</span>
+0260 
+0261 <a name="_sub5" href="#_subfunctions" class="code">function [vi,vh,xyz,opt]= stim_targets(imgs, Nsim, opt );</a>
+0262     fmdl = imgs.fwd_model;
+0263    ctr =  mean(fmdl.nodes);  
+0264    maxx = max(abs(fmdl.nodes(:,1) - ctr(1)));
+0265    maxy = max(abs(fmdl.nodes(:,2) - ctr(2)));
+0266    <span class="keyword">if</span> numel(opt.distr) &gt; 1
+0267       xyzr = opt.distr;
+0268       xyzr(4,:) = <a href="#_sub7" class="code" title="subfunction r = calc_radius(R,opt,Nsim)">calc_radius</a>(mean([maxx,maxy]),opt,size(opt.distr,2));
+0269    <span class="keyword">else</span>
+0270        <span class="keyword">switch</span> opt.distr
+0271            <span class="keyword">case</span> 0 <span class="comment">% original</span>
+0272                xyzr=<a href="#_sub11" class="code" title="subfunction xyzr=mk_distributions0(Nsim,opt,ctr,maxx,maxy)">mk_distributions0</a>(Nsim,opt,ctr,maxx,maxy);
+0273            <span class="keyword">case</span> 1 <span class="comment">%centre-heavy</span>
+0274                xyzr=<a href="#_sub12" class="code" title="subfunction xyzr=mk_distributions1(Nsim,opt,ctr,maxx,maxy)">mk_distributions1</a>(Nsim,opt,ctr,maxx,maxy);
+0275            <span class="keyword">case</span> 2 <span class="comment">%uniform</span>
+0276                xyzr=<a href="#_sub13" class="code" title="subfunction xyzr=mk_distributions2(Nsim,opt,ctr,maxx,maxy)">mk_distributions2</a>(Nsim,opt,ctr,maxx,maxy);
+0277            <span class="keyword">case</span> 3 <span class="comment">% uniform, non-random</span>
+0278                xyzr=<a href="#_sub14" class="code" title="subfunction xyzr=mk_distributions3(Nsim,opt,ctr,maxx,maxy)">mk_distributions3</a>(Nsim,opt,ctr,maxx,maxy);
+0279            <span class="keyword">otherwise</span>; error(<span class="string">'GREIT: opt.distr no such case=%d'</span>,opt.distr);
+0280        <span class="keyword">end</span>
+0281    <span class="keyword">end</span>
+0282    before = size(xyzr,2);
+0283    [vh,vi,xyzr] = <a href="simulate_movement.html" class="code" title="function [vh,vi,xyzr,c2f]= simulate_movement( img, xyzr, UNUSED );">simulate_movement</a>(imgs, xyzr);
+0284    after = size(xyzr,2);
+0285    <span class="keyword">if</span>(after~=before)
+0286        <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>([<span class="string">'mk_GREIT_model: Now using '</span> num2str(after) <span class="string">' points'</span>]);
+0287    <span class="keyword">end</span>
+0288    xyz = xyzr(1:3,:);
+0289 
+0290 <a name="_sub6" href="#_subfunctions" class="code">function z = calc_offset(z0,opt,Nsim)</a>
+0291     <span class="keyword">if</span> opt.random_offset
+0292         l_bnd = opt.target_offset(1);
+0293         width = sum(opt.target_offset(1:2));
+0294         z = z0 - l_bnd + rand(Nsim,1)*width;
+0295     <span class="keyword">else</span>
+0296         z = z0*ones(Nsim,1);
+0297     <span class="keyword">end</span>
+0298 
+0299 <a name="_sub7" href="#_subfunctions" class="code">function r = calc_radius(R,opt,Nsim)</a>
+0300    <span class="keyword">if</span> opt.random_size
+0301        min_sz = opt.target_size(1);
+0302        max_sz = opt.target_size(2);
+0303        range = max_sz - min_sz;
+0304        r = (min_sz + rand(Nsim,1)*range)*R;
+0305    <span class="keyword">else</span>
+0306        r = opt.target_size(1)*ones(Nsim,1)*R;
+0307    <span class="keyword">end</span>
+0308            
+0309    
+0310    
+0311 <a name="_sub8" href="#_subfunctions" class="code">function RM = resize_if_reqd(RM,inside,rmdl)</a>
+0312    szRM = size(RM,1);
+0313    <span class="keyword">if</span> sum(inside) == szRM || <span class="keyword">...</span>
+0314         szRM == size(rmdl.elems,1) || <span class="keyword">...</span>
+0315         (isfield(rmdl,<span class="string">'coarse2fine'</span>) &amp;&amp; szRM == size(rmdl.coarse2fine,2))
+0316       <span class="comment">% RM is fine</span>
+0317    <span class="keyword">elseif</span> any(size(inside)==szRM) &amp;&amp; any(size(inside) == 1)
+0318       RM = RM(inside,:);
+0319    <span class="keyword">else</span>
+0320       error(<span class="string">'mismatch in size of provided RecMatrix'</span>);
+0321    <span class="keyword">end</span>
+0322 
+0323 
+0324 <a name="_sub9" href="#_subfunctions" class="code">function [imdl,fmdl,imgs] = parse_fmdl(fmdl);</a>
+0325    imdl = []; 
+0326    <span class="keyword">if</span> ischar(fmdl)
+0327       imgs = <a href="#_sub4" class="code" title="subfunction  imgs = get_prepackaged_fmdls( fmdl );">get_prepackaged_fmdls</a>( fmdl );
+0328       fmdl = imgs.fwd_model;
+0329    <span class="keyword">elseif</span> isfield(fmdl,<span class="string">'type'</span>);
+0330      <span class="keyword">switch</span> fmdl.type
+0331    <span class="comment">%  if we get a fwd_model, assume uniform conductivity backgnd of 1</span>
+0332        <span class="keyword">case</span> <span class="string">'fwd_model'</span>; imgs = <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>( fmdl, 1);
+0333    <span class="comment">%  if we get an image, use it. It may have a non-uniform backgnd</span>
+0334        <span class="keyword">case</span> <span class="string">'image'</span>;     imgs = fmdl; <span class="comment">% fmdl was an image</span>
+0335                          fmdl = imgs.fwd_model; <span class="comment">% now it's a fmdl</span>
+0336        <span class="keyword">case</span> <span class="string">'inv_model'</span>; imdl = fmdl;
+0337                          fmdl = imdl.fwd_model;
+0338                          imgs = <a href="../../eidors/solvers/calc_jacobian_bkgnd.html" class="code" title="function img_bkgnd = calc_jacobian_bkgnd( inv_model )">calc_jacobian_bkgnd</a>(imdl);
+0339        <span class="keyword">otherwise</span>; error(<span class="string">'unrecognized eidors object'</span>);
+0340      <span class="keyword">end</span>
+0341    <span class="keyword">else</span>
+0342       error(<span class="string">'specified parameter must be an object or a string'</span>);
+0343    <span class="keyword">end</span>
+0344    <span class="comment">% Prepare model</span>
+0345    <span class="keyword">if</span> isempty(imdl)
+0346       imdl = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'inv_model'</span>,<span class="string">'GREIT inverse model'</span>, <span class="keyword">...</span>
+0347                          <span class="string">'fwd_model'</span>,fmdl, <span class="string">'reconst_type'</span>,<span class="string">'difference'</span>);
+0348    <span class="keyword">end</span>
+0349    
+0350    
+0351     <a name="_sub10" href="#_subfunctions" class="code">function opt = parse_options(opt,fmdl,imdl, weight)</a>
+0352 
+0353     <span class="keyword">if</span> ~isfield(opt, <span class="string">'imgsz'</span>),     opt.imgsz = [32 32]; <span class="keyword">end</span>
+0354     <span class="keyword">if</span> ~isfield(opt, <span class="string">'square_pixels'</span>)
+0355         opt.square_pixels = 0;
+0356     <span class="keyword">end</span>
+0357     <span class="comment">% Allow imdl.rec_model to overwrite options.imgsz</span>
+0358     <span class="keyword">if</span> isfield(imdl,<span class="string">'rec_model'</span>) &amp;&amp; ~isempty(imdl.rec_model)
+0359         <span class="comment">% this assumes rec_model is a rectangular grid, as it should</span>
+0360         opt.imgsz(1) = numel(unique(imdl.rec_model.nodes(:,1)))-1;
+0361         opt.imgsz(2) = numel(unique(imdl.rec_model.nodes(:,2)))-1;
+0362         <span class="keyword">try</span>
+0363             opt.imgsz(3) = numel(unique(imdl.rec_model.nodes(:,3)))-1;
+0364         <span class="keyword">end</span>
+0365     <span class="keyword">end</span>  
+0366     
+0367     <span class="keyword">if</span> ~isfield(opt, <span class="string">'distr'</span>),     opt.distr = 3;       <span class="keyword">end</span> 
+0368     <span class="keyword">if</span> ~isfield(opt, <span class="string">'Nsim'</span> ),     opt.Nsim  = 1000;    <span class="keyword">end</span>
+0369     <span class="keyword">if</span> ~isfield(opt, <span class="string">'noise_figure'</span>), opt.noise_figure = []; <span class="keyword">end</span>
+0370     <span class="keyword">if</span> ~isfield(opt, <span class="string">'image_SNR'</span>), opt.image_SNR = []; <span class="keyword">end</span>
+0371     <span class="keyword">if</span> isempty(opt.noise_figure) &amp;&amp; isempty(opt.image_SNR) &amp;&amp; isempty(weight)
+0372         error(<span class="string">'EIDORS:WrongInput'</span>, <span class="keyword">...</span>
+0373             <span class="string">'The weight parameter must be specified if opt.noise_figure or opt.image_SNR are empty or absent'</span>);
+0374     <span class="keyword">end</span>
+0375     <span class="keyword">if</span> ~isfield(opt, <span class="string">'target_size'</span>)
+0376         opt.target_size = 0.05;
+0377     <span class="keyword">end</span>
+0378     <span class="keyword">if</span> sum(size(opt.target_size)) &gt; 2
+0379         <span class="keyword">if</span> opt.target_size(1) == opt.target_size(2);
+0380             opt.random_size = false;
+0381         <span class="keyword">else</span>
+0382             opt.random_size = true;
+0383         <span class="keyword">end</span>
+0384     <span class="keyword">end</span>
+0385     <span class="keyword">if</span> sum(size(opt.target_size)) == 2
+0386             opt.random_size = false;
+0387     <span class="keyword">end</span>
+0388     
+0389     <span class="comment">% Calculate the position of the electrodes</span>
+0390     Nelecs = length(fmdl.electrode);
+0391     <span class="keyword">for</span> i=1:Nelecs
+0392        enodesi = fmdl.electrode(i).nodes;
+0393        <span class="keyword">if</span> isfield(fmdl.electrode(i),<span class="string">'faces'</span>) <span class="comment">% priority over nodes</span>
+0394           enodesi = fmdl.electrode(i).faces(:);
+0395        <span class="keyword">end</span>
+0396        <span class="keyword">if</span> isempty(enodesi)
+0397           error(<span class="string">'can''t determine electrode location'</span>);
+0398        <span class="keyword">end</span>
+0399        elec_loc(i,:) = mean( fmdl.nodes( enodesi,:),1 );
+0400     <span class="keyword">end</span>
+0401     opt.elec_loc = elec_loc;
+0402     
+0403     <span class="keyword">if</span> ~isfield(opt, <span class="string">'target_plane'</span>)
+0404           opt.target_plane = mean(elec_loc(:,3));
+0405     <span class="keyword">else</span>
+0406         t = opt.target_plane;
+0407         minnode = min(fmdl.nodes);
+0408         maxnode = max(fmdl.nodes);
+0409         <span class="keyword">if</span> t&lt;minnode(3) || t&gt;maxnode(3)
+0410             warning(<span class="string">'options.target_plane is outside the model!'</span>);
+0411             <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'mk_GREIT_model: Resorting to default target_plane'</span>);
+0412             opt.target_plane = mean(elec_loc(:,3));
+0413         <span class="keyword">end</span>
+0414     <span class="keyword">end</span>
+0415     <span class="keyword">if</span> ~isfield(opt, <span class="string">'target_offset'</span>)
+0416         opt.target_offset = 0;
+0417     <span class="keyword">end</span>
+0418     <span class="keyword">if</span> sum(size(opt.target_offset)) == 2
+0419         <span class="keyword">if</span> opt.target_offset &lt; 0, opt.target_offset = 0; <span class="keyword">end</span>
+0420         opt.target_offset(2) = opt.target_offset(1);
+0421     <span class="keyword">end</span>
+0422     <span class="keyword">if</span> any(opt.target_offset &gt; 0)
+0423         opt.random_offset = true;
+0424     <span class="keyword">else</span>
+0425         opt.random_offset = false;
+0426     <span class="keyword">end</span>
+0427 
+0428     <span class="keyword">if</span> ~isfield(opt,<span class="string">'noise_figure_targets'</span>);
+0429        R = max(max(fmdl.nodes(:,1:2)) - min(fmdl.nodes(:,1:2)));
+0430        xyzr = mean(fmdl.nodes);
+0431        xyzr(3) = opt.target_plane;
+0432        xyzr(4) = mean(opt.target_size)*0.5*R;
+0433        opt.noise_figure_targets = xyzr;
+0434     <span class="keyword">end</span>
+0435 
+0436        
+0437     <span class="keyword">if</span> ~isfield(opt,<span class="string">'keep_model_components'</span>);
+0438        opt.keep_model_components = false;
+0439     <span class="keyword">end</span>
+0440     <span class="keyword">if</span> ~isfield(opt,<span class="string">'keep_intermediate_results'</span>);
+0441        opt.keep_intermediate_results = false;
+0442     <span class="keyword">end</span>
+0443     
+0444     
+0445     <span class="keyword">try</span>, opt.normalize = fmdl.normalize_measurements;
+0446     <span class="keyword">catch</span>, 
+0447         opt.normalize = 0;
+0448         <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'mk_GREIT_model: fmdl.normalize_measurements not specified, assuming 0'</span>);
+0449     <span class="keyword">end</span>
+0450     
+0451     <span class="comment">% find the boundary at target level (needed in many places)</span>
+0452     slc = <a href="../../eidors/graphics/matlab/mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(fmdl,[inf inf opt.target_plane]);
+0453     bnd = <a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(slc.fwd_model);
+0454     opt.contour_boundary = <a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>(slc.fwd_model.nodes(unique(bnd),:));
+0455     
+0456 <span class="comment">% case 0 % original</span>
+0457 <a name="_sub11" href="#_subfunctions" class="code">function xyzr=mk_distributions0(Nsim,opt,ctr,maxx,maxy)</a>
+0458     r = linspace(0,0.9, Nsim);
+0459     th = r*4321; <span class="comment">% want object to jump around in radius</span>
+0460     xyzr = [maxx*r.*cos(th); maxy*r.*sin(th);
+0461         opt.target_plane*ones(1,Nsim);
+0462         0.05*mean([maxx,maxy])*ones(1,Nsim)];
+0463 
+0464 <span class="comment">% case 1 %centre-heavy</span>
+0465 <a name="_sub12" href="#_subfunctions" class="code">function xyzr=mk_distributions1(Nsim,opt,ctr,maxx,maxy)</a>
+0466     F = <a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(opt.contour_boundary(:,1:2));
+0467     v = linspace(0,1,Nsim*100+1); v(end)=[];
+0468     pts = <a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(F,v);
+0469     idx_p = floor(rand(Nsim,1)*Nsim*100);
+0470     xyzr = pts(idx_p,:)'.*repmat(rand(Nsim,1),[1 2])';
+0471     xyzr(3,:) = <a href="#_sub6" class="code" title="subfunction z = calc_offset(z0,opt,Nsim)">calc_offset</a>(opt.target_plane,opt,Nsim);
+0472                
+0473     <span class="comment">% TODO: What size is good here and how to figure it out?</span>
+0474     xyzr(4,:) = <a href="#_sub7" class="code" title="subfunction r = calc_radius(R,opt,Nsim)">calc_radius</a>(mean([maxx maxy]),opt,Nsim);
+0475 
+0476 <span class="comment">% case 2 %uniform</span>
+0477 <a name="_sub13" href="#_subfunctions" class="code">function xyzr=mk_distributions2(Nsim,opt,ctr,maxx,maxy)</a>
+0478     <span class="comment">%            F = fourier_fit(opt.contour_boundary(:,1:2));</span>
+0479     <span class="comment">%            v = linspace(0,1,101); v(end)=[];</span>
+0480     <span class="comment">%            pts = fourier_fit(F,v);</span>
+0481     pts = opt.contour_boundary(:,1:2);
+0482     <span class="comment">% avoid edges</span>
+0483     pts = 0.9*( pts - repmat(ctr(1:2),length(pts),1) ) + repmat(ctr(1:2),length(pts),1);
+0484     <span class="comment">% using maxx and maxy below would in general not produce a</span>
+0485     <span class="comment">% uniform distribution</span>
+0486     lim = max(maxx, maxy);
+0487     x = ctr(1) + (rand(Nsim*10,1)-0.5)*2*lim;
+0488     y = ctr(2) + (rand(Nsim*10,1)-0.5)*2*lim;
+0489     IN = inpolygon(x,y,pts(:,1),pts(:,2));
+0490     xyzr(1,:) = x(find(IN,Nsim));
+0491     xyzr(2,:) = y(find(IN,Nsim));
+0492     xyzr(3,:) = <a href="#_sub6" class="code" title="subfunction z = calc_offset(z0,opt,Nsim)">calc_offset</a>(opt.target_plane,opt,Nsim);
+0493     <span class="comment">% TODO: What size is good here and how to figure it out?</span>
+0494     xyzr(4,:) = <a href="#_sub7" class="code" title="subfunction r = calc_radius(R,opt,Nsim)">calc_radius</a>(mean([maxx maxy]),opt,Nsim);
+0495 
+0496 <span class="comment">% case 3 % uniform, non-random</span>
+0497 <a name="_sub14" href="#_subfunctions" class="code">function xyzr=mk_distributions3(Nsim,opt,ctr,maxx,maxy)</a>
+0498     <span class="comment">%            F = fourier_fit(opt.elec_loc(:,1:2));</span>
+0499     <span class="comment">%            v = linspace(0,1,101); v(end)=[];</span>
+0500     <span class="comment">%            pts = fourier_fit(F,v);</span>
+0501     pts = opt.contour_boundary(:,1:2);
+0502     lim = max(maxx, maxy);
+0503     frac = polyarea(pts(:,1),pts(:,2)) / (2*lim)^2;
+0504     [x,y] = ndgrid( linspace(-lim,lim,ceil(sqrt(Nsim/frac))), <span class="keyword">...</span>
+0505         linspace(-lim,lim,ceil(sqrt(Nsim/frac))));
+0506     
+0507     x = x+ctr(1); y = y + ctr(2);
+0508     IN = inpolygon(x,y,pts(:,1),pts(:,2));
+0509     xyzr(1,:) = x(find(IN));
+0510     xyzr(2,:) = y(find(IN));
+0511     xyzr(3,:) = <a href="#_sub6" class="code" title="subfunction z = calc_offset(z0,opt,Nsim)">calc_offset</a>(opt.target_plane,opt,size(xyzr,2));
+0512     <span class="comment">% TODO: What size is good here and how to figure it out?</span>
+0513     xyzr(4,:) = <a href="#_sub7" class="code" title="subfunction r = calc_radius(R,opt,Nsim)">calc_radius</a>(mean([maxx maxy]),opt,size(xyzr,2));
+0514     <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>([<span class="string">'mk_GREIT_model: Using '</span> num2str(size(xyzr,2)) <span class="string">' points'</span>]);
+0515 
+0516 <a name="_sub15" href="#_subfunctions" class="code">function do_unit_test</a>
+0517    <a href="#_sub16" class="code" title="subfunction do_very_basic_test">do_very_basic_test</a>
+0518    <a href="#_sub17" class="code" title="subfunction do_very_basic_test_3d">do_very_basic_test_3d</a>
+0519    <a href="#_sub19" class="code" title="subfunction do_performance_test">do_performance_test</a>; 
+0520    <a href="#_sub18" class="code" title="subfunction do_basic_tests">do_basic_tests</a>
+0521 
+0522 
+0523 <a name="_sub16" href="#_subfunctions" class="code">function do_very_basic_test</a>
+0524     img = <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(<a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a3cr'</span>,[16,1]));
+0525     img.elem_data(5+64*6) = 1.2; vi=<a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img);
+0526     img.elem_data(:)   = 1;   vh=<a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img);
+0527     opt.noise_figure = 1;
+0528 
+0529     <span class="keyword">for</span> test = 1:2; <span class="keyword">switch</span> test
+0530        <span class="keyword">case</span> 1; img.elem_data(:) = 1; <span class="comment">% uniform</span>
+0531           xc_= 0.19852208; yc_=-0.2336663;
+0532        <span class="keyword">case</span> 2; 
+0533           r2 =sum(<a href="interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>(img,0).^2*[1;1;0],2);
+0534           img.elem_data = 1 + (r2&lt;0.2); <span class="comment">% centre</span>
+0535           xc_= 0.21157312; yc_=-0.21416713;
+0536        <span class="keyword">end</span>
+0537        imdl = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(img,0.2,[],opt);
+0538        imgr = <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl,vh,vi);
+0539 
+0540        imgs = <a href="../../eidors/graphics/matlab/calc_slices.html" class="code" title="function rimg = calc_slices( img, levels );">calc_slices</a>(imgr);
+0541        imgs(isnan(imgs)) = 0;
+0542        ls = linspace(-1,1,32); [x,y] = meshgrid(ls,ls);
+0543        xc = [sum(sum(imgs.*x))/sum(sum(imgs))];
+0544        yc = [sum(sum(imgs.*y))/sum(sum(imgs))];
+0545        
+0546 <span class="comment">% disp([xc,xc_,yc,yc_]);</span>
+0547        <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Reconst xpos'</span>,xc,xc_,1e-4);
+0548        <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Reconst ypos'</span>,yc,yc_,1e-4);
+0549     <span class="keyword">end</span>
+0550 
+0551 <a name="_sub17" href="#_subfunctions" class="code">function do_very_basic_test_3d</a>
+0552     img = <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(<a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a3cr'</span>,[16,1]));
+0553     vopt.imgsz = [32 32];
+0554     vopt.square_pixels = true;
+0555     vopt.zvec = [-0.2,0.2];
+0556     vopt.save_memory = 1;
+0557     opt.noise_figure = 1.0;
+0558 
+0559     <span class="comment">% GREIT 3D with a 1x32 electrode layout</span>
+0560     [imdl,opt.distr] = <a href="GREIT3D_distribution.html" class="code" title="function [imdl,distr] = GREIT3D_distribution(fmdl, vopt)">GREIT3D_distribution</a>(img.fwd_model, vopt);
+0561     img.elem_data(5+64*6) = 1.2; vi=<a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img);
+0562     img.elem_data(:)   = 1;   vh=<a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img);
+0563     opt.noise_figure = 1;
+0564 
+0565     <span class="keyword">for</span> test = 1:2; <span class="keyword">switch</span> test
+0566        <span class="keyword">case</span> 1; img.elem_data(:) = 1; <span class="comment">% uniform</span>
+0567           xc_= 0.19221520; yc_=-0.23110588;
+0568        <span class="keyword">case</span> 2; 
+0569           r2 =sum(<a href="interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>(img,0).^2*[1;1;0],2);
+0570           img.elem_data = 1 + (r2&lt;0.2); <span class="comment">% centre</span>
+0571           xc_= 0.20440922; yc_=-0.20445254;
+0572        <span class="keyword">end</span>
+0573        imdl.jacobian_bkgnd.value = img.elem_data;
+0574        imdl = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(imdl,0.2,[],opt);
+0575        imgr = <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl,vh,vi);
+0576 
+0577        imgs = <a href="../../eidors/graphics/matlab/calc_slices.html" class="code" title="function rimg = calc_slices( img, levels );">calc_slices</a>(imgr,[inf,inf,0]);
+0578        imgs(isnan(imgs)) = 0;
+0579        ls = linspace(-1,1,32); [x,y] = meshgrid(ls,ls);
+0580        xc = [sum(sum(imgs.*x))/sum(sum(imgs))];
+0581        yc = [sum(sum(imgs.*y))/sum(sum(imgs))];
+0582        
+0583        <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Reconst xpos'</span>,xc,xc_,1e-7);
+0584        <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Reconst ypos'</span>,yc,yc_, 1e-7);
+0585     <span class="keyword">end</span>
+0586 
+0587 <a name="_sub18" href="#_subfunctions" class="code">function do_basic_tests</a>
+0588 
+0589 sidx= 1; subplot(4,4,sidx);
+0590 
+0591 <span class="comment">% Create a 3D elliptical cylinder with 16 circular electrodes</span>
+0592 fmdl_1= <a href="../../eidors/meshing/netgen/ng_mk_ellip_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_ellip_models</a>([1,1.2,0.8],[16,0.5],[0.1]); <span class="comment">%show_fem(fmdl);</span>
+0593 <span class="comment">% Put two balls into the elliptical cylinder</span>
+0594 extra={<span class="string">'ball'</span>,<span class="string">'solid ball = sphere(0.5,0.5,0.5;0.1);'</span>};
+0595 [fmdl_2,mat_idx]= <a href="../../eidors/meshing/netgen/ng_mk_ellip_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_ellip_models</a>([1,1.2,0.8],[16,0.5],[0.1],extra); 
+0596 <span class="comment">% Set the model to use adjacent current patterns</span>
+0597 stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,1],[0,1],{}); 
+0598 fmdl_1.stimulation = stim;
+0599 fmdl_2.stimulation = stim;
+0600 <span class="comment">% Simulate homogeneous voltages (background conductivity = 0.5);</span>
+0601 img = <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl_2, 0.5); vh = <a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img); <span class="comment">%show_fem(img);</span>
+0602 <span class="comment">% Simulate inhomogeneous voltages (ball conductivity = 1.0);</span>
+0603 img.elem_data(mat_idx{2})= 1.0; vi = <a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img); 
+0604 sidx= sidx+1; subplot(4,4,sidx);
+0605 <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(img);
+0606 <span class="comment">% Reconstruct the image using GREITv1</span>
+0607 imdl= <a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>(<span class="string">'GREITc1'</span>); 
+0608 img= <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl,vh,vi);
+0609 sidx= sidx+1; subplot(4,4,sidx);
+0610 <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img)
+0611 
+0612 <span class="comment">% Create a GREIT model for the ellipse</span>
+0613 opt.noise_figure = 0.5; opt.distr = 3;opt.square_pixels = 1; <span class="comment">%other options are defaults</span>
+0614 fmdl_2 = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl_2,0);
+0615 <span class="comment">% use the true model (inverse crime)</span>
+0616 img_2 = <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl_2,0.5);
+0617 imdl1 = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(img_2, 0.25, [], opt);
+0618 img1= <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl1,vh,vi);  
+0619 sidx= sidx+1; subplot(4,4,sidx);
+0620 <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img1);
+0621 
+0622 <span class="comment">% now do the same but using image SNR and not NF</span>
+0623 opt = rmfield(opt,<span class="string">'noise_figure'</span>);
+0624 opt.image_SNR = 1e-3; 
+0625 weight = 90; <span class="comment">% need to choose a weight that works with SNR</span>
+0626 imdl1 = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(img_2, 0.25, weight, opt);
+0627 img1= <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl1,vh,vi);  
+0628 sidx= sidx+1; subplot(4,4,sidx); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img1);
+0629 
+0630 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Expect no PJT or X'</span>, ~isfield(imdl1.solve_use_matrix, <span class="string">'PJt'</span>) &amp; <span class="keyword">...</span>
+0631                                     ~isfield(imdl1.solve_use_matrix, <span class="string">'X'</span>), true);
+0632 
+0633 weight = [];
+0634 opt.keep_model_components = true;
+0635 imdl1 = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(img_2, 0.25, weight, opt);
+0636 sumat = imdl1.solve_use_matrix;
+0637 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Expect PJT and M'</span>, <span class="keyword">...</span>
+0638   isfield(sumat, <span class="string">'PJt'</span>) &amp; <span class="keyword">...</span>
+0639  ~isfield(sumat, <span class="string">'X'</span>) &amp; <span class="keyword">...</span>
+0640   isfield(sumat, <span class="string">'M'</span>), true);
+0641 
+0642 opt.keep_intermediate_results = true;
+0643 imdl1 = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(img_2, 0.25, weight, opt);
+0644 sumat = imdl1.solve_use_matrix;
+0645 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Expect PJT, X and M'</span>, <span class="keyword">...</span>
+0646   isfield(sumat, <span class="string">'PJt'</span>) &amp; <span class="keyword">...</span>
+0647   isfield(sumat, <span class="string">'X'</span>) &amp; <span class="keyword">...</span>
+0648   isfield(sumat, <span class="string">'M'</span>), true);
+0649 
+0650 img1= <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl1,vh,vi);  
+0651 sidx= sidx+1; subplot(4,4,sidx); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img1);
+0652 
+0653 opt = rmfield(opt,{<span class="string">'image_SNR'</span>, <span class="string">'keep_intermediate_results'</span>}); opt.noise_figure = 0.5;
+0654 
+0655 <span class="comment">% use honogenous model</span>
+0656 fmdl_1 = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl_1,0);
+0657 imdl2 = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(<a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl_1,0.5), 0.25, [], opt);
+0658 img2= <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl2,vh,vi); 
+0659 sidx= sidx+1; subplot(4,4,sidx); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img2);
+0660 
+0661 
+0662 <span class="comment">% specify targets for NF calc</span>
+0663 opt.noise_figure_targets = [-.5 0 .5 .2;.5 0 .5 .2;];
+0664 imdl3 = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(<a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl_1,0.5), 0.25, [], opt);
+0665 img3= <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl3,vh,vi); 
+0666 sidx= sidx+1; subplot(4,4,sidx); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img3);
+0667 <span class="comment">% cleanup</span>
+0668 opt = rmfield(opt,<span class="string">'noise_figure_targets'</span>);
+0669 
+0670 
+0671 <span class="comment">%% repeat with normalized data</span>
+0672 fmdl_2 = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl_2,1);
+0673 <span class="comment">% use the true model (inverse crime)</span>
+0674 imdl3 = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(<a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl_2,0.5), 0.25, [], opt);
+0675 img3= <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl3,vh,vi); 
+0676 
+0677 <span class="comment">% use honogenous model</span>
+0678 fmdl_1 = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl_1,1);
+0679 imdl4 = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(<a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl_1,0.5), 0.25, [], opt);
+0680 img4= <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl4,vh,vi); 
+0681 
+0682 sidx= sidx+1; subplot(4,4,sidx);
+0683 <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>([img1 img2 img3 img4])
+0684 
+0685 
+0686 <span class="comment">%% Use a prepackaged model</span>
+0687 fmdl = <a href="mk_library_model.html" class="code" title="function out = mk_library_model(shape,elec_pos,elec_shape,maxsz,nfft,scale)">mk_library_model</a>(<span class="string">'adult_male_16el_lungs'</span>);
+0688 fmdl.stimulation = stim;
+0689 fmdl = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl,1);
+0690 img = <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,1);
+0691 img.elem_data([fmdl.mat_idx{2}; fmdl.mat_idx{3}],1) = 0.3;
+0692 vh = <a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img);
+0693 img.elem_data([fmdl.mat_idx{2}; fmdl.mat_idx{3}],1) = 0.4;
+0694 vi = <a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img);
+0695 
+0696 
+0697 fmdl2 = <a href="mk_library_model.html" class="code" title="function out = mk_library_model(shape,elec_pos,elec_shape,maxsz,nfft,scale)">mk_library_model</a>(<span class="string">'adult_male_16el'</span>);
+0698 fmdl2.stimulation = stim;
+0699 fmdl2 = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl2,1);
+0700 
+0701 opt.imgsz = [50 30];
+0702 opt.square_pixels = 1;
+0703 imdl = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(fmdl2,0.25,3,opt);
+0704 
+0705 img = <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl,vh, vi);
+0706 sidx= sidx+1; subplot(4,4,sidx);
+0707 <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img);
+0708 
+0709 
+0710 <span class="comment">% do the same again with image SNR and not NF</span>
+0711 opt = rmfield(opt,<span class="string">'noise_figure'</span>);
+0712 opt.image_SNR = 1e-4; 
+0713 weight = 0.5; <span class="comment">% need to choose a weight that works with SNR</span>
+0714 imdl = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(fmdl2, 0.25, weight, opt);
+0715 img = <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl,vh, vi);
+0716 sidx= sidx+1; subplot(4,4,sidx); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img);
+0717 
+0718 opt.image_SNR_targets = [0.3 0.3  0.5 0.05;  0.3 -0.3 0.5 0.05; <span class="keyword">...</span>
+0719                          0.3 -0.3 0.5 0.05; -0.3 -0.3 0.5 0.05; <span class="keyword">...</span>
+0720                          0.3 0    0.5 0.05; -0.3  0   0.5 0.05; <span class="keyword">...</span>
+0721                          0   0.3  0.5 0.05;  0   -0.3 0.5 0.05]';
+0722 opt.image_SNR = 3e-4; 
+0723 weight = 1E-2; <span class="comment">% need to choose a weight that works with SNR</span>
+0724 imdl = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(fmdl2, 0.25, weight, opt);
+0725 img = <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl,vh, vi);
+0726 sidx= sidx+1; subplot(4,4,sidx); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img);
+0727 
+0728 
+0729 <a name="_sub19" href="#_subfunctions" class="code">function do_performance_test</a>
+0730 <span class="comment">% Reconstruct GREIT Images</span>
+0731 imdl_v1 = <a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>(<span class="string">'GREITc1'</span>);
+0732 imdl_v1.inv_solve.calc_solution_error = false;
+0733 
+0734 <span class="comment">% Reconstruct backprojection Images</span>
+0735 imdl_bp = <a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>(<span class="string">'backproj'</span>);
+0736 
+0737 <span class="comment">% Recosntruct with new GREIT</span>
+0738 <span class="comment">% fmdl = ng_mk_cyl_models([2,1,0.05],[16,1],[0.05]);</span>
+0739 fmdl = <a href="mk_library_model.html" class="code" title="function out = mk_library_model(shape,elec_pos,elec_shape,maxsz,nfft,scale)">mk_library_model</a>(<span class="string">'cylinder_16x1el_fine'</span>);
+0740 fmdl.nodes = fmdl.nodes/15; <span class="comment">% make radius 1;</span>
+0741 fmdl.stimulation = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,1],[0,1],{<span class="string">'no_meas_current'</span>}, 1);
+0742 opt.noise_figure = 0.88;
+0743 opt.target_size = 0.1;
+0744 opt.distr = 0;
+0745 imdl_gr = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(fmdl, 0.2, [], opt);
+0746 
+0747 opt = struct();
+0748 opt.noise_figure = 0.5; <span class="comment">% current recommendation</span>
+0749 imdl_def = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(fmdl,0.2,[],opt);
+0750 
+0751 opt.desired_solution_fn = <span class="string">'GREIT_desired_img_original'</span>;
+0752 imdl_org = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(fmdl,0.2,[],opt);
+0753 
+0754 <a href="../../eidors/tools/test_performance.html" class="code" title="function [r, params] =  test_performance( imdls, fmdl );">test_performance</a>( { imdl_v1, imdl_gr, imdl_def, imdl_org},fmdl );
+0755 legend({<span class="string">'v1'</span>, <span class="string">'gr'</span>, <span class="string">'def'</span>, <span class="string">'org'</span>});</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

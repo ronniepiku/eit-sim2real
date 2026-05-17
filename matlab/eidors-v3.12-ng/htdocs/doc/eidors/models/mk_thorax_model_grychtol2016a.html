@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mk_thorax_model_grychtol2016a</title>
+  <meta name="keywords" content="mk_thorax_model_grychtol2016a">
+  <meta name="description" content="Builds the male thorax models from Grychtol, Müller and Adler (2016)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; mk_thorax_model_grychtol2016a.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mk_thorax_model_grychtol2016a
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>Builds the male thorax models from Grychtol, Müller and Adler (2016)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function img = mk_thorax_model_grychtol2016a(stimpat) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Builds the male thorax models from Grychtol, Müller and Adler (2016)
+ Accepts a string parameter:
+    '2x16_planar'   - 2 rings of 16 electrodes, planar stimulation
+    '2x16_odd-even' - 2 rings, each stimulation is cross-plane 
+    '2x16_square'   - 2 rings, every second stimulation is cross-plane
+    '2x16_adjacent' - like square, but with adjacent stimulation
+    '1x32_ring'     - single ring of 32 electrodes
+
+ CITATION_REQUEST:
+ AUTHOR: Bartlomiej Grychtol, Beat Müller and Andy Adler
+ TITLE: 3D EIT image reconstruction with GREIT
+ JOURNAL: Physiological Measurement
+ VOL: 37
+ YEAR: 2016</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>	EIDORS_MSG eidors progress and status messages</li><li><a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>	MDL_NORMALIZE Check or set the normalize_measurements flag on a model.</li><li><a href="mk_lung_image.html" class="code" title="function img = mk_lung_image(mdl, opt, cmd)">mk_lung_image</a>	MK_LUNG_IMAGE create an image with lung and heart contrasts from a model</li><li><a href="mk_thorax_model.html" class="code" title="function out = mk_thorax_model(str, varargin)">mk_thorax_model</a>	MK_THORAX_MODEL FEM models of the thorax</li><li><a href="../../eidors/models/private/set_predef_stim.html" class="code" title="function mdl = set_predef_stim(mdl, stimpat)">set_predef_stim</a>	SET_PREDEF_STIM</li><li><a href="../../eidors/tools/citeme.html" class="code" title="function citeme(fname)">citeme</a>	CITEME Display citation requests</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="mk_thorax_model.html" class="code" title="function out = mk_thorax_model(str, varargin)">mk_thorax_model</a>	MK_THORAX_MODEL FEM models of the thorax</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function img = build_image</a></li><li><a href="#_sub2" class="code">function  opt = organ_options</a></li><li><a href="#_sub3" class="code">function out = get_cache_path</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function img = mk_thorax_model_grychtol2016a(stimpat)</a>
+0002 <span class="comment">% Builds the male thorax models from Grychtol, Müller and Adler (2016)</span>
+0003 <span class="comment">% Accepts a string parameter:</span>
+0004 <span class="comment">%    '2x16_planar'   - 2 rings of 16 electrodes, planar stimulation</span>
+0005 <span class="comment">%    '2x16_odd-even' - 2 rings, each stimulation is cross-plane</span>
+0006 <span class="comment">%    '2x16_square'   - 2 rings, every second stimulation is cross-plane</span>
+0007 <span class="comment">%    '2x16_adjacent' - like square, but with adjacent stimulation</span>
+0008 <span class="comment">%    '1x32_ring'     - single ring of 32 electrodes</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% CITATION_REQUEST:</span>
+0011 <span class="comment">% AUTHOR: Bartlomiej Grychtol, Beat Müller and Andy Adler</span>
+0012 <span class="comment">% TITLE: 3D EIT image reconstruction with GREIT</span>
+0013 <span class="comment">% JOURNAL: Physiological Measurement</span>
+0014 <span class="comment">% VOL: 37</span>
+0015 <span class="comment">% YEAR: 2016</span>
+0016 
+0017 <span class="comment">% (C) 2016-2024 Bartlomiej Grychtol. License: GPL version 2 or 3</span>
+0018 <span class="comment">% $Id: mk_thorax_model_grychtol2016a.m 6908 2024-05-29 09:04:56Z bgrychtol $</span>
+0019 
+0020 <a href="../../eidors/tools/citeme.html" class="code" title="function citeme(fname)">citeme</a>(mfilename);
+0021 
+0022 <span class="keyword">if</span> nargin&lt;1 || isempty(stimpat)
+0023    stimpat = <span class="string">'1x32_ring'</span>;
+0024 <span class="keyword">end</span>
+0025 
+0026 fname = [<a href="#_sub3" class="code" title="subfunction out = get_cache_path">get_cache_path</a> filesep <span class="string">'adult_male_grychtol2016a.mat'</span>];
+0027 <span class="keyword">if</span> exist(fname,<span class="string">'file'</span>)
+0028    <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'@@ Using stored model.'</span>, 3);
+0029    load(fname, <span class="string">'img'</span>);
+0030 <span class="keyword">else</span>
+0031    img = <a href="#_sub1" class="code" title="subfunction img = build_image">build_image</a>;
+0032    save(fname, <span class="string">'img'</span>);
+0033 <span class="keyword">end</span>
+0034 img.name = img.fwd_model.name;
+0035 img.fwd_model.name = <span class="keyword">...</span>
+0036    sprintf([<span class="string">'Thorax model from Grychtol, Müller and Adler (2016) '</span><span class="keyword">...</span>
+0037    <span class="string">'- %s electrode config'</span>],stimpat);
+0038 img = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(img, <span class="string">'default'</span>);
+0039 img = <a href="../../eidors/models/private/set_predef_stim.html" class="code" title="function mdl = set_predef_stim(mdl, stimpat)">set_predef_stim</a>(img, stimpat);
+0040 
+0041 <span class="keyword">end</span>
+0042 
+0043 <a name="_sub1" href="#_subfunctions" class="code">function img = build_image</a>
+0044    eth16 = 360*cumsum([0.2 0.4*ones(1,7) 0.5 0.4*ones(1,7)])/6.5 - 90; eth16 = eth16';
+0045    eth32 = 360*cumsum([0.1 0.2*ones(1,15) 0.25 0.2*ones(1,15)])/6.45 - 90; eth32 = eth32';
+0046    ep = eth16; ep(:,2) = 150;
+0047    ep(17:48,1) = eth32; ep(17:48,2) = 175;
+0048    ep(49:64,1) = eth16; ep(49:64,2) = 200;
+0049    mdl = <a href="mk_thorax_model.html" class="code" title="function out = mk_thorax_model(str, varargin)">mk_thorax_model</a>(<span class="string">'male'</span>,ep,[5 0 .5],10);
+0050    mdl.name = sprintf([<span class="string">'Thorax mesh from Grychtol, Müller and Adler (2016)'</span>]);
+0051    
+0052    
+0053    opt = <a href="#_sub2" class="code" title="subfunction  opt = organ_options">organ_options</a>;
+0054    img = <a href="mk_lung_image.html" class="code" title="function img = mk_lung_image(mdl, opt, cmd)">mk_lung_image</a>(mdl,opt);
+0055    img.fwd_model = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(img.fwd_model, <span class="string">'default'</span>);
+0056    
+0057 <span class="keyword">end</span>
+0058 
+0059 <a name="_sub2" href="#_subfunctions" class="code">function  opt = organ_options</a>
+0060    opt.bkgnd_val = 1  ;
+0061    opt.lung_val =  .2;
+0062    opt.heart_val = 1.5;
+0063    opt.left_lung_center =  [ 75 25 100];
+0064    opt.right_lung_center = [-75 25 100];
+0065    opt.left_lung_axes = [80 100 250];
+0066    opt.right_lung_axes = [80 100 250];
+0067    opt.heart_center = [20 -25 200];
+0068    opt.heart_axes = [50 60 75];
+0069    opt.diaphragm_center = [0 -50 0];
+0070    opt.diaphragm_axes = [220 190 120];
+0071 <span class="keyword">end</span>
+0072 
+0073 <a name="_sub3" href="#_subfunctions" class="code">function out = get_cache_path</a>
+0074    <span class="keyword">global</span> eidors_objects
+0075    out = eidors_objects.model_cache;
+0076 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of vertlines</title>
+  <meta name="keywords" content="vertlines">
+  <meta name="description" content="VERTLINES: put vertical lines at time markers">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="#">graphics</a> &gt; <a href="index.html">matlab</a> &gt; vertlines.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/graphics/matlab&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>vertlines
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>VERTLINES: put vertical lines at time markers</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function hh=vertlines( xpts, opts ); </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> VERTLINES: put vertical lines at time markers
+   vertlines( time_pts )
+   vertlines( time_pts, opts ) % line opts i.e. {'LineWidth',2}</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="vertlines.html" class="code" title="function hh=vertlines( xpts, opts );">vertlines</a>	VERTLINES: put vertical lines at time markers</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="vertlines.html" class="code" title="function hh=vertlines( xpts, opts );">vertlines</a>	VERTLINES: put vertical lines at time markers</li><li><a href="../../../eidors/interface/eidors_readdata.html" class="code" title="function [vv, auxdata, stim]= eidors_readdata( fname, format, frame_range, extra )">eidors_readdata</a>	EIDORS readdata - read data files from various EIT equipment</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function hh=vertlines( xpts, opts );</a>
+0002 <span class="comment">% VERTLINES: put vertical lines at time markers</span>
+0003 <span class="comment">%   vertlines( time_pts )</span>
+0004 <span class="comment">%   vertlines( time_pts, opts ) % line opts i.e. {'LineWidth',2}</span>
+0005 
+0006 <span class="comment">% $Id: vertlines.m 7089 2024-12-20 20:24:40Z aadler $ (C) A.Adler 2024. Copyright GPL v2 or v3</span>
+0007 
+0008   <span class="keyword">if</span> nargin==1; opts = {}; <span class="keyword">end</span>
+0009   <span class="keyword">if</span> ischar(xpts) &amp;&amp; strcmp(xpts,<span class="string">'UNIT_TEST'</span>); <a href="#_sub1" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0010 
+0011   xpts = reshape(xpts,1,[]);
+0012   oo   = 1+0*xpts;
+0013   yl=ylim;
+0014   <span class="comment">% -negative z to put at back</span>
+0015   hh=line([1;1]*xpts,yl'*oo,-[1;1]*oo,<span class="string">'Color'</span>,[0,0,0], <span class="keyword">...</span>
+0016       <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,opts{:});
+0017   ylim(yl);
+0018 
+0019 
+0020 <a name="_sub1" href="#_subfunctions" class="code">function do_unit_test</a>
+0021   t=linspace(0,100,1000);
+0022   plot(t,sin(t).*exp(-t/100));
+0023   <a href="vertlines.html" class="code" title="function hh=vertlines( xpts, opts );">vertlines</a>([0:20:60]);
+0024   <a href="vertlines.html" class="code" title="function hh=vertlines( xpts, opts );">vertlines</a>([50],{<span class="string">'LineWidth'</span>,3,<span class="string">'Color'</span>,[0,1,0]});</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

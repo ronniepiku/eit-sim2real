@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mergestructs</title>
+  <meta name="keywords" content="mergestructs">
+  <meta name="description" content="MERGESTRUCTS: merge structs where fields in later structs override earlier">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">tools</a> &gt; mergestructs.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/tools&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mergestructs
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MERGESTRUCTS: merge structs where fields in later structs override earlier</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function s_out = mergestructs(s_in, varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> MERGESTRUCTS: merge structs where fields in later structs override earlier
+
+ struct_out = mergestructs(base, struct1, struct2, ...)
+
+ Example:
+   s1 = struct('a',1,'b',2);
+   s2 = struct('c',5,'b',3);
+   mergestructs(s1,s2) =&gt; .a=1, .b=3, .c=3
+ 
+ Note this only processes the top level of a struct tree</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="mergestructs.html" class="code" title="function s_out = mergestructs(s_in, varargin)">mergestructs</a>	MERGESTRUCTS: merge structs where fields in later structs override earlier</li><li><a href="unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/models/define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>	DEFINE_ROIS: define ROI regions in image</li><li><a href="mergestructs.html" class="code" title="function s_out = mergestructs(s_in, varargin)">mergestructs</a>	MERGESTRUCTS: merge structs where fields in later structs override earlier</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function s_out = mergestructs(s_in, varargin)</a>
+0002 <span class="comment">% MERGESTRUCTS: merge structs where fields in later structs override earlier</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% struct_out = mergestructs(base, struct1, struct2, ...)</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Example:</span>
+0007 <span class="comment">%   s1 = struct('a',1,'b',2);</span>
+0008 <span class="comment">%   s2 = struct('c',5,'b',3);</span>
+0009 <span class="comment">%   mergestructs(s1,s2) =&gt; .a=1, .b=3, .c=3</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Note this only processes the top level of a struct tree</span>
+0012 
+0013 <span class="comment">% $Id: mergestructs.m 7002 2024-11-24 13:11:35Z aadler $</span>
+0014 <span class="comment">% (C) 2024 A Adler: License GPL v2 or v3</span>
+0015 
+0016   <span class="keyword">if</span> ischar(s_in) &amp;&amp; strcmp(s_in,<span class="string">'UNIT_TEST'</span>); <a href="#_sub1" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0017 
+0018   s_out = s_in;
+0019  
+0020   <span class="keyword">for</span> i = 1:length(varargin);
+0021     ssi = varargin{i};
+0022     <span class="keyword">if</span> ~isstruct(ssi); error(<span class="string">'Mergestructs: only struct args'</span>); <span class="keyword">end</span>
+0023     <span class="keyword">for</span> fn = fieldnames(ssi)'
+0024       s_out.( fn{1} ) = ssi.( fn{1} ); 
+0025     <span class="keyword">end</span>
+0026   <span class="keyword">end</span>
+0027 
+0028 <a name="_sub1" href="#_subfunctions" class="code">function do_unit_test</a>
+0029   s1 = struct(<span class="string">'a'</span>,1,<span class="string">'b'</span>,2);
+0030   s2 = struct(<span class="string">'c'</span>,5,<span class="string">'b'</span>,3);
+0031   s3 = struct(<span class="string">'d'</span>,6,<span class="string">'b'</span>,4);
+0032 
+0033   so = <a href="mergestructs.html" class="code" title="function s_out = mergestructs(s_in, varargin)">mergestructs</a>(s1);
+0034   <a href="unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'1 arg'</span>,so,s1);
+0035 
+0036   so = <a href="mergestructs.html" class="code" title="function s_out = mergestructs(s_in, varargin)">mergestructs</a>(s1,s2);
+0037   so2= struct(<span class="string">'a'</span>,1,<span class="string">'b'</span>,3,<span class="string">'c'</span>,5);
+0038   <a href="unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2 arg'</span>,so,so2);
+0039 
+0040   so = <a href="mergestructs.html" class="code" title="function s_out = mergestructs(s_in, varargin)">mergestructs</a>(s1,s2,s3);
+0041   so3= struct(<span class="string">'a'</span>,1,<span class="string">'b'</span>,4,<span class="string">'c'</span>,5,<span class="string">'d'</span>,6);
+0042   <a href="unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3 arg'</span>,so,so3);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

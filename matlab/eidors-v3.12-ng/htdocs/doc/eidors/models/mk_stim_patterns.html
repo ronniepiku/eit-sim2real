@@ -1,0 +1,881 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mk_stim_patterns</title>
+  <meta name="keywords" content="mk_stim_patterns">
+  <meta name="description" content="MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; mk_stim_patterns.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mk_stim_patterns
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure
+                to form part of a fwd_model object
+ [stim, meas_sel] = mk_stim_patterns( n_elec, n_rings, ...
+                                      inj, meas, options, amplitude)
+
+ where
+ stim(#).stimulation = 'Amp'
+     (#).stim_pattern= [vector n_elec*n_rings x 1 ]
+     (#).meas_pattern= [matrix n_elec*n_rings x n_meas_patterns]
+
+ for example, for an adjacent pattern for 4 electrodes, with 0.5 Amp
+   if all electrodes are used for measurement
+ stim(1).stim_pattern= [0.5;-0.5;0;0]
+ stim(1).meas_pattern= [1,-1, 0, 0 
+                        0, 1,-1, 0 
+                        0, 0, 1,-1 
+                       -1, 0, 0, 1]
+
+ meas_sel: when not using data from current injection electrodes,
+           it is common to be given a full measurement set.
+           For example 16 electrodes gives 208 measures, but 256
+           measure sets are common. 'meas_sel' indicates which
+           electrodes are used
+
+ PARAMETERS:
+   n_elec:   number of electrodes per ring
+   n_rings:  number of electrode rings (1 for 2D)
+
+   inj: injection pattern
+      '{ad}'        -&gt; adjacent drive: equivalent to [0 1]
+      '{op}'        -&gt; opposite drive: equivalent to [0, n_elec/2]
+      '{trig}'      -&gt; trigonometric drive [cos,sin,cos,sin ...]
+                       '{trig}' implies the 'meas_current' option.
+      '{trigcscs}'  -&gt; trigonometric drive [cos,sin,cos,sin ...]
+      '{trigccss}'  -&gt; trigonometric drive [cos,cos, ... sin,sin, ...]
+      '{mono}'      -&gt; Drive via each elec, current leaves by ground
+      Bi-polar injection patterns:
+        [x y]: First pattern is [x,y] next is [x+1,y+1] 
+      Mono-polar injection patterns:
+        [x]:   First pattern is [x]   next is [x+1] 
+
+   meas: measurement pattern
+      '{ad}'        -&gt; adjacent measurement
+      '{op}'        -&gt; opposite drive: equivalent to [0, n_elec/2]
+      '{trig}'      -&gt; trigonometric drive [sin,cos,sin,cos ...]
+      '{mono}'      -&gt; Meas at each elec (Reminder, you may want to set meas_current);
+      Bi-polar measurement patterns:
+        [x y]: First pattern is [x,y] next is [x+1,y+1] 
+      Mono-polar measurement patterns:
+        [x]:   First pattern is [x]   next is [x+1] 
+
+   options: cell array of options, eg {'no_meas_current'}
+     if contradictory options are specified, only the last applies
+      'no_meas_current' / 'meas_current'
+         -&gt; do / don't make mesurements on current carrying electrodes 
+      'no_meas_current_next0' is same as 'no_meas_current'
+         -&gt; to not make measurements on the electrodes next to the current carrying,
+            use 'no_meas_current_next1'
+         -&gt; to not make measurements on the two electrodes next to the current carrying,
+            use 'no_meas_current_next2'
+         -&gt; to not make measurements on the three electrodes next to the current carrying,
+            use 'no_meas_current_next3'
+      'rotate_meas' / 'no_rotate_meas'
+         -&gt; do / don't rotate measurements with stimulation pattern
+      'do_redundant' / 'no_redundant'
+         -&gt; do / don't make reciprocally redundant measures
+      'balance_inj' / 'no_balance_inj'
+         -&gt; do / don't draw current from all electrodes so total
+            injection is zero (useful for mono patterns)
+      'balance_meas' / 'no_balance_meas'
+         -&gt; do / don't subtrant measurement from all electrodes so total
+            average measurement is zero (useful for mono patterns)
+
+   amplitude: drive current levels, DEFAULT = 0.010 Amp</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li><li><a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/algorithms/left_divide.html" class="code" title="function [V] = left_divide(E,I,tol,~,V)">left_divide</a>	[V] = LEFT_DIVIDE(E,I,tol,pp,V);</li><li><a href="../../eidors/deprecated/calc_noise_params.html" class="code" title="function params = calc_noise_params(imdl, vh, vi )">calc_noise_params</a>	params = GREIT_noise_params(imdl, homg_voltage, sig_voltage)</li><li><a href="../../eidors/deprecated/manchester_tomography.html" class="code" title="function manchester_tomography( example_no)">manchester_tomography</a>	Example to show reconstructions from</li><li><a href="../../eidors/deprecated/solve_RM_2Dslice.html" class="code" title="function imdl = select_RM_slice(imdl, sel_fcn)">solve_RM_2Dslice</a>	SELECT_RM_SLICE: cut slices out of an inverse model with a</li><li><a href="../../eidors/examples/cheating_2d.html" class="code" title="function out=cheating_2d( figno, rand_seed )">cheating_2d</a>	code to simulate inverse crimes in EIT</li><li><a href="../../eidors/examples/demo_2d_simdata.html" class="code" title="">demo_2d_simdata</a>	Example of using EIDORS to simulate 2D data and to</li><li><a href="../../eidors/examples/demo_3d_simdata.html" class="code" title="">demo_3d_simdata</a>	How to make simulation data using EIDORS3D</li><li><a href="../../eidors/examples/eidors2d_demo1.html" class="code" title="">eidors2d_demo1</a>	EidorsDemo1 Demonstrates the use of 2D EIT Package with linear basis</li><li><a href="../../eidors/examples/image_2d_algs.html" class="code" title="">image_2d_algs</a>	Based on the 'bubble' data from Eidors2D, use several</li><li><a href="../../eidors/examples/moving_tank_objs.html" class="code" title="function imgs= moving_tank_objs(data_sel, inv_sel, options)">moving_tank_objs</a>	MOVING_TANK_OBJS: create movies of objects moving in tanks</li><li><a href="../../eidors/interface/eidors_readdata.html" class="code" title="function [vv, auxdata, stim]= eidors_readdata( fname, format, frame_range, extra )">eidors_readdata</a>	EIDORS readdata - read data files from various EIT equipment</li><li><a href="../../eidors/interface/fwd_model_device.html" class="code" title="function fmdl = fmdl_model_device(fmdl,device, opt);">fwd_model_device</a>	FMDL_MODEL_DEVICE: set vendor/device specific parameters</li><li><a href="GREIT3D_distribution.html" class="code" title="function [imdl,distr] = GREIT3D_distribution(fmdl, vopt)">GREIT3D_distribution</a>	GREIT3D_distribution: create target distributions for 3D GREIT</li><li><a href="GREIT_errors.html" class="code" title="function imdl= GREIT_errors(imdli, opts, data )">GREIT_errors</a>	GREIT_errors: Add Error Compensation to GREIT-type model</li><li><a href="calc_model_reduction.html" class="code" title="function mr = calc_model_reduction(fmdl)">calc_model_reduction</a>	calc_model_reduction: calculate the fields for a reduced model</li><li><a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>	DEFINE_ROIS: define ROI regions in image</li><li><a href="map_RM_slice.html" class="code" title="function imdl = map_RM_slice(imdl,varargin)">map_RM_slice</a>	map_RM_slice - map a 3D reconstruction matrix to an arbitrary 2D slice</li><li><a href="mk_GN_model.html" class="code" title="function imdl = mk_GN_model(img, opt, lambda)">mk_GN_model</a>	MK_GN_MODEL: make EIDORS inverse models using the GREIT approach</li><li><a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>	MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach</li><li><a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>	MK_COMMON_MODEL: make EIT on reconstruction grids (GREIT)</li><li><a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li><li><a href="mono2stim.html" class="code" title="function out = mono2stim(mat, stim)">mono2stim</a>	MONO2SIM transform monopolar stimulation into another stim pattern</li><li><a href="../../eidors/models/private/set_predef_stim.html" class="code" title="function mdl = set_predef_stim(mdl, stimpat)">set_predef_stim</a>	SET_PREDEF_STIM</li><li><a href="reciprocity_idx.html" class="code" title="function idxr = reciprocity_idx( fmdl, opt);">reciprocity_idx</a>	RECIPROCITY_IDX: find indices of stim, meas pairs that are recirocal</li><li><a href="select_RM_slice.html" class="code" title="function imdl = select_RM_slice(imdl, sel_fcn)">select_RM_slice</a>	SELECT_RM_SLICE: cut slices out of an inverse model with a</li><li><a href="select_imdl.html" class="code" title="function [inv_mdl,opt_out]= select_imdl( mdl, options )">select_imdl</a>	SELECT_IMDL: select pre-packaged inverse model features</li><li><a href="simulate_2d_movement.html" class="code" title="function [vh,vi,xyr_pt]= simulate_2d_movement( n_sims, fmdl, rad_pr, movefcn )">simulate_2d_movement</a>	SIMULATE_2D_MOVEMENT simulate rotational movement in 2D</li><li><a href="simulate_3d_movement.html" class="code" title="function [vh,vi,xyzr_pt]= simulate_3d_movement( n_sims, fmdl, rad_pr,movefcn )">simulate_3d_movement</a>	SIMULATE_3D_MOVEMENT simulate rotational movement in 3D</li><li><a href="stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">stim_meas_list</a>	STIM_MEAS_LIST: mk stimulation pattern from list of electrodes</li><li><a href="test_GREIT_model.html" class="code" title="">test_GREIT_model</a>	</li><li><a href="../../eidors/sample_data/write_hdf5_sample.html" class="code" title="function fname = write_and_test;">write_hdf5_sample</a>	Write HDF5 Sample data</li><li><a href="../../eidors/solvers/calc_jacobian.html" class="code" title="function J = calc_jacobian( fwd_model, img)">calc_jacobian</a>	CALC_JACOBIAN: calculate jacobian from an inv_model</li><li><a href="../../eidors/solvers/forward/eit_spice.html" class="code" title="function spice = eit_spice(img, name)">eit_spice</a>	function spice = eit_spice(img, [name])</li><li><a href="../../eidors/solvers/forward/fem_1st_to_higher_order.html" class="code" title="function [boundary,elems,nodes]=fem_1st_to_higher_order(fwd_model)">fem_1st_to_higher_order</a>	FEM_1ST_TO_HIGH_ORDER:  Modify the FEM for high order FEM called as</li><li><a href="../../eidors/solvers/forward/jacobian_movement.html" class="code" title="function J = jacobian_movement(fwd_model, img)">jacobian_movement</a>	JACOBIAN_MOVEMENT   Computes the Jacobian matrix for conductivity and</li><li><a href="../../eidors/solvers/inverse/GREIT_desired_img_FEMmesh.html" class="code" title="function PSF= GREIT_desired_img_FEMmesh(xyc, radius, opt)">GREIT_desired_img_FEMmesh</a>	GREIT_DESIRED_IMG_FEMmesh  GREIT onto a FEM mesh</li><li><a href="../../eidors/solvers/inverse/calc_lambda_regtools.html" class="code" title="function lambdas = calc_lambda_regtools(imdl, vh, vi, type, doPlot)">calc_lambda_regtools</a>	% CALC_LAMBDA_REGTOOLS: Find optimal hyperparameter by the L-curve (LCC)</li><li><a href="../../eidors/solvers/inverse/calc_noise_figure.html" class="code" title="function [NF,SE] = calc_noise_figure( inv_model, hp, iterations, extraparam)">calc_noise_figure</a>	CALC_NOISE_FIGURE: calculate the noise amplification (NF) of an algorithm</li><li><a href="../../eidors/solvers/inverse/inv_solve_core.html" class="code" title="function img= inv_solve_core( inv_model, data0, data1);">inv_solve_core</a>	INV_SOLVE_CORE Solver using a generic iterative algorithm</li><li><a href="../../eidors/solvers/inverse/inv_solve_d_bar.html" class="code" title="function img = inv_solve_d_bar(inv_model, data1, data2)">inv_solve_d_bar</a>	D-Bar reconstruction</li><li><a href="../../eidors/solvers/inverse/inv_solve_time_prior.html" class="code" title="function img= inv_solve_time_prior( inv_model, data1, data2)">inv_solve_time_prior</a>	INV_SOLVE_TIME_PRIOR inverse solver to account for time differences</li><li><a href="../../eidors/tests/calc_data_prior_test.html" class="code" title="function ok= calc_data_prior_test">calc_data_prior_test</a>	Verify dataprior:</li><li><a href="../../eidors/tools/test_performance.html" class="code" title="function [r, params] =  test_performance( imdls, fmdl );">test_performance</a>	TEST_PERFORMANCE: test of difference reconstruction algorithms</li><li><a href="../../eidors/tools/test_performance_img.html" class="code" title="function [params_img] =  test_performance_img( imdls, fmdl );">test_performance_img</a>	TEST_PERFORMANCE: test of difference reconstruction algorithms</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [stim,mpat] = calc_stim(v, n_elec, n_rings)</a></li><li><a href="#_sub2" class="code">function meas_sel= meas_select( mpat, mpat0);</a></li><li><a href="#_sub3" class="code">function [mset,err] = mk_meas_set( meas_pat )</a></li><li><a href="#_sub4" class="code">function stim_pat = mk_stim_pat(v, elec, ring );</a></li><li><a href="#_sub5" class="code">function meas = mk_meas_pat(v, elec, ring );</a></li><li><a href="#_sub6" class="code">function v = process_args(n_elec, n_rings, inj, meas, options, amplitude )</a></li><li><a href="#_sub7" class="code">function v= parse_options(v, options);</a></li><li><a href="#_sub8" class="code">function [m_pat, seen_patterns] = elim_redundant(m_pat, s_pat, seen_patterns);</a></li><li><a href="#_sub9" class="code">function pat= trig_pat( elec_sel, n_elecs, sel);</a></li><li><a href="#_sub10" class="code">function trig_tests;</a></li><li><a href="#_sub11" class="code">function do_unit_test</a></li><li><a href="#_sub12" class="code">function ok= test_adj(pat)</a></li><li><a href="#_sub13" class="code">function ok= test_adj_full(pat)</a></li><li><a href="#_sub14" class="code">function ok= test_adj_rotate(pat)</a></li><li><a href="#_sub15" class="code">function ok= test_adj_no_redund(pat)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [stim, meas_sel]= mk_stim_patterns( </a><span class="keyword">...</span>
+0002             n_elec, n_rings, inj, meas, options, amplitude)
+0003 <span class="comment">%MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</span>
+0004 <span class="comment">%                to form part of a fwd_model object</span>
+0005 <span class="comment">% [stim, meas_sel] = mk_stim_patterns( n_elec, n_rings, ...</span>
+0006 <span class="comment">%                                      inj, meas, options, amplitude)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% where</span>
+0009 <span class="comment">% stim(#).stimulation = 'Amp'</span>
+0010 <span class="comment">%     (#).stim_pattern= [vector n_elec*n_rings x 1 ]</span>
+0011 <span class="comment">%     (#).meas_pattern= [matrix n_elec*n_rings x n_meas_patterns]</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% for example, for an adjacent pattern for 4 electrodes, with 0.5 Amp</span>
+0014 <span class="comment">%   if all electrodes are used for measurement</span>
+0015 <span class="comment">% stim(1).stim_pattern= [0.5;-0.5;0;0]</span>
+0016 <span class="comment">% stim(1).meas_pattern= [1,-1, 0, 0</span>
+0017 <span class="comment">%                        0, 1,-1, 0</span>
+0018 <span class="comment">%                        0, 0, 1,-1</span>
+0019 <span class="comment">%                       -1, 0, 0, 1]</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% meas_sel: when not using data from current injection electrodes,</span>
+0022 <span class="comment">%           it is common to be given a full measurement set.</span>
+0023 <span class="comment">%           For example 16 electrodes gives 208 measures, but 256</span>
+0024 <span class="comment">%           measure sets are common. 'meas_sel' indicates which</span>
+0025 <span class="comment">%           electrodes are used</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% PARAMETERS:</span>
+0028 <span class="comment">%   n_elec:   number of electrodes per ring</span>
+0029 <span class="comment">%   n_rings:  number of electrode rings (1 for 2D)</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">%   inj: injection pattern</span>
+0032 <span class="comment">%      '{ad}'        -&gt; adjacent drive: equivalent to [0 1]</span>
+0033 <span class="comment">%      '{op}'        -&gt; opposite drive: equivalent to [0, n_elec/2]</span>
+0034 <span class="comment">%      '{trig}'      -&gt; trigonometric drive [cos,sin,cos,sin ...]</span>
+0035 <span class="comment">%                       '{trig}' implies the 'meas_current' option.</span>
+0036 <span class="comment">%      '{trigcscs}'  -&gt; trigonometric drive [cos,sin,cos,sin ...]</span>
+0037 <span class="comment">%      '{trigccss}'  -&gt; trigonometric drive [cos,cos, ... sin,sin, ...]</span>
+0038 <span class="comment">%      '{mono}'      -&gt; Drive via each elec, current leaves by ground</span>
+0039 <span class="comment">%      Bi-polar injection patterns:</span>
+0040 <span class="comment">%        [x y]: First pattern is [x,y] next is [x+1,y+1]</span>
+0041 <span class="comment">%      Mono-polar injection patterns:</span>
+0042 <span class="comment">%        [x]:   First pattern is [x]   next is [x+1]</span>
+0043 <span class="comment">%</span>
+0044 <span class="comment">%   meas: measurement pattern</span>
+0045 <span class="comment">%      '{ad}'        -&gt; adjacent measurement</span>
+0046 <span class="comment">%      '{op}'        -&gt; opposite drive: equivalent to [0, n_elec/2]</span>
+0047 <span class="comment">%      '{trig}'      -&gt; trigonometric drive [sin,cos,sin,cos ...]</span>
+0048 <span class="comment">%      '{mono}'      -&gt; Meas at each elec (Reminder, you may want to set meas_current);</span>
+0049 <span class="comment">%      Bi-polar measurement patterns:</span>
+0050 <span class="comment">%        [x y]: First pattern is [x,y] next is [x+1,y+1]</span>
+0051 <span class="comment">%      Mono-polar measurement patterns:</span>
+0052 <span class="comment">%        [x]:   First pattern is [x]   next is [x+1]</span>
+0053 <span class="comment">%</span>
+0054 <span class="comment">%   options: cell array of options, eg {'no_meas_current'}</span>
+0055 <span class="comment">%     if contradictory options are specified, only the last applies</span>
+0056 <span class="comment">%      'no_meas_current' / 'meas_current'</span>
+0057 <span class="comment">%         -&gt; do / don't make mesurements on current carrying electrodes</span>
+0058 <span class="comment">%      'no_meas_current_next0' is same as 'no_meas_current'</span>
+0059 <span class="comment">%         -&gt; to not make measurements on the electrodes next to the current carrying,</span>
+0060 <span class="comment">%            use 'no_meas_current_next1'</span>
+0061 <span class="comment">%         -&gt; to not make measurements on the two electrodes next to the current carrying,</span>
+0062 <span class="comment">%            use 'no_meas_current_next2'</span>
+0063 <span class="comment">%         -&gt; to not make measurements on the three electrodes next to the current carrying,</span>
+0064 <span class="comment">%            use 'no_meas_current_next3'</span>
+0065 <span class="comment">%      'rotate_meas' / 'no_rotate_meas'</span>
+0066 <span class="comment">%         -&gt; do / don't rotate measurements with stimulation pattern</span>
+0067 <span class="comment">%      'do_redundant' / 'no_redundant'</span>
+0068 <span class="comment">%         -&gt; do / don't make reciprocally redundant measures</span>
+0069 <span class="comment">%      'balance_inj' / 'no_balance_inj'</span>
+0070 <span class="comment">%         -&gt; do / don't draw current from all electrodes so total</span>
+0071 <span class="comment">%            injection is zero (useful for mono patterns)</span>
+0072 <span class="comment">%      'balance_meas' / 'no_balance_meas'</span>
+0073 <span class="comment">%         -&gt; do / don't subtrant measurement from all electrodes so total</span>
+0074 <span class="comment">%            average measurement is zero (useful for mono patterns)</span>
+0075 <span class="comment">%</span>
+0076 <span class="comment">%   amplitude: drive current levels, DEFAULT = 0.010 Amp</span>
+0077 
+0078 <span class="comment">% (C) 2005 Andy Adler. License: GPL version 2 or version 3</span>
+0079 <span class="comment">% $Id: mk_stim_patterns.m 6636 2024-01-11 15:22:43Z aadler $</span>
+0080 
+0081 <span class="keyword">if</span> ischar(n_elec) &amp;&amp; strcmp(n_elec,<span class="string">'UNIT_TEST'</span>); <a href="#_sub11" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0082 
+0083 <span class="keyword">if</span> nargin&lt;6; amplitude= .01; <span class="keyword">end</span>
+0084 <span class="keyword">if</span> nargin&lt;5; options= {};  <span class="keyword">end</span>
+0085 v = <a href="#_sub6" class="code" title="subfunction v = process_args(n_elec, n_rings, inj, meas, options, amplitude )">process_args</a>(n_elec, n_rings, inj, meas, options, amplitude );
+0086 
+0087 [stim,mpat ] = <a href="#_sub1" class="code" title="subfunction [stim,mpat] = calc_stim(v, n_elec, n_rings)">calc_stim</a>(v, n_elec, n_rings);
+0088 
+0089 <span class="comment">% Meas_sel selects meas which would exist if we measured all of them</span>
+0090 v.do_redundant = 1; v.use_meas_current = 1; 
+0091 [jnk ,mpat0] = <a href="#_sub1" class="code" title="subfunction [stim,mpat] = calc_stim(v, n_elec, n_rings)">calc_stim</a>(v, n_elec, n_rings);
+0092 
+0093 <span class="comment">%meas_sel= meas_select_old( n_elec, v.inj, v);</span>
+0094  meas_sel= <a href="#_sub2" class="code" title="subfunction meas_sel= meas_select( mpat, mpat0);">meas_select</a>( mpat, mpat0);
+0095 
+0096 <a name="_sub1" href="#_subfunctions" class="code">function [stim,mpat] = calc_stim(v, n_elec, n_rings)</a>
+0097    curr_pat = v.inj(:) * ones(1,n_elec);
+0098    meas_pat = v.meas(:) * ones(1,n_elec);
+0099    offset   = [1;1]*(0:n_elec-1);
+0100 
+0101    stim= struct([]);
+0102    mpat= struct([]);
+0103    i=1; j=1;
+0104    <span class="keyword">for</span> ring = 0:v.n_rings-1
+0105       seen_patterns= struct;
+0106       <span class="keyword">for</span> elec= 0:v.n_elec-1
+0107           <span class="keyword">if</span> v.trig_inj &amp;&amp; elec == v.n_elec-1 ; <span class="keyword">continue</span>; <span class="keyword">end</span> <span class="comment">% No indep patterns</span>
+0108           s_pat= <a href="#_sub4" class="code" title="subfunction stim_pat = mk_stim_pat(v, elec, ring );">mk_stim_pat</a>(v, elec, ring );
+0109           m_pat= <a href="#_sub5" class="code" title="subfunction meas = mk_meas_pat(v, elec, ring );">mk_meas_pat</a>(v, elec, ring );
+0110 
+0111           <span class="keyword">if</span> v.do_redundant == 0 <span class="comment">% elim redudant</span>
+0112              [m_pat, seen_patterns] = <a href="#_sub8" class="code" title="subfunction [m_pat, seen_patterns] = elim_redundant(m_pat, s_pat, seen_patterns);">elim_redundant</a>(m_pat, s_pat, seen_patterns);
+0113           <span class="keyword">end</span>
+0114 
+0115           <span class="keyword">if</span> ~isempty(m_pat) 
+0116               stim(i).stimulation = <span class="string">'Amp'</span>;
+0117               stim(i).stim_pattern= <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(s_pat);
+0118               stim(i).meas_pattern= <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(m_pat);
+0119               i=i+1;
+0120           <span class="keyword">end</span>
+0121               mpat(j).meas_pattern= <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(m_pat);
+0122               j=j+1;
+0123       <span class="keyword">end</span>
+0124    <span class="keyword">end</span>
+0125 
+0126 <span class="comment">% when not using data from current injection electrodes,</span>
+0127 <span class="comment">% it is common to be given a full measurement set.</span>
+0128 <span class="comment">% For example 16 electrodes gives 208 measures, but 256</span>
+0129 <span class="comment">% measure sets are common.</span>
+0130 <span class="comment">% This function calculates a selector matrix to remove the extra</span>
+0131 <span class="comment">%</span>
+0132 <span class="comment">% reshape(meas_select( 6, [0,1], v),6,6) 0 0 1 1 1 0</span>
+0133 <span class="comment">%                                        0 0 0 1 1 1</span>
+0134 <span class="comment">%                                        1 0 0 0 1 1</span>
+0135 <span class="comment">%                                        1 1 0 0 0 1</span>
+0136 <span class="comment">%                                        1 1 1 0 0 0</span>
+0137 <span class="comment">%                                        0 1 1 1 0 0</span>
+0138 <span class="comment">%</span>
+0139 <span class="comment">% reshape(meas_select( 6, [0,2], v),6,6) 0 0 1 1 0 0</span>
+0140 <span class="comment">%                                        0 0 0 1 1 0</span>
+0141 <span class="comment">%                                        0 0 0 0 1 1</span>
+0142 <span class="comment">%                                        1 0 0 0 0 1</span>
+0143 <span class="comment">%                                        1 1 0 0 0 0</span>
+0144 <span class="comment">%                                        0 1 1 0 0 0</span>
+0145 <span class="comment">%</span>
+0146 <span class="comment">% reshape(meas_select( 6, [0,3], v),6,6) 0 0 1 0 0 1</span>
+0147 <span class="comment">%                                        1 0 0 1 0 0</span>
+0148 <span class="comment">%                                        0 1 0 0 1 0</span>
+0149 <span class="comment">%                                        0 0 1 0 0 1</span>
+0150 <span class="comment">%                                        1 0 0 1 0 0</span>
+0151 <span class="comment">%                                        0 1 0 0 1 0</span>
+0152 <a name="_sub2" href="#_subfunctions" class="code">function meas_sel= meas_select( mpat, mpat0);</a>
+0153    meas_sel = [];
+0154    <span class="keyword">for</span> i=1:length(mpat);
+0155       [mset,  err ] = <a href="#_sub3" class="code" title="subfunction [mset,err] = mk_meas_set( meas_pat )">mk_meas_set</a>( mpat(i).meas_pattern );
+0156       [mset0, err0] = <a href="#_sub3" class="code" title="subfunction [mset,err] = mk_meas_set( meas_pat )">mk_meas_set</a>( mpat0(i).meas_pattern );
+0157       <span class="keyword">if</span> err || err0; msel_i = 1 + 0*mset; <span class="comment">% Set to 1 for error</span>
+0158       <span class="keyword">else</span>            msel_i = ismember(mset0,mset);
+0159       <span class="keyword">end</span>
+0160       meas_sel = [meas_sel; msel_i];
+0161    <span class="keyword">end</span>
+0162 
+0163    meas_sel = logical(meas_sel(:));
+0164 
+0165 <a name="_sub3" href="#_subfunctions" class="code">function [mset,err] = mk_meas_set( meas_pat )</a>
+0166    mpats= size(~meas_pat,1);
+0167    mset = zeros(mpats,1);
+0168    err=0;
+0169    <span class="keyword">for</span> i=1:size(meas_pat,1);
+0170       mpat = meas_pat(i,:);
+0171       fp = find(mpat&gt;0); <span class="keyword">if</span> length(fp)==0; fp = 0; <span class="keyword">end</span>
+0172       fn = find(mpat&lt;0); <span class="keyword">if</span> length(fn)==0; fn = 0; <span class="keyword">end</span>
+0173       <span class="keyword">if</span> length(fp)&gt;1 || length(fn)&gt;1 ; err=1; <span class="keyword">return</span>; <span class="keyword">end</span>
+0174       mset(i) =  fp*1e7 + fn;
+0175    <span class="keyword">end</span>
+0176 
+0177 <a name="_sub4" href="#_subfunctions" class="code">function stim_pat = mk_stim_pat(v, elec, ring );</a>
+0178    stim_pat = <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(v.tn_elec, 1);
+0179    <span class="keyword">if</span> v.balance_inj
+0180       stim_pat= stim_pat - sum(v.i_factor)/ (v.tn_elec-1);
+0181    <span class="keyword">elseif</span> v.trig_inj
+0182       stim_pat = <a href="#_sub9" class="code" title="subfunction pat= trig_pat( elec_sel, n_elecs, sel);">trig_pat</a>( elec, v.tn_elec, v.trig_inj) * v.amplitude;
+0183       <span class="keyword">return</span>;
+0184    <span class="keyword">end</span>
+0185 
+0186    stim_idx = rem( v.inj + elec, v.n_elec) + 1 + v.n_elec*ring;
+0187    stim_pat( stim_idx ) = v.amplitude*v.i_factor;
+0188 
+0189 <span class="comment">% Measurement config can stay static, or can rotate with</span>
+0190 <span class="comment">% the stim pattern. This code keeps measurements static</span>
+0191 <a name="_sub5" href="#_subfunctions" class="code">function meas = mk_meas_pat(v, elec, ring );</a>
+0192    meas= <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(v.tn_elec, v.tn_elec);
+0193    <span class="keyword">if</span> v.balance_meas
+0194       meas= meas - sum(v.m_factor)/ (v.tn_elec-1);
+0195    <span class="keyword">elseif</span> v.trig_meas
+0196       meas= <a href="#_sub9" class="code" title="subfunction pat= trig_pat( elec_sel, n_elecs, sel);">trig_pat</a>( 0:v.tn_elec-2, v.tn_elec)';
+0197       <span class="keyword">return</span>;
+0198    <span class="keyword">end</span>
+0199 
+0200    <span class="keyword">if</span> v.rotate_meas
+0201       ofs = elec;
+0202    <span class="keyword">else</span>
+0203       ofs = 0;
+0204    <span class="keyword">end</span> 
+0205 
+0206    mseq= 0:v.tn_elec-1;
+0207    within_ring = rem(v.n_elec +  mseq , v.n_elec);
+0208    ouside_ring = floor( mseq / v.n_elec) * v.n_elec;
+0209    meas_seq    = mseq *v.tn_elec + 1;
+0210 
+0211    <span class="keyword">for</span> i=1:length(v.meas)
+0212       meas_pat = rem( v.meas(i) + within_ring + ofs, v.n_elec ) + <span class="keyword">...</span>
+0213                        ouside_ring + meas_seq;
+0214       meas(meas_pat) = v.m_factor(i);
+0215    <span class="keyword">end</span>
+0216 
+0217    <span class="keyword">if</span> v.use_meas_current == 0
+0218    <span class="comment">% each column of meas is a measurement pattern</span>
+0219    <span class="comment">% Test whether each col has contribution from stim</span>
+0220        stim_idx = rem( v.inj + elec, v.n_elec) + 1 + v.n_elec*ring;
+0221 
+0222        <span class="keyword">if</span> v.use_meas_current_next
+0223    <span class="comment">% If we want to eliminate the ones next to the stimulation electrodes</span>
+0224    <span class="comment">%  ie. Swisstom device, then use this</span>
+0225      
+0226           <span class="keyword">for</span> ni= -v.use_meas_current_next:v.use_meas_current_next;
+0227             stim_idx = [stim_idx, <span class="keyword">...</span>
+0228                         rem( v.inj + elec + ni, v.n_elec) + 1 + v.n_elec*ring];
+0229           <span class="keyword">end</span>
+0230           stim_idx = unique(stim_idx);
+0231           stim_idx(stim_idx&lt;=0) = stim_idx(stim_idx&lt;=0) + v.n_elec;
+0232        <span class="keyword">end</span>
+0233        elim= any(meas(stim_idx,:),1);
+0234        meas(:,elim) = [];
+0235    <span class="keyword">end</span>
+0236 
+0237    meas= meas';
+0238 
+0239 
+0240 <a name="_sub6" href="#_subfunctions" class="code">function v = process_args(n_elec, n_rings, inj, meas, options, amplitude )</a>
+0241 
+0242 <span class="comment">% SET DEFAULTS</span>
+0243    v.trig_meas= 0;
+0244    v.trig_inj = 0;
+0245 
+0246    v.use_meas_current = 0;
+0247    v.use_meas_current_next = 0;
+0248    v.rotate_meas = 0;
+0249    v.do_redundant = 1;
+0250    v.balance_inj = 0;
+0251    v.balance_meas= 0;
+0252 
+0253 <span class="comment">% Stimulation (injection) pattern</span>
+0254 <span class="comment">% This currently does not handle complicated injection patterns</span>
+0255 <span class="keyword">if</span> ischar(inj)
+0256    <span class="keyword">if</span>      strcmp(inj,<span class="string">'{ad}'</span>)
+0257       inj= [0, 1];
+0258       rel_ampl= [-1;1];
+0259    <span class="keyword">elseif</span>  strcmp(inj,<span class="string">'{op}'</span>)
+0260       inj= [0, floor(n_elec/2)];
+0261       rel_ampl= [-1;1];
+0262    <span class="keyword">elseif</span>  strcmp(inj,<span class="string">'{trig}'</span>)
+0263       v.trig_inj = 1;
+0264       v.use_meas_current = 1; <span class="comment">% We need to measure on the electrodes</span>
+0265       rel_ampl= [];
+0266    <span class="keyword">elseif</span>  strcmp(inj,<span class="string">'{trigcscs}'</span>)
+0267       v.trig_inj = 1;
+0268       v.use_meas_current = 1; <span class="comment">% We need to measure on the electrodes</span>
+0269       rel_ampl= [];
+0270    <span class="keyword">elseif</span>  strcmp(inj,<span class="string">'{trigccss}'</span>)
+0271       v.trig_inj = 2;
+0272       v.use_meas_current = 1; <span class="comment">% We need to measure on the electrodes</span>
+0273       rel_ampl= [];
+0274    <span class="keyword">elseif</span>  strcmp(inj,<span class="string">'{mono}'</span>)
+0275       inj= [0];
+0276       rel_ampl= [1];
+0277    <span class="keyword">else</span>
+0278       error([<span class="string">'parameter inj='</span>,inj,<span class="string">' not understood'</span>]);
+0279    <span class="keyword">end</span>
+0280 <span class="keyword">elseif</span> prod(size(inj))==1
+0281       rel_ampl= [1];
+0282 <span class="keyword">elseif</span> prod(size(inj))==2
+0283       rel_ampl= [-1;1];
+0284 <span class="keyword">else</span>
+0285       error([<span class="string">'parameter inj not understood'</span>]);
+0286 <span class="keyword">end</span>
+0287 
+0288 v.inj= inj;
+0289 v.i_factor=      rel_ampl;
+0290 
+0291 <span class="comment">% Measurement configuration.</span>
+0292 <span class="comment">% All systems I know of use adjacent measurement,</span>
+0293 <span class="comment">% are there actually any others?</span>
+0294 <span class="keyword">if</span> ischar(meas)
+0295    <span class="keyword">if</span>      strcmp(meas,<span class="string">'{ad}'</span>)
+0296       meas=     [0, 1];
+0297       rel_ampl= [ 1;-1];
+0298    <span class="keyword">elseif</span>  strcmp(meas,<span class="string">'{op}'</span>)
+0299       meas= [0, floor(n_elec/2)];
+0300       rel_ampl= [ 1;-1];
+0301    <span class="keyword">elseif</span>  strcmp(meas,<span class="string">'{trig}'</span>)
+0302       v.trig_meas= 1;
+0303       rel_ampl= [ 1;-1];
+0304    <span class="keyword">elseif</span>  strcmp(meas,<span class="string">'{mono}'</span>)
+0305       meas= [0];
+0306       rel_ampl= [1];
+0307    <span class="keyword">else</span>
+0308       error([<span class="string">'parameter meas='</span>,meas,<span class="string">' not understood'</span>]);
+0309    <span class="keyword">end</span>
+0310 <span class="keyword">elseif</span> prod(size(meas))==1
+0311       rel_ampl= [1];
+0312 <span class="keyword">elseif</span> prod(size(meas))==2
+0313       rel_ampl= [ 1;-1];
+0314 <span class="keyword">else</span>
+0315       error([<span class="string">'parameter meas not understood'</span>]);
+0316 <span class="keyword">end</span>
+0317 
+0318 v.meas=          meas;
+0319 v.m_factor=      rel_ampl;
+0320 
+0321 v.n_elec = n_elec;
+0322 v.n_rings= n_rings;
+0323 v.tn_elec= n_rings * n_elec;
+0324 v.amplitude = amplitude;
+0325 
+0326 v= <a href="#_sub7" class="code" title="subfunction v= parse_options(v, options);">parse_options</a>(v, options);
+0327 
+0328 <a name="_sub7" href="#_subfunctions" class="code">function v= parse_options(v, options);</a>
+0329 <span class="comment">% iterate through the options cell array</span>
+0330 <span class="keyword">for</span> opt = options
+0331    <span class="keyword">switch</span> opt{1};
+0332    <span class="keyword">case</span> {<span class="string">'no_meas_current'</span>, <span class="keyword">...</span>
+0333          <span class="string">'no_meas_current_next0'</span>};
+0334       v.use_meas_current = 0;
+0335       v.use_meas_current_next = 0;
+0336    <span class="keyword">case</span> <span class="string">'no_meas_current_next1'</span>;
+0337       v.use_meas_current = 0;
+0338       v.use_meas_current_next = 1;
+0339    <span class="keyword">case</span> <span class="string">'no_meas_current_next2'</span>;
+0340       v.use_meas_current = 0;
+0341       v.use_meas_current_next = 2;
+0342    <span class="keyword">case</span> <span class="string">'no_meas_current_next3'</span>;
+0343       v.use_meas_current = 0;
+0344       v.use_meas_current_next = 3;
+0345    <span class="keyword">case</span> <span class="string">'meas_current'</span>;
+0346       v.use_meas_current = 1;
+0347    <span class="keyword">case</span> <span class="string">'rotate_meas'</span>;
+0348       v.rotate_meas = 1;
+0349    <span class="keyword">case</span> <span class="string">'no_rotate_meas'</span>;
+0350       v.rotate_meas = 0;
+0351    <span class="keyword">case</span> <span class="string">'do_redundant'</span>;
+0352       v.do_redundant = 1;
+0353    <span class="keyword">case</span> <span class="string">'no_redundant'</span>;
+0354       v.do_redundant = 0;
+0355    <span class="keyword">case</span> <span class="string">'balance_inj'</span>;
+0356       v.balance_inj = 1;
+0357    <span class="keyword">case</span> <span class="string">'no_balance_inj'</span>;
+0358       v.balance_inj = 0;
+0359    <span class="keyword">case</span> <span class="string">'balance_meas'</span>;
+0360       v.balance_meas= 1;
+0361    <span class="keyword">case</span> <span class="string">'no_balance_meas'</span>;
+0362       v.balance_meas= 0;
+0363    <span class="keyword">otherwise</span>
+0364       error([<span class="string">'option parameter opt='</span>,opt,<span class="string">' not understood'</span>]);
+0365    <span class="keyword">end</span>
+0366 <span class="keyword">end</span>
+0367 
+0368 <a name="_sub8" href="#_subfunctions" class="code">function [m_pat, seen_patterns] = elim_redundant(m_pat, s_pat, seen_patterns);</a>
+0369    m_pat_new= <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>([]);
+0370    s_pat_str= [<span class="string">'s'</span>,sprintf(<span class="string">'%d_'</span>, find(s_pat) ),<span class="string">'m'</span>];
+0371    <span class="keyword">for</span> j=1:size(m_pat,1);
+0372       this_m_pat= m_pat(j,:);
+0373       pat_str= [s_pat_str, sprintf(<span class="string">'%d_'</span>, find(this_m_pat))];
+0374       <span class="keyword">if</span> ~isfield(seen_patterns,pat_str);
+0375          m_pat_new= [m_pat_new;this_m_pat];
+0376          <span class="comment">% we've seen this pattern</span>
+0377          seen_patterns.(pat_str)= 1;
+0378          <span class="comment">% and it's dual by reciprocity</span>
+0379          pat_str= [<span class="string">'s'</span>,sprintf(<span class="string">'%d_'</span>, find(this_m_pat) ), <span class="keyword">...</span>
+0380                    <span class="string">'m'</span>,sprintf(<span class="string">'%d_'</span>, find(s_pat))];
+0381          seen_patterns.(pat_str)= 1;
+0382       <span class="keyword">end</span>
+0383    <span class="keyword">end</span>
+0384    m_pat= m_pat_new;
+0385 
+0386 <span class="comment">% create trig patterns.</span>
+0387 <span class="comment">%</span>
+0388 <span class="comment">% n_elecs is total number of electrodes</span>
+0389 <span class="comment">% elec    is the electrodes selected (can be multiple)</span>
+0390 <span class="comment">%         (elec goes from 0 to n_elecs-1</span>
+0391 <span class="comment">% if sel = 1 -&gt; cos|sin|cos|sin (default)</span>
+0392 <span class="comment">% if sel = 2 -&gt; cos|cos|sin|sin</span>
+0393 <span class="comment">%</span>
+0394 <a name="_sub9" href="#_subfunctions" class="code">function pat= trig_pat( elec_sel, n_elecs, sel);</a>
+0395     <span class="keyword">if</span> nargin&lt;3; sel=1; <span class="keyword">end</span>
+0396     idx= linspace(0,2*pi,n_elecs+1)'; idx(end)= [];
+0397     omega= idx*[1:n_elecs/2];
+0398     meas_pat= [cos(omega), sin(omega) ];
+0399     <span class="keyword">if</span> sel==1;
+0400        <span class="comment">% reorder so we get cos|sin|cos|sin</span>
+0401        order = reshape(1:n_elecs,[],2)';
+0402        meas_pat= meas_pat(:,order(:));
+0403     <span class="keyword">end</span>
+0404     meas_pat= meas_pat(:,1:end-1); <span class="comment">% only n_elecs-1 independent patterns</span>
+0405     pat  = meas_pat(:, elec_sel+1);
+0406 
+0407 <a name="_sub10" href="#_subfunctions" class="code">function trig_tests;</a>
+0408    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(8,1,<span class="string">'{trig}'</span>,[0,1],{},2);
+0409    t= linspace(0,2*pi,8+1)'; t(end)= [];
+0410    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'trig: t1'</span>,[stim(1:4).stim_pattern], <span class="keyword">...</span>
+0411          2*[cos(t),sin(t),cos(2*t),sin(2*t)], 1e-10);
+0412 
+0413    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(8,1,<span class="string">'{trigcscs}'</span>,[0,1],{},2);
+0414    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'trig: t2'</span>,[stim(1:4).stim_pattern], <span class="keyword">...</span>
+0415          2*[cos(t),sin(t),cos(2*t),sin(2*t)], 1e-10);
+0416 
+0417    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(8,1,<span class="string">'{trigccss}'</span>,[0,1],{},2);
+0418    test = 2*[cos(t),cos(2*t),cos(3*t), cos(4*t), sin(t),sin(2*t),sin(3*t)];
+0419    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'trig: t2'</span>,[stim(:).stim_pattern], test, 1e-10);
+0420 
+0421    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(8,1,<span class="string">'{trigccss}'</span>,<span class="string">'{trig}'</span>,{},2);
+0422    mp1 = stim(1).meas_pattern;
+0423    mp2 = stim(2).meas_pattern;
+0424    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'trig: m1'</span>,mp1,mp2,1e-15);
+0425    test = [cos(t),sin(t),cos(2*t),sin(2*t), <span class="keyword">...</span>
+0426        cos(3*t),sin(3*t),cos(4*t)];
+0427    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'trig: m2'</span>,mp1',test,1e-15);
+0428 
+0429 <a name="_sub11" href="#_subfunctions" class="code">function do_unit_test</a>
+0430    trig_tests;
+0431    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,[0,1],[0,1],{},1);
+0432    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'t1'</span>,stim(1).stim_pattern, [-1;1;0;0]);
+0433    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'t2'</span>,stim(4).stim_pattern, [1;0;0;-1]);
+0434    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'t3'</span>,stim(1).meas_pattern, [0,0,1,-1]);
+0435    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'t4'</span>,stim(4).meas_pattern, [0,1,-1,0]);
+0436 
+0437 <span class="comment">%      'no_meas_current' / 'meas_current'</span>
+0438 <span class="comment">%         -&gt; do / don't make mesurements on current carrying electrodes</span>
+0439    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,[0,1],[0,1],{<span class="string">'meas_current'</span>},1);
+0440    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_current: t1'</span>,stim(1).meas_pattern,  <span class="keyword">...</span>
+0441          [1,-1,0,0; 0,1,-1,0; 0,0,1,-1; -1,0,0,1]);
+0442    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_current: t2'</span>,stim(4).stim_pattern, [1;0;0;-1]);
+0443    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,[0,1],[0,1],{<span class="string">'no_meas_current'</span>},1);
+0444    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_current: t3'</span>,stim(1).meas_pattern,  [0,0,1,-1]);
+0445    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_current: t2'</span>,stim(4).stim_pattern, [1;0;0;-1]);
+0446 
+0447 <span class="comment">%      'rotate_meas' / 'no_rotate_meas'</span>
+0448 <span class="comment">%         -&gt; do / don't rotate measurements with stimulation pattern</span>
+0449 
+0450    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,1],[0,1],{<span class="string">'no_rotate_meas'</span>},1);
+0451    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_rotate_meas: t1'</span>,stim(2).stim_pattern, [0;-1;1;0;0;0]);
+0452    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_rotate_meas: t2'</span>,stim(2).meas_pattern, <span class="keyword">...</span>
+0453          [0,0,0,1,-1,0; 0,0,0,0,1,-1; -1,0,0,0,0,1]);
+0454    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_rotate_meas: t3'</span>,stim(3).stim_pattern, [0;0;-1;1;0;0]);
+0455    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_rotate_meas: t4'</span>,stim(3).meas_pattern, <span class="keyword">...</span>
+0456          [1,-1,0,0,0,0;0,0,0,0,1,-1; -1,0,0,0,0,1]);
+0457 
+0458    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,1],[0,1],{<span class="string">'rotate_meas'</span>},1);
+0459    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'rotate_meas: t1'</span>,stim(2).stim_pattern, [0;-1;1;0;0;0]);
+0460    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'rotate_meas: t2'</span>,stim(2).meas_pattern, <span class="keyword">...</span>
+0461          [0,0,0,1,-1,0; 0,0,0,0,1,-1; -1,0,0,0,0,1]);
+0462    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'rotate_meas: t3'</span>,stim(3).stim_pattern, [0;0;-1;1;0;0]);
+0463    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'rotate_meas: t4'</span>,stim(3).meas_pattern, <span class="keyword">...</span>
+0464          [0,0,0,0,1,-1; -1,0,0,0,0,1; 1,-1,0,0,0,0]);
+0465 
+0466 <span class="comment">%      'do_redundant' / 'no_redundant'</span>
+0467 <span class="comment">%         -&gt; do / don't make reciprocally redundant measures</span>
+0468    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,1],[0,1],{<span class="string">'do_redundant'</span>},1);
+0469 
+0470    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'do_redundant: t0'</span>,length(stim), 6);
+0471    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'do_redundant: t1'</span>,stim(2).stim_pattern, [0;-1;1;0;0;0]);
+0472    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'do_redundant: t2'</span>,stim(2).meas_pattern, <span class="keyword">...</span>
+0473          [0,0,0,1,-1,0; 0,0,0,0,1,-1; -1,0,0,0,0,1]);
+0474    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'do_redundant: t3'</span>,stim(3).stim_pattern, [0;0;-1;1;0;0]);
+0475    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'do_redundant: t4'</span>,stim(3).meas_pattern, <span class="keyword">...</span>
+0476          [1,-1,0,0,0,0;0,0,0,0,1,-1; -1,0,0,0,0,1]);
+0477 
+0478    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,1],[0,1],{<span class="string">'no_redundant'</span>},1);
+0479    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_redundant: t0'</span>,length(stim), 4);
+0480    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_redundant: t1'</span>,stim(2).stim_pattern, [0;-1;1;0;0;0]);
+0481    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_redundant: t2'</span>,stim(2).meas_pattern, <span class="keyword">...</span>
+0482          [0,0,0,1,-1,0; 0,0,0,0,1,-1; -1,0,0,0,0,1]);
+0483    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_redundant: t3'</span>,stim(3).stim_pattern, [0;0;-1;1;0;0]);
+0484    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_redundant: t4'</span>,stim(3).meas_pattern, <span class="keyword">...</span>
+0485          [0,0,0,0,1,-1;-1,0,0,0,0,1]);
+0486    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_redundant: t5'</span>,stim(4).meas_pattern, <span class="keyword">...</span>
+0487          [-1,0,0,0,0,1]);
+0488 
+0489 <span class="comment">%      'balance_inj' / 'no_balance_inj'</span>
+0490 <span class="comment">%         -&gt; do / don't draw current from all electrodes so total</span>
+0491 <span class="comment">%            injection is zero (useful for mono patterns)</span>
+0492    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,<span class="string">'{mono}'</span>,[0,1],{<span class="string">'balance_inj'</span>,<span class="string">'meas_current'</span>},1);
+0493    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'balance_inj: t0'</span>,length(stim), 4,1);
+0494    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'balance_inj: t1'</span>,stim(2).stim_pattern, -[1;-3;1;1]/3);
+0495    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'balance_inj: t2'</span>,stim(2).meas_pattern, <span class="keyword">...</span>
+0496          [1,-1,0,0;0,1,-1,0;0,0,1,-1;-1,0,0,1]);
+0497 
+0498    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,<span class="string">'{mono}'</span>,[0,1],{<span class="string">'no_balance_inj'</span>,<span class="string">'no_meas_current'</span>},1);
+0499    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_inj: t0'</span>,length(stim), 4,1);
+0500    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_inj: t1'</span>,stim(2).stim_pattern, [0;1;0;0]);
+0501    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_inj: t2'</span>,stim(2).meas_pattern, <span class="keyword">...</span>
+0502          [0,0,1,-1;-1,0,0,1]);
+0503 
+0504    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,<span class="string">'{mono}'</span>,[0,1],{},1);
+0505    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_inj: t0'</span>,length(stim), 4,1);
+0506    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_inj: t1'</span>,stim(2).stim_pattern, [0;1;0;0]);
+0507 
+0508 <span class="comment">%      'balance_meas' / 'no_balance_meas'</span>
+0509 <span class="comment">%         -&gt; do / don't subtrant measurement from all electrodes so total</span>
+0510 <span class="comment">%            average measurement is zero (useful for mono patterns)</span>
+0511    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,[0,1],<span class="string">'{mono}'</span>,{<span class="string">'no_balance_meas'</span>,<span class="string">'meas_current'</span>},1);
+0512    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t0'</span>,length(stim), 4,1);
+0513    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t1'</span>,stim(2).stim_pattern, [0;-1;1;0]);
+0514    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t1'</span>,stim(2).meas_pattern, eye(4));
+0515 
+0516    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,[0,1],<span class="string">'{mono}'</span>,{<span class="string">'meas_current'</span>},1);
+0517    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t0'</span>,length(stim), 4,1);
+0518    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t1'</span>,stim(2).stim_pattern, [0;-1;1;0]);
+0519    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t1'</span>,stim(2).meas_pattern, eye(4));
+0520 
+0521    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,[0,1],<span class="string">'{mono}'</span>,{<span class="string">'no_meas_current'</span>},1);
+0522    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t0'</span>,length(stim), 4,1);
+0523    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t1'</span>,stim(2).stim_pattern, [0;-1;1;0]);
+0524    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t1'</span>,stim(2).meas_pattern, [1,0,0,0;0,0,0,1]);
+0525 
+0526    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,[0,1],<span class="string">'{mono}'</span>,{},1); <span class="comment">% DO WE WANT THIS AS DEFAULT??</span>
+0527    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t0'</span>,length(stim), 4,1);
+0528    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t1'</span>,stim(2).stim_pattern, [0;-1;1;0]);
+0529    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no_balance_meas: t1'</span>,stim(2).meas_pattern, [1,0,0,0;0,0,0,1]);
+0530 
+0531    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,[0,1],<span class="string">'{mono}'</span>,{<span class="string">'balance_meas'</span>,<span class="string">'meas_current'</span>},1);
+0532    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'balance_meas: t0'</span>,length(stim), 4);
+0533    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'balance_meas: t1'</span>,stim(2).stim_pattern, [0;-1;1;0]);
+0534    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'balance_meas: t1'</span>,stim(2).meas_pattern, (4*eye(4)-ones(4))/3);
+0535 
+0536    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,[0,1],[0,1],{},2);
+0537    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'amplitude: t1'</span>,stim(2).stim_pattern, [0;-2;2;0]);
+0538    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,<span class="string">'{ad}'</span>,[0,1],{},2);
+0539    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'amplitude: t2'</span>,stim(2).stim_pattern, [0;-2;2;0]);
+0540    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,<span class="string">'{mono}'</span>,[0,1],{<span class="string">'no_balance_inj'</span>},2);
+0541    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'amplitude: t3'</span>,stim(2).stim_pattern, [0;2;0;0]);
+0542    stim = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(4,1,<span class="string">'{mono}'</span>,[0,1],{},2);
+0543    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'amplitude: t4'</span>,stim(2).stim_pattern, [0;2;0;0]);
+0544   
+0545    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,2],[0,1],{<span class="string">'meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0546    msel = reshape(msel, 6, 6);
+0547    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: t1'</span>,msel(:,6), [1;1;1;1;1;1]);
+0548 
+0549    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,2],[0,1],{<span class="string">'meas_current'</span>,<span class="string">'rotate_meas'</span>},2);
+0550    msel = reshape(msel, 6, 6);
+0551    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: t1'</span>,msel(:,6), [1;1;1;1;1;1]);
+0552 
+0553    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,1],[0,1],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0554    msel = reshape(msel, 6, 6);
+0555    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: t1'</span>,msel(:,6), [0;1;1;1;0;0]);
+0556 
+0557    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,2],[0,1],{<span class="string">'meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0558    msel = reshape(msel, 6, 6);
+0559    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: t1'</span>,msel(:,6), [1;1;1;1;1;1]);
+0560 
+0561    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,1],[0,1],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0562    msel = reshape(msel, 6, 6);
+0563    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nnp01'</span>,msel(:,[4,5]), [1,1;1,1;0,1;0,0;0,0;1,0]);
+0564 
+0565    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,2],[0,1],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0566    msel = reshape(msel, 6, 6);
+0567    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nnp02'</span>,msel(:,[4,5]), [1,0;1,1;0,1;0,0;0,0;0,0]);
+0568 
+0569    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,3],[0,1],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0570    msel = reshape(msel, 6, 6);
+0571    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nnp03'</span>,msel(:,[4,5]), [0,0;1,0;0,1;0,0;1,0;0,1]);
+0572 
+0573    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[1,2],[0,1],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0574    msel = reshape(msel, 6, 6);
+0575    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nnp12'</span>,msel(:,[4,5]), [1,0;1,1;1,1;0,1;0,0;0,0]);
+0576 
+0577    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[2,4],[0,1],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0578    msel = reshape(msel, 6, 6);
+0579    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nnp24'</span>,msel(:,[4,5]), [0,0;0,0;1,0;1,1;0,1;0,0]);
+0580 
+0581    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[2,4],[3,6],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0582    msel = reshape(msel, 6, 6);
+0583    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nnp2436'</span>,msel(:,[4,5]), [1,0;0,1;0,0;1,0;0,1;0,0]);
+0584 
+0585    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,1],[0,1],{<span class="string">'no_meas_current'</span>,<span class="string">'rotate_meas'</span>},2);
+0586    msel = reshape(msel, 6, 6);
+0587    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nrp01'</span>,msel(:,6), [0;0;1;1;1;0]);
+0588 
+0589    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,2],[0,1],{<span class="string">'no_meas_current'</span>,<span class="string">'rotate_meas'</span>},2);
+0590    msel = reshape(msel, 6, 6);
+0591    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nrp02'</span>,msel(:,6), [0;0;0;1;1;0]);
+0592 
+0593    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,2],[3,4],{<span class="string">'no_meas_current'</span>,<span class="string">'rotate_meas'</span>},2);
+0594    msel = reshape(msel, 6, 6);
+0595    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nrp0234'</span>,msel(:,6), [1;1;0;0;0;0]);
+0596 
+0597    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,1],[0,1],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>,<span class="string">'no_redundant'</span>},2);
+0598    msel = reshape(msel, 6, 6);
+0599    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nnp01'</span>,msel(:,[2,5]), [0,0;0,0;0,0;1,0;1,0;1,0]);
+0600 
+0601    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,2],<span class="string">'{mono}'</span>,{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},2);
+0602    msel = reshape(msel, 6, 6);
+0603    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nnp2436'</span>,msel(:,[4,5]), [1,0;1,1;1,1;0,1;1,0;0,1]);
+0604 
+0605    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(6,1,[0,2],<span class="string">'{mono}'</span>,{<span class="string">'no_meas_current_next0'</span>},2);
+0606    msel = reshape(msel, 6, 6);
+0607    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: nnp2436'</span>,msel(:,[4,5]), [1,0;1,1;1,1;0,1;1,0;0,1]);
+0608 
+0609    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,1],[0,1],{<span class="string">'no_meas_current_next1'</span>,<span class="string">'no_rotate_meas'</span>},1);
+0610    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next1a'</span>,msel(48+(1:16)), [1;0;0;0;0;0;1;1;1;1;1;1;1;1;1;1]);
+0611    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,5],[0,5],{<span class="string">'no_meas_current_next1'</span>,<span class="string">'no_rotate_meas'</span>},1);
+0612    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next1b'</span>,msel(48+(1:16)), [1;1;0;0;0;1;1;0;0;0;1;1;1;0;0;0]);
+0613    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,5],[0,5],{<span class="string">'no_meas_current_next1'</span>,<span class="string">'rotate_meas'</span>},1);
+0614    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next1c'</span>,msel(48+(1:16)), [0;0;1;1;0;0;0;1;1;1;0;0;0;1;1;0]);
+0615 
+0616    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,1],[0,1],{<span class="string">'no_meas_current_next2'</span>,<span class="string">'no_rotate_meas'</span>},1);
+0617    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next2a'</span>,msel(48+(1:16)), [0;0;0;0;0;0;0;1;1;1;1;1;1;1;1;1]);
+0618    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,5],[0,5],{<span class="string">'no_meas_current_next2'</span>,<span class="string">'no_rotate_meas'</span>},1);
+0619    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next2b'</span>,msel(48+(1:16)), [0;0;0;0;0;0;0;0;0;0;0;1;0;0;0;0]);
+0620    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,5],[0,5],{<span class="string">'no_meas_current_next2'</span>,<span class="string">'rotate_meas'</span>},1);
+0621    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next2c'</span>,msel(48+(1:16)), [0;0;0;0;0;0;0;0;1;0;0;0;0;0;0;0]);
+0622 
+0623    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,1],[0,1],{<span class="string">'no_meas_current_next3'</span>,<span class="string">'no_rotate_meas'</span>},1);
+0624    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next3a'</span>,msel(48+(1:16)), [0;0;0;0;0;0;0;0;1;1;1;1;1;1;1;0]);
+0625    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,5],[0,5],{<span class="string">'no_meas_current_next3'</span>,<span class="string">'no_rotate_meas'</span>},1);
+0626    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next3b'</span>,msel(48+(1:16)), [0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0]);
+0627    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,5],[0,5],{<span class="string">'no_meas_current_next3'</span>,<span class="string">'rotate_meas'</span>},1);
+0628    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next3c'</span>,msel(48+(1:16)), [0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0]);
+0629 
+0630 
+0631    mselr=[];mseln=[]; <span class="keyword">for</span> i=1:4; <span class="keyword">switch</span> i;
+0632       <span class="keyword">case</span> 1;nmc= <span class="string">'no_meas_current'</span>;
+0633       <span class="keyword">case</span> 2;nmc= <span class="string">'no_meas_current_next1'</span>;
+0634       <span class="keyword">case</span> 3;nmc= <span class="string">'no_meas_current_next2'</span>;
+0635       <span class="keyword">case</span> 4;nmc= <span class="string">'no_meas_current_next3'</span>;
+0636       <span class="keyword">otherwise</span>; error <span class="string">'huh?'</span>;
+0637       <span class="keyword">end</span>
+0638       [~,mselr(:,i)] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(32,1,[0,5],[0,5],{nmc,<span class="string">'rotate_meas'</span>},1);
+0639       [~,mseln(:,i)] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(32,1,[0,5],[0,5],{nmc,<span class="string">'no_rotate_meas'</span>},1);
+0640    <span class="keyword">end</span>
+0641    ccv = zeros(32,1); ccv([1,2,end])=1/3;
+0642    rsp = reshape(mseln,32,32,4); nxl= 0*rsp;
+0643    <span class="keyword">for</span> i=2:4; <span class="keyword">for</span> j=1:32
+0644       nxl(:,j,i) = cconv(rsp(:,j,i-1),ccv,32)&gt;1-.01;
+0645    <span class="keyword">end</span>; <span class="keyword">end</span>
+0646    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next*c'</span>,nxl(:,:,2:4),rsp(:,:,2:4));
+0647    rsp = reshape(mselr,32,32,4); nxl= 0*rsp;
+0648    <span class="keyword">for</span> i=2:4; <span class="keyword">for</span> j=1:32
+0649       nxl(:,j,i) = cconv(rsp(:,j,i-1),ccv,32)&gt;1-.01;
+0650    <span class="keyword">end</span>; <span class="keyword">end</span>
+0651    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'meas_sel: next*c'</span>,nxl(:,:,2:4),rsp(:,:,2:4));
+0652       
+0653 
+0654 
+0655 <span class="comment">% TESTS FROM OLD mk_stim_patterns_test CODE</span>
+0656    pat= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,<span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>,{}, 1);
+0657    <a href="#_sub12" class="code" title="subfunction ok= test_adj(pat)">test_adj</a>(pat);
+0658 
+0659    options= {<span class="string">'no_rotate_meas'</span>};
+0660    pat= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,<span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options,1);
+0661    <a href="#_sub12" class="code" title="subfunction ok= test_adj(pat)">test_adj</a>(pat);
+0662 
+0663    options= {<span class="string">'no_rotate_meas'</span>, <span class="string">'no_meas_current'</span>};
+0664    pat= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,<span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options,1);
+0665    <a href="#_sub12" class="code" title="subfunction ok= test_adj(pat)">test_adj</a>(pat);
+0666 
+0667    options= {<span class="string">'no_rotate_meas'</span>, <span class="string">'meas_current'</span>};
+0668    pat= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,<span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options,1);
+0669    <a href="#_sub13" class="code" title="subfunction ok= test_adj_full(pat)">test_adj_full</a>(pat);
+0670 
+0671    options= {<span class="string">'meas_current'</span>};
+0672    pat= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,<span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options,1);
+0673    <a href="#_sub13" class="code" title="subfunction ok= test_adj_full(pat)">test_adj_full</a>(pat);
+0674 
+0675    options= {<span class="string">'rotate_meas'</span>};
+0676    pat= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,<span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options,1);
+0677    <a href="#_sub14" class="code" title="subfunction ok= test_adj_rotate(pat)">test_adj_rotate</a>(pat);
+0678 
+0679    options= {<span class="string">'rotate_meas'</span>, <span class="string">'no_meas_current'</span>};
+0680    pat= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,<span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options,1);
+0681    <a href="#_sub14" class="code" title="subfunction ok= test_adj_rotate(pat)">test_adj_rotate</a>(pat);
+0682 
+0683    options= {<span class="string">'rotate_meas'</span>,<span class="string">'no_redundant'</span>, <span class="string">'no_meas_current'</span>};
+0684    pat= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,<span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options,1);
+0685    <a href="#_sub15" class="code" title="subfunction ok= test_adj_no_redund(pat)">test_adj_no_redund</a>(pat);
+0686 
+0687 <a name="_sub12" href="#_subfunctions" class="code">function ok= test_adj(pat)</a>
+0688    <span class="comment">%%%  test adjacent current pattern</span>
+0689 
+0690    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#01'</span>, length(pat), 16);
+0691    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#02'</span>, pat(1).stimulation, <span class="string">'Amp'</span>);
+0692    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#03'</span>, pat(1).stim_pattern, [-1;1;zeros(14,1)]); <span class="comment">% Stim pattern # 1</span>
+0693 
+0694    meas= pat(1).meas_pattern;
+0695    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#04'</span>, size(meas), [13 16] );
+0696    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#05'</span>, meas(1,:), [0,0,1,-1,zeros(1,12)] );
+0697    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#06'</span>, meas(13,:), [zeros(1,14),1,-1] );
+0698    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#07'</span>, pat(10).stim_pattern , [zeros(9,1);-1;1;zeros(5,1)] );
+0699 
+0700    meas= pat(10).meas_pattern;
+0701    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#08'</span>, size(meas), [13 16] );
+0702    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#09'</span>, meas(1,:), [1,-1,zeros(1,14)] );
+0703    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#10'</span>, meas(13,:), [-1,zeros(1,14),1] );
+0704 
+0705 <a name="_sub13" href="#_subfunctions" class="code">function ok= test_adj_full(pat)</a>
+0706    <span class="comment">%%% test adjacent current pattern (full)</span>
+0707 
+0708    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#11'</span>, length(pat), 16);
+0709    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#12'</span>, pat(1).stimulation, <span class="string">'Amp'</span>);
+0710    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#13'</span>, pat(1).stim_pattern, [-1;1;zeros(14,1)]);
+0711 
+0712    meas= pat(1).meas_pattern;
+0713    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#14'</span>, size(meas), [16 16] );
+0714    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#15'</span>, meas(1,:), [1,-1,zeros(1,14)] );
+0715    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#16'</span>, meas(13,:), [zeros(1,12),1,-1,0,0] );
+0716    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#17'</span>, pat(10).stim_pattern, [zeros(9,1);-1;1;zeros(5,1)] );
+0717 
+0718    meas= pat(10).meas_pattern;
+0719    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#18'</span>, size(meas), [16 16] );
+0720    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#19'</span>, meas(1,:), [1,-1,zeros(1,14)] );
+0721    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#20'</span>, meas(13,:), [zeros(1,12),1,-1,0,0] );
+0722 
+0723 
+0724 <a name="_sub14" href="#_subfunctions" class="code">function ok= test_adj_rotate(pat)</a>
+0725    <span class="comment">%%%% test adjacent current pattern (rotate)</span>
+0726 
+0727    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#21'</span>, length(pat), 16);
+0728    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#22'</span>, pat(1).stimulation, <span class="string">'Amp'</span>);
+0729    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#23'</span>, pat(1).stim_pattern, [-1;1;zeros(14,1)]);
+0730 
+0731    meas= pat(1).meas_pattern;
+0732    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#24'</span>, size(meas), [13 16] );
+0733    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#25'</span>, meas(1,:), [0,0,1,-1,zeros(1,12)] );
+0734    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#26'</span>, meas(13,:), [zeros(1,14),1,-1] );
+0735    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#27'</span>, pat(10).stim_pattern, [zeros(9,1);-1;1;zeros(5,1)] );
+0736 
+0737    meas= pat(10).meas_pattern;
+0738    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#28'</span>, size(meas), [13 16] );
+0739    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#29'</span>, meas(1,:), [zeros(1,11),1,-1,zeros(1,3)] );
+0740    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#30'</span>, meas(13,:), [zeros(1,7),1,-1,zeros(1,7)] );
+0741 
+0742 <a name="_sub15" href="#_subfunctions" class="code">function ok= test_adj_no_redund(pat)</a>
+0743    <span class="comment">%%% test adjacent current pattern (rotate)</span>
+0744 
+0745    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#31'</span>, length(pat), 14);
+0746    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#32'</span>, pat(1).stimulation, <span class="string">'Amp'</span>);
+0747    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#33'</span>, pat(1).stim_pattern, [-1;1;zeros(14,1)]);
+0748 
+0749    meas= pat(1).meas_pattern;
+0750    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#34'</span>, size(meas), [13 16] );
+0751    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#35'</span>, meas(1,:), [0,0,1,-1,zeros(1,12)] );
+0752    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#36'</span>, meas(13,:), [zeros(1,14),1,-1] );
+0753    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#37'</span>, pat(10).stim_pattern, [zeros(9,1);-1;1;zeros(5,1)] );
+0754 
+0755    meas= pat(10).meas_pattern;
+0756    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#38'</span>, size(meas), [5 16] );
+0757    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#39'</span>, meas(1,:), [zeros(1,11),1,-1,zeros(1,3)] );
+0758    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'pt#40'</span>, meas(5,:), [-1,zeros(1,14),1] );
+0759</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

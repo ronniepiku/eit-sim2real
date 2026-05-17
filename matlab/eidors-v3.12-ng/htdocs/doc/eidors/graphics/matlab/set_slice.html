@@ -1,0 +1,455 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of set_slice</title>
+  <meta name="keywords" content="set_slice">
+  <meta name="description" content="SET_SLICE  Set parameters for slice display.">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="#">graphics</a> &gt; <a href="index.html">matlab</a> &gt; set_slice.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/graphics/matlab&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>set_slice
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>SET_SLICE  Set parameters for slice display.</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function img = set_slice(img, level, spec) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> SET_SLICE  Set parameters for slice display.
+   IMG = SET_SLICE(IMG, LEVEL, SPEC) sets the parameters on the image
+   struct IMG the parameters required by MDL_SLICE_MAPPER.
+
+   PARAMETERS:
+       IMG     - an eidors image or fwd_model
+       LEVEL   - any definition accepted by LEVEL_MODEL_SLICE for 
+                 a single slice, or [] to leave current specification
+                 unchanged.
+       SPEC    - specification of interpolations points, in one of the
+                 following forms
+           R           - scalar resolution (points per unit)
+                         Sets mdl_slice_mapper.resolution.
+           [npx, npy]  - 2-element vector specifying horizontal and
+                         vertical number of points
+                         Sets mdl_slice_mapper.npx/npy.
+           [np, 0]
+           [0, np]     - 2-element vector, one element is zero. 
+                         Sets img.mdl_slice_mapper.npoints,
+                         the number of points across the larger.
+           {xpts,ypts} - 2-elements cell array containing vectors of
+                         points in horizontal and vertical directsion.
+                         Sets mdl_slice_mapper.x_pts/y_pts.
+
+   SET_SLICE will remove any alternative specifications of point locations
+   from the mdl_slice_mapper field (fields npx/npy, xpts/ypts, resolution,
+   npoints). If LEVEL is [], mdl_slice_mapper.level is not changed if
+   present, and not added if absent. Otherwise mdl_slice_mapper.level will
+   be replaced, and mdl_slice_mapper.center and .rotate (deprecated) will
+   be removed.
+
+   SET_SLICE does not modify the mdl_slice_mapper.model_2d field.
+
+   SET_SLICE sets img.show_slices.axes_msm = true. See SHOW_SLICES.
+
+ Example:
+       img = set_slice(img, LEVEL, [npx, npy]);
+   is equivalent to:
+       img.fwd_model.mdl_slice_mapper.level = LEVEL;
+       img.fwd_model.mdl_slice_mapper.npx = npx;
+       img.fwd_model.mdl_slice_mapper.npy = npy;
+
+ See also <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">MDL_SLICE_MAPPER</a>, <a href="level_model_slice.html" class="code" title="function [out, out2, out3, out4] = level_model_slice(varargin)">LEVEL_MODEL_SLICE</a>, <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">SHOW_SLICES</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>	MDL_SLICE_MAPPER: map pixels to FEM elements or nodes</li><li><a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>	SET_SLICE  Set parameters for slice display.</li><li><a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>	out_img = show_slices (img, levels ) show slices at levels of an</li><li><a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="../../../eidors/solvers/calc_jacobian_bkgnd.html" class="code" title="function img_bkgnd = calc_jacobian_bkgnd( inv_model )">calc_jacobian_bkgnd</a>	CALC_JACOBIAN_BKGND: calculate background image around</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>	SET_SLICE  Set parameters for slice display.</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function fmdl = do_set_slice(fmdl, level, spec)</a></li><li><a href="#_sub2" class="code">function do_unit_test()</a></li><li><a href="#_sub3" class="code">function do_unit_test_show_slices()</a></li><li><a href="#_sub4" class="code">function do_unit_test_mdl_slice_mapper()</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function img = set_slice(img, level, spec)</a>
+0002 <span class="comment">% SET_SLICE  Set parameters for slice display.</span>
+0003 <span class="comment">%   IMG = SET_SLICE(IMG, LEVEL, SPEC) sets the parameters on the image</span>
+0004 <span class="comment">%   struct IMG the parameters required by MDL_SLICE_MAPPER.</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">%   PARAMETERS:</span>
+0007 <span class="comment">%       IMG     - an eidors image or fwd_model</span>
+0008 <span class="comment">%       LEVEL   - any definition accepted by LEVEL_MODEL_SLICE for</span>
+0009 <span class="comment">%                 a single slice, or [] to leave current specification</span>
+0010 <span class="comment">%                 unchanged.</span>
+0011 <span class="comment">%       SPEC    - specification of interpolations points, in one of the</span>
+0012 <span class="comment">%                 following forms</span>
+0013 <span class="comment">%           R           - scalar resolution (points per unit)</span>
+0014 <span class="comment">%                         Sets mdl_slice_mapper.resolution.</span>
+0015 <span class="comment">%           [npx, npy]  - 2-element vector specifying horizontal and</span>
+0016 <span class="comment">%                         vertical number of points</span>
+0017 <span class="comment">%                         Sets mdl_slice_mapper.npx/npy.</span>
+0018 <span class="comment">%           [np, 0]</span>
+0019 <span class="comment">%           [0, np]     - 2-element vector, one element is zero.</span>
+0020 <span class="comment">%                         Sets img.mdl_slice_mapper.npoints,</span>
+0021 <span class="comment">%                         the number of points across the larger.</span>
+0022 <span class="comment">%           {xpts,ypts} - 2-elements cell array containing vectors of</span>
+0023 <span class="comment">%                         points in horizontal and vertical directsion.</span>
+0024 <span class="comment">%                         Sets mdl_slice_mapper.x_pts/y_pts.</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">%   SET_SLICE will remove any alternative specifications of point locations</span>
+0027 <span class="comment">%   from the mdl_slice_mapper field (fields npx/npy, xpts/ypts, resolution,</span>
+0028 <span class="comment">%   npoints). If LEVEL is [], mdl_slice_mapper.level is not changed if</span>
+0029 <span class="comment">%   present, and not added if absent. Otherwise mdl_slice_mapper.level will</span>
+0030 <span class="comment">%   be replaced, and mdl_slice_mapper.center and .rotate (deprecated) will</span>
+0031 <span class="comment">%   be removed.</span>
+0032 <span class="comment">%</span>
+0033 <span class="comment">%   SET_SLICE does not modify the mdl_slice_mapper.model_2d field.</span>
+0034 <span class="comment">%</span>
+0035 <span class="comment">%   SET_SLICE sets img.show_slices.axes_msm = true. See SHOW_SLICES.</span>
+0036 <span class="comment">%</span>
+0037 <span class="comment">% Example:</span>
+0038 <span class="comment">%       img = set_slice(img, LEVEL, [npx, npy]);</span>
+0039 <span class="comment">%   is equivalent to:</span>
+0040 <span class="comment">%       img.fwd_model.mdl_slice_mapper.level = LEVEL;</span>
+0041 <span class="comment">%       img.fwd_model.mdl_slice_mapper.npx = npx;</span>
+0042 <span class="comment">%       img.fwd_model.mdl_slice_mapper.npy = npy;</span>
+0043 <span class="comment">%</span>
+0044 <span class="comment">% See also MDL_SLICE_MAPPER, LEVEL_MODEL_SLICE, SHOW_SLICES</span>
+0045 
+0046 <span class="comment">% (C) 2024 Bartek Grychtol.</span>
+0047 <span class="comment">% License: GPL version 2 or version 3</span>
+0048 <span class="comment">% $Id: set_slice.m 6799 2024-04-20 19:44:10Z aadler $</span>
+0049 
+0050 <span class="keyword">if</span> ischar(img) &amp;&amp; strcmp(img,<span class="string">'UNIT_TEST'</span>); <a href="#_sub2" class="code" title="subfunction do_unit_test()">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0051 
+0052 <span class="keyword">switch</span> img.type
+0053     <span class="keyword">case</span> <span class="string">'image'</span>
+0054         fmdl = img.fwd_model;
+0055         isimage = true;
+0056     <span class="keyword">case</span> <span class="string">'fwd_model'</span>
+0057         fmdl = img;
+0058         isimage = false;
+0059     <span class="keyword">otherwise</span>
+0060         error(<span class="string">'EIDORS:WrongInput'</span>, <span class="string">'Expected eidors image or fwd_model.'</span>)
+0061 <span class="keyword">end</span>
+0062 
+0063 fmdl = <a href="#_sub1" class="code" title="subfunction fmdl = do_set_slice(fmdl, level, spec)">do_set_slice</a>(fmdl, level, spec);
+0064 
+0065 <span class="keyword">if</span> isimage
+0066     img.fwd_model = fmdl;
+0067     img.show_slices.axes_msm = true;
+0068 <span class="keyword">else</span>
+0069     img = fmdl;
+0070 <span class="keyword">end</span>
+0071 
+0072 
+0073 <a name="_sub1" href="#_subfunctions" class="code">function fmdl = do_set_slice(fmdl, level, spec)</a>
+0074 
+0075 <span class="keyword">if</span> ~isempty(level)
+0076     fmdl.mdl_slice_mapper.level = level;
+0077     <span class="keyword">try</span> fmdl.mdl_slice_mapper = rmfield(fmdl.mdl_slice_mapper, {<span class="string">'centre'</span>, <span class="string">'rotate'</span>}); <span class="keyword">end</span>
+0078 <span class="keyword">end</span>
+0079 
+0080 <span class="keyword">if</span> ~isempty(spec)
+0081     <span class="keyword">try</span> fmdl.mdl_slice_mapper = rmfield(fmdl.mdl_slice_mapper, {<span class="string">'x_pts'</span>, <span class="string">'y_pts'</span>}); <span class="keyword">end</span>
+0082     <span class="keyword">try</span> fmdl.mdl_slice_mapper = rmfield(fmdl.mdl_slice_mapper, {<span class="string">'npx'</span>, <span class="string">'npy'</span>}); <span class="keyword">end</span>
+0083     <span class="keyword">try</span> fmdl.mdl_slice_mapper = rmfield(fmdl.mdl_slice_mapper, <span class="string">'npoints'</span>); <span class="keyword">end</span>
+0084     <span class="keyword">try</span> fmdl.mdl_slice_mapper = rmfield(fmdl.mdl_slice_mapper, <span class="string">'resolution'</span>); <span class="keyword">end</span>
+0085 <span class="keyword">end</span>
+0086 
+0087 <span class="keyword">if</span> iscell(spec) <span class="comment">% {xpts, ypts}</span>
+0088     fmdl.mdl_slice_mapper.x_pts = spec{1};
+0089     fmdl.mdl_slice_mapper.y_pts = spec{2};
+0090 <span class="keyword">elseif</span> isnumeric(spec)
+0091     <span class="keyword">switch</span> numel(spec)
+0092         <span class="keyword">case</span> 1 <span class="comment">% resolution</span>
+0093             fmdl.mdl_slice_mapper.resolution = spec;
+0094         <span class="keyword">case</span> 2 <span class="comment">% [npx, npy] or [np, 0]</span>
+0095             <span class="keyword">if</span> any(spec == 0)
+0096                 fmdl.mdl_slice_mapper.npoints = max(spec);
+0097             <span class="keyword">else</span>
+0098                 fmdl.mdl_slice_mapper.npx = spec(1);
+0099                 fmdl.mdl_slice_mapper.npy = spec(2);
+0100             <span class="keyword">end</span>
+0101         <span class="keyword">otherwise</span>
+0102             error(<span class="string">'EIDORS:WrongInput'</span>, <span class="string">'Expected 1- or 2- element SPEC'</span>);
+0103             
+0104     <span class="keyword">end</span>      
+0105 <span class="keyword">else</span>
+0106     error(<span class="string">'EIDORS:WrongInput'</span>,<span class="string">'Point definition SPEC not understood.'</span>);
+0107 <span class="keyword">end</span>
+0108 
+0109 
+0110 
+0111 <a name="_sub2" href="#_subfunctions" class="code">function do_unit_test()</a>
+0112     figure(1)
+0113     <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(<span class="string">'UNIT_TEST'</span>);
+0114     figure(2)
+0115     <a href="#_sub3" class="code" title="subfunction do_unit_test_show_slices()">do_unit_test_show_slices</a>()
+0116     figure(3);
+0117     <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(<span class="string">'UNIT_TEST'</span>);
+0118     figure(4);
+0119     <a href="#_sub4" class="code" title="subfunction do_unit_test_mdl_slice_mapper()">do_unit_test_mdl_slice_mapper</a>()
+0120     
+0121 
+0122 <a name="_sub3" href="#_subfunctions" class="code">function do_unit_test_show_slices()</a>
+0123    clf; sp=0;
+0124    <span class="comment">%1</span>
+0125    img=<a href="../../../eidors/solvers/calc_jacobian_bkgnd.html" class="code" title="function img_bkgnd = calc_jacobian_bkgnd( inv_model )">calc_jacobian_bkgnd</a>(<a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2t3'</span>,8)); 
+0126    img.elem_data=toeplitz(1:size(img.fwd_model.elems,1),1);
+0127    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img) 
+0128    <span class="comment">%2</span>
+0129    <span class="comment">%img.calc_colours.npoints= 128;</span>
+0130    img = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(img, [], [128, 0]);
+0131    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img) 
+0132    <span class="comment">%3</span>
+0133 <span class="comment">%    img.calc_colours.npoints= 32;</span>
+0134    img = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(img, [], [0 32]);
+0135    img.elem_data=toeplitz(1:size(img.fwd_model.elems,1),1:3);
+0136    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img) 
+0137 
+0138    <span class="comment">%4</span>
+0139    img.show_slices.img_cols= 1;
+0140    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img) 
+0141 
+0142    <span class="comment">%5</span>
+0143    imgn = rmfield(img,<span class="string">'elem_data'</span>);
+0144    imgn.node_data=toeplitz(1:size(img.fwd_model.nodes,1),1);
+0145 
+0146    img.elem_data = img.elem_data(:,1);
+0147 <span class="comment">%    img.fwd_model.mdl_slice_mapper.npx = 10;</span>
+0148 <span class="comment">%    img.fwd_model.mdl_slice_mapper.npy = 20;</span>
+0149 <span class="comment">%    img.fwd_model.mdl_slice_mapper.level = [inf,inf,0];</span>
+0150    img = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(img, [inf,inf,0], [10, 20]);
+0151    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img);
+0152 
+0153    <span class="comment">%6</span>
+0154    img.elem_data = img.elem_data(:,1);
+0155 <span class="comment">%    img.fwd_model.mdl_slice_mapper = rmfield(img.fwd_model.mdl_slice_mapper, {'npx','npy'});</span>
+0156 <span class="comment">%    img.fwd_model.mdl_slice_mapper.x_pts = linspace(-100,100,20);</span>
+0157 <span class="comment">%    img.fwd_model.mdl_slice_mapper.y_pts = linspace(-150,150,30);</span>
+0158 <span class="comment">%    img.fwd_model.mdl_slice_mapper.level = [inf,inf,0];</span>
+0159    img = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(img,[inf,inf,0], {linspace(-100,100,20),linspace(-150,150,30)}); 
+0160    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img);
+0161 
+0162    <span class="comment">%7</span>
+0163    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(imgn) 
+0164 
+0165    <span class="comment">%8</span>
+0166 <span class="comment">%    imgn.fwd_model.mdl_slice_mapper.x_pts = linspace(-100,100,20);</span>
+0167 <span class="comment">%    imgn.fwd_model.mdl_slice_mapper.y_pts = linspace(-150,150,30);</span>
+0168 <span class="comment">%    imgn.fwd_model.mdl_slice_mapper.level = [inf,inf,0];</span>
+0169    imgn = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(imgn,[inf,inf,0], {linspace(-100,100,20),linspace(-150,150,30)}); 
+0170    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(imgn) 
+0171 
+0172 
+0173 <span class="comment">% 3D images</span>
+0174    <span class="comment">%9</span>
+0175    img=<a href="../../../eidors/solvers/calc_jacobian_bkgnd.html" class="code" title="function img_bkgnd = calc_jacobian_bkgnd( inv_model )">calc_jacobian_bkgnd</a>(<a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2])); 
+0176 <span class="comment">%    img.calc_colours.npoints= 16;</span>
+0177    img = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(img, [], [0 16]);
+0178    img.elem_data=toeplitz(1:size(img.fwd_model.elems,1),1);
+0179    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2) 
+0180 
+0181    <span class="comment">%10</span>
+0182    img.elem_data=img.elem_data*[1:3];
+0183    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2) 
+0184 
+0185    <span class="comment">%11</span>
+0186    img.elem_data=img.elem_data(:,1:2);
+0187    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,[inf,inf,1;0,inf,inf;0,1,inf]);
+0188 
+0189    <span class="comment">%12</span>
+0190    img.show_slices.sep = 5;
+0191 <span class="comment">%    img.fwd_model.mdl_slice_mapper.x_pts = linspace(-1,1,20);</span>
+0192 <span class="comment">%    img.fwd_model.mdl_slice_mapper.y_pts = linspace(-1,1,30);</span>
+0193 <span class="comment">%    img.fwd_model.mdl_slice_mapper.level = [inf,inf,0];</span>
+0194    img = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(img, [inf,inf,0], {linspace(-1,1,20), linspace(-1,1,30)});
+0195    sp=sp+1;subplot(4,5,sp); <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2) 
+0196 
+0197    <span class="comment">% tests 13--19 of calc_slices are not relevant</span>
+0198 
+0199 <a name="_sub4" href="#_subfunctions" class="code">function do_unit_test_mdl_slice_mapper()</a>
+0200 <span class="comment">% 2D NUMBER OF POINTS</span>
+0201    imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c2'</span>,8); fmdl = imdl.fwd_model;
+0202    fmdl.nodes = 1e-15 * round(1e15*fmdl.nodes);
+0203 <span class="comment">%    fmdl.mdl_slice_mapper.level = [inf,inf,0];</span>
+0204 <span class="comment">%    fmdl.mdl_slice_mapper.npx = 5;</span>
+0205 <span class="comment">%    fmdl.mdl_slice_mapper.npy = 5;</span>
+0206    fmdl = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(fmdl, [inf,inf,0], [5, 5]);
+0207    eptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'elem'</span>);
+0208    
+0209    si = @(x,y) sub2ind([5,5],x, y);
+0210    <span class="comment">% points lie on nodes and edges, we allow any associated element</span>
+0211    els = {si(2,2), [25,34];
+0212           si(2,4), [27,30];
+0213           si(3,3), [1,2,3,4];
+0214           si(4,2), [33,36];
+0215           si(4,4), [28,31];
+0216           };
+0217    
+0218    tst = eptr == [    0   37   38   39    0
+0219                      46   25    5   27   42
+0220                      47    8    1    6   41
+0221                      48   33    7   28   40
+0222                       0   45   44   43    0];
+0223                       
+0224    <span class="keyword">for</span> i = 1:size(els,1)
+0225     tst(els{i,1}) = ismember(eptr(els{i,1}), els{i,2});
+0226    <span class="keyword">end</span>
+0227    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'eptr01'</span>,tst,true(5,5));
+0228 
+0229    nptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'node'</span>);
+0230    test = [   0   27   28   29    0
+0231              41    6    7    8   31
+0232              40   13    1    9   32
+0233              39   12   11   10   33
+0234               0   37   36   35    0];
+0235    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'nptr01'</span>,nptr,test);
+0236 
+0237    nint = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'nodeinterp'</span>);
+0238    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'nint01a'</span>,nint(2:4,2:4,1),[ 0.2627, 0.6909, 0.2627; 
+0239                                              0.6906, 1,      0.6906;
+0240                                              0.2627, 0.6909, 0.2627], 1e-3);
+0241 
+0242 <span class="comment">%    fmdl.mdl_slice_mapper.npx = 6;</span>
+0243 <span class="comment">%    fmdl.mdl_slice_mapper.npy = 4;</span>
+0244    fmdl = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(fmdl, [], [6 4]);
+0245    eptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'elem'</span>);
+0246    res = [  0   49   38   38   52    0
+0247            62   23    9   10   20   55
+0248            63   24   14   13   19   54
+0249             0   60   44   44   57    0];
+0250    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'eptr02'</span>,eptr,res);
+0251 
+0252    nptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'node'</span>);
+0253    res = [  0   27   15   16   29    0
+0254            25    6    2    3    8   18
+0255            24   12    5    4   10   19
+0256             0   37   22   21   35    0];
+0257    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'nptr02'</span>,nptr,res);
+0258 
+0259 <span class="comment">% DIRECT POINT TESTS</span>
+0260    imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c2'</span>,8); fmdl = imdl.fwd_model;
+0261 <span class="comment">%    fmdl.mdl_slice_mapper.level = [inf,inf,0];</span>
+0262 <span class="comment">%    fmdl.mdl_slice_mapper.x_pts = linspace(-.95,.95,4);</span>
+0263 <span class="comment">%    fmdl.mdl_slice_mapper.y_pts = [0,0.5];</span>
+0264    fmdl = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(fmdl, [inf,inf,0], {linspace(-.95,.95,4), [0,0.5]});
+0265    eptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'elem'</span>);
+0266    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'eptr03'</span>,eptr,[ 47 8 6 41; 0 25 27 0]);
+0267 
+0268    nptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'node'</span>);
+0269    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'nptr03'</span>,nptr,[ 40 13 9 32; 0 6 8 0]);
+0270 
+0271 <span class="comment">% 3D NPOINTS</span>
+0272    imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]); fmdl = imdl.fwd_model;
+0273 <span class="comment">%    fmdl.mdl_slice_mapper.level = [inf,inf,1]; % co-planar with faces</span>
+0274 <span class="comment">%    fmdl.mdl_slice_mapper.npx = 4;</span>
+0275 <span class="comment">%    fmdl.mdl_slice_mapper.npy = 4;</span>
+0276    fmdl = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(fmdl,[inf,inf,1],[4, 4]);
+0277    eptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'elem'</span>);
+0278    si = @(x,y) sub2ind([4,4],x, y);
+0279    <span class="comment">% points lie on nodes and edges, we allow any associated element</span>
+0280    els = {si(1,2), [ 42,317];
+0281           si(1,3), [ 30,305];
+0282           si(2,1), [ 66,341];
+0283           si(2,2), [243,518];
+0284           si(2,3), [231,506];
+0285           si(2,4), [  6,281];
+0286           si(3,1), [ 78,353];
+0287           si(3,2), [252,527];
+0288           si(3,3), [264,539];
+0289           si(3,4), [138,413];
+0290           si(4,2), [102,377];
+0291           si(4,3), [114,389];};
+0292    tst = eptr == zeros(4); 
+0293    <span class="keyword">for</span> i = 1:size(els,1)
+0294     tst(els{i,1}) = ismember(eptr(els{i,1}), els{i,2});
+0295    <span class="keyword">end</span>
+0296    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'eptr04'</span>,tst, true(4));
+0297    nptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'node'</span>);
+0298    test = [   0   101    99     0
+0299             103   116   113    97
+0300             105   118   121   111
+0301               0   107   109     0];
+0302    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'nptr04'</span>,nptr, test);
+0303 
+0304    fmdl.mdl_slice_mapper.level = [inf,0.01,inf];
+0305    eptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'elem'</span>); 
+0306    test = [621   792   777   555
+0307            345   516   501   279
+0308            343   515   499   277
+0309             69   240   225     3];
+0310    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'eptr05'</span>,eptr,test);
+0311 
+0312    nptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'node'</span>);
+0313    test = [230   250   248   222
+0314            167   187   185   159
+0315            104   124   122    96
+0316             41    61    59    33];
+0317    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'nptr05'</span>,nptr,test);
+0318 
+0319    nint = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'nodeinterp'</span>);
+0320    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'nint05a'</span>,nint(2:3,2:3,4),[.1250,.1250;.8225,.8225],1e-3);
+0321    
+0322 <span class="comment">% Centre and Rotate</span>
+0323    fmdl.mdl_slice_mapper = rmfield(fmdl.mdl_slice_mapper,<span class="string">'level'</span>);
+0324    fmdl.mdl_slice_mapper.centre = [0,0,0.9];
+0325    fmdl.mdl_slice_mapper.rotate = eye(3);
+0326 <span class="comment">%    fmdl.mdl_slice_mapper.npx = 4;</span>
+0327 <span class="comment">%    fmdl.mdl_slice_mapper.npy = 4;</span>
+0328    fmdl = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(fmdl, [], [4,4]);
+0329    eptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'elem'</span>);
+0330    test = [  0    42    30     0
+0331             66   243   229     6
+0332             78   250   264   138
+0333              0   102   114     0];
+0334    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'eptr06'</span>,eptr, test);
+0335 
+0336 <span class="comment">% SLOW</span>
+0337    imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'d3cr'</span>,[16,3]); fmdl = imdl.fwd_model;
+0338    fmdl.nodes = 1e-15*round(1e15*fmdl.nodes);
+0339 <span class="comment">%    fmdl.mdl_slice_mapper.level = [inf,inf,1];</span>
+0340 <span class="comment">%    fmdl.mdl_slice_mapper.npx = 64;</span>
+0341 <span class="comment">%    fmdl.mdl_slice_mapper.npy = 64;</span>
+0342    fmdl = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(fmdl, [inf,inf,1], [64, 64]);
+0343    t = cputime;
+0344    eptr = <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>(fmdl,<span class="string">'elem'</span>);
+0345    txt = sprintf(<span class="string">'eptr10 (t=%5.3fs)'</span>,cputime - t);
+0346 <span class="comment">% Note that triangulation gives different</span>
+0347 <span class="comment">% results near the edge</span>
+0348    test = [122872   122872   122748
+0349            122809   122749   122689
+0350            122749   122749   122689];
+0351    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(txt,eptr(10:12,11:13),test);  
+0352    
+0353 
+0354 <span class="comment">% CHECK ORIENTATION</span>
+0355    imdl=<a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c0'</span>,16);
+0356    img= <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(imdl,1); img.elem_data(26)=1.2;
+0357    subplot(231);<a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(img);
+0358    subplot(232);<a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img);
+0359 <span class="comment">%    img.fwd_model.mdl_slice_mapper.npx= 20;</span>
+0360 <span class="comment">%    img.fwd_model.mdl_slice_mapper.npy= 30;</span>
+0361 <span class="comment">%    img.fwd_model.mdl_slice_mapper.level= [inf,inf,0];</span>
+0362    img = <a href="set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>(img, [inf,inf,0], [20, 30]);
+0363    
+0364 <span class="comment">% Remaining tests in mdl_slice_mapper are not relevant to set_slice</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

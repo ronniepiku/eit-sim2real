@@ -1,0 +1,50 @@
+>> mk_library_model('list')
+
+ans =
+
+  42×1 cell array
+
+    {'adult_male_16el'           }
+    {'adult_male_32el'           }
+    {'adult_male_16el_lungs'     }
+    {'adult_male_32el_lungs'     }
+    {'adult_male_2x16el'         }
+    {'adult_male_2x32el'         }
+    {'adult_male_2x16el_lungs'   }
+    {'adult_male_2x32el_lungs'   }
+    {'cylinder_16x1el_coarse'    }
+    {'cylinder_16x1el_fine'      }
+    {'cylinder_16x1el_vfine'     }
+    {'cylinder_16x2el_coarse'    }
+    {'cylinder_16x2el_fine'      }
+    {'cylinder_16x2el_vfine'     }
+    {'neonate_16el'              }
+    {'neonate_32el'              }
+    {'neonate_16el_lungs'        }
+    {'neonate_32el_lungs'        }
+    {'pig_23kg_16el'             }
+    {'pig_23kg_32el'             }
+    {'pig_23kg_16el_lungs'       }
+    {'pig_23kg_32el_lungs'       }
+    {'lamb_newborn_16el'         }
+    {'lamb_newborn_32el'         }
+    {'lamb_newborn_16el_lungs'   }
+    {'lamb_newborn_32el_lungs'   }
+    {'lamb_newborn_16el_organs'  }
+    {'lamb_newborn_32el_organs'  }
+    {'horse_16el'                }
+    {'horse_32el'                }
+    {'horse_2x16el'              }
+    {'horse_16el_lungs'          }
+    {'horse_32el_lungs'          }
+    {'horse_2x16el_lungs'        }
+    {'beagle_16el'               }
+    {'beagle_32el'               }
+    {'beagle_16el_lungs'         }
+    {'beagle_32el_lungs'         }
+    {'beagle_16el_rectelec'      }
+    {'beagle_32el_rectelec'      }
+    {'beagle_16el_lungs_rectelec'}
+    {'beagle_32el_lungs_rectelec'}
+
+

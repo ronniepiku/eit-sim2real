@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of space_electrodes</title>
+  <meta name="keywords" content="space_electrodes">
+  <meta name="description" content="space_electrodes: equal spacing of electrodes around body">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">meshing</a> &gt; space_electrodes.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/meshing&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>space_electrodes
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>space_electrodes: equal spacing of electrodes around body</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [thrad,thdeg] = space_electrodes(spacing_type, n_elecs, params); </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> space_electrodes: equal spacing of electrodes around body
+ [thrad,thdeg] = space_electrodes(spacing_type, n_elecs, params);
+
+ OUTPUT: thrad,thdeg = spacing angle (rad,degrees) from centre
+
+ INPUT: n_elecs = number of electrodes
+  spacing_type = 'ellipse':
+    params = eliptical radii [r_x r_y]</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="space_electrodes.html" class="code" title="function [thrad,thdeg] = space_electrodes(spacing_type, n_elecs, params);">space_electrodes</a>	space_electrodes: equal spacing of electrodes around body</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/meshing/netgen/ng_mk_ellip_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_ellip_models</a>	NG_MAKE_ELLIP_MODELS: create elliptical models using netgen</li><li><a href="space_electrodes.html" class="code" title="function [thrad,thdeg] = space_electrodes(spacing_type, n_elecs, params);">space_electrodes</a>	space_electrodes: equal spacing of electrodes around body</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function th = ellip_space_elecs( n_elecs, rad )</a></li><li><a href="#_sub2" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [thrad,thdeg] = space_electrodes(spacing_type, n_elecs, params);</a>
+0002 <span class="comment">% space_electrodes: equal spacing of electrodes around body</span>
+0003 <span class="comment">% [thrad,thdeg] = space_electrodes(spacing_type, n_elecs, params);</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% OUTPUT: thrad,thdeg = spacing angle (rad,degrees) from centre</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% INPUT: n_elecs = number of electrodes</span>
+0008 <span class="comment">%  spacing_type = 'ellipse':</span>
+0009 <span class="comment">%    params = eliptical radii [r_x r_y]</span>
+0010 
+0011 <span class="comment">% (C) 2024 Andy Adler . License: GPL v2 or v3.</span>
+0012 <span class="comment">% $Id: space_electrodes.m 7002 2024-11-24 13:11:35Z aadler $</span>
+0013 
+0014 <span class="keyword">if</span> ischar(spacing_type) &amp;&amp; strcmp(spacing_type,<span class="string">'UNIT_TEST'</span>); <a href="#_sub2" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0015 
+0016 <span class="keyword">switch</span> spacing_type
+0017    <span class="keyword">case</span> <span class="string">'ellipse'</span>;
+0018       thrad = <a href="#_sub1" class="code" title="subfunction th = ellip_space_elecs( n_elecs, rad )">ellip_space_elecs</a>( n_elecs, params );
+0019    <span class="keyword">otherwise</span>
+0020       error(<span class="string">'spacing_type not recognized'</span>)
+0021 <span class="keyword">end</span>
+0022 
+0023 thdeg = 180/pi*thrad;
+0024 
+0025 <span class="comment">% equally space n_elecs around an ellipse of outer radius rad(1),rad(2)</span>
+0026 <a name="_sub1" href="#_subfunctions" class="code">function th = ellip_space_elecs( n_elecs, rad )</a>
+0027    <span class="comment">% The radius is the integral of sqrt((r1*sin(th))^2 + (r2*cos(th))^2)</span>
+0028    <span class="comment">%  This integral is the incomplete_elliptic_integral(th, 1-r2/r1)*sqrt(r1)</span>
+0029    <span class="comment">%  Unfortunately, STUPID MATLAB, doesn't have incomplete elliptic integrals</span>
+0030    <span class="comment">%  by default. So, rather than install a toolkit for it, we integrate numerically.</span>
+0031    <span class="keyword">if</span> n_elecs==0; th=[]; <span class="keyword">return</span>; <span class="keyword">end</span>
+0032    
+0033    th = linspace(0,2*pi, 100*(n_elecs)); th(1)=[]; <span class="comment">% Accuracy to 100x spacing</span>
+0034    len = cumsum( sqrt( rad(1)*cos(th).^2 + rad(2)*sin(th).^2 ) );
+0035    len = len/max(len);
+0036    xi = linspace(0,1,n_elecs+1); xi(1)= []; xi(end)=[];
+0037    yi = interp1(len,th,xi);
+0038 
+0039    th= [0;yi(:)];
+0040    <span class="keyword">for</span> exact = 0:3;
+0041       eth = exact/2*pi;
+0042       ff = abs(th-eth)&lt;1e-3;
+0043       th(ff) = eth;
+0044    <span class="keyword">end</span>
+0045 
+0046 
+0047 <a name="_sub2" href="#_subfunctions" class="code">function do_unit_test</a>
+0048   th = <a href="space_electrodes.html" class="code" title="function [thrad,thdeg] = space_electrodes(spacing_type, n_elecs, params);">space_electrodes</a>(<span class="string">'ellipse'</span>,16,[1,1]); 
+0049   <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'circle'</span>, th(1), 0, 1e-14);
+0050   <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'circle'</span>, diff(th), 2*pi/16, 1e-14);
+0051 
+0052   th = <a href="space_electrodes.html" class="code" title="function [thrad,thdeg] = space_electrodes(spacing_type, n_elecs, params);">space_electrodes</a>(<span class="string">'ellipse'</span>,16,[1,2]); 
+0053   <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ellipse [1,2]'</span>, th(1), 0, 1e-14);
+0054   <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ellipse [1,2]'</span>, [th(1), min(diff(th)) max(diff(th))], <span class="keyword">...</span>
+0055         [ 0   0.340379981348740   0.462371789340561 ], 1e-14);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<html>
+<!-- Style file for all the nav-sidebars
+     $Id: header.html 1535 2008-07-26 15:36:27Z aadler $ -->
+<head>
+<title>EIDORS</title>
+   <style type="text/css">
+        body, td, th {
+        font-family: Verdana, Helvetica, Arial, sans-serif;
+        font-size:80%;
+        }
+        pre, tt {
+        font-family:lucida console, FixedSys, Courier, Terminal, monospaced;
+        font-size:100%;
+        }
+        pre {
+        background-color: #E0F0FE;
+        border-style: groove;
+        border-color: black;
+        border-width: 2px;
+        }
+   </style>
+</head>
+
+<body>
+
+<H2>Contributed EIT Data:</H2>
+   <table>
+   <tr><th valign="top"> Authors:
+       <td>
+T. Harake, A. Adler
+       <hr>
+   <tr><th valign="top"> Date:
+       <td> 2024
+       <hr>
+   <tr><th valign="top"> Brief Description:
+       <td> 
+These data are a brief sample of breathing in a healthy
+human, measured using a Midas Medical Ventom device
+as part of system evaluation.
+The data represent a few tidal breaths as well as
+expiratory and inspiratory breath holds.
+<br>
+The data were measured on the same subject as the
+GREIT chest model given in this tutorial
+<a href="../../tutorial/GREIT/adult_ex.shtml"
+>GREIT Reconstruction for an adult human thorax geometry</a>
+
+       <hr>
+   <tr><th valign="top"> License:
+       <td> Creative Commons Artistic License
+       <hr>
+   <tr><th valign="top"> Attribution Requirement:
+       <td> 
+Data are provided as-is. No attribution is
+formally required; however, users may acknowledge
+this tutorial. The subject explicitly consents
+to making these data public under these
+requirements.
+   <tr><th valign="top"> Format:
+       <td>
+
+       <hr>
+   <tr><th valign="top"> Methods:
+       <td>
+A Midas Medical patient belt was attached to
+the seated subject and connected to the
+EIT system. The subject performed various
+breathing manoeuvres while data were collected.
+       <hr>
+   <tr><th valign="top"> Data:
+       <td> <a href = "http://eidors3d.sourceforge.net/data_contrib/midas-medical-sample2024/EITData2024_10_31_08_43_09__S01.vtm"
+            >Data (EIT "VTM" format)</a>
+       <hr>
+   </table>
+
+The data may be analyzed with the following code:
+<pre>
+pth = 'EITData2024_10_31_08_43_09__S01.vtm';
+[dd,auxdata,stim]= eidors_readdata(pth);
+dd = dd(:,1:end-100);
+fmdl = mk_library_model('adult_male_16el');
+fmdl.stimulation = stim;
+fmdl.frame_rate = auxdata.frame_rate;
+
+imdl = select_imdl(fmdl, {'GREIT:NF=0.5 32x32'});
+imgr = inv_solve(imdl, mean(dd,2),dd);
+imgr.elem_data = subtract_rank(imgr.elem_data,0.95);
+[ROIs,imgR] = define_ROIs(imdl,[-2,0,2],[2,0,-2],struct('normalize',0));
+sig = -ROIs*imgr.elem_data;
+lt = {'LineWidth',2};
+subplot(211);
+plot(imgr.time,sig',lt{:}); box off; xlim tight;
+ legend('RV','LV','RD','LD');
+vertlines(50 + [1,50]*.5);
+subplot(212);
+imgr.get_img_data.frame_select = 500 + (1:50)*5;
+imgr.calc_colours.ref_level = 0;
+imgr.show_slices.img_cols = 17;
+imgr.calc_colours.greylev =  .01;
+imgr.calc_colours.backgnd =[1,1,1];
+show_slices(imgr)
+
+print_convert("vtm_data_2024a.jpg");
+
+</pre>
+
+<center>
+   <img src = "http://eidors3d.sourceforge.net/data_contrib/midas-medical-sample2024/vtm_data_2024a.jpg">
+<br>
+Reconstructions from data set.
+<i>Left:</i>
+Sample tidal ventilation image
+<i>Right:</i>
+Waveforms vs time (s), of the global (sum) signal, as 
+well as pixel waveforms at vertical locations
+corresponding to a horizonal pixel #22.
+The variations in pulsatility as well as
+tidal excursions are seen.
+</center>
+
+<p>
+<small>
+    Last Modified: $Date: 2024-12-29 11:22:06 -0500 (Sun, 29 Dec 2024) $
+</small>
+</body></html>
+

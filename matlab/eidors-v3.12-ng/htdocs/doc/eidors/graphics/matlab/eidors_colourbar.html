@@ -1,0 +1,393 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of eidors_colourbar</title>
+  <meta name="keywords" content="eidors_colourbar">
+  <meta name="description" content="EIDORS_COLOURBAR - create an eidors colourbar with scaling to image">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="#">graphics</a> &gt; <a href="index.html">matlab</a> &gt; eidors_colourbar.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/graphics/matlab&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>eidors_colourbar
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>EIDORS_COLOURBAR - create an eidors colourbar with scaling to image</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> EIDORS_COLOURBAR - create an eidors colourbar with scaling to image
+ usage: eidors_colourbar( img )
+    show a colourbar on the current axis representing img
+
+ usage: hh= eidors_colourbar( img )
+    return a handle to colourbar created 
+    handle can be modified: set(hh,'ylim', ...)
+
+ usage: eidors_colourbar( img );
+   img.calc_colours.ref_level =  %  centre of the colour scale
+   img.calc_colours.clim      =  %  max diff from ref_level
+
+ usage: eidors_colourbar( img ); % Set own tick positions
+   img.eidors_colourbar.tick_vals = [-20:20]/10;
+
+ usage: eidors_colourbar( img ); % Set own tick positions
+   img.eidors_colourbar.tick_divisions = 5; % Extra tick divisions
+
+ Optional parameter:
+    cb_shrink_move(1) = horizontal shrink (relative)
+    cb_shrink_move(2) = vertial shrink (relative)
+    cb_shrink_move(3) = horizontal move (absolute screen units)
+  img.calc_colours.cb_shrink_move = [1,2,0];
+
+ Make sure you use 'axis tight' in order for cb_shrink_move to
+    give a correct looking image
+
+ KNOWN ISSUE: if you use cb_shrink_move, then matlab will
+   forget the link between the figure and its colorbar. Future
+   plots in the same axis will continue to shrink. In general, the
+   axis will need to be cleared or reinitialized.
+ EXAMPLE:
+   show_slices(img,2);
+    p = get(gca,'position') 
+   eidors_colourbar(img);
+    set(gca,'position',p); %%% Reset axes after colourbar and move
+
+ The colorbars are removed with colorbar('delete')</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>	EIDORS_COLOURBAR - create an eidors colourbar with scaling to image</li><li><a href="scale_for_display.html" class="code" title="function [elem_data,ref_lev,max_scale] = scale_for_display( elem_data, pp)">scale_for_display</a>	[elem_data,ref_lev,max_scale] = scale_for_display( elem_data, pp)</li><li><a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>	out_img = show_slices (img, levels ) show slices at levels of an</li><li><a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="../../../eidors/solvers/get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>	GET_IMG_DATA: get parameter data from eidors image object</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="calc_colours.html" class="code" title="function [colours,scl_data]= calc_colours(img, set_value, do_colourbar)">calc_colours</a>	[colours,scl_data]= calc_colours(img, set_value, do_colourbar)</li><li><a href="common_colourbar.html" class="code" title="function a = common_colourbar(ha,varargin)">common_colourbar</a>	COMMON_COLOURBAR make a joint colourbar for several subplots</li><li><a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>	EIDORS_COLOURBAR - create an eidors colourbar with scaling to image</li><li><a href="show_fem_enhanced.html" class="code" title="function hh = show_fem_enhanced(mdl, options)">show_fem_enhanced</a>	SHOW_FEM_ENHANCED: show the EIDORS3D finite element model</li><li><a href="../../../eidors/models/check_c2f_quality.html" class="code" title="function [ f_frac, c_frac ] = check_c2f_quality( f_mdl, c_mdl, c2f )">check_c2f_quality</a>	CHECK_C2F_QUALITY Check the coarse2fine mapping between two models</li><li><a href="../../../eidors/models/map_RM_slice.html" class="code" title="function imdl = map_RM_slice(imdl,varargin)">map_RM_slice</a>	map_RM_slice - map a 3D reconstruction matrix to an arbitrary 2D slice</li><li><a href="../../../eidors/solvers/forward/jacobian_adjoint_higher_order.html" class="code" title="function J = jacobian_adjoint_higher_order(fwd_model,img)">jacobian_adjoint_higher_order</a>	Find the Jacobian associated with an image (and forward model)</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_cb_shrink_move( hh, cbsm )</a></li><li><a href="#_sub2" class="code">function pp=get_colours( img );</a></li><li><a href="#_sub3" class="code">function tick_vals= get_tick_vals(max_scale, ref_lev, greyscale, tick_div_in)</a></li><li><a href="#_sub4" class="code">function debug_code</a></li><li><a href="#_sub5" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)</a>
+0002 <span class="comment">% EIDORS_COLOURBAR - create an eidors colourbar with scaling to image</span>
+0003 <span class="comment">% usage: eidors_colourbar( img )</span>
+0004 <span class="comment">%    show a colourbar on the current axis representing img</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% usage: hh= eidors_colourbar( img )</span>
+0007 <span class="comment">%    return a handle to colourbar created</span>
+0008 <span class="comment">%    handle can be modified: set(hh,'ylim', ...)</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% usage: eidors_colourbar( img );</span>
+0011 <span class="comment">%   img.calc_colours.ref_level =  %  centre of the colour scale</span>
+0012 <span class="comment">%   img.calc_colours.clim      =  %  max diff from ref_level</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% usage: eidors_colourbar( img ); % Set own tick positions</span>
+0015 <span class="comment">%   img.eidors_colourbar.tick_vals = [-20:20]/10;</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% usage: eidors_colourbar( img ); % Set own tick positions</span>
+0018 <span class="comment">%   img.eidors_colourbar.tick_divisions = 5; % Extra tick divisions</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Optional parameter:</span>
+0021 <span class="comment">%    cb_shrink_move(1) = horizontal shrink (relative)</span>
+0022 <span class="comment">%    cb_shrink_move(2) = vertial shrink (relative)</span>
+0023 <span class="comment">%    cb_shrink_move(3) = horizontal move (absolute screen units)</span>
+0024 <span class="comment">%  img.calc_colours.cb_shrink_move = [1,2,0];</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% Make sure you use 'axis tight' in order for cb_shrink_move to</span>
+0027 <span class="comment">%    give a correct looking image</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% KNOWN ISSUE: if you use cb_shrink_move, then matlab will</span>
+0030 <span class="comment">%   forget the link between the figure and its colorbar. Future</span>
+0031 <span class="comment">%   plots in the same axis will continue to shrink. In general, the</span>
+0032 <span class="comment">%   axis will need to be cleared or reinitialized.</span>
+0033 <span class="comment">% EXAMPLE:</span>
+0034 <span class="comment">%   show_slices(img,2);</span>
+0035 <span class="comment">%    p = get(gca,'position')</span>
+0036 <span class="comment">%   eidors_colourbar(img);</span>
+0037 <span class="comment">%    set(gca,'position',p); %%% Reset axes after colourbar and move</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">% The colorbars are removed with colorbar('delete')</span>
+0040 
+0041 <span class="comment">% (C) 2005-2010 Andy Adler. License: GPL version 2 or version 3</span>
+0042 <span class="comment">% $Id: eidors_colourbar.m 6562 2023-02-16 13:03:39Z aadler $</span>
+0043 
+0044 
+0045 <span class="keyword">if</span> ischar(max_scale) &amp;&amp; strcmp(max_scale,<span class="string">'UNIT_TEST'</span>); <a href="#_sub5" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0046 
+0047 <span class="comment">% if called as a simple eidors colourbar function</span>
+0048 <span class="keyword">if</span> isstruct(max_scale) &amp;&amp; strcmp(max_scale.type,<span class="string">'image'</span>)
+0049 <span class="comment">% OLD WAY WAS TO CALL calc_colours first</span>
+0050 <span class="comment">%   calc_colours(max_scale,[],1);</span>
+0051 <span class="comment">%   return</span>
+0052    img = max_scale;
+0053    pp=<a href="#_sub2" class="code" title="subfunction pp=get_colours( img );">get_colours</a>( img );
+0054    img_data= <a href="../../../eidors/solvers/get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>( img );
+0055    [scl_data, ref_lev, max_scale] = <a href="scale_for_display.html" class="code" title="function [elem_data,ref_lev,max_scale] = scale_for_display( elem_data, pp)">scale_for_display</a>( img_data(:), pp);
+0056    <span class="keyword">try</span> <span class="keyword">if</span> strcmp(pp.component,<span class="string">'imag'</span>);
+0057        ref_lev = imag(ref_lev);
+0058    <span class="keyword">end</span>; <span class="keyword">end</span>
+0059    ref_lev = real(ref_lev);
+0060 <span class="keyword">end</span>
+0061 
+0062    hh= colorbar;
+0063    drawnow
+0064 
+0065    cbsm = [];
+0066    <span class="keyword">try</span>;  cbsm =  img.calc_colours.cb_shrink_move;
+0067    <span class="keyword">end</span>;
+0068 
+0069    <span class="keyword">if</span> nargin &gt;= 3; cbsm = cb_shrink_move;
+0070    <span class="keyword">end</span>
+0071 
+0072    axpos = get(gca,<span class="string">'Position'</span>);
+0073    <span class="keyword">if</span> ~isempty(cbsm)
+0074       <a href="#_sub1" class="code" title="subfunction do_cb_shrink_move( hh, cbsm )">do_cb_shrink_move</a>( hh, cbsm );
+0075    <span class="keyword">end</span>
+0076 
+0077    <span class="comment">%FIXME = AA+CG 30/1/12</span>
+0078    <span class="keyword">if</span> nargin &lt;4; 
+0079        greyscale=[]; 
+0080    <span class="keyword">else</span>
+0081        warning([<span class="string">'eidors_colourbar: greyscale is an experimental feature'</span><span class="keyword">...</span>
+0082            <span class="string">'and will be re-implemented'</span>]);
+0083    <span class="keyword">end</span>
+0084 
+0085    <span class="comment">% Stop scale from being too small</span>
+0086    <span class="keyword">if</span> max_scale&lt;abs(ref_lev)
+0087       <span class="keyword">if</span> max_scale &lt; 1e-10; max_scale = 1e-10; <span class="keyword">end</span>
+0088    <span class="keyword">else</span>
+0089       <span class="keyword">if</span> max_scale/abs(ref_lev) &lt; 1e-4; max_scale = ref_lev*1e-4; <span class="keyword">end</span> 
+0090    <span class="keyword">end</span>
+0091 
+0092    <span class="comment">% Get colormap limits  and move bottom so we don't see the background colour</span>
+0093    ylim = get(hh,<span class="string">'Ylim'</span>);
+0094    cmsz = size(colormap,1);
+0095    cbsz = ylim(2) - ylim(1);
+0096    unit = cbsz/cmsz;
+0097    ylim(1)= ylim(1)+unit;
+0098    <span class="comment">%FIXME = AA+CG 30/1/12</span>
+0099    <span class="keyword">if</span> ~isempty(greyscale); ylim(1) = ylim(1) + unit ; <span class="keyword">end</span>
+0100    set(hh,<span class="string">'Ylim'</span>,ylim);
+0101 
+0102    c_ctr = mean(ylim);
+0103    c_max = ylim(2) - c_ctr;
+0104 
+0105 
+0106    <span class="keyword">try</span>
+0107       tick_vals = img.eidors_colourbar.tick_vals;
+0108    <span class="keyword">catch</span>
+0109       <span class="keyword">try</span>
+0110          tick_div = img.eidors_colourbar.tick_divisions;
+0111       <span class="keyword">catch</span>
+0112          tick_div = [];
+0113       <span class="keyword">end</span>
+0114       tick_vals= <a href="#_sub3" class="code" title="subfunction tick_vals= get_tick_vals(max_scale, ref_lev, greyscale, tick_div_in)">get_tick_vals</a>(max_scale, ref_lev, greyscale, tick_div);
+0115    <span class="keyword">end</span>
+0116 
+0117    <span class="comment">% ref_lev goes to c_ctr. max_scale goes to c_max</span>
+0118 <span class="comment">%FIXME - need a switch to control use of max scale</span>
+0119    tick_locs = (tick_vals - ref_lev)/max_scale * c_max + c_ctr;
+0120 <span class="keyword">if</span> isempty(greyscale) 
+0121     tick_locs = (tick_vals - ref_lev)/max_scale * c_max + c_ctr;
+0122 <span class="keyword">else</span>
+0123     tick_locs = tick_vals*c_max*2/max_scale +2.5;
+0124 <span class="keyword">end</span>
+0125    <span class="comment">% fix extremes so numbers are displayed</span>
+0126    tick_locs(abs(tick_locs-ylim(1))&lt;eps) = ylim(1);
+0127    tick_locs(abs(tick_locs-ylim(2))&lt;eps) = ylim(2);
+0128 
+0129    set(hh,<span class="string">'YTick'</span>, tick_locs');
+0130    set(hh,<span class="string">'YTickLabel'</span>, tick_vals');
+0131 <span class="comment">% Code to right align YTickLabel</span>
+0132 <span class="keyword">if</span> 0
+0133    lab = get(hh,<span class="string">'YTickLabel'</span>);
+0134    <span class="keyword">for</span> i=1:size(lab,1);
+0135       nsp = sum(lab(i,:)==<span class="string">' '</span>);
+0136       lab(i,:) = lab(i,[end-(nsp-1:-1:0),1:(end-nsp)]);
+0137    <span class="keyword">end</span>
+0138    set(hh,<span class="string">'YTickLabel'</span>,lab);
+0139 <span class="keyword">end</span>
+0140 
+0141    <span class="keyword">if</span> ~isempty(cbsm) <span class="comment">% RESET OUR AXES</span>
+0142       <span class="keyword">if</span> ~all(cbsm == [1,1,0]); 
+0143          set(gca,<span class="string">'position'</span>,axpos);
+0144       <span class="keyword">end</span>
+0145    <span class="keyword">end</span>
+0146 
+0147    <span class="comment">% Clear hh do it is not displayed, unless output requested</span>
+0148    <span class="keyword">if</span> nargout ==0; clear hh; <span class="keyword">end</span>
+0149 
+0150 <span class="keyword">end</span>
+0151 
+0152 <a name="_sub1" href="#_subfunctions" class="code">function do_cb_shrink_move( hh, cbsm )</a>
+0153    <span class="comment">% make colourbar smaller and closer to axis</span>
+0154 
+0155    axpos = get(gca,<span class="string">'Position'</span>);
+0156    posn= get(hh,<span class="string">'Position'</span>);
+0157    <span class="keyword">if</span> ~all(cbsm == [1,1,0]); 
+0158       posn = [posn(1) - cbsm(3), posn(2) + posn(4)*(1-cbsm(2))/2, <span class="keyword">...</span>
+0159               posn(3) * cbsm(1), posn(4) * cbsm(2)];
+0160       set(hh,<span class="string">'Position'</span>, posn );
+0161       set(gca,<span class="string">'Position'</span>,axpos);
+0162    <span class="keyword">end</span>
+0163 
+0164 <span class="keyword">end</span>
+0165 
+0166 <span class="comment">% This function is copied from calc_colours. (AA: 23/3/2015)</span>
+0167 <span class="comment">% The plan is to eventually separate eidors colourbar from</span>
+0168 <span class="comment">%  calc_colours in a future release. This is a step on the</span>
+0169 <span class="comment">%  way to separating the code</span>
+0170 <a name="_sub2" href="#_subfunctions" class="code">function pp=get_colours( img );</a>
+0171    <span class="keyword">global</span> eidors_colours;
+0172    pp= eidors_colours;
+0173 
+0174    pp.component = <span class="string">'real'</span>; <span class="comment">% will be overriden if in image</span>
+0175 
+0176 <span class="comment">% override global if calc.colours specified</span>
+0177    <span class="keyword">try</span>
+0178 <span class="comment">% DAMN Matlab should have syntax for this loop</span>
+0179       fds= fieldnames(img(1).calc_colours);<span class="comment">%assume all are the same!</span>
+0180       <span class="keyword">for</span> fdn= fds(:)';
+0181          fdn= fdn{1};
+0182          pp.( fdn ) = img(1).calc_colours.(fdn);
+0183       <span class="keyword">end</span>
+0184    <span class="keyword">end</span>
+0185 <span class="keyword">end</span>
+0186 
+0187 <a name="_sub3" href="#_subfunctions" class="code">function tick_vals= get_tick_vals(max_scale, ref_lev, greyscale, tick_div_in) </a>
+0188 <span class="comment">% COMMENTS: AA - 4 apr 13</span>
+0189 <span class="comment">% If we want to ahve less aggressive rounding, we can do this</span>
+0190    F= 2;
+0191    OrdOfMag = 10^floor(log10(max_scale*F))/F;
+0192 
+0193    scale1  = floor( max_scale / OrdOfMag + 2*eps );
+0194 <span class="comment">% disp([scale1, OrdOfMag, max_scale]); =&gt; DEBUG</span>
+0195    <span class="keyword">if</span>     (scale1/F &gt;= 8);  fms = F*8;   tick_div=2; 
+0196    <span class="keyword">elseif</span> (scale1/F &gt;= 6);  fms = F*6;   tick_div=2; 
+0197    <span class="keyword">elseif</span> (scale1/F &gt;= 4);  fms = F*4;   tick_div=2;
+0198    <span class="keyword">elseif</span> (scale1/F &gt;= 3);  fms = F*3;   tick_div=3;
+0199    <span class="keyword">elseif</span> (scale1/F &gt;= 2);  fms = F*2;   tick_div=2;
+0200    <span class="keyword">elseif</span> (scale1/F &gt;= 1.5);fms = F*1.5; tick_div=3;
+0201    <span class="keyword">elseif</span> (scale1/F &gt;= 1);  fms = F*1;   tick_div=2;
+0202    <span class="keyword">else</span>   (scale1/F &gt;= 0.5);fms = F*0.5; tick_div=2;
+0203    <span class="keyword">end</span>
+0204 
+0205    <span class="keyword">if</span> ~isempty(tick_div_in); tick_div = tick_div_in; <span class="keyword">end</span>
+0206 
+0207 <span class="comment">%  ticks = (1:tick_div)/tick_div;</span>
+0208 <span class="comment">%  ticks(end) = [];</span>
+0209 
+0210    scale_r  = OrdOfMag * fms;
+0211 
+0212 <span class="comment">%  in order to make the labels clean, we round to a near level</span>
+0213    OrdOfMag = 10^floor(log10(max_scale));
+0214    ref_r = OrdOfMag * round( ref_lev / OrdOfMag );
+0215    
+0216    <span class="comment">%FIXME = AA+CG 30/1/12</span>
+0217 <span class="keyword">if</span> isempty(greyscale)
+0218     <span class="comment">%  Set to 2 x range, so out of scale ticks are thrown</span>
+0219     tick_vals = linspace(-2,2,tick_div*4+1)*scale_r + ref_r;
+0220 <span class="keyword">else</span>
+0221 <span class="comment">%     tick_vals = [0:0.2:1]*max_scale;</span>
+0222      tick_vals = [0:0.2:1]*scale_r;
+0223 <span class="keyword">end</span>
+0224 <span class="keyword">end</span>
+0225 
+0226 <span class="comment">% DEBUG CODE ATTEMPTING TO FIX CB</span>
+0227 <a name="_sub4" href="#_subfunctions" class="code">function debug_code</a>
+0228          a = get(hh);
+0229          set(hh,<span class="string">'Position'</span>, posn );
+0230          a = rmfield(a,<span class="string">'CurrentPoint'</span>);
+0231          a = rmfield(a,<span class="string">'TightInset'</span>);
+0232          a = rmfield(a,<span class="string">'BeingDeleted'</span>);
+0233          a = rmfield(a,<span class="string">'Type'</span>);
+0234          a.Position = posn;
+0235          set(hh,a);
+0236          op = get(hh,<span class="string">'OuterPosition'</span>) 
+0237          set(hh,<span class="string">'Position'</span>, posn );
+0238          op1= get(hh,<span class="string">'OuterPosition'</span>) 
+0239          set(hh,<span class="string">'OuterPosition'</span>,op);
+0240          op2= get(hh,<span class="string">'OuterPosition'</span>) 
+0241          set(gca,<span class="string">'Position'</span>,axpos);
+0242 <span class="keyword">end</span>
+0243 
+0244 <a name="_sub5" href="#_subfunctions" class="code">function do_unit_test</a>
+0245    imgno = 1;
+0246    imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]);
+0247    img = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(imdl);
+0248    img=rmfield(img,<span class="string">'elem_data'</span>);
+0249    img.node_data(1:252)= (0:251)/100 - 1.05;
+0250    <span class="keyword">if</span> 0
+0251    fprintf(<span class="string">'CMAX = %4.2f CMIN = %4.2f\n'</span>, <span class="keyword">...</span>
+0252        max(img.node_data), min(img.node_data) );
+0253    <span class="keyword">end</span>
+0254 
+0255 
+0256    subplot(3,3,imgno); imgno=imgno+1;
+0257    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2); <a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>(img);
+0258 
+0259    <span class="comment">% ref_level is not displayed, but will have its effect</span>
+0260    img.calc_colours.ref_level = -0.0234;
+0261    subplot(3,3,imgno); imgno=imgno+1;
+0262    img2= img;
+0263    img2.eidors_colourbar.tick_divisions = 4;
+0264    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img2,2); <a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>(img2);
+0265 
+0266    img.calc_colours.cmax = 1;
+0267    subplot(3,3,imgno); imgno=imgno+1;
+0268    img2= img;
+0269    img2.eidors_colourbar.tick_vals = [-10:10]/5;
+0270    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img2,2); <a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>(img2);
+0271 
+0272    MV =-0.05;
+0273    img.calc_colours.cb_shrink_move = [.5,.8,MV];
+0274    subplot(3,3,imgno); imgno=imgno+1;
+0275    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2);
+0276    <a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>(img);
+0277 
+0278    subplot(3,3,imgno); imgno=imgno+1;
+0279    <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(img,1);
+0280 
+0281    subplot(3,3,imgno); imgno=imgno+1;
+0282    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2);
+0283     p = get(gca,<span class="string">'position'</span>);
+0284    <a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>(img);
+0285     set(gca,<span class="string">'position'</span>,p);
+0286 
+0287    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2);
+0288     <a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>(img);
+0289 
+0290    subplot(3,3,imgno); imgno=imgno+1;
+0291    img.node_data = 26e1*abs(img.node_data);
+0292    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2);
+0293    <a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>(img);
+0294 
+0295    subplot(3,3,imgno); imgno=imgno+1;
+0296    img.node_data(1:252)= abs( (0:251)/100 - 1.05 );
+0297    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2);
+0298    <a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>(img);
+0299 
+0300 
+0301    subplot(3,3,imgno); imgno=imgno+1;
+0302    img.calc_colours.ref_level = 0.5;
+0303    img.calc_colours.clim      = 0.5;
+0304    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(img,2);
+0305    <a href="eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>(img);
+0306 
+0307 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

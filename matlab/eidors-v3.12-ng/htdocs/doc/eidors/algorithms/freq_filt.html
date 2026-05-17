@@ -1,0 +1,275 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of freq_filt</title>
+  <meta name="keywords" content="freq_filt">
+  <meta name="description" content="FREQ_FILT: frequency filter data">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">algorithms</a> &gt; freq_filt.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/algorithms&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>freq_filt
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>FREQ_FILT: frequency filter data</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function vfilt = freq_filt(vin, fresp, FR, dim) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">FREQ_FILT: frequency filter data
+ vfilt = freq_filt(vin, fresp, FR, dim)
+ vin = matrix of data values
+     = data structure (with field vin.meas)
+     = image structure (with field vin.elem_data)
+ fresp = function of freq filter
+   e.g. fresp = @(f) f&lt;10;  % values in Hz
+   e.g. fresp = @(f) (1+(f/10).^6).^(-0.5);  % Butter 2*3rd order
+ FR  = frame rate (or use FR parameter on data structures)
+    or FR is a structure with fields
+     .FR = Frame Rate
+     .padding = length of padding (in seconds)
+ dim = dimension along which to filter (default is 2)
+     .padding_type = zero|extend|linear
+       pad with zeros, extend the last values (default), or linearly fit between start/end</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>	FREQ_FILT: frequency filter data</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>	FREQ_FILT: frequency filter data</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function s = do_freq_filt(s,fresp, p)</a></li><li><a href="#_sub2" class="code">function s = fshape(p,s);</a></li><li><a href="#_sub3" class="code">function plen = pad_len(p);</a></li><li><a href="#_sub4" class="code">function s = padsignal(s,p);</a></li><li><a href="#_sub5" class="code">function pad= calc_padding(s,lsdn,lsup,p)</a></li><li><a href="#_sub6" class="code">function s = unpadsignal(s,p);</a></li><li><a href="#_sub7" class="code">function fax = freq_axis_filt( FR, lD, fresp);</a></li><li><a href="#_sub8" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function vfilt = freq_filt(vin, fresp, FR, dim)</a>
+0002 <span class="comment">%FREQ_FILT: frequency filter data</span>
+0003 <span class="comment">% vfilt = freq_filt(vin, fresp, FR, dim)</span>
+0004 <span class="comment">% vin = matrix of data values</span>
+0005 <span class="comment">%     = data structure (with field vin.meas)</span>
+0006 <span class="comment">%     = image structure (with field vin.elem_data)</span>
+0007 <span class="comment">% fresp = function of freq filter</span>
+0008 <span class="comment">%   e.g. fresp = @(f) f&lt;10;  % values in Hz</span>
+0009 <span class="comment">%   e.g. fresp = @(f) (1+(f/10).^6).^(-0.5);  % Butter 2*3rd order</span>
+0010 <span class="comment">% FR  = frame rate (or use FR parameter on data structures)</span>
+0011 <span class="comment">%    or FR is a structure with fields</span>
+0012 <span class="comment">%     .FR = Frame Rate</span>
+0013 <span class="comment">%     .padding = length of padding (in seconds)</span>
+0014 <span class="comment">% dim = dimension along which to filter (default is 2)</span>
+0015 <span class="comment">%     .padding_type = zero|extend|linear</span>
+0016 <span class="comment">%       pad with zeros, extend the last values (default), or linearly fit between start/end</span>
+0017 
+0018 <span class="comment">% (C) Andy Adler 2019. License: GPL v2 or v3.</span>
+0019 <span class="comment">% $Id: freq_filt.m 6977 2024-11-03 15:23:53Z aadler $</span>
+0020 
+0021 <span class="comment">% if FR not given, see if it's a parameter</span>
+0022 
+0023 <span class="keyword">if</span> ischar(vin) &amp;&amp; strcmp(vin,<span class="string">'UNIT_TEST'</span>); <a href="#_sub8" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0024 
+0025 p.padding = 30; <span class="comment">% seconds default;</span>
+0026 p.padding_type = <span class="string">'extend'</span>;
+0027 <span class="keyword">if</span> nargin&lt;3; 
+0028    p.FR = vin.FR;
+0029 <span class="keyword">else</span>
+0030    <span class="keyword">if</span> isnumeric(FR)
+0031      p.FR = FR;
+0032    <span class="keyword">elseif</span> isstruct(FR);
+0033      <span class="keyword">for</span> ff= fieldnames(FR)'; <span class="comment">% wish matlab could do this easily</span>
+0034        p.(ff{1}) = FR.(ff{1});
+0035      <span class="keyword">end</span>
+0036    <span class="keyword">else</span>
+0037      error(<span class="string">'Don''t understand parameter FR'</span>);
+0038    <span class="keyword">end</span>
+0039      
+0040       
+0041 <span class="keyword">end</span>
+0042 <span class="keyword">if</span> nargin&gt;=4
+0043    p.dim = dim;
+0044 <span class="keyword">elseif</span> ~isfield(p,<span class="string">'dim'</span>);
+0045    p.dim = 2;
+0046 <span class="keyword">end</span>
+0047 
+0048 <span class="keyword">if</span> isstruct(vin) &amp;&amp; isfield(vin,<span class="string">'type'</span>);
+0049    <span class="keyword">switch</span> vin.type
+0050      <span class="keyword">case</span> <span class="string">'data'</span>
+0051         vin.meas = <a href="#_sub1" class="code" title="subfunction s = do_freq_filt(s,fresp, p)">do_freq_filt</a>(vin.meas, fresp, p);
+0052         vfilt = vin;
+0053      <span class="keyword">case</span> <span class="string">'image'</span>
+0054         vin.elem_data = <a href="#_sub1" class="code" title="subfunction s = do_freq_filt(s,fresp, p)">do_freq_filt</a>(vin.elem_data, fresp, p);
+0055         vfilt = vin;
+0056      <span class="keyword">otherwise</span>
+0057         error(<span class="string">'Can''t process object of type %'</span>,vin.type);
+0058    <span class="keyword">end</span>
+0059 <span class="keyword">elseif</span> isnumeric(vin)
+0060    vfilt = <a href="#_sub1" class="code" title="subfunction s = do_freq_filt(s,fresp, p)">do_freq_filt</a>(vin, fresp, p);
+0061 <span class="keyword">else</span> 
+0062    error(<span class="string">'can''t process object'</span>);
+0063 <span class="keyword">end</span>
+0064       
+0065 
+0066 
+0067 <span class="comment">% Filter in the frequency direction</span>
+0068 <a name="_sub1" href="#_subfunctions" class="code">function s = do_freq_filt(s,fresp, p)</a>
+0069   rs = isreal(s);
+0070   s = <a href="#_sub4" class="code" title="subfunction s = padsignal(s,p);">padsignal</a>(s,p);
+0071   f = fft(s,[],p.dim);
+0072   fax = <a href="#_sub7" class="code" title="subfunction fax = freq_axis_filt( FR, lD, fresp);">freq_axis_filt</a>(p.FR,size(s,p.dim),fresp);
+0073   f = f .* <a href="#_sub2" class="code" title="subfunction s = fshape(p,s);">fshape</a>(p,fax);
+0074   s= ifft(f,[],p.dim);
+0075   <span class="keyword">if</span> rs <span class="comment">% is signal is real</span>
+0076      <span class="keyword">if</span> norm(imag(s(:))) / norm(real(s(:))) &gt; 1e-12
+0077         error(<span class="string">'FFT filter has imag output'</span>);
+0078      <span class="keyword">end</span>
+0079      s = real(s);
+0080   <span class="keyword">end</span>
+0081   s = <a href="#_sub6" class="code" title="subfunction s = unpadsignal(s,p);">unpadsignal</a>(s,p);
+0082 
+0083 <a name="_sub2" href="#_subfunctions" class="code">function s = fshape(p,s);</a>
+0084   fsh = ones(1,length(size(s)));
+0085   fsh(p.dim) = prod(size(s));
+0086   s= reshape(s,fsh);
+0087 
+0088 <a name="_sub3" href="#_subfunctions" class="code">function plen = pad_len(p);</a>
+0089   plen = round(p.FR * p.padding);
+0090 
+0091 <span class="comment">% Add padding connecting the last to the first sample</span>
+0092 <a name="_sub4" href="#_subfunctions" class="code">function s = padsignal(s,p);</a>
+0093   lsup = linspace(0,1,<a href="#_sub3" class="code" title="subfunction plen = pad_len(p);">pad_len</a>(p)); lsup=<a href="#_sub2" class="code" title="subfunction s = fshape(p,s);">fshape</a>(p,lsup);
+0094   lsdn = linspace(1,0,<a href="#_sub3" class="code" title="subfunction plen = pad_len(p);">pad_len</a>(p)); lsdn=<a href="#_sub2" class="code" title="subfunction s = fshape(p,s);">fshape</a>(p,lsdn);
+0095   <span class="keyword">switch</span> p.padding_type
+0096     <span class="keyword">case</span> <span class="string">'zero'</span>;
+0097       pad= <a href="#_sub5" class="code" title="subfunction pad= calc_padding(s,lsdn,lsup,p)">calc_padding</a>(s,0*lsdn,0*lsup,p);
+0098     <span class="keyword">case</span> <span class="string">'extend'</span>;
+0099       pad= <a href="#_sub5" class="code" title="subfunction pad= calc_padding(s,lsdn,lsup,p)">calc_padding</a>(s,lsdn,lsup,p);
+0100     <span class="keyword">case</span> <span class="string">'linear'</span>;
+0101       mn  = mean(s,p.dim); ss = s-mn;
+0102       xx  = linspace(-1,1,size(ss,p.dim));
+0103       perm = ones(1,5); perm(p.dim) = length(xx); <span class="comment">% do we ever want d&gt;5??</span>
+0104       xx  = reshape(xx,perm);
+0105       a   = mean(ss.*xx,p.dim) ./mean(xx.^2,p.dim);
+0106       pad = (mn-a).*lsdn + (mn+a).*lsup;
+0107     <span class="keyword">otherwise</span>; 
+0108       error(<span class="string">'padding type not understood'</span>);
+0109   <span class="keyword">end</span>
+0110   
+0111   s = cat(p.dim,s,pad);
+0112 
+0113 <a name="_sub5" href="#_subfunctions" class="code">function pad= calc_padding(s,lsdn,lsup,p)</a>
+0114   <span class="keyword">switch</span> p.dim <span class="comment">% wish I knew how to generalize in m*lab</span>
+0115     <span class="keyword">case</span> 1; pad = s(1,:,:).*lsdn + s(<span class="keyword">end</span>,:,:).*lsup;
+0116     <span class="keyword">case</span> 2; pad = s(:,1,:).*lsdn + s(:,<span class="keyword">end</span>,:).*lsup;
+0117     <span class="keyword">case</span> 3; pad = s(:,:,1).*lsdn + s(:,:,end).*lsup;
+0118     <span class="keyword">otherwise</span>; error(<span class="string">'Problem with dim above 3'</span>);
+0119   <span class="keyword">end</span>
+0120 
+0121 <span class="comment">% Add padding connecting the last to the first sample</span>
+0122 <a name="_sub6" href="#_subfunctions" class="code">function s = unpadsignal(s,p);</a>
+0123   plen = round(p.FR * p.padding);
+0124   <span class="keyword">switch</span> p.dim <span class="comment">% wish I knew how to generalize in m*lab</span>
+0125     <span class="keyword">case</span> 1; s(end+1-(1:plen),:,:) = [];
+0126     <span class="keyword">case</span> 2; s(:,end+1-(1:plen),:) = [];
+0127     <span class="keyword">case</span> 3; s(:,:,end+1-(1:plen)) = [];
+0128     <span class="keyword">otherwise</span>; error(<span class="string">'Problem with dim above 3'</span>);
+0129   <span class="keyword">end</span>
+0130   
+0131 <a name="_sub7" href="#_subfunctions" class="code">function fax = freq_axis_filt( FR, lD, fresp);</a>
+0132   fax = linspace(0,FR,lD+1);
+0133   fax(end)=[];
+0134   fax(fax&gt;FR/2) = fax(fax&gt;FR/2) - FR;
+0135   fax = feval(fresp, abs(fax));
+0136 
+0137 <a name="_sub8" href="#_subfunctions" class="code">function do_unit_test</a>
+0138   clf; subplot(3,1,1);
+0139   FR = 100;
+0140   t = (0:1.1e3)/FR;
+0141   s = sin(2*pi*5*t) + 2*cos(2*pi*15*t) +  3*sin(2*pi*0.1*t) + 1;
+0142   subplot(211); plot(t,s); hold on;
+0143   subplot(212); plot(t,s); hold on; xlim(max(t)-[0.5,0]);
+0144   pp.FR = FR;
+0145   pp.padding_type = <span class="string">'extend'</span>;
+0146   pp.padding = 1;
+0147 
+0148   fnum=0; <span class="keyword">while</span> true; fnum=fnum+1; <span class="keyword">switch</span> fnum
+0149      <span class="keyword">case</span> 1; fresp = @(f) f&lt;10;
+0150              sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(s,fresp, pp);
+0151              sf12=[1.879618111164496, 1.275026363303550];
+0152 
+0153      <span class="keyword">case</span> 2; fresp = @(f) (f&lt;1) + (f&gt;=1)./(f+eps);
+0154              p.padding_type = <span class="string">'extend'</span>;
+0155              p.FR = FR; p.padding = 1;
+0156              sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(s,fresp, p);
+0157              sf12=[2.033878107482741, 1.790784258437183];
+0158      <span class="keyword">case</span> 3; fresp = @(f) f&lt;1;
+0159              p.padding_type = <span class="string">'extend'</span>;
+0160              p.FR = FR; p.padding = 0;
+0161              sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(s,fresp, p);
+0162              sf12=[0.930430975008685, 0.910716555382052];
+0163      <span class="keyword">case</span> 4; fresp = @(f) f&lt;1;
+0164              p.padding_type = <span class="string">'extend'</span>;
+0165              p.FR = FR; p.padding = 2;
+0166              sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(s,fresp, p);
+0167              sf12=[1.977191625314283, 1.912923819876781];
+0168      <span class="keyword">case</span> 5; fresp = @(f) f&lt;1;
+0169              p.padding_type = <span class="string">'linear'</span>;
+0170 <span class="comment">% TODO- debug for padding size differences</span>
+0171              p.FR = FR; p.padding = 3;
+0172              sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(s,fresp, p);
+0173              sf12=[1.231446973826249, 1.277407267967623]-2;
+0174      <span class="keyword">case</span> 6; fresp = @(f) f&lt;1;
+0175              p.padding_type = <span class="string">'zero'</span>;
+0176 <span class="comment">% TODO- debug for padding size differences</span>
+0177              p.FR = FR; p.padding = 1;
+0178              sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(s,fresp, p);
+0179              sf12=[1.818358872667770, 1.846165834456450]-2;
+0180      <span class="keyword">case</span> 7; fresp = @(f) f&lt;10;
+0181              sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(s,fresp, FR);
+0182              sf12=[1.884878325803839, 1.271527154193287];
+0183      <span class="keyword">otherwise</span>; <span class="keyword">break</span>
+0184      <span class="keyword">end</span>
+0185      <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(sprintf(<span class="string">'ff%02d'</span>,fnum),sf(1:2)-1, sf12,1e-13)
+0186      subplot(211); plot(t,sf);
+0187      subplot(212); plot(t,sf);
+0188   <span class="keyword">end</span>
+0189   legend(<span class="string">'0'</span>,<span class="string">'1'</span>,<span class="string">'2'</span>,<span class="string">'3'</span>,<span class="string">'4'</span>,<span class="string">'5'</span>,<span class="string">'6'</span>);
+0190   hold off;
+0191 
+0192   sv = s.*[2;1;3;4];
+0193   fresp = @(f) f&lt;10;
+0194   sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(sv,fresp, pp);
+0195   sf12=[1.879618111164496, 1.275026363303550]+1;
+0196   <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ff10'</span>,sf(2,1:2), sf12,1e-13)
+0197 
+0198   sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(sv,fresp, pp, 2);
+0199   <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ff11'</span>,sf(2,1:2), sf12,1e-13)
+0200 
+0201   sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(sv',fresp, pp, 1);
+0202   <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ff12'</span>,sf(1:2,2), sf12',1e-13)
+0203 
+0204   so = struct(<span class="string">'type'</span>,<span class="string">'data'</span>,<span class="string">'meas'</span>,sv);
+0205   sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(so,fresp, pp, 2);
+0206   <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ff21'</span>,sf.meas(2,1:2), sf12,1e-13)
+0207   
+0208   so = struct(<span class="string">'type'</span>,<span class="string">'image'</span>,<span class="string">'elem_data'</span>,sv);
+0209   sf= <a href="freq_filt.html" class="code" title="function vfilt = freq_filt(vin, fresp, FR, dim)">freq_filt</a>(so,fresp, pp, 2);
+0210   <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ff21'</span>,sf.elem_data(2,1:2), sf12,1e-13)
+0211 
+0212   <span class="comment">% TODO add test for complex input</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

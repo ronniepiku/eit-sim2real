@@ -1,0 +1,571 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ng_write_opt</title>
+  <meta name="keywords" content="ng_write_opt">
+  <meta name="description" content="NG_WRITE_OPT Write an ng.opt file in current directory">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">meshing</a> &gt; <a href="index.html">netgen</a> &gt; ng_write_opt.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/meshing/netgen&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>ng_write_opt
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>NG_WRITE_OPT Write an ng.opt file in current directory</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function opt = ng_write_opt(varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">NG_WRITE_OPT Write an ng.opt file in current directory
+  NG_WRITE_OPT, without inputs, creates a default ng.opt
+
+  NG_WRITE_OPT(OPTSTRUCT) creates uses options as specified in OPTSTRUCT
+
+  NG_WRITE_OPT('sec.option',val,...) offers an alternative interface to
+  modify specific options
+
+  NG_WRITE_OPT(OPTSTR,...) where OPTSTR is one of 'very_coarse', 'coarse',
+  'moderate', 'fine', and 'very_fine', based on the corresponding defaults
+  in Netgen 5.0. Any additional inputs modify selected fields of that
+  default. NG_WRITE_OPT('moderate',...) is equivalent to
+  NG_WRITE_OPT(...).
+
+  OPTSTRUCT = NG_WRITE_OPT(...) returns a struct with the options.
+  No file is written.
+
+  NG_WRITE_OPT(PATH) copies the file specified in PATH as ng.opt to the
+  current directory.
+
+  NG_WRITE_OPT('EXIST:ng.opt'): test if ng.opt file written to the current dir
+
+ 
+  Note: some options only take effect when meshoptions.fineness is 6
+  (custom).
+
+  BEWARE: NG_WRITE_OPT will overwrite any existing ng.opt file in the current
+  directory. 
+ 
+  Example:
+  ng_write_opt('meshoptions.fineness',6,'options.minmeshsize',20);
+  call_netgen(...)
+  delete('ng.opt'); % clean up
+
+ To specify a volume for refinement, specify
+  ng_write_opt('MSZPOINTS', [list of x,y,z,maxh])
+   or
+  ng_write_opt('MSZBRICK', [xmin, xmax, ymin, ymax, zmin, zmax, maxh])
+   or
+  ng_write_opt('MSZSPHERE', [xctr, yctr, zctr, radius, maxh])
+   or
+  ng_write_opt('MSZCYLINDER', [x1, y1, z1, x2, y2, z2, radius, maxh])
+     where (x1,y1,z1) and (x2,y2,z2) are the limits on the cylinder axis
+   or
+  ng_write_opt('MSZZPLANE', [x1,y1,z1,radius,maxh]);
+     a plane of maxh in the z-direction at point (x1,y1,z1)
+
+ It is possible to have a refined region inside a coarse region
+  ng_write_opt('MSZSPHERE', [x, y, z, rinner, minner],'MSZSPHERE', [x, y, z, router, mouter])
+
+  See also <a href="call_netgen.html" class="code" title="function status= call_netgen(geo_file, vol_file, msz_file, finelevel)">CALL_NETGEN</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>	NG_MAKE_CYL_MODELS: create cylindrical models using netgen</li><li><a href="ng_mk_gen_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_gen_models(shape_str, elec_pos,  elec_shape, elec_obj, extra_ng_code, mszpoints);">ng_mk_gen_models</a>	NG_MK_GEN_MODELS: create generic models using netgen</li><li><a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>	NG_WRITE_OPT Write an ng.opt file in current directory</li><li><a href="../../../eidors/models/num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>	NUM_ELEMS: number of elemnts in a (fwd or inv model or image)</li><li><a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>	NUM_NODES: number of elemnts in a (fwd or inv model or image)</li><li><a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>	EIDORS_CACHE Control eidors caching</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="ng_mk_2d_model.html" class="code" title="function mdl = ng_mk_2d_model(varargin)">ng_mk_2d_model</a>	NG_MG_2D_MODELS create a 2D mesh with Netgen via the in2d interface</li><li><a href="ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>	NG_MAKE_CYL_MODELS: create cylindrical models using netgen</li><li><a href="ng_mk_extruded_model.html" class="code" title="function [fmdl,mat_idx] = ng_mk_extruded_model(shape, elec_pos, elec_shape,extra_ng_code)">ng_mk_extruded_model</a>	NG_MAKE_EXTRUDED_MODEL: create extruded models using netgen</li><li><a href="ng_read_opt.html" class="code" title="function opt = ng_read_opt(fname)">ng_read_opt</a>	NG_READ_OPT Read Netgen's ng.opt</li><li><a href="ng_stl2tet.html" class="code" title="function mdl = ng_stl2tet(stlfile, varargin)">ng_stl2tet</a>	NG_STL2TET creates a tetrahedral mesh from an stl file</li><li><a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>	NG_WRITE_OPT Write an ng.opt file in current directory</li><li><a href="../../../eidors/models/mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>	MK_HEAD_MODEL_ADULT Adult head model</li><li><a href="../../../eidors/models/mk_library_model.html" class="code" title="function out = mk_library_model(shape,elec_pos,elec_shape,maxsz,nfft,scale)">mk_library_model</a>	MK_LIBRARY_MODEL - extruded FEM models based on curves in SHAPE_LIBRARY</li><li><a href="../../../eidors/models/mk_thorax_model.html" class="code" title="function out = mk_thorax_model(str, varargin)">mk_thorax_model</a>	MK_THORAX_MODEL FEM models of the thorax</li><li><a href="../../../eidors/models/place_elec_on_surf.html" class="code" title="function mdl2 = place_elec_on_surf(mdl,elec_pos, elec_spec,ng_opt_file, maxh)">place_elec_on_surf</a>	PLACE_ELEC_ON_SURF Place electrodes on the surface of a model</li><li><a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>	EIDORS_CACHE Control eidors caching</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function opt = process_input(varargin)</a></li><li><a href="#_sub2" class="code">function val = msz_brick(val)</a></li><li><a href="#_sub3" class="code">function val = msz_sphere(val)</a></li><li><a href="#_sub4" class="code">function pts = space_around_zero(lim,maxh);</a></li><li><a href="#_sub5" class="code">function val = msz_cylinder(val)</a></li><li><a href="#_sub6" class="code">function fname = write_tmp_mszfile( mszpoints )</a></li><li><a href="#_sub7" class="code">function opt = copy_field(opt,usr)</a></li><li><a href="#_sub8" class="code">function write_ng_file(opt)</a></li><li><a href="#_sub9" class="code">function write_field(fid,s,str)</a></li><li><a href="#_sub10" class="code">function opt = default_opt(varargin)</a></li><li><a href="#_sub11" class="code">function do_unit_test</a></li><li><a href="#_sub12" class="code">function test_caching()</a></li><li><a href="#_sub13" class="code">function test_main_options()</a></li><li><a href="#_sub14" class="code">function unit_test_MSZ</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function opt = ng_write_opt(varargin)</a>
+0002 <span class="comment">%NG_WRITE_OPT Write an ng.opt file in current directory</span>
+0003 <span class="comment">%  NG_WRITE_OPT, without inputs, creates a default ng.opt</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  NG_WRITE_OPT(OPTSTRUCT) creates uses options as specified in OPTSTRUCT</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%  NG_WRITE_OPT('sec.option',val,...) offers an alternative interface to</span>
+0008 <span class="comment">%  modify specific options</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%  NG_WRITE_OPT(OPTSTR,...) where OPTSTR is one of 'very_coarse', 'coarse',</span>
+0011 <span class="comment">%  'moderate', 'fine', and 'very_fine', based on the corresponding defaults</span>
+0012 <span class="comment">%  in Netgen 5.0. Any additional inputs modify selected fields of that</span>
+0013 <span class="comment">%  default. NG_WRITE_OPT('moderate',...) is equivalent to</span>
+0014 <span class="comment">%  NG_WRITE_OPT(...).</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">%  OPTSTRUCT = NG_WRITE_OPT(...) returns a struct with the options.</span>
+0017 <span class="comment">%  No file is written.</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">%  NG_WRITE_OPT(PATH) copies the file specified in PATH as ng.opt to the</span>
+0020 <span class="comment">%  current directory.</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">%  NG_WRITE_OPT('EXIST:ng.opt'): test if ng.opt file written to the current dir</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">%  Note: some options only take effect when meshoptions.fineness is 6</span>
+0026 <span class="comment">%  (custom).</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">%  BEWARE: NG_WRITE_OPT will overwrite any existing ng.opt file in the current</span>
+0029 <span class="comment">%  directory.</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">%  Example:</span>
+0032 <span class="comment">%  ng_write_opt('meshoptions.fineness',6,'options.minmeshsize',20);</span>
+0033 <span class="comment">%  call_netgen(...)</span>
+0034 <span class="comment">%  delete('ng.opt'); % clean up</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% To specify a volume for refinement, specify</span>
+0037 <span class="comment">%  ng_write_opt('MSZPOINTS', [list of x,y,z,maxh])</span>
+0038 <span class="comment">%   or</span>
+0039 <span class="comment">%  ng_write_opt('MSZBRICK', [xmin, xmax, ymin, ymax, zmin, zmax, maxh])</span>
+0040 <span class="comment">%   or</span>
+0041 <span class="comment">%  ng_write_opt('MSZSPHERE', [xctr, yctr, zctr, radius, maxh])</span>
+0042 <span class="comment">%   or</span>
+0043 <span class="comment">%  ng_write_opt('MSZCYLINDER', [x1, y1, z1, x2, y2, z2, radius, maxh])</span>
+0044 <span class="comment">%     where (x1,y1,z1) and (x2,y2,z2) are the limits on the cylinder axis</span>
+0045 <span class="comment">%   or</span>
+0046 <span class="comment">%  ng_write_opt('MSZZPLANE', [x1,y1,z1,radius,maxh]);</span>
+0047 <span class="comment">%     a plane of maxh in the z-direction at point (x1,y1,z1)</span>
+0048 <span class="comment">%</span>
+0049 <span class="comment">% It is possible to have a refined region inside a coarse region</span>
+0050 <span class="comment">%  ng_write_opt('MSZSPHERE', [x, y, z, rinner, minner],'MSZSPHERE', [x, y, z, router, mouter])</span>
+0051 <span class="comment">%</span>
+0052 <span class="comment">%  See also CALL_NETGEN</span>
+0053 
+0054 <span class="comment">% (C) 2012 Bartlomiej Grychtol. License: GPL version 2 or version 3</span>
+0055 <span class="comment">% $Id: ng_write_opt.m 6969 2024-09-30 16:57:50Z aadler $</span>
+0056 
+0057 <span class="comment">%TODO:</span>
+0058 <span class="comment">% 1. Check which options require meshoptions.fineness = 6 and enforce it</span>
+0059 
+0060 <span class="comment">% if input is 'UNIT_TEST', run tests</span>
+0061 <span class="keyword">if</span> nargin == 1 &amp;&amp; ischar(varargin{1}) &amp;&amp; strcmp(varargin{1},<span class="string">'UNIT_TEST'</span>) 
+0062    <a href="#_sub11" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0063 
+0064 <span class="keyword">if</span> nargin == 1 &amp;&amp; ischar(varargin{1}) &amp;&amp;  exist(varargin{1},<span class="string">'file'</span>) <span class="comment">% a path</span>
+0065    copyfile(varargin{1},<span class="string">'ng.opt'</span>);
+0066    <span class="keyword">return</span>
+0067 <span class="keyword">end</span>
+0068 
+0069 <span class="comment">%  NG_WRITE_OPT('EXIST:ng.opt'): test if ng.opt file written to the current dir</span>
+0070 <span class="keyword">if</span> nargin == 1 &amp;&amp; ischar(varargin{1}) &amp;&amp; strcmp(varargin{1},<span class="string">'EXIST:ng.opt'</span>)
+0071    opt = isfile(<span class="string">'./ng.opt'</span>);
+0072    <span class="keyword">return</span>
+0073 <span class="keyword">end</span>
+0074 
+0075 nargs = nargin;
+0076 
+0077 str = {};
+0078 <span class="comment">% modify as per user input</span>
+0079 <span class="keyword">if</span> nargs &gt;= 1 &amp;&amp; ischar(varargin{1}) &amp;&amp; ~any(varargin{1} == <span class="string">'.'</span>)  <span class="keyword">...</span>
+0080               &amp;&amp; isempty(strfind(varargin{1},<span class="string">'MSZ'</span>))
+0081    str = varargin(1);
+0082    varargin(1) = [];
+0083    nargs = nargs - 1;
+0084 <span class="keyword">end</span>
+0085 
+0086 <span class="comment">% get default options</span>
+0087 opt = <a href="#_sub10" class="code" title="subfunction opt = default_opt(varargin)">default_opt</a>(str{:});
+0088 
+0089 <span class="keyword">if</span> nargs == 0
+0090     usr = struct;
+0091 <span class="keyword">end</span>
+0092 <span class="comment">% modify as per user input</span>
+0093 <span class="keyword">if</span> nargs == 1 &amp;&amp; isstruct(varargin{1})
+0094    usr = varargin{1};
+0095 <span class="keyword">end</span>
+0096 <span class="keyword">if</span> nargs &gt; 1 <span class="comment">% string value pairs</span>
+0097    usr = <a href="#_sub1" class="code" title="subfunction opt = process_input(varargin)">process_input</a>(varargin{:}); 
+0098 <span class="keyword">end</span>
+0099 opt = <a href="#_sub7" class="code" title="subfunction opt = copy_field(opt,usr)">copy_field</a>(opt,usr);
+0100 
+0101 <span class="keyword">if</span> nargout == 1 <span class="comment">% do not write a file if output was requested</span>
+0102    <span class="keyword">return</span>
+0103 <span class="keyword">end</span>
+0104 
+0105 <span class="comment">% write the file</span>
+0106 <a href="#_sub8" class="code" title="subfunction write_ng_file(opt)">write_ng_file</a>(opt);
+0107 
+0108 <a name="_sub1" href="#_subfunctions" class="code">function opt = process_input(varargin)</a>
+0109 <span class="keyword">if</span> mod(nargin,2)~=0
+0110    error(<span class="string">'EIDORS:WrongInput'</span>,<span class="string">'Even number of inputs expected'</span>);
+0111 <span class="keyword">end</span>
+0112 mszpoints = [];
+0113 <span class="keyword">for</span> i = 1:nargin/2
+0114    idx = (i-1)*2 +1;
+0115    val = varargin{idx+1};
+0116    <span class="keyword">switch</span> varargin{idx}
+0117 <span class="comment">%  ng_write_opt('MSZPOINTS', [list of x,y,z,maxh])</span>
+0118    <span class="keyword">case</span> <span class="string">'MSZPOINTS'</span>
+0119     <span class="comment">%  ng_write_opt('MSZPOINTS', [list of x,y,z,maxh])</span>
+0120        mszpoints = [mszpoints;val];
+0121    <span class="keyword">case</span> <span class="string">'MSZBRICK'</span>
+0122        mszpoints = [mszpoints; <a href="#_sub2" class="code" title="subfunction val = msz_brick(val)">msz_brick</a>(val)];;
+0123    <span class="keyword">case</span> <span class="string">'MSZSPHERE'</span>
+0124        mszpoints = [mszpoints; <a href="#_sub3" class="code" title="subfunction val = msz_sphere(val)">msz_sphere</a>(val)];;
+0125    <span class="keyword">case</span> <span class="string">'MSZCYLINDER'</span>
+0126        mszpoints = [mszpoints; <a href="#_sub5" class="code" title="subfunction val = msz_cylinder(val)">msz_cylinder</a>(val)];;
+0127    <span class="keyword">case</span> <span class="string">'MSZZPLANE'</span>
+0128        xyz=val(1:3);
+0129        planeval = [xyz-[0,0,1e-6],xyz+[0,0,1e-6],val(4:5)];
+0130        mszpoints = [mszpoints; <a href="#_sub5" class="code" title="subfunction val = msz_cylinder(val)">msz_cylinder</a>(planeval)];
+0131    <span class="keyword">otherwise</span>
+0132        eval(sprintf(<span class="string">'opt.%s = val;'</span>,varargin{idx}));
+0133    <span class="keyword">end</span>
+0134 <span class="keyword">end</span>
+0135    <span class="keyword">if</span> ~isempty(mszpoints);
+0136        tmpname = <a href="#_sub6" class="code" title="subfunction fname = write_tmp_mszfile( mszpoints )">write_tmp_mszfile</a>( mszpoints );
+0137        opt.options.meshsizefilename = tmpname;
+0138    <span class="keyword">end</span>
+0139 
+0140 <a name="_sub2" href="#_subfunctions" class="code">function val = msz_brick(val)</a>
+0141 <span class="comment">%  ng_write_opt('MSZBRICK', [xmin, xmax, ymin, ymax, zmin, zmax, maxh])</span>
+0142     maxh = val(7);
+0143     xpts= floor(abs(diff(val(1:2))/maxh))+1;
+0144     ypts= floor(abs(diff(val(3:4))/maxh))+1;
+0145     zpts= floor(abs(diff(val(5:6))/maxh))+1;
+0146     xsp= linspace(val(1),val(2), xpts);
+0147     ysp= linspace(val(3),val(4), ypts);
+0148     zsp= linspace(val(5),val(6), zpts);
+0149     [xsp,ysp,zsp] = ndgrid(xsp,ysp,zsp);
+0150     val = [xsp(:),ysp(:),zsp(:), maxh+0*xsp(:)];
+0151 
+0152 <a name="_sub3" href="#_subfunctions" class="code">function val = msz_sphere(val)</a>
+0153 <span class="comment">%  ng_write_opt('MSZSPHERE', [xctr, yctr, zctr, radius, maxh])</span>
+0154     maxh = val(5);
+0155     radius = val(4);
+0156     npts= floor(2*radius/maxh)+1;
+0157     xsp= linspace(val(1) - radius, val(1) + radius, npts);
+0158     ysp= linspace(val(2) - radius, val(2) + radius, npts);
+0159     zsp= linspace(val(3) - radius, val(3) + radius, npts);
+0160     [xsp,ysp,zsp] = ndgrid(xsp,ysp,zsp);
+0161     s_idx = ((xsp-val(1)).^2 + <span class="keyword">...</span>
+0162              (ysp-val(2)).^2 + <span class="keyword">...</span>
+0163              (zsp-val(3)).^2) &lt; radius^2;
+0164     s_idx = s_idx(:);
+0165     val = [xsp(s_idx),ysp(s_idx),zsp(s_idx), maxh+0*xsp(s_idx)];
+0166 
+0167 <span class="comment">% space points around zero with spacing maxh</span>
+0168 <a name="_sub4" href="#_subfunctions" class="code">function pts = space_around_zero(lim,maxh);</a>
+0169     pts = 0:maxh:lim;
+0170     pts = [-fliplr(pts(2:end)),pts];
+0171 
+0172 <a name="_sub5" href="#_subfunctions" class="code">function val = msz_cylinder(val)</a>
+0173     <span class="comment">% [x1, y1, z1, x2, y2, z2, radius, maxh])</span>
+0174     len2= norm(val(1:3) - val(4:6))/2;
+0175     ctr =     (val(1:3) + val(4:6))/2;
+0176     radius = val(7);
+0177     maxh = min(val(8),radius);
+0178     xsp= <a href="#_sub4" class="code" title="subfunction pts = space_around_zero(lim,maxh);">space_around_zero</a>(radius, maxh);
+0179     ysp= <a href="#_sub4" class="code" title="subfunction pts = space_around_zero(lim,maxh);">space_around_zero</a>(radius, maxh);
+0180     zsp= <a href="#_sub4" class="code" title="subfunction pts = space_around_zero(lim,maxh);">space_around_zero</a>(len2, maxh);
+0181     [xsp,ysp,zsp] = ndgrid(xsp,ysp,zsp);
+0182     s_idx = (xsp.^2 + ysp.^2) &lt; radius^2;
+0183     xsp = xsp(s_idx(:));
+0184     ysp = ysp(s_idx(:));
+0185     zsp = zsp(s_idx(:));
+0186 <span class="comment">% Rotate:</span>
+0187 <span class="comment">% https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d/897677#897677</span>
+0188     ab = [0;0;2*len2] + [val(4:6)-val(1:3)]';
+0189     R=2*ab*ab'/(ab'*ab) - eye(3);
+0190     val = [xsp,ysp,zsp]*R + ctr;
+0191     val(:,4) = maxh;
+0192 
+0193 <a name="_sub6" href="#_subfunctions" class="code">function fname = write_tmp_mszfile( mszpoints )</a>
+0194    <span class="comment">% From Documentation: Syntax is</span>
+0195    <span class="comment">% np</span>
+0196    <span class="comment">% x1 y1 z1 h1</span>
+0197    <span class="comment">% x2 y2 z2 h2</span>
+0198    n_pts_elecs=  size(mszpoints,1);
+0199    fname = [tempname,<span class="string">'.msz'</span>];
+0200    fname = strrep(fname,<span class="string">'\'</span>,<span class="string">'/'</span>); <span class="comment">% needs unix-style path on windows</span>
+0201    fid=fopen(fname,<span class="string">'w'</span>);
+0202    fprintf(fid,<span class="string">'%d\n'</span>,n_pts_elecs);
+0203 <span class="comment">%  for i = 1:size(mszpoints,1)</span>
+0204 <span class="comment">%     fprintf(fid,'%10f %10f %10f %10f\n', mszpoints(i,:));</span>
+0205 <span class="comment">%  end</span>
+0206 <span class="comment">%  vectorize to speed up</span>
+0207    fprintf(fid,<span class="string">'%10f %10f %10f %10f\n'</span>, mszpoints');
+0208    fprintf(fid,<span class="string">'0\n'</span>); <span class="comment">% lines</span>
+0209    fclose(fid); <span class="comment">% ptsfn</span>
+0210 
+0211 <span class="comment">% copy all fields from usr to opt</span>
+0212 <span class="comment">% check that the fields exist in opt</span>
+0213 <a name="_sub7" href="#_subfunctions" class="code">function opt = copy_field(opt,usr)</a>
+0214 optnms = fieldnames(opt);
+0215 usrnms = fieldnames(usr);
+0216 <span class="keyword">for</span> i = 1:length(usrnms)
+0217    <span class="comment">% check if field exist</span>
+0218    <span class="keyword">if</span> ~ismember(usrnms{i},optnms)
+0219      error(<span class="string">'Unsupported option %s'</span>,usrnms{i});
+0220    <span class="keyword">end</span>
+0221    <span class="keyword">if</span> isstruct(usr.(usrnms{i})) <span class="comment">% recurse</span>
+0222       opt.(usrnms{i}) = <a href="#_sub7" class="code" title="subfunction opt = copy_field(opt,usr)">copy_field</a>(opt.(usrnms{i}), usr.(usrnms{i}) );
+0223    <span class="keyword">else</span>
+0224       opt.(usrnms{i}) = usr.(usrnms{i});
+0225    <span class="keyword">end</span>
+0226 <span class="keyword">end</span>
+0227 
+0228 
+0229 <span class="comment">% write the ng.opt file</span>
+0230 <a name="_sub8" href="#_subfunctions" class="code">function write_ng_file(opt)</a>
+0231 fid = fopen(<span class="string">'ng.opt'</span>,<span class="string">'w'</span>);
+0232 flds = fieldnames(opt);
+0233 <a href="#_sub9" class="code" title="subfunction write_field(fid,s,str)">write_field</a>(fid,opt,[]);
+0234 fclose(fid);
+0235 
+0236 
+0237 <span class="comment">% recurses over fields and prints to file</span>
+0238 <a name="_sub9" href="#_subfunctions" class="code">function write_field(fid,s,str)</a>
+0239 <span class="keyword">if</span> isstruct(s)
+0240    <span class="keyword">if</span> isempty(str)
+0241       str = <span class="string">''</span>;
+0242    <span class="keyword">else</span>
+0243       str = [str <span class="string">'.'</span>];
+0244    <span class="keyword">end</span>
+0245    flds = fieldnames(s);
+0246    <span class="keyword">for</span> i = 1:length(flds)
+0247       <a href="#_sub9" class="code" title="subfunction write_field(fid,s,str)">write_field</a>(fid,s.(flds{i}),[str flds{i}]);
+0248    <span class="keyword">end</span>
+0249 <span class="keyword">elseif</span> ischar(s)
+0250    fprintf(fid,<span class="string">'%s  %s\n'</span>, str, s);
+0251 <span class="keyword">elseif</span> round(s) == s
+0252    fprintf(fid,<span class="string">'%s  %d\n'</span>, str, s);
+0253 <span class="keyword">else</span>
+0254    fprintf(fid,<span class="string">'%s  %f\n'</span>, str, s);
+0255 <span class="keyword">end</span>
+0256 
+0257 
+0258 <a name="_sub10" href="#_subfunctions" class="code">function opt = default_opt(varargin)</a>
+0259 <span class="keyword">if</span> nargin == 0
+0260     str = <span class="string">'moderate'</span>;
+0261 <span class="keyword">else</span>
+0262     str = varargin{1};
+0263 <span class="keyword">end</span>
+0264 <span class="keyword">switch</span> str
+0265     <span class="keyword">case</span> <span class="string">'very_coarse'</span>
+0266         <span class="comment">% fineness 1</span>
+0267         v = [6, 1.0, 0.3, 0.7, 0.25, 0.8, 0.20, 0.5, 0.25, 1.0];
+0268     <span class="keyword">case</span> <span class="string">'coarse'</span>
+0269         <span class="comment">% fineness 2</span>
+0270         v = [6, 1.5, 0.5, 0.5, 0.50, 1.0, 0.35, 1.0, 0.50, 1.5];
+0271     <span class="keyword">case</span> <span class="string">'moderate'</span>
+0272         <span class="comment">% fineness 3</span>
+0273         v = [6, 2.0, 1.0, 0.3, 1.00, 1.5, 0.50, 2.0, 1.00, 2.0];
+0274     <span class="keyword">case</span> <span class="string">'fine'</span>
+0275         <span class="comment">% fineness 4</span>
+0276         v = [6, 3.0, 2.0, 0.2, 1.50, 2.0, 1.50, 3.5, 1.50, 3.0];
+0277     <span class="keyword">case</span> <span class="string">'very_fine'</span>
+0278         <span class="comment">% fineness 5</span>
+0279         v = [6, 5.0, 3.0, 0.1, 3.00, 5.0, 3.00, 5.0, 3.00, 5.0];
+0280     <span class="keyword">otherwise</span> <span class="comment">% use moderate</span>
+0281         <span class="comment">% this is called if some other ng_write_opt is used, like MSZBRICK</span>
+0282         v = [6, 2.0, 1.0, 0.3, 1.00, 1.5, 0.50, 2.0, 1.00, 2.0];
+0283 <span class="keyword">end</span>
+0284 
+0285 opt.dirname = <span class="string">'.'</span>;
+0286 opt.loadgeomtypevar = <span class="string">'&quot;All Geometry types (*.stl,*.stlb,*.step,*.stp,...)&quot;'</span>;
+0287 opt.exportfiletype = <span class="string">'&quot;Neutral Format&quot;'</span>;
+0288 opt.meshoptions.fineness = v(1);
+0289 opt.meshoptions.firststep = <span class="string">'ag'</span>;
+0290 opt.meshoptions.laststep = <span class="string">'ov'</span>;
+0291 opt.options.localh = 1;
+0292 opt.options.delaunay = 1;
+0293 opt.options.checkoverlap = 1;
+0294 opt.options.checkchartboundary = 1;
+0295 opt.options.startinsurface = 0;
+0296 opt.options.blockfill = 1;
+0297 opt.options.debugmode = 0;
+0298 opt.options.dooptimize = 1;
+0299 opt.options.parthread = 1;
+0300 opt.options.elsizeweight = 0.2;
+0301 opt.options.secondorder = 0;
+0302 opt.options.elementorder = 1;
+0303 opt.options.quad = 0;
+0304 opt.options.inverttets = 0;
+0305 opt.options.inverttrigs = 0;
+0306 opt.options.autozrefine = 0;
+0307 opt.options.meshsize = 1000;
+0308 opt.options.minmeshsize = 0;
+0309 opt.options.curvaturesafety = v(2);
+0310 opt.options.segmentsperedge = v(3);
+0311 opt.options.meshsizefilename = <span class="string">''</span>;
+0312 opt.options.badellimit = 175;
+0313 opt.options.optsteps2d = 3;
+0314 opt.options.optsteps3d = 5;
+0315 opt.options.opterrpow = 2;
+0316 opt.options.grading = v(4);
+0317 opt.options.printmsg = 2;
+0318 opt.geooptions.drawcsg = 1;
+0319 opt.geooptions.detail = 0.001;
+0320 opt.geooptions.accuracy = 1e-6;
+0321 opt.geooptions.facets = 20;
+0322 opt.geooptions.minx = -1000;
+0323 opt.geooptions.miny = -1000;
+0324 opt.geooptions.minz = -1000;
+0325 opt.geooptions.maxx = 1000;
+0326 opt.geooptions.maxy = 1000;
+0327 opt.geooptions.maxz = 1000;
+0328 opt.viewoptions.specpointvlen = 0.3;
+0329 opt.viewoptions.light.amb = 0.3;
+0330 opt.viewoptions.light.diff = 0.7;
+0331 opt.viewoptions.light.spec = 1;
+0332 opt.viewoptions.light.locviewer = 0;
+0333 opt.viewoptions.mat.shininess = 50;
+0334 opt.viewoptions.mat.transp = 0.3;
+0335 opt.viewoptions.colormeshsize = 0;
+0336 opt.viewoptions.whitebackground = 1;
+0337 opt.viewoptions.drawcolorbar = 1;
+0338 opt.viewoptions.drawcoordinatecross = 1;
+0339 opt.viewoptions.drawnetgenlogo = 1;
+0340 opt.viewoptions.stereo = 0;
+0341 opt.viewoptions.drawfilledtrigs = 1;
+0342 opt.viewoptions.drawedges = 0;
+0343 opt.viewoptions.drawbadels = 0;
+0344 opt.viewoptions.centerpoint = 0;
+0345 opt.viewoptions.drawelement = 0;
+0346 opt.viewoptions.drawoutline = 1;
+0347 opt.viewoptions.drawtets = 0;
+0348 opt.viewoptions.drawprisms = 0;
+0349 opt.viewoptions.drawpyramids = 0;
+0350 opt.viewoptions.drawhexes = 0;
+0351 opt.viewoptions.drawidentified = 0;
+0352 opt.viewoptions.drawpointnumbers = 0;
+0353 opt.viewoptions.drawededges = 1;
+0354 opt.viewoptions.drawedpoints = 1;
+0355 opt.viewoptions.drawedpointnrs = 0;
+0356 opt.viewoptions.drawedtangents = 0;
+0357 opt.viewoptions.shrink = 1;
+0358 opt.stloptions.showtrias = 0;
+0359 opt.stloptions.showfilledtrias = 1;
+0360 opt.stloptions.showedges = 1;
+0361 opt.stloptions.showmarktrias = 0;
+0362 opt.stloptions.showactivechart = 0;
+0363 opt.stloptions.yangle = 30;
+0364 opt.stloptions.contyangle = 20;
+0365 opt.stloptions.edgecornerangle = 60;
+0366 opt.stloptions.chartangle = 15;
+0367 opt.stloptions.outerchartangle = 70;
+0368 opt.stloptions.usesearchtree = 0;
+0369 opt.stloptions.chartnumber = 1;
+0370 opt.stloptions.charttrignumber = 1;
+0371 opt.stloptions.chartnumberoffset = 0;
+0372 opt.stloptions.atlasminh = 0.1;
+0373 opt.stloptions.resthsurfcurvfac = v(5);
+0374 opt.stloptions.resthsurfcurvenable = 0;
+0375 opt.stloptions.resthatlasfac = 2;
+0376 opt.stloptions.resthatlasenable = 1;
+0377 opt.stloptions.resthchartdistfac = v(6);
+0378 opt.stloptions.resthchartdistenable = 0;
+0379 opt.stloptions.resthlinelengthfac = v(7);
+0380 opt.stloptions.resthlinelengthenable = 1;
+0381 opt.stloptions.resthcloseedgefac = v(8);
+0382 opt.stloptions.resthcloseedgeenable = 1;
+0383 opt.stloptions.resthedgeanglefac = v(9);
+0384 opt.stloptions.resthedgeangleenable = 0;
+0385 opt.stloptions.resthsurfmeshcurvfac = v(10);
+0386 opt.stloptions.resthsurfmeshcurvenable = 0;
+0387 opt.stloptions.recalchopt = 1;
+0388 opt.visoptions.subdivisions = 1;
+0389 
+0390 <a name="_sub11" href="#_subfunctions" class="code">function do_unit_test</a>
+0391    <a href="#_sub13" class="code" title="subfunction test_main_options()">test_main_options</a>()
+0392    <a href="#_sub14" class="code" title="subfunction unit_test_MSZ">unit_test_MSZ</a>()
+0393 <span class="comment">%  test_caching()</span>
+0394 
+0395 <a name="_sub12" href="#_subfunctions" class="code">function test_caching()</a>
+0396    <span class="keyword">for</span> test=0:10; <span class="keyword">switch</span> test
+0397       <span class="keyword">case</span> 0; fclose(fopen(<span class="string">'ng.opt'</span>,<span class="string">'w'</span>)); <span class="comment">%exist!</span>
+0398               delete(<span class="string">'ng.opt'</span>);
+0399               <a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a> clear
+0400               nel_ = 1599;
+0401       <span class="keyword">case</span> 1; <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'moderate'</span>); <span class="comment">% default</span>
+0402               nel_ = 1599;
+0403       <span class="keyword">case</span> 2; <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'coarse'</span>);
+0404               nel_ = 570;
+0405       <span class="keyword">case</span> 3; <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'MSZCYLINDER'</span>,[0,0,.1,0,0,.2,1,0.05]);
+0406               nel_ = 43861;
+0407       <span class="keyword">otherwise</span>; <span class="keyword">break</span>;
+0408       <span class="keyword">end</span>
+0409       fmdl= <a href="ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>(1,[2,0.5],0.1);
+0410       nel = <a href="../../../eidors/models/num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(fmdl);
+0411       <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(fmdl); title(sprintf(<span class="string">'Nel=%d'</span>,nel))
+0412       <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(sprintf( <span class="keyword">...</span>
+0413            <span class="string">'Cache: ng.opt #%d'</span>,test), nel, nel_);
+0414    <span class="keyword">end</span>
+0415 
+0416 <a name="_sub13" href="#_subfunctions" class="code">function test_main_options()</a>
+0417 opt.meshoptions.fineness = 6;
+0418 <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(opt);
+0419 fid = fopen(<span class="string">'ng.opt'</span>,<span class="string">'r'</span>); str= fread(fid,[1,inf],<span class="string">'uint8=&gt;char'</span>); fclose(fid);
+0420 <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'fineness=6'</span>,isempty( <span class="keyword">...</span>
+0421     strfind(str, <span class="string">'meshoptions.fineness  6'</span>)), 0);
+0422 
+0423 <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'meshoptions.fineness'</span>,4,<span class="string">'meshoptions.firststep'</span>,<span class="string">'aaa'</span>);
+0424 fid = fopen(<span class="string">'ng.opt'</span>,<span class="string">'r'</span>); str= fread(fid,[1,inf],<span class="string">'uint8=&gt;char'</span>); fclose(fid);
+0425 <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'firststep=aaa'</span>,isempty( <span class="keyword">...</span>
+0426     strfind(str, <span class="string">'meshoptions.firststep  aaa'</span>)), 0);
+0427 
+0428 <span class="comment">% the last one will not be written since output was requested</span>
+0429 opt = <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'meshoptions.fineness'</span>,4,<span class="string">'meshoptions.firststep'</span>,<span class="string">'bbb'</span>);
+0430 fid = fopen(<span class="string">'ng.opt'</span>,<span class="string">'r'</span>); str= fread(fid,[1,inf],<span class="string">'uint8=&gt;char'</span>); fclose(fid);
+0431 <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'firststep=bbb'</span>,isempty( <span class="keyword">...</span>
+0432     strfind(str, <span class="string">'meshoptions.firststep  bbb'</span>)), 1);
+0433 
+0434 <a name="_sub14" href="#_subfunctions" class="code">function unit_test_MSZ</a>
+0435    shape_str =  <span class="keyword">...</span>
+0436      <span class="string">'solid mainobj = orthobrick(-9,-9,-9;9,9,9);'</span>;
+0437    i=0; <span class="keyword">while</span>(true); i=i+1; <span class="keyword">switch</span> i
+0438        <span class="keyword">case</span>  1; n_exp = 8;
+0439            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'very_coarse'</span>);
+0440        <span class="keyword">case</span>  2; n_exp = 22;
+0441            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'fine'</span>);
+0442        <span class="keyword">case</span>  3; n_exp = 59;
+0443            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'very_fine'</span>);
+0444        <span class="keyword">case</span>  4; n_exp = 8;
+0445            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'moderate'</span>);
+0446        <span class="keyword">case</span>  5; n_exp = 746;
+0447            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'MSZSPHERE'</span>,[5,5,5,4,1]);
+0448        <span class="keyword">case</span>  6; n_exp = 106;
+0449            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'MSZBRICK'</span>,[5,5,5,9,9,9,1]);
+0450        <span class="keyword">case</span>  7; n_exp = 544;
+0451            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'MSZCYLINDER'</span>,[5,5,5,8,8,8,5,1]);
+0452        <span class="keyword">case</span>  8; n_exp = 23;
+0453            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'MSZCYLINDER'</span>,[5,5,5,8,8,8,5,5]);
+0454        <span class="keyword">case</span>  9; n_exp = 135;
+0455            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'MSZCYLINDER'</span>,[5,5,5,5,5,8,1,5]);
+0456        <span class="keyword">case</span> 10; n_exp = 9876; <span class="comment">% show ball on face</span>
+0457            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'MSZSPHERE'</span>,[6,6,6,2.2,0.2]);
+0458        <span class="keyword">case</span> 11; n_exp = 13242; <span class="comment">% extra options</span>
+0459            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'fine'</span>,<span class="string">'MSZSPHERE'</span>,[6,6,6,2.2,0.2]);
+0460        <span class="keyword">case</span> 12; n_exp = 3303; <span class="comment">% extra options</span>
+0461            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'MSZSPHERE'</span>,[8,8,0,1.1,0.2],<span class="string">'MSZSPHERE'</span>,[-8,-8,0,1.1,0.2]);
+0462        <span class="keyword">case</span> 13; n_exp = 14821;
+0463            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'fine'</span>,<span class="string">'MSZSPHERE'</span>,[6,6,6,2.2,0.2],<span class="string">'MSZPOINTS'</span>,[0,0,0,0.1]);
+0464        <span class="keyword">case</span> 14; n_exp = 3051;
+0465            <a href="ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'MSZZPLANE'</span>,[5,5,5,1,.1]);
+0466        <span class="keyword">otherwise</span>; <span class="keyword">break</span>
+0467        <span class="keyword">end</span>
+0468        <a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a> clear
+0469        fmdl = <a href="ng_mk_gen_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_gen_models(shape_str, elec_pos,  elec_shape, elec_obj, extra_ng_code, mszpoints);">ng_mk_gen_models</a>(shape_str,[],[],<span class="string">''</span>);
+0470        <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'opt:'</span>, <a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(fmdl), n_exp)
+0471 <span class="comment">%      show_fem(fmdl); disp([i,num_nodes(fmdl)]); pause</span>
+0472    <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

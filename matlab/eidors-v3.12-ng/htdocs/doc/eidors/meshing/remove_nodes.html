@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of remove_nodes</title>
+  <meta name="keywords" content="remove_nodes">
+  <meta name="description" content="REMOVE_NODES   Remove nodes from a fwd_model.">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">meshing</a> &gt; remove_nodes.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/meshing&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>remove_nodes
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>REMOVE_NODES   Remove nodes from a fwd_model.</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">REMOVE_NODES   Remove nodes from a fwd_model.
+
+  fmdl = REMOVE_NODES(fmdl, idx) removes fmdl.nodes(idx,:)
+     fmdl : EIDORS fwd_model
+     idx  : indices (integer or logical) into fmdl.nodes
+
+  fmdl = REMOVE_NODES(... , elec_opt) specifies treatment of
+    electrodes (fmdl.electrode) affected by the node removal:
+     'warn'      - (default) warns about empty electrodes, but keeps them
+     'keep'      - keeps empty electrodes
+     'remove'    - removes empty electrodes
+     'quiet'     - don't warn about changes to electrodes
+    These options have no impact on the actual node removal.
+
+  [fmdl, c2f_idx] = REMOVE_NODES(...) also provides indices of elem_data 
+  to keep in an image.
+
+  REMOVE_NODES removes affected edges/faces from fmdl.boundary, but does
+  not recalculate it.
+
+ See also: <a href="remove_elems.html" class="code" title="function [fmdl, c2f_idx] = remove_elems(fmdl, idx, elec_opt)">REMOVE_ELEMS</a>, <a href="crop_model.html" class="code" title="function [fmdl,c2f_idx]= crop_model( axis_handle, fcn_handle );">CROP_MODEL</a>, REMOVE_UNUSED_NODES</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="remove_elems.html" class="code" title="function [fmdl, c2f_idx] = remove_elems(fmdl, idx, elec_opt)">remove_elems</a>	REMOVE_ELEMS   Remove nodes from a fwd_model.</li><li><a href="remove_nodes.html" class="code" title="function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)">remove_nodes</a>	REMOVE_NODES   Remove nodes from a fwd_model.</li><li><a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>	NUM_ELECS: number of electrodes attached to model</li><li><a href="../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>	NUM_NODES: number of elemnts in a (fwd or inv model or image)</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="crop_model.html" class="code" title="function [fmdl,c2f_idx]= crop_model( axis_handle, fcn_handle );">crop_model</a>	CROP_MODEL: Crop away parts of a fem model</li><li><a href="remove_nodes.html" class="code" title="function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)">remove_nodes</a>	REMOVE_NODES   Remove nodes from a fwd_model.</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)</a>
+0002 <span class="comment">%REMOVE_NODES   Remove nodes from a fwd_model.</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">%  fmdl = REMOVE_NODES(fmdl, idx) removes fmdl.nodes(idx,:)</span>
+0005 <span class="comment">%     fmdl : EIDORS fwd_model</span>
+0006 <span class="comment">%     idx  : indices (integer or logical) into fmdl.nodes</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">%  fmdl = REMOVE_NODES(... , elec_opt) specifies treatment of</span>
+0009 <span class="comment">%    electrodes (fmdl.electrode) affected by the node removal:</span>
+0010 <span class="comment">%     'warn'      - (default) warns about empty electrodes, but keeps them</span>
+0011 <span class="comment">%     'keep'      - keeps empty electrodes</span>
+0012 <span class="comment">%     'remove'    - removes empty electrodes</span>
+0013 <span class="comment">%     'quiet'     - don't warn about changes to electrodes</span>
+0014 <span class="comment">%    These options have no impact on the actual node removal.</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">%  [fmdl, c2f_idx] = REMOVE_NODES(...) also provides indices of elem_data</span>
+0017 <span class="comment">%  to keep in an image.</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">%  REMOVE_NODES removes affected edges/faces from fmdl.boundary, but does</span>
+0020 <span class="comment">%  not recalculate it.</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% See also: REMOVE_ELEMS, CROP_MODEL, REMOVE_UNUSED_NODES</span>
+0023 
+0024 <span class="comment">% (C) 2024 Bartek Grychtol. License: GPL version 2 or version 3</span>
+0025 <span class="comment">% $Id: remove_nodes.m 7002 2024-11-24 13:11:35Z aadler $</span>
+0026 
+0027 
+0028 
+0029 <span class="keyword">if</span> ischar(fmdl) &amp;&amp; strcmp(fmdl, <span class="string">'UNIT_TEST'</span>), <a href="#_sub1" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>, <span class="keyword">end</span>
+0030 <span class="keyword">if</span> nargin &lt; 3, elec_opt = <span class="string">''</span>; <span class="keyword">end</span>
+0031 
+0032 node_idx = false([<a href="../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(fmdl), 1]);
+0033 node_idx(idx) = true;
+0034 elem_idx = any(node_idx(fmdl.elems),2);
+0035 
+0036 [fmdl, c2f_idx] = <a href="remove_elems.html" class="code" title="function [fmdl, c2f_idx] = remove_elems(fmdl, idx, elec_opt)">remove_elems</a>(fmdl, elem_idx, elec_opt);
+0037 
+0038 <a name="_sub1" href="#_subfunctions" class="code">function do_unit_test</a>
+0039 
+0040 f0= <a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c2'</span>,4);
+0041 f0= f0.fwd_model;
+0042 fr= <a href="remove_nodes.html" class="code" title="function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)">remove_nodes</a>(f0, [10:13]);
+0043 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 1a'</span>,fr.nodes(20,:), f0.nodes(24,:));
+0044 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 1b'</span>,fr.elems(20,:),[24,11,12]);
+0045 
+0046 fr= <a href="remove_nodes.html" class="code" title="function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)">remove_nodes</a>(f0, [26:33],<span class="string">'remove'</span>);
+0047 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2a'</span>,fr.nodes(25,:), f0.nodes(25,:));
+0048 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2b'</span>,fr.nodes(26,:), f0.nodes(34,:));
+0049 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2c'</span>,f0.elems(40,:),[20,19,33]);
+0050 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2d'</span>,fr.elems(40,:),[14,25,33]);
+0051 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2e'</span>,<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fr),2);
+0052 
+0053 fr= <a href="remove_nodes.html" class="code" title="function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)">remove_nodes</a>(f0, [26:33],<span class="string">'keep'</span>);
+0054 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3a'</span>,fr.nodes(25,:), f0.nodes(25,:));
+0055 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3b'</span>,fr.nodes(26,:), f0.nodes(34,:));
+0056 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3c'</span>,f0.elems(40,:),[20,19,33]);
+0057 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3d'</span>,fr.elems(40,:),[14,25,33]);
+0058 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3e'</span>,<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fr),4);
+0059 
+0060 f0= <a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]);
+0061 f0= f0.fwd_model;
+0062 fr= <a href="remove_nodes.html" class="code" title="function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)">remove_nodes</a>(f0, [59:63]);
+0063 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D- 1a'</span>,fr.nodes(80,:), f0.nodes(85,:));
+0064 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D- 1b'</span>,fr.elems(80,:),[41,42,76,18]);
+0065 
+0066 fr= <a href="remove_nodes.html" class="code" title="function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)">remove_nodes</a>(f0, [22:27],<span class="string">'remove'</span>);
+0067 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2a'</span>,fr.nodes(21,:), f0.nodes(21,:));
+0068 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2b'</span>,fr.nodes(22,:), f0.nodes(28,:));
+0069 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2c'</span>,f0.elems(40,:),[10,73,74,38]);
+0070 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2d'</span>,fr.elems(40,:),[10,67,68,32]);
+0071 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 2e'</span>,<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fr),29);
+0072 
+0073 fr= <a href="remove_nodes.html" class="code" title="function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)">remove_nodes</a>(f0, [22:27],<span class="string">'keep'</span>);
+0074 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3a'</span>,fr.nodes(21,:), f0.nodes(21,:));
+0075 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3b'</span>,fr.nodes(22,:), f0.nodes(28,:));
+0076 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3c'</span>,f0.elems(40,:),[10,73,74,38]);
+0077 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3d'</span>,fr.elems(40,:),[10,67,68,32]);
+0078 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D- 3e'</span>,<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fr),32);
+0079</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

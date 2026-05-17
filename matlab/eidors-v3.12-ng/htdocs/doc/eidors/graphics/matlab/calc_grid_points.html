@@ -1,0 +1,202 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of calc_grid_points</title>
+  <meta name="keywords" content="calc_grid_points">
+  <meta name="description" content="CALC_GRID_POINTS - image values at points in grid">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="#">graphics</a> &gt; <a href="index.html">matlab</a> &gt; calc_grid_points.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/graphics/matlab&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>calc_grid_points
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>CALC_GRID_POINTS - image values at points in grid</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [val, c2f] = calc_grid_points(img, xpts, ypts, zpts) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">CALC_GRID_POINTS - image values at points in grid
+ VAL = CALC_GRID_POINTS(img, xpts, ypts, zpts) returns the matrix of image
+ values at points on a rectangular grid as defined by
+ NDGRID(xpts,ypts,zpts).
+
+ [VAL, C2F] = CALC_GRID_POINTS( ... ) also returns a mapping of points to
+ img.fwd_model.elems (logical [n_elems x n_points])
+
+ See also: GET_IMG_DATA, POINT_IN_TET, MK_GRID_MODEL, NDGRID</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="calc_grid_points.html" class="code" title="function [val, c2f] = calc_grid_points(img, xpts, ypts, zpts)">calc_grid_points</a>	CALC_GRID_POINTS - image values at points in grid</li><li><a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>	out_img = show_slices (img, levels ) show slices at levels of an</li><li><a href="../../../eidors/meshing/crop_model.html" class="code" title="function [fmdl,c2f_idx]= crop_model( axis_handle, fcn_handle );">crop_model</a>	CROP_MODEL: Crop away parts of a fem model</li><li><a href="../../../eidors/models/fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>	FIX_MODEL: Add useful fields to a model</li><li><a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../../eidors/models/mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>	MK_GRID_MODEL: Create reconstruction model on pixelated grid</li><li><a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="../../../eidors/models/point_in_tet.html" class="code" title="function point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)">point_in_tet</a>	POINT_IN_TET test for points contained in elements</li><li><a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="../../../eidors/solvers/get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>	GET_IMG_DATA: get parameter data from eidors image object</li><li><a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>	EIDORS_CACHE Control eidors caching</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="calc_grid_points.html" class="code" title="function [val, c2f] = calc_grid_points(img, xpts, ypts, zpts)">calc_grid_points</a>	CALC_GRID_POINTS - image values at points in grid</li><li><a href="calc_voxels.html" class="code" title="function [V, rimg] = calc_voxels(img, opt, level)">calc_voxels</a>	CALC_VOXELS Calculate volumetric data from an image</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function p2n = calc_point_node_interpolation(fmdl, pts, point2tet)</a></li><li><a href="#_sub2" class="code">function [mdl, use_elem] = crop_model(mdl, varargin)</a></li><li><a href="#_sub3" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [val, c2f] = calc_grid_points(img, xpts, ypts, zpts)</a>
+0002 <span class="comment">%CALC_GRID_POINTS - image values at points in grid</span>
+0003 <span class="comment">% VAL = CALC_GRID_POINTS(img, xpts, ypts, zpts) returns the matrix of image</span>
+0004 <span class="comment">% values at points on a rectangular grid as defined by</span>
+0005 <span class="comment">% NDGRID(xpts,ypts,zpts).</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% [VAL, C2F] = CALC_GRID_POINTS( ... ) also returns a mapping of points to</span>
+0008 <span class="comment">% img.fwd_model.elems (logical [n_elems x n_points])</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% See also: GET_IMG_DATA, POINT_IN_TET, MK_GRID_MODEL, NDGRID</span>
+0011 
+0012 <span class="comment">%TODO:</span>
+0013 <span class="comment">% - consider adding support for leveling the model first</span>
+0014 
+0015 <span class="comment">% (C) 2021 Bartek Grychtol and Andy Adler.</span>
+0016 <span class="comment">% License: GPL version 2 or version 3</span>
+0017 <span class="comment">% $Id: calc_grid_points.m 6903 2024-05-28 18:38:34Z bgrychtol $</span>
+0018 
+0019 
+0020 <span class="keyword">if</span> nargin == 1 &amp;&amp; ischar(img) &amp;&amp; strcmp(img, <span class="string">'UNIT_TEST'</span>)
+0021     <a href="#_sub3" class="code" title="subfunction do_unit_test">do_unit_test</a>;
+0022     <span class="keyword">return</span>
+0023 <span class="keyword">end</span>
+0024 
+0025 fmdl = img.fwd_model;
+0026 data = <a href="../../../eidors/solvers/get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(img); 
+0027 
+0028 
+0029 [fmdl, use_elem] = <a href="../../../eidors/meshing/crop_model.html" class="code" title="function [fmdl,c2f_idx]= crop_model( axis_handle, fcn_handle );">crop_model</a>(fmdl, xpts, ypts, zpts);
+0030 [x,y,z]= ndgrid( xpts, ypts, zpts);
+0031 pts = [x(:),y(:),z(:)];
+0032 point2tet = <a href="../../../eidors/models/point_in_tet.html" class="code" title="function point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)">point_in_tet</a>(fmdl, pts, eps);
+0033 <span class="keyword">if</span> nargout == 2
+0034    c2f = logical(<a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(size(pts,1), size(use_elem,1)));
+0035    c2f(:, use_elem) = point2tet;
+0036    c2f = c2f'; <span class="comment">% the usual orientation</span>
+0037 <span class="keyword">end</span>
+0038 
+0039 <span class="keyword">if</span> isfield(img, <span class="string">'elem_data'</span>)
+0040     val =  point2tet * data(use_elem,:);
+0041     val = bsxfun(@rdivide,val,sum(point2tet,2));
+0042 <span class="keyword">elseif</span> isfield(img, <span class="string">'node_data'</span>)
+0043     copt.fstr = <span class="string">'calc_grid_points'</span>;
+0044     copt.cache_obj = {fmdl.nodes, fmdl.elems, pts};
+0045     point2node = <a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(@<a href="#_sub1" class="code" title="subfunction p2n = calc_point_node_interpolation(fmdl, pts, point2tet)">calc_point_node_interpolation</a>, {fmdl, pts, point2tet}, copt);
+0046     val =  point2node * data;
+0047     pts_out = ~any(point2tet,2);
+0048     val(pts_out) = NaN;
+0049 <span class="keyword">end</span>
+0050 
+0051 <span class="comment">% val is sparse sometimes in octave ... not sure why?</span>
+0052 val = reshape(full(val), [size(x) size(data,2)]);
+0053 <span class="keyword">return</span>
+0054 
+0055 
+0056 <span class="comment">%-------------------------------------------------------------------------%</span>
+0057 <span class="comment">% Calculate node interpolation matrix</span>
+0058 <a name="_sub1" href="#_subfunctions" class="code">function p2n = calc_point_node_interpolation(fmdl, pts, point2tet)</a>
+0059     [pts_idx,els_idx] = find(point2tet);
+0060     
+0061     <span class="comment">%deal with nodes shared by multiple tets</span>
+0062     [pts_idx, idx] = unique(pts_idx, <span class="string">'stable'</span>);
+0063     point2tet = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(pts_idx, els_idx(idx), 1, size(point2tet,1), size(point2tet,2));
+0064     
+0065     elem_ptr = find(any(point2tet,1));
+0066     ndims = 3;
+0067 
+0068     
+0069     pts_map = zeros(size(pts,1),1); pts_map(pts_idx) = 1:length(pts_idx);
+0070     pts_idx = repmat(pts_idx,1,ndims+1);
+0071 
+0072     nds_idx = zeros(size(pts_idx));
+0073     int_ptr = zeros(size(pts_idx));
+0074 
+0075     <span class="keyword">for</span> e= elem_ptr <span class="comment">% loop over elements containing points</span>
+0076         nodes_i = fmdl.elems(e,:);
+0077         pts_i = find(point2tet(:,e));
+0078         nds_idx(pts_map(pts_i),:) = repmat(nodes_i,length(pts_i),1);
+0079         
+0080 <span class="comment">%         int_fcn = inv( [ones(1,ndims+1);fmdl.nodes(nodes_i,:)'] );</span>
+0081 <span class="comment">%         int_ptr(pts_map(pts_i),:) = ( int_fcn *[ones(numel(pts_i),1),pts(pts_i,:)]' )';</span>
+0082         
+0083         <span class="comment">% matlab claims this is better:</span>
+0084         int_ptr(pts_map(pts_i),:) = <span class="keyword">...</span>
+0085             ([ones(1,ndims+1);fmdl.nodes(nodes_i,:)'] \ <span class="keyword">...</span>
+0086             [ones(numel(pts_i),1),pts(pts_i,:)]')';
+0087     <span class="keyword">end</span>
+0088     p2n = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(pts_idx,nds_idx,int_ptr, size(pts,1),size(fmdl.nodes,1));
+0089    
+0090 
+0091 <span class="comment">%-------------------------------------------------------------------------%</span>
+0092 <span class="comment">% Crop parts of the model outside the grid</span>
+0093 <a name="_sub2" href="#_subfunctions" class="code">function [mdl, use_elem] = crop_model(mdl, varargin)</a>
+0094     use_elem = true([size(mdl.elems,1),1]);
+0095     <span class="keyword">for</span> i = 1:3
+0096         coord = mdl.nodes(:,i);
+0097         use_elem = use_elem &amp; any(coord(mdl.elems) &gt;= min(varargin{i}),2);
+0098         use_elem = use_elem &amp; any(coord(mdl.elems) &lt;= max(varargin{i}),2);
+0099     <span class="keyword">end</span>
+0100     mdl.elems = mdl.elems(use_elem,:);
+0101     <span class="comment">% is it worth removing unused nodes?</span>
+0102             
+0103 
+0104 
+0105 <a name="_sub3" href="#_subfunctions" class="code">function do_unit_test</a>
+0106    imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]);
+0107    img = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(imdl,1);
+0108    load datacom.mat A B;
+0109    img.elem_data(A) = 1.2;
+0110    img.elem_data(B) = 0.8;
+0111    xvec = -.5:.05:.5;
+0112    yvec = -1:.05:1;
+0113    zvec = 1:.11:2;  
+0114    rmdl = <a href="../../../eidors/models/mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>([],xvec,yvec,zvec);
+0115    middle_point = @(v) (v(1:end-1) + v(2:end))/2;
+0116    xpts = middle_point(xvec);
+0117    ypts = middle_point(yvec);
+0118    zpts = middle_point(zvec);
+0119    
+0120    <span class="comment">% elem data</span>
+0121    val = <a href="calc_grid_points.html" class="code" title="function [val, c2f] = calc_grid_points(img, xpts, ypts, zpts)">calc_grid_points</a>(img, xpts, ypts, zpts);
+0122    rimg = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(rmdl, val(:));
+0123    subplot(221)
+0124    <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(img);
+0125    hold on
+0126    <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(rimg);
+0127    hold off
+0128    subplot(222)
+0129    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(val);
+0130    
+0131    <span class="comment">% node data</span>
+0132    img.fwd_model = <a href="../../../eidors/models/fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>(img.fwd_model,struct(<span class="string">'node2elem'</span>,1));
+0133    N2E = img.fwd_model.node2elem;
+0134    nimg = rmfield(img,<span class="string">'elem_data'</span>);
+0135    nimg.node_data = N2E * img.elem_data ./ sum(N2E,2);
+0136    val = <a href="calc_grid_points.html" class="code" title="function [val, c2f] = calc_grid_points(img, xpts, ypts, zpts)">calc_grid_points</a>(nimg, xpts, ypts, zpts);
+0137    
+0138    subplot(223)
+0139    <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(nimg);
+0140    hold on
+0141    <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(rimg);
+0142    hold off
+0143    subplot(224)
+0144    <a href="show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(val);
+0145</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+wheels/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# uv
+uv.lock
+
+# Jupyter
+.ipynb_checkpoints/
+
+# MATLAB
+*.asv
+*.mex*
+
+# Data (large generated files)
+*.mat
+*.npz
+*.npy
+data/raw/
+data/processed/
+
+# Results (regenerable)
+results/figures/*.png
+results/figures/*.pdf
+results/tables/*.csv
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# EIDORS (external dependency - too large for repo)
+matlab/eidors/

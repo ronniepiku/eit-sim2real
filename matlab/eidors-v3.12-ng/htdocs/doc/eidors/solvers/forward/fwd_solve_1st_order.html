@@ -1,0 +1,568 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of fwd_solve_1st_order</title>
+  <meta name="keywords" content="fwd_solve_1st_order">
+  <meta name="description" content="FWD_SOLVE_1ST_ORDER: data= fwd_solve_1st_order( img)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">solvers</a> &gt; <a href="index.html">forward</a> &gt; fwd_solve_1st_order.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/solvers/forward&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>fwd_solve_1st_order
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>FWD_SOLVE_1ST_ORDER: data= fwd_solve_1st_order( img)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function data =fwd_solve_1st_order(fwd_model, img) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> FWD_SOLVE_1ST_ORDER: data= fwd_solve_1st_order( img)
+ First order FEM forward solver
+ Input:
+    img       = image struct
+ Output:
+    data = measurements struct
+ Options: (to return internal FEM information)
+    img.fwd_solve.get_all_meas = 1 (data.volt = all FEM nodes, but not CEM)
+    img.fwd_solve.get_all_nodes= 1 (data.volt = all nodes, including CEM)
+    img.fwd_solve.get_elec_curr= 1 (data.elec_curr = current on electrodes)
+
+ Model Reduction: use precomputed fields to reduce the size of
+    the forward solution. Nodes which are 1) not used in the output
+    (i.e. not electrodes) 2) all connected to the same conductivity via
+    the c2f mapping are applicable.
+ see: Model Reduction for FEM Forward Solutions, Adler &amp; Lionheart, EIT2016
+
+    img.fwd_model.model_reduction = @calc_model_reduction;
+       where the functionputs a struct with fields: main_region, regions
+       OR
+    img.fwd_model.model_reduction.main_region = vector, and 
+    img.fwd_model.model_reduction.regions = struct</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/algorithms/left_divide.html" class="code" title="function [V] = left_divide(E,I,tol,~,V)">left_divide</a>	[V] = LEFT_DIVIDE(E,I,tol,pp,V);</li><li><a href="../../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>	EIDORS_MSG eidors progress and status messages</li><li><a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="../../../eidors/models/convert_img_units.html" class="code" title="function y = convert_img_units(img,arg1,arg2)">convert_img_units</a>	CONVERT_IMG_UNITS change image data units</li><li><a href="../../../eidors/models/data_mapper.html" class="code" title="function img = data_mapper(img, reverse)">data_mapper</a>	DATA_MAPPER maps img.params data to elem or node data</li><li><a href="../../../eidors/models/mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>	MDL_NORMALIZE Check or set the normalize_measurements flag on a model.</li><li><a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../../eidors/models/mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>	MK_GRID_MODEL: Create reconstruction model on pixelated grid</li><li><a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>	NUM_NODES: number of elemnts in a (fwd or inv model or image)</li><li><a href="../../../eidors/models/stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">stim_meas_list</a>	STIM_MEAS_LIST: mk stimulation pattern from list of electrodes</li><li><a href="../../../eidors/models/supported_params.html" class="code" title="function list = supported_params">supported_params</a>	</li><li><a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="../../../eidors/solvers/calc_system_mat.html" class="code" title="function system_mat = calc_system_mat( fwd_model, img)">calc_system_mat</a>	CALC_SYSTEM_MAT: calculate FEM system matrix from fwd_model and image</li><li><a href="find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>	[srf, idx] = find_boundary(simp);</li><li><a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>	FWD_MODEL_PARAMETERS: data= fwd_solve_1st_order( fwd_model, image)</li><li><a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>	FWD_SOLVE_1ST_ORDER: data= fwd_solve_1st_order( img)</li><li><a href="system_mat_1st_order.html" class="code" title="function s_mat= system_mat_1st_order( fwd_model, img)">system_mat_1st_order</a>	SYSTEM_MAT_1ST_ORDER: SS= system_mat_1st_order( fwd_model, img)</li><li><a href="../../../eidors/tests/test_2d_resistor.html" class="code" title="function test_2d_resistor(opt)">test_2d_resistor</a>	Create 2D model of a cylindrical resistor</li><li><a href="../../../eidors/tests/test_3d_resistor.html" class="code" title="function test_3d_resistor(opt)">test_3d_resistor</a>	Create 3D model of a Rectangular resistor</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/algorithms/left_divide.html" class="code" title="function [V] = left_divide(E,I,tol,~,V)">left_divide</a>	[V] = LEFT_DIVIDE(E,I,tol,pp,V);</li><li><a href="../../../eidors/deprecated/aa_fwd_solve.html" class="code" title="function data =aa_fwd_solve(varargin)">aa_fwd_solve</a>	AA_FWD_SOLVE: data= aa_fwd_solve( fwd_model, img)</li><li><a href="../../../eidors/deprecated/np_fwd_solve.html" class="code" title="function data= np_fwd_solve( fwd_model, img)">np_fwd_solve</a>	NP_FWD_SOLVE: data= np_fwd_solve( fwd_model, img)</li><li><a href="../../../eidors/examples/demo_3d_simdata.html" class="code" title="">demo_3d_simdata</a>	How to make simulation data using EIDORS3D</li><li><a href="../../../eidors/examples/eidors2d_demo1.html" class="code" title="">eidors2d_demo1</a>	EidorsDemo1 Demonstrates the use of 2D EIT Package with linear basis</li><li><a href="../../../eidors/graphics/matlab/show_current.html" class="code" title="function quiv = show_current( img, vv )">show_current</a>	SHOW_CURRENT: show current or other quantity defined</li><li><a href="../../../eidors/models/calc_elem_current.html" class="code" title="function elemcur = calc_elem_current( img, vv )">calc_elem_current</a>	calc_elem_current: calculate current vector in each FEM element</li><li><a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>	FWD_SOLVE_1ST_ORDER: data= fwd_solve_1st_order( img)</li><li><a href="jacobian_adjoint.html" class="code" title="function J= jacobian_adjoint( fwd_model, img)">jacobian_adjoint</a>	JACOBIAN_ADJOINT: J= jacobian_adjoint( img )</li><li><a href="jacobian_perturb.html" class="code" title="function J= jacobian_perturb( fwd_model, img)">jacobian_perturb</a>	JACOBIAN_PERTURB: J= jacobian_perturb( fwd_model, img)</li><li><a href="system_mat_1st_order.html" class="code" title="function s_mat= system_mat_1st_order( fwd_model, img)">system_mat_1st_order</a>	SYSTEM_MAT_1ST_ORDER: SS= system_mat_1st_order( fwd_model, img)</li><li><a href="../../../eidors/tests/test_2d_resistor.html" class="code" title="function test_2d_resistor(opt)">test_2d_resistor</a>	Create 2D model of a cylindrical resistor</li><li><a href="../../../eidors/tests/test_3d_resistor.html" class="code" title="function test_3d_resistor(opt)">test_3d_resistor</a>	Create 3D model of a Rectangular resistor</li><li><a href="../../../eidors/tests/test_c2f_jacobian.html" class="code" title="function test_c2f_jacobian">test_c2f_jacobian</a>	Test calc of jacobian given coarse to fine mapping</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [dirichlet_nodes, dirichlet_values, neumann_nodes, has_gnd_node]=</a></li><li><a href="#_sub2" class="code">function pp = set_gnd_node(fwd_model, pp);</a></li><li><a href="#_sub3" class="code">function vv = meas_from_v_els( v_els, pp)</a></li><li><a href="#_sub4" class="code">function v2meas = get_v2meas(n_elec,n_stim,stim)</a></li><li><a href="#_sub5" class="code">function [E, m_idx, pp] = mdl_reduction(E, mr, img, pp);</a></li><li><a href="#_sub6" class="code">function unit_test_voltage_stims;</a></li><li><a href="#_sub7" class="code">function do_unit_test</a></li><li><a href="#_sub8" class="code">function [R,img] = test_2d_resistor(current,measure)</a></li><li><a href="#_sub9" class="code">function [R,img] = test_2d_resistor_faces(current,measure)</a></li><li><a href="#_sub10" class="code">function [R,img] = test_3d_resistor(current,measure);;</a></li><li><a href="#_sub11" class="code">function [R,img] = test_3d_resistor_faces(current,measure);;</a></li><li><a href="#_sub12" class="code">function [R,img] = test_3d_resistor_old(current,measure);</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function data =fwd_solve_1st_order(fwd_model, img)</a>
+0002 <span class="comment">% FWD_SOLVE_1ST_ORDER: data= fwd_solve_1st_order( img)</span>
+0003 <span class="comment">% First order FEM forward solver</span>
+0004 <span class="comment">% Input:</span>
+0005 <span class="comment">%    img       = image struct</span>
+0006 <span class="comment">% Output:</span>
+0007 <span class="comment">%    data = measurements struct</span>
+0008 <span class="comment">% Options: (to return internal FEM information)</span>
+0009 <span class="comment">%    img.fwd_solve.get_all_meas = 1 (data.volt = all FEM nodes, but not CEM)</span>
+0010 <span class="comment">%    img.fwd_solve.get_all_nodes= 1 (data.volt = all nodes, including CEM)</span>
+0011 <span class="comment">%    img.fwd_solve.get_elec_curr= 1 (data.elec_curr = current on electrodes)</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Model Reduction: use precomputed fields to reduce the size of</span>
+0014 <span class="comment">%    the forward solution. Nodes which are 1) not used in the output</span>
+0015 <span class="comment">%    (i.e. not electrodes) 2) all connected to the same conductivity via</span>
+0016 <span class="comment">%    the c2f mapping are applicable.</span>
+0017 <span class="comment">% see: Model Reduction for FEM Forward Solutions, Adler &amp; Lionheart, EIT2016</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">%    img.fwd_model.model_reduction = @calc_model_reduction;</span>
+0020 <span class="comment">%       where the functionputs a struct with fields: main_region, regions</span>
+0021 <span class="comment">%       OR</span>
+0022 <span class="comment">%    img.fwd_model.model_reduction.main_region = vector, and</span>
+0023 <span class="comment">%    img.fwd_model.model_reduction.regions = struct</span>
+0024 
+0025 <span class="comment">% (C) 1995-2017 Andy Adler. License: GPL version 2 or version 3</span>
+0026 <span class="comment">% $Id: fwd_solve_1st_order.m 6308 2022-04-20 18:00:26Z aadler $</span>
+0027 
+0028 <span class="comment">% correct input paralemeters if function was called with only img</span>
+0029 <span class="keyword">if</span> ischar(fwd_model) &amp;&amp; strcmp(fwd_model,<span class="string">'UNIT_TEST'</span>); <a href="#_sub7" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0030 
+0031 <span class="keyword">if</span> nargin == 1
+0032    img= fwd_model;
+0033 <span class="keyword">elseif</span>  strcmp(getfield(warning(<span class="string">'query'</span>,<span class="string">'EIDORS:DeprecatedInterface'</span>),<span class="string">'state'</span>),<span class="string">'on'</span>)
+0034    warning(<span class="string">'EIDORS:DeprecatedInterface'</span>, <span class="keyword">...</span>
+0035       [<span class="string">'Calling FWD_SOLVE_1ST_ORDER with two arguments is deprecated and will cause'</span> <span class="keyword">...</span>
+0036        <span class="string">' an error in a future version. First argument ignored.'</span>]);
+0037 <span class="keyword">end</span>
+0038 fwd_model= img.fwd_model;
+0039 
+0040 img = <a href="../../../eidors/models/data_mapper.html" class="code" title="function img = data_mapper(img, reverse)">data_mapper</a>(img);
+0041 <span class="keyword">if</span> ~ismember(img.current_params, <a href="../../../eidors/models/supported_params.html" class="code" title="function list = supported_params">supported_params</a>)
+0042     error(<span class="string">'EIDORS:PhysicsNotSupported'</span>, <span class="string">'%s does not support %s'</span>, <span class="keyword">...</span>
+0043     <span class="string">'FWD_SOLVE_1ST_ORDER'</span>,img.current_params);
+0044 <span class="keyword">end</span>
+0045 <span class="comment">% all calcs use conductivity</span>
+0046 img = <a href="../../../eidors/models/convert_img_units.html" class="code" title="function y = convert_img_units(img,arg1,arg2)">convert_img_units</a>(img, <span class="string">'conductivity'</span>);
+0047 
+0048 pp= <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>( fwd_model, <span class="string">'skip_VOLUME'</span> );
+0049 pp = <a href="#_sub2" class="code" title="subfunction pp = set_gnd_node(fwd_model, pp);">set_gnd_node</a>(fwd_model, pp);
+0050 s_mat= <a href="../../../eidors/solvers/calc_system_mat.html" class="code" title="function system_mat = calc_system_mat( fwd_model, img)">calc_system_mat</a>( img );
+0051 
+0052 <span class="keyword">if</span> isfield(fwd_model,<span class="string">'model_reduction'</span>)
+0053    [s_mat.E, main_idx, pp] = <a href="#_sub5" class="code" title="subfunction [E, m_idx, pp] = mdl_reduction(E, mr, img, pp);">mdl_reduction</a>(s_mat.E, <span class="keyword">...</span>
+0054            img.fwd_model.model_reduction, img, pp );
+0055 <span class="keyword">else</span>
+0056    pp.mr_mapper = 1:size(s_mat.E,1);
+0057 <span class="keyword">end</span>
+0058 
+0059 <span class="comment">% Normally EIT uses current stimulation. In this case there is</span>
+0060 <span class="comment">%  only a ground node, and this is the only dirichlet_nodes value.</span>
+0061 <span class="comment">%  In that case length(dirichlet_nodes) is 1 and the loop runs once</span>
+0062 <span class="comment">% If voltage stimulation is done, then we need to loop on the</span>
+0063 <span class="comment">%  matrix to calculate faster.</span>
+0064 [dirichlet_nodes, dirichlet_values, neumann_nodes, has_gnd_node]= <span class="keyword">...</span>
+0065          find_dirichlet_nodes( fwd_model, pp );
+0066 
+0067 v= full(horzcat(dirichlet_values{:})); <span class="comment">% Pre fill in matrix</span>
+0068 <span class="keyword">for</span> i=1:length(dirichlet_nodes)
+0069    idx= 1:size(s_mat.E,1);
+0070    idx( dirichlet_nodes{i} ) = [];
+0071    <span class="comment">% If all dirichlet patterns are the same, then calc in one go</span>
+0072    <span class="keyword">if</span> length(dirichlet_nodes) == 1; rhs = 1:size(pp.QQ,2);
+0073    <span class="keyword">else</span>                           ; rhs = i; <span class="keyword">end</span>
+0074    v(idx,rhs)= <a href="../../../eidors/algorithms/left_divide.html" class="code" title="function [V] = left_divide(E,I,tol,~,V)">left_divide</a>( s_mat.E(idx,idx), <span class="keyword">...</span>
+0075                      neumann_nodes{i}(idx,:) - <span class="keyword">...</span>
+0076                      s_mat.E(idx,:)*dirichlet_values{i},fwd_model);
+0077 <span class="keyword">end</span>
+0078 
+0079 <span class="comment">% If model has a ground node, check if current flowing in this node</span>
+0080 <span class="keyword">if</span> has_gnd_node
+0081    Ignd = s_mat.E(dirichlet_nodes{1},:)*v;
+0082    Irel = Ignd./sum(abs(pp.QQ)); <span class="comment">% relative</span>
+0083    <span class="keyword">if</span> max(abs(Irel))&gt;1e-6
+0084       <a href="../../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'%4.5f%% of current is flowing through ground node. Check stimulation pattern'</span>, max(abs(Irel))*100,1);
+0085    <span class="keyword">end</span>
+0086 <span class="keyword">end</span>
+0087 
+0088 <span class="comment">% calc voltage on electrodes</span>
+0089 
+0090 <span class="comment">% This is horribly inefficient, override</span>
+0091 <span class="comment">% v_els= pp.N2E * v;</span>
+0092 idx = find(any(pp.N2E));
+0093 v_els= pp.N2E(:,idx) * v(idx,:);
+0094 
+0095 
+0096 <span class="comment">% create a data structure to return</span>
+0097 data.meas= <a href="#_sub3" class="code" title="subfunction vv = meas_from_v_els( v_els, pp)">meas_from_v_els</a>(v_els, pp);
+0098 data.time= NaN; <span class="comment">% unknown</span>
+0099 data.name= <span class="string">'solved by fwd_solve_1st_order'</span>;
+0100 <span class="keyword">try</span>; <span class="keyword">if</span> img.fwd_solve.get_all_meas == 1
+0101    outmap = pp.mr_mapper(1:pp.n_node);
+0102    data.volt(outmap,:) = v(1:pp.n_node,:); <span class="comment">% but not on CEM nodes</span>
+0103 <span class="keyword">end</span>; <span class="keyword">end</span>
+0104 <span class="keyword">try</span>; <span class="keyword">if</span> img.fwd_solve.get_all_nodes== 1
+0105    data.volt(pp.mr_mapper,:) = v;                <span class="comment">% all, including CEM nodes</span>
+0106 <span class="keyword">end</span>; <span class="keyword">end</span>
+0107 <span class="keyword">try</span>; <span class="keyword">if</span> img.fwd_solve.get_elec_curr== 1
+0108 <span class="comment">%  data.elec_curr = pp.N2E * s_mat.E * v;</span>
+0109    idx = find(any(pp.N2E));
+0110    data.elec_curr = pp.N2E(:,idx) * s_mat.E(idx,:) * v;
+0111 <span class="keyword">end</span>; <span class="keyword">end</span>
+0112 
+0113 
+0114 <span class="comment">% has_gnd_node = flag if the model has a gnd_node =&gt; can warn if current flows</span>
+0115 <a name="_sub1" href="#_subfunctions" class="code">function [dirichlet_nodes, dirichlet_values, neumann_nodes, has_gnd_node]= </a><span class="keyword">...</span>
+0116             find_dirichlet_nodes( fwd_model, pp );
+0117    fnanQQ = isnan(pp.QQ);
+0118    lstims = size(pp.QQ,2);
+0119    <span class="comment">% Can't use any(...) because if does implicit all</span>
+0120    <span class="keyword">if</span> any(any(fnanQQ))
+0121       has_gnd_node = 0; <span class="comment">% no ground node is specified</span>
+0122       <span class="comment">% Are all dirichlet_nodes the same</span>
+0123 
+0124       <span class="comment">% Don't use all on sparse, it will make them full</span>
+0125       <span class="comment">% Check if all rows are the same</span>
+0126       <span class="keyword">if</span> ~any(any(fnanQQ(:,1)*ones(1,lstims) - fnanQQ,2))
+0127          dirichlet_nodes{1} = find(fnanQQ(:,1));
+0128          dirichlet_values{1} = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(size(pp.N2E,2), size(fnanQQ,2));
+0129          dirichlet_values{1}(fnanQQ) = pp.VV(fnanQQ);
+0130          neumann_nodes{1} = pp.QQ;
+0131          neumann_nodes{1}(fnanQQ) = 0;
+0132       <span class="keyword">else</span> <span class="comment">% one at a time</span>
+0133          <span class="keyword">for</span> i=1:size(fnanQQ,2)
+0134             fnanQQi= fnanQQ(:,i);
+0135             <span class="keyword">if</span> any(fnanQQi)
+0136                dirichlet_nodes{i} = find(fnanQQi);
+0137                dirichlet_values{i} = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(size(pp.N2E,2), 1);
+0138                dirichlet_values{i}(fnanQQi) = pp.VV(fnanQQi,i);
+0139                neumann_nodes{i} = pp.QQ(:,i);
+0140                neumann_nodes{i}(fnanQQi) = 0;
+0141             <span class="keyword">elseif</span> isfield(pp,<span class="string">'gnd_node'</span>)
+0142                dirichlet_nodes{i} = pp.gnd_node;
+0143                dirichlet_values{i} = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(size(pp.N2E,2), 1);
+0144                neumann_nodes{1}   = pp.QQ(:,i);
+0145                has_gnd_node= 1;
+0146             <span class="keyword">else</span>
+0147                error(<span class="string">'no required ground node on model'</span>);
+0148             <span class="keyword">end</span>
+0149          <span class="keyword">end</span>
+0150       <span class="keyword">end</span>
+0151    <span class="keyword">elseif</span> isfield(pp,<span class="string">'gnd_node'</span>)
+0152       dirichlet_nodes{1} = pp.gnd_node;
+0153       dirichlet_values{1} = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(size(pp.N2E,2), size(fnanQQ,2));
+0154       neumann_nodes{1}   = pp.QQ;
+0155       has_gnd_node= 1;
+0156    <span class="keyword">else</span>
+0157       error(<span class="string">'no required ground node on model'</span>);
+0158    <span class="keyword">end</span>
+0159 
+0160 <a name="_sub2" href="#_subfunctions" class="code">function pp = set_gnd_node(fwd_model, pp);</a>
+0161    <span class="keyword">if</span> isfield(fwd_model,<span class="string">'gnd_node'</span>);
+0162       pp.gnd_node = fwd_model.gnd_node;
+0163    <span class="keyword">else</span>
+0164       <span class="comment">% try to find one in the model center</span>
+0165       ctr =  mean(fwd_model.nodes,1);
+0166       d2  =  sum(bsxfun(@minus,fwd_model.nodes,ctr).^2,2);
+0167       [~,pp.gnd_node] = min(d2);
+0168       <a href="../../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'Warning: no ground node found: choosing node %d'</span>,pp.gnd_node(1),1);
+0169    <span class="keyword">end</span>
+0170 
+0171 <a name="_sub3" href="#_subfunctions" class="code">function vv = meas_from_v_els( v_els, pp)</a>
+0172    <span class="keyword">try</span>
+0173 <span class="comment">% Was 1.82s</span>
+0174 <span class="comment">%        % measured voltages from v</span>
+0175 <span class="comment">%    %   vv = zeros( pp.n_meas, 1 );</span>
+0176 <span class="comment">%        idx=0;</span>
+0177 <span class="comment">%        for i=1:length(stim)</span>
+0178 <span class="comment">%           meas_pat= stim(i).meas_pattern;</span>
+0179 <span class="comment">%           n_meas  = size(meas_pat,1);</span>
+0180 <span class="comment">%           vv( idx+(1:n_meas) ) = meas_pat*v_els(:,i);</span>
+0181 <span class="comment">%           idx= idx+ n_meas;</span>
+0182 <span class="comment">%        end</span>
+0183 
+0184 <span class="comment">% This code replaced the previous - Nov 4, 2013</span>
+0185 <span class="comment">% Now 0.437s</span>
+0186 <span class="comment">% Why is it faster??</span>
+0187 
+0188        [n_elec,n_stim] = size(v_els);
+0189 
+0190        vv = pp.v2meas * v_els(:);
+0191    <span class="keyword">catch</span> err
+0192       <span class="keyword">if</span> strcmp(err.identifier, <span class="string">'MATLAB:innerdim'</span>);
+0193           error([<span class="string">'measurement pattern not compatible with number'</span> <span class="keyword">...</span>
+0194                   <span class="string">'of electrodes for stimulation patter %d'</span>],i);
+0195       <span class="keyword">else</span>
+0196           rethrow(err);
+0197       <span class="keyword">end</span>
+0198    <span class="keyword">end</span>
+0199 
+0200    
+0201 <a name="_sub4" href="#_subfunctions" class="code">function v2meas = get_v2meas(n_elec,n_stim,stim)</a>
+0202     v2meas = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(n_elec*n_stim,0);
+0203     <span class="keyword">for</span> i=1:n_stim
+0204         meas_pat= stim(i).meas_pattern;
+0205         n_meas  = size(meas_pat,1);
+0206         v2meas((i-1)*n_elec + 1: i*n_elec,end+(1:n_meas)) = meas_pat.';
+0207     <span class="keyword">end</span>
+0208 
+0209 
+0210 <a name="_sub5" href="#_subfunctions" class="code">function [E, m_idx, pp] = mdl_reduction(E, mr, img, pp);</a>
+0211    <span class="comment">% if mr is a string we assume it's a function name</span>
+0212    <span class="keyword">if</span> isa(mr,<span class="string">'function_handle'</span>) || ischar(mr)
+0213       mr = feval(mr,img.fwd_model);
+0214    <span class="keyword">end</span>
+0215    <span class="comment">% mr is now a struct with fields: main_region, regions</span>
+0216    m_idx = mr.main_region;
+0217    E = E(m_idx, m_idx);
+0218    <span class="keyword">for</span> i=1:length(mr.regions)
+0219       invEi=   mr.regions(i).invE;
+0220 <span class="comment">% FIXME:!!! data_mapper has done the c2f. But we don't want that here.</span>
+0221 <span class="comment">%  kludge is to reach into the fine model field. This is only ok because</span>
+0222 <span class="comment">%  model_reduction is only valid if one parameter describes each field</span>
+0223       field = mr.regions(i).field; 
+0224       field = find(img.fwd_model.coarse2fine(:,field));
+0225       field = field(1); <span class="comment">% they're all the same - by def of model_reduction</span>
+0226       sigma = img.elem_data(field);
+0227       E = E - sigma*invEi;
+0228    <span class="keyword">end</span>
+0229 
+0230    <span class="comment">% Adjust the applied current and measurement matrices</span>
+0231    pp.QQ = pp.QQ(m_idx,:);
+0232    pp.VV = pp.VV(m_idx,:);
+0233    pp.N2E= pp.N2E(:,m_idx);
+0234    pp.mr_mapper = cumsum(m_idx); <span class="comment">%must be logical</span>
+0235    pp.gnd_node = pp.mr_mapper(pp.gnd_node);
+0236    <span class="keyword">if</span> pp.gnd_node==0
+0237       error(<span class="string">'model_reduction removes ground node'</span>);
+0238    <span class="keyword">end</span>
+0239    
+0240         
+0241 <a name="_sub6" href="#_subfunctions" class="code">function unit_test_voltage_stims;</a>
+0242    stim = zeros(16,1); volt=stim; stim([1,4]) = NaN; volt([1,4]) = [1,2];
+0243    stimulv.stim_pattern = stim;
+0244    stimulv.volt_pattern = volt;
+0245    stimulv.meas_pattern = [1,0,0,-1,zeros(1,12)];
+0246 
+0247    img = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>( <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c2'</span>,16),1);
+0248    img.fwd_model.stimulation = stimulv;
+0249    img.fwd_solve.get_all_nodes = 1;
+0250    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0251    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2 Vstim #1'</span>, vh.meas, diff(volt(1:2,1)), 1e-14);
+0252    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2 Vstim #2'</span>, vh.volt(27+[1,4],1), volt([1,4]), 1e-14);
+0253    tst = [ <span class="keyword">...</span>
+0254    1.503131926779798; 1.412534629974291; 1.529078332819747;
+0255    1.354399248512161; 1.546241676995996];
+0256    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2 Vstim #3'</span>, vh.volt(1:5:25,1), tst, 1e-14);
+0257 
+0258    img.fwd_model.stimulation(2) = stimulv;
+0259    img.fwd_model.stimulation(1).stim_pattern([1,4]) = 0;
+0260    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0261    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2 Vstim #4'</span>, vh.volt(1:5:25,2), tst, 1e-14);
+0262 
+0263    imgn = rmfield(img,<span class="string">'elem_data'</span>); imgn.node_data = vh.volt;
+0264    imgn.calc_colours.clim = 1; subplot(221); <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(imgn,1);
+0265 
+0266    img = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>( <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2C2'</span>,16),1);
+0267    img.fwd_model.stimulation = stimulv;
+0268    img.fwd_solve.get_all_nodes = 1;
+0269    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0270    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2C2 Vstim #1'</span>, vh.meas, diff(volt(1:2)), 1e-14);
+0271    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2C2 Vstim #2'</span>, vh.volt(<a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(img)+[1,4]), volt([1,4]), 1e-14);
+0272    tst = [ <span class="keyword">...</span>
+0273    1.499999999999998; 1.302478674263331; 1.609665333411830; <span class="keyword">...</span>
+0274    1.215039511028270; 1.691145536046686];
+0275    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2C2 Vstim #3'</span>, vh.volt(1:5:25), tst, 1e-13);
+0276 
+0277    imgn = rmfield(img,<span class="string">'elem_data'</span>); imgn.node_data = vh.volt(1:<a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(img));
+0278    imgn.calc_colours.clim = 1; subplot(222); <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(imgn,1);
+0279 
+0280    stim = zeros(16,1); volt=stim; stim([1,4]) = NaN; stim(8)=1; volt([1,4]) = [1,1];
+0281    img.fwd_model.stimulation(2).stim_pattern = stim;
+0282    img.fwd_model.stimulation(2).volt_pattern = volt;
+0283    img.fwd_model.stimulation(2).meas_pattern = [1,-1,zeros(1,14)];
+0284    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0285    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2C2 Vstim #4'</span>, vh.volt(<a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(img)+[1,4],1), [1;2], 1e-14);
+0286    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2C2 Vstim #5'</span>, vh.volt(1:5:25,1), tst, 1e-13);
+0287    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2C2 Vstim #6'</span>, vh.volt(<a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(img)+[1,4],2), [1;1], 1e-14);
+0288    tst = [ 1.029942389400905; 1.024198991581187; <span class="keyword">...</span>
+0289            1.048244746016660; 1.006551737030278; 1.057453501332724];
+0290    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2C2 Vstim #7'</span>, vh.volt(1:5:25,2), tst, 1e-13); <span class="comment">% needs weaker tolerance</span>
+0291 
+0292    imgn = rmfield(img,<span class="string">'elem_data'</span>); imgn.node_data = vh.volt(1:<a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(img),2);
+0293    subplot(223); <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(imgn,1);
+0294 
+0295    stim = zeros(16,1); volt=stim; stim([3,6]) = NaN;  volt([3,6]) = [1,2];
+0296    img.fwd_model.stimulation(3).stim_pattern = stim;
+0297    img.fwd_model.stimulation(3).volt_pattern = volt;
+0298    img.fwd_model.stimulation(3).meas_pattern = [1,-1,zeros(1,14)];
+0299    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0300 
+0301    imgn = rmfield(img,<span class="string">'elem_data'</span>); imgn.node_data = vh.volt(1:<a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(img),3);
+0302    imgn.calc_colours.clim = 1; subplot(224); <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(imgn,1);
+0303 
+0304    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2C2 Vstim #7'</span>, vh.volt(<a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(img)+[3,6],3), [1;2], 1e-14);
+0305 
+0306 
+0307 
+0308 <a name="_sub7" href="#_subfunctions" class="code">function do_unit_test</a>
+0309    unit_test_voltage_stims;
+0310 
+0311 
+0312    img = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>( <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'b2c2'</span>,16),1);
+0313    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0314    tst = [ <span class="keyword">...</span>
+0315     0.959567140078593; 0.422175237237900; 0.252450963869202; <span class="keyword">...</span>
+0316     0.180376116490602; 0.143799778367518];
+0317    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'b2c2 TEST'</span>, vh.meas(1:5), tst, 1e-12);
+0318 
+0319    img.fwd_model = rmfield(img.fwd_model,<span class="string">'gnd_node'</span>);
+0320    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0321    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'b2c2 gnd_node'</span>, vh.meas(1:5), tst, 1e-12);
+0322 
+0323    img.fwd_solve.get_elec_curr = 1;
+0324    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0325    pp = <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>( img.fwd_model); EC = pp.N2E*pp.QQ;
+0326    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'b2b2 (CEM) elec_curr'</span>, vh.elec_curr, EC, 1e-11);
+0327 
+0328    img.fwd_solve.get_all_meas = 1;
+0329    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0330     plot(vh.volt);
+0331 
+0332    img = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>( <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'b2C2'</span>,16),1);
+0333    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0334    tst = [ 0.385629619754662; 0.235061644846908; 0.172837756982388
+0335            0.142197580506776; 0.126808900182258; 0.120605655110661];
+0336    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'b2C2 (CEM) TEST'</span>, vh.meas(15:20), tst, 1e-12);
+0337 
+0338    img.fwd_solve.get_elec_curr = 1;
+0339    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0340    pp = <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>( img.fwd_model); EC = pp.N2E*pp.QQ;
+0341    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'b2C2 (CEM) elec_curr'</span>, vh.elec_curr, EC, 1e-11);
+0342 
+0343    <span class="comment">% bad stim patterns (flow through ground node)</span>
+0344    img.fwd_model.stimulation(1).stim_pattern(2) = 0;
+0345    vh = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>(img);
+0346    last_msg = <a href="../../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'last_msg'</span>);
+0347    last_msg = last_msg(end-68:end);
+0348    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'gnd_node warning'</span>, last_msg, <span class="keyword">...</span>
+0349     <span class="string">' of current is flowing through ground node. Check stimulation pattern'</span>);
+0350 
+0351 
+0352    <span class="comment">%2D resistor</span>
+0353    current = 4; measure=1;
+0354    [R,img] = <a href="../../../eidors/tests/test_2d_resistor.html" class="code" title="function test_2d_resistor(opt)">test_2d_resistor</a>(current,measure);
+0355    img.fwd_solve.get_all_nodes = 1;
+0356    vs = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>( img);
+0357    va= measure*current*sum(R); <span class="comment">% analytic</span>
+0358    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D resistor test'</span>, va, vs.meas, 1e-12);
+0359 
+0360    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D R z_contact'</span>, <span class="keyword">...</span>
+0361                  [diff(vs.volt([13,1])), diff(vs.volt([14,12]))], <span class="keyword">...</span>
+0362                  R(2)/2*current*[1,-1], 1e-12);
+0363    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D R voltages'</span>, vs.volt(1:3:10)-vs.volt(1), <span class="keyword">...</span>
+0364                  R(1)*current*linspace(0,1,4)', 1e-12);
+0365 
+0366    [R,img] = <a href="#_sub9" class="code" title="subfunction [R,img] = test_2d_resistor_faces(current,measure)">test_2d_resistor_faces</a>(current,measure);
+0367    vs = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>( img);
+0368    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D resistor faces'</span>, va, vs.meas, 1e-12);
+0369 
+0370    <span class="comment">%3D resistor</span>
+0371    [R,img] = <a href="../../../eidors/tests/test_3d_resistor.html" class="code" title="function test_3d_resistor(opt)">test_3d_resistor</a>(current,measure);
+0372    img.fwd_solve.get_all_nodes = 1;
+0373    vs = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>( img);
+0374    va= current*sum(R);
+0375    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D resistor test'</span>, va, vs.meas, 1e-10);
+0376    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D R voltages'</span>, vs.volt(1:12:72)-vs.volt(1), <span class="keyword">...</span>
+0377                  R(1)*current*linspace(0,1,6)', 1e-10);
+0378    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D R z_contact'</span>, <span class="keyword">...</span>
+0379                  [diff(vs.volt([73,1])), diff(vs.volt([74,72]))], <span class="keyword">...</span>
+0380                  R(2)/2*current*[1,-1], 1e-10);
+0381 
+0382    [R,img] = <a href="#_sub11" class="code" title="subfunction [R,img] = test_3d_resistor_faces(current,measure);;">test_3d_resistor_faces</a>(current,measure);
+0383    vs = <a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>( img);
+0384    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D resistor faces'</span>, va, vs.meas, 1e-10);
+0385 
+0386 
+0387 <a name="_sub8" href="#_subfunctions" class="code">function [R,img] = test_2d_resistor(current,measure)</a>
+0388    conduc=  .4 + 2*pi*j*10; <span class="comment">% conductivity in Ohm-meters</span>
+0389    z_contact= .1; wid = 3; len = 12; 
+0390 
+0391    fmdl=<a href="../../../eidors/models/mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>([],linspace(0,wid,3), linspace(0,len,4));
+0392    fmdl.electrode(1).nodes = find(fmdl.nodes(:,2) ==   0);
+0393    fmdl.electrode(2).nodes = find(fmdl.nodes(:,2) == len);
+0394    [fmdl.electrode(:).z_contact] = deal(z_contact);
+0395    fmdl.stimulation = <a href="../../../eidors/models/stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">stim_meas_list</a>([1,2,1,2],2,current,measure);
+0396    img= <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,conduc);
+0397 
+0398    Block_R = len / wid / conduc;
+0399    Contact_R = z_contact/wid;
+0400    R = [Block_R, 2*Contact_R];
+0401 
+0402 <span class="comment">% define electrode using face rather than nodes</span>
+0403 <a name="_sub9" href="#_subfunctions" class="code">function [R,img] = test_2d_resistor_faces(current,measure)</a>
+0404    conduc=  .4 + 2*pi*j*10; <span class="comment">% conductivity in Ohm-meters</span>
+0405    z_contact= .1; wid = 3; len = 12; 
+0406 
+0407    fmdl=<a href="../../../eidors/models/mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>([],linspace(0,wid,3), linspace(0,len,4));
+0408    bdy = fmdl.boundary;
+0409    bdy( any(reshape(fmdl.nodes(bdy,2),size(bdy))&gt;0,2),:)=[];
+0410    fmdl.electrode(1).nodes = [];
+0411    fmdl.electrode(1).faces = bdy;
+0412    fmdl.electrode(2).nodes = find(fmdl.nodes(:,2) == len);
+0413    [fmdl.electrode(:).z_contact] = deal(z_contact);
+0414    fmdl.stimulation = <a href="../../../eidors/models/stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">stim_meas_list</a>([1,2,1,2],2,current,measure);
+0415    img= <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,conduc);
+0416 
+0417    Block_R = len / wid / conduc;
+0418    Contact_R = z_contact/wid;
+0419    R = [Block_R, 2*Contact_R];
+0420 
+0421 <a name="_sub10" href="#_subfunctions" class="code">function [R,img] = test_3d_resistor(current,measure);;</a>
+0422    conduc=  .4 + 2*pi*j*10; <span class="comment">% conductivity in Ohm-meters</span>
+0423    z_contact= .1; wid = 2; len = 5; hig=3; 
+0424 
+0425    fmdl=<a href="../../../eidors/models/mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>([],0:wid, 0:hig, 0:len);
+0426    fmdl.electrode(1).nodes = find(fmdl.nodes(:,3) ==   0);
+0427    fmdl.electrode(2).nodes = find(fmdl.nodes(:,3) == len);
+0428    [fmdl.electrode(:).z_contact] = deal(z_contact);
+0429    fmdl.stimulation = <a href="../../../eidors/models/stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">stim_meas_list</a>([1,2,1,2],2,current,measure);
+0430    img= <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,conduc);
+0431 
+0432    Block_R =  len / wid / hig / conduc;
+0433    Contact_R = z_contact/(wid*hig);
+0434    R = [Block_R, 2*Contact_R];
+0435 
+0436 <span class="comment">% define electrode using face rather than nodes</span>
+0437 <a name="_sub11" href="#_subfunctions" class="code">function [R,img] = test_3d_resistor_faces(current,measure);;</a>
+0438    conduc=  .4 + 2*pi*j*10; <span class="comment">% conductivity in Ohm-meters</span>
+0439    z_contact= .1; wid = 2; len = 5; hig=3; 
+0440 
+0441    fmdl=<a href="../../../eidors/models/mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>([],0:wid, 0:hig, 0:len);
+0442 <span class="comment">%  fmdl.electrode(1).nodes = find(fmdl.nodes(:,3) ==   0);</span>
+0443    bdy = fmdl.boundary;
+0444    bdy( any(reshape(fmdl.nodes(bdy,3),size(bdy))&gt;0,2),:)=[];
+0445    fmdl.electrode(1).nodes = [];
+0446    fmdl.electrode(1).faces = bdy;
+0447    fmdl.electrode(2).nodes = find(fmdl.nodes(:,3) == len);
+0448    [fmdl.electrode(:).z_contact] = deal(z_contact);
+0449    fmdl.stimulation = <a href="../../../eidors/models/stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">stim_meas_list</a>([1,2,1,2],2,current,measure);
+0450    img= <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,conduc);
+0451 
+0452    Block_R =  len / wid / hig / conduc;
+0453    Contact_R = z_contact/(wid*hig);
+0454    R = [Block_R, 2*Contact_R];
+0455 
+0456 <a name="_sub12" href="#_subfunctions" class="code">function [R,img] = test_3d_resistor_old(current,measure);</a>
+0457    ll=5*1; <span class="comment">% length</span>
+0458    ww=1*2; <span class="comment">% width</span>
+0459    hh=1*3; <span class="comment">% height</span>
+0460    conduc= .13;  <span class="comment">% conductivity in Ohm-meters</span>
+0461    z_contact= 1e-1;
+0462    scale = .46;
+0463    nn=0;
+0464    <span class="keyword">for</span> z=0:ll; <span class="keyword">for</span> x=0:ww; <span class="keyword">for</span> y=0:hh
+0465       nn=nn+1;
+0466       mdl.nodes(nn,:) = [x,y,z];
+0467    <span class="keyword">end</span>; <span class="keyword">end</span>; <span class="keyword">end</span>
+0468    mdl= <a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>,<span class="string">'3D rectangle'</span>);
+0469    mdl= <a href="../../../eidors/models/mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>([],0:ww,0:hh,0:ll);
+0470    mdl.nodes= mdl.nodes*scale;
+0471    mdl= rmfield(mdl,<span class="string">'coarse2fine'</span>);
+0472 
+0473    mdl.boundary= <a href="find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(mdl.elems);
+0474    mdl.gnd_node = 1;
+0475    elec_nodes= [1:(ww+1)*(hh+1)];
+0476    elec(1).nodes= elec_nodes;      elec(1).z_contact= z_contact;
+0477    elec(2).nodes= nn-elec_nodes+1; elec(2).z_contact= z_contact;
+0478    stim.stim_pattern= [-1;1]*current;
+0479    stim.meas_pattern= [-1,1]*measure;
+0480    mdl.stimulation= stim;
+0481    mdl.electrode= elec;
+0482    mdl = <a href="../../../eidors/models/mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(mdl,0);
+0483 
+0484    mdl.solve = @<a href="fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>;
+0485    mdl.system_mat = @<a href="system_mat_1st_order.html" class="code" title="function s_mat= system_mat_1st_order( fwd_model, img)">system_mat_1st_order</a>;
+0486    img= <a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'image'</span>,<span class="string">'3D rectangle'</span>, <span class="keyword">...</span>
+0487          <span class="string">'elem_data'</span>, ones(size(mdl.elems,1),1) * conduc, <span class="keyword">...</span>
+0488          <span class="string">'fwd_model'</span>, mdl); 
+0489 
+0490    <span class="comment">% analytical solution</span>
+0491    Block_R =  ll / ww / hh / scale/ conduc;
+0492    Contact_R = z_contact/(ww*hh)/scale^2;
+0493    <span class="comment">% Contact R reflects z_contact / (width/scale)^2. Here we need to use</span>
+0494    <span class="comment">%  the scale, since this is not reflected in the size of the</span>
+0495    <span class="comment">%  FEM as created by the grid. This is different to the test_2d_resistor,</span>
+0496    <span class="comment">%  where the FEM is created scaled, so that the ww</span>
+0497    <span class="comment">%  don't need to be scaled by the scale parameter.</span>
+0498    R =[ Block_R , 2*Contact_R];</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

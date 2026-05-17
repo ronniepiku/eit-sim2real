@@ -1,0 +1,262 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mk_common_gridmdl</title>
+  <meta name="keywords" content="mk_common_gridmdl">
+  <meta name="description" content="MK_COMMON_MODEL: make EIT on reconstruction grids (GREIT)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; mk_common_gridmdl.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mk_common_gridmdl
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MK_COMMON_MODEL: make EIT on reconstruction grids (GREIT)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function inv_mdl= mk_common_gridmdl( str, RM) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> MK_COMMON_MODEL: make EIT on reconstruction grids (GREIT)
+
+ Usage
+      inv_mdl = mk_common_gridmdl( mdl_string, RecMtx )
+
+ 2D models
+   mk_common_gridmdl('b2c', RM)  - 32x32 circular shape, 16 elec
+   mk_common_gridmdl('b2d', RM)  - 32x32 diamond shape, 16 elec
+   mk_common_gridmdl('b2t?', RM) - 32x32 thorax shape, 16 elec
+             - thorax levels 1-5 are provided
+
+ Note that the electrodes added to the model are just to 
+   indicate location, it does not necessarily correspond to the
+   Reconstruction Matrix RM provided. 
+
+ GREIT MODELS - calculated for library models
+  mk_common_gridmdl('GREIT', PARAMS TO MK_LIBRARY_MODEL)
+    (run mk_library_model('list') to get list)
+  eg. mk_common_gridmdl('GREIT','cylinder_16x1el_coarse')
+  eg. mk_common_gridmdl('GREIT','adult_male_32el')
+
+ GREIT V1 (GREIT matrix for reconstruction to circle, 2009)
+   mk_common_gridmdl('GREITc1') - 32x32 with Circle shape
+
+ Sheffield Backprojection
+   mk_common_gridmdl('b2d','backproj') - 32x32 with Diamond shape
+   mk_common_gridmdl('b2c','backproj') - 32x32 with Circular shape
+   mk_common_gridmdl('backproj') - 32x32 with Circular shape
+
+ COPYRIGHT NOTICE FOR BACKPROJECTION MATRIX:
+   This matrix is copyright DC Barber and BH Brown at
+   University of Sheffield. It may be used free of
+   charge for research and non-commercial purposes.
+   Commercial applications require a licence from the
+   University of Sheffield.</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>	MDL_NORMALIZE Check or set the normalize_measurements flag on a model.</li><li><a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>	MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach</li><li><a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>	MK_COMMON_MODEL: make EIT on reconstruction grids (GREIT)</li><li><a href="mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>	MK_GRID_MODEL: Create reconstruction model on pixelated grid</li><li><a href="mk_library_model.html" class="code" title="function out = mk_library_model(shape,elec_pos,elec_shape,maxsz,nfft,scale)">mk_library_model</a>	MK_LIBRARY_MODEL - extruded FEM models based on curves in SHAPE_LIBRARY</li><li><a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li><li><a href="thorax_geometry.html" class="code" title="function [out1, out2, out3 ] = thorax_geometry(in1,in2);">thorax_geometry</a>	THORAX_GEOMETRY: deform mesh to have a human thorax like shape</li><li><a href="unpack_reconst_matrix.html" class="code" title="function RM = unpack_reconst_matrix(packed_matrix, Nelec, Ngrid, options);">unpack_reconst_matrix</a>	UNPACK_RECONST_MATRIX: unpack a compressed, stored reconstruction matrix</li><li><a href="../../eidors/solvers/inverse/solve_use_matrix.html" class="code" title="function img= solve_use_matrix( inv_model, data1, data2)">solve_use_matrix</a>	SOLVE_USE_MATRIX solve using reconstruction matrix</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/interface/igt2img.html" class="code" title="function img = igt2img(igt)">igt2img</a>	IGT2IMG constructs an EIDORS IMG struct from an IGT frames-by-912 matrix.</li><li><a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>	MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach</li><li><a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>	MK_COMMON_MODEL: make EIT on reconstruction grids (GREIT)</li><li><a href="test_GREIT_model.html" class="code" title="">test_GREIT_model</a>	</li><li><a href="../../eidors/tools/test_performance.html" class="code" title="function [r, params] =  test_performance( imdls, fmdl );">test_performance</a>	TEST_PERFORMANCE: test of difference reconstruction algorithms</li><li><a href="../../eidors/tools/test_performance_img.html" class="code" title="function [params_img] =  test_performance_img( imdls, fmdl );">test_performance_img</a>	TEST_PERFORMANCE: test of difference reconstruction algorithms</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function inside = inside_thorax(x,y,level);</a></li><li><a href="#_sub2" class="code">function RM = resize_if_reqd(RM,inside);</a></li><li><a href="#_sub3" class="code">function RM = get_Sheffield_Backproj</a></li><li><a href="#_sub4" class="code">function RM= get_GREIT_c1;</a></li><li><a href="#_sub5" class="code">function RM= unpack_matrix(MM)</a></li><li><a href="#_sub6" class="code">function elec = mk_electrode_locns( nodes, n_elec );</a></li><li><a href="#_sub7" class="code">function inv_mdl = greit_library_model(str)</a></li><li><a href="#_sub8" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function inv_mdl= mk_common_gridmdl( str, RM)</a>
+0002 <span class="comment">% MK_COMMON_MODEL: make EIT on reconstruction grids (GREIT)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Usage</span>
+0005 <span class="comment">%      inv_mdl = mk_common_gridmdl( mdl_string, RecMtx )</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% 2D models</span>
+0008 <span class="comment">%   mk_common_gridmdl('b2c', RM)  - 32x32 circular shape, 16 elec</span>
+0009 <span class="comment">%   mk_common_gridmdl('b2d', RM)  - 32x32 diamond shape, 16 elec</span>
+0010 <span class="comment">%   mk_common_gridmdl('b2t?', RM) - 32x32 thorax shape, 16 elec</span>
+0011 <span class="comment">%             - thorax levels 1-5 are provided</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Note that the electrodes added to the model are just to</span>
+0014 <span class="comment">%   indicate location, it does not necessarily correspond to the</span>
+0015 <span class="comment">%   Reconstruction Matrix RM provided.</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% GREIT MODELS - calculated for library models</span>
+0018 <span class="comment">%  mk_common_gridmdl('GREIT', PARAMS TO MK_LIBRARY_MODEL)</span>
+0019 <span class="comment">%    (run mk_library_model('list') to get list)</span>
+0020 <span class="comment">%  eg. mk_common_gridmdl('GREIT','cylinder_16x1el_coarse')</span>
+0021 <span class="comment">%  eg. mk_common_gridmdl('GREIT','adult_male_32el')</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% GREIT V1 (GREIT matrix for reconstruction to circle, 2009)</span>
+0024 <span class="comment">%   mk_common_gridmdl('GREITc1') - 32x32 with Circle shape</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% Sheffield Backprojection</span>
+0027 <span class="comment">%   mk_common_gridmdl('b2d','backproj') - 32x32 with Diamond shape</span>
+0028 <span class="comment">%   mk_common_gridmdl('b2c','backproj') - 32x32 with Circular shape</span>
+0029 <span class="comment">%   mk_common_gridmdl('backproj') - 32x32 with Circular shape</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% COPYRIGHT NOTICE FOR BACKPROJECTION MATRIX:</span>
+0032 <span class="comment">%   This matrix is copyright DC Barber and BH Brown at</span>
+0033 <span class="comment">%   University of Sheffield. It may be used free of</span>
+0034 <span class="comment">%   charge for research and non-commercial purposes.</span>
+0035 <span class="comment">%   Commercial applications require a licence from the</span>
+0036 <span class="comment">%   University of Sheffield.</span>
+0037 <span class="comment">%</span>
+0038 
+0039 <span class="comment">% (C) 2008 Andy Adler. License: GPL version 2 or version 3</span>
+0040 <span class="comment">% $Id: mk_common_gridmdl.m 6926 2024-05-31 15:34:13Z bgrychtol $</span>
+0041 
+0042 <span class="keyword">if</span> strcmp(str,<span class="string">'UNIT_TEST'</span>), <a href="#_sub8" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>, <span class="keyword">end</span>
+0043 
+0044 name = str;
+0045 <span class="keyword">if</span> strcmp(str,<span class="string">'backproj'</span>)
+0046    str= <span class="string">'b2c'</span>;
+0047    RM= <span class="string">'backproj'</span>;
+0048 <span class="keyword">elseif</span> strcmp(str,<span class="string">'GREITc1'</span>);
+0049    str= <span class="string">'b2c'</span>;
+0050    RM= <span class="string">'GREITc1'</span>;
+0051 <span class="keyword">else</span>
+0052    name = str;
+0053 <span class="keyword">end</span>
+0054 
+0055 n_elec= 16;
+0056 
+0057       space = linspace( -1, 1, 32+1 );
+0058       fmdl= <a href="mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>( [], space, space);
+0059       space_avg = conv2(space, [1,1]/2,<span class="string">'valid'</span>); <span class="comment">% average of each box</span>
+0060       [x,y] = ndgrid( space_avg, space_avg);
+0061 <span class="keyword">switch</span> str
+0062    <span class="keyword">case</span> <span class="string">'b2c'</span>
+0063       inside=  (x(:).^2 + y(:).^2)&lt;1.10 ;
+0064 
+0065    <span class="keyword">case</span> <span class="string">'b2d'</span>
+0066       inside=  (abs(x(:)) + abs(y(:)))&lt;1.55 ;
+0067 
+0068    <span class="keyword">case</span> <span class="string">'b2t1'</span>; inside = <a href="#_sub1" class="code" title="subfunction inside = inside_thorax(x,y,level);">inside_thorax</a>(x,y,1);
+0069    <span class="keyword">case</span> <span class="string">'b2t2'</span>; inside = <a href="#_sub1" class="code" title="subfunction inside = inside_thorax(x,y,level);">inside_thorax</a>(x,y,2);
+0070    <span class="keyword">case</span> <span class="string">'b2t3'</span>; inside = <a href="#_sub1" class="code" title="subfunction inside = inside_thorax(x,y,level);">inside_thorax</a>(x,y,3);
+0071    <span class="keyword">case</span> <span class="string">'b2t4'</span>; inside = <a href="#_sub1" class="code" title="subfunction inside = inside_thorax(x,y,level);">inside_thorax</a>(x,y,4);
+0072    <span class="keyword">case</span> <span class="string">'b2t5'</span>; inside = <a href="#_sub1" class="code" title="subfunction inside = inside_thorax(x,y,level);">inside_thorax</a>(x,y,5);
+0073    
+0074    <span class="keyword">case</span> <span class="string">'GREIT'</span>; inv_mdl = <a href="#_sub7" class="code" title="subfunction inv_mdl = greit_library_model(str)">greit_library_model</a>(RM); <span class="keyword">return</span>
+0075 
+0076    <span class="keyword">otherwise</span>
+0077       error([<span class="string">'mdl_string '</span>,str,<span class="string">' not understood'</span>]);
+0078 <span class="keyword">end</span>
+0079 
+0080 <span class="keyword">if</span> ischar(RM)
+0081    <span class="keyword">switch</span> RM
+0082      <span class="keyword">case</span> <span class="string">'backproj'</span>; RM= <a href="#_sub3" class="code" title="subfunction RM = get_Sheffield_Backproj">get_Sheffield_Backproj</a>;
+0083      <span class="keyword">case</span> <span class="string">'GREITc1'</span>;  RM= get_GREIT_c1;
+0084      <span class="keyword">otherwise</span>;       error(<span class="string">'RM string not understood'</span>);
+0085    <span class="keyword">end</span> 
+0086 <span class="keyword">end</span>
+0087       ff = find(~inside);
+0088       fmdl.elems([2*ff, 2*ff-1],:)= [];
+0089       fmdl.coarse2fine([2*ff, 2*ff-1],:)= [];
+0090       fmdl.coarse2fine(:,ff)= [];
+0091 
+0092 fmdl.electrode = <a href="#_sub6" class="code" title="subfunction elec = mk_electrode_locns( nodes, n_elec );">mk_electrode_locns</a>( fmdl.nodes, n_elec );
+0093 
+0094 inv_mdl = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'inv_model'</span>,[<span class="string">'mk_common_gridmdl: '</span>,name]);
+0095 inv_mdl.reconst_type= <span class="string">'difference'</span>;
+0096 inv_mdl.fwd_model= fmdl;
+0097 inv_mdl.solve_use_matrix.RM = <a href="#_sub2" class="code" title="subfunction RM = resize_if_reqd(RM,inside);">resize_if_reqd</a>(RM,inside);
+0098 <span class="comment">% solve_use_matrix has a c2f mapping field map, which</span>
+0099 <span class="comment">% it may be useful to populate in this case</span>
+0100 <span class="comment">%  inv_mdl.solve_use_matrix.map = map;</span>
+0101 inv_mdl.solve = @<a href="../../eidors/solvers/inverse/solve_use_matrix.html" class="code" title="function img= solve_use_matrix( inv_model, data1, data2)">solve_use_matrix</a>;
+0102 inv_mdl.fwd_model = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(inv_mdl.fwd_model, 1);
+0103 [st, els]= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16, 1, <span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, {}, 10);
+0104 inv_mdl.fwd_model.meas_select= els;
+0105 
+0106 <span class="comment">% standard field order</span>
+0107 inv_mdl = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'set'</span>, inv_mdl);
+0108 
+0109 <a name="_sub1" href="#_subfunctions" class="code">function inside = inside_thorax(x,y,level);</a>
+0110    [x_bdy, y_bdy ] = <a href="thorax_geometry.html" class="code" title="function [out1, out2, out3 ] = thorax_geometry(in1,in2);">thorax_geometry</a>(level,1); <span class="comment">% normalized</span>
+0111    inside = inpolygon(x(:), y(:), x_bdy, y_bdy); 
+0112 
+0113 <a name="_sub2" href="#_subfunctions" class="code">function RM = resize_if_reqd(RM,inside);</a>
+0114    szRM = size(RM,1);
+0115    <span class="keyword">if</span> sum(inside) == szRM
+0116       <span class="comment">% RM is fine</span>
+0117    <span class="keyword">elseif</span> size(inside,1) == szRM
+0118       RM = RM(inside,:);
+0119    <span class="keyword">else</span>
+0120       error(<span class="string">'mismatch in size of provided RecMatrix'</span>);
+0121    <span class="keyword">end</span>
+0122 
+0123 <a name="_sub3" href="#_subfunctions" class="code">function RM = get_Sheffield_Backproj</a>
+0124    load Sheffield_Backproj_Matrix.mat
+0125    RM = <a href="#_sub5" class="code" title="subfunction RM= unpack_matrix(MM)">unpack_matrix</a>(Sheffield_Backproj_Matrix);
+0126 
+0127 <a name="_sub4" href="#_subfunctions" class="code">function RM= get_GREIT_c1;</a>
+0128    load GREIT_v10_Circ_Matrix.mat
+0129    RM = <a href="#_sub5" class="code" title="subfunction RM= unpack_matrix(MM)">unpack_matrix</a>(GREIT_v10_Circ_Matrix);
+0130 
+0131 
+0132 <a name="_sub5" href="#_subfunctions" class="code">function RM= unpack_matrix(MM)</a>
+0133    RM = <a href="unpack_reconst_matrix.html" class="code" title="function RM = unpack_reconst_matrix(packed_matrix, Nelec, Ngrid, options);">unpack_reconst_matrix</a>(MM, 16, 32);
+0134 
+0135 
+0136 <a name="_sub6" href="#_subfunctions" class="code">function elec = mk_electrode_locns( nodes, n_elec );</a>
+0137    phi = linspace(0, 2*pi, n_elec+1); 
+0138    phi(end) = [];
+0139    rad = 1;
+0140 
+0141    <span class="keyword">for</span> i= 1:n_elec
+0142       posn_x = rad*sin(phi(i));
+0143       posn_y = rad*cos(phi(i));
+0144       dist = (nodes(:,1)-posn_x).^2 + (nodes(:,2)-posn_y).^2;
+0145       [jnk,e_node] = min(dist);
+0146 
+0147       elec(i).z_contact = 0.001;
+0148       elec(i).nodes     = e_node;
+0149    <span class="keyword">end</span>
+0150    
+0151 <a name="_sub7" href="#_subfunctions" class="code">function inv_mdl = greit_library_model(str)</a>
+0152 fmdl = <a href="mk_library_model.html" class="code" title="function out = mk_library_model(shape,elec_pos,elec_shape,maxsz,nfft,scale)">mk_library_model</a>(str);
+0153 fmdl = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl,1);
+0154 nelec = numel(fmdl.electrode);
+0155 fmdl.stimulation = <span class="keyword">...</span>
+0156    <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(nelec,1,[0,1],[0,1],{<span class="string">'no_meas_current'</span>}, 1);
+0157 
+0158 opt.noise_figure = 1;
+0159 opt.target_size = 0.1;
+0160 opt.square_pixels = 1;
+0161 <span class="keyword">if</span> strcmp(str(1:8),<span class="string">'cylinder'</span>);
+0162    opt.distr = 0; <span class="comment">% seems best, but only works for cylinders</span>
+0163 <span class="keyword">else</span>
+0164    opt.distr = 4; <span class="comment">% best bet for the time being</span>
+0165 <span class="keyword">end</span>
+0166 
+0167 inv_mdl = <a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>(fmdl,0.25,5,opt);
+0168 
+0169 <a name="_sub8" href="#_subfunctions" class="code">function do_unit_test</a>
+0170 <span class="comment">% GREIT MODELS - calculated for library models</span>
+0171 <a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>(<span class="string">'GREIT'</span>,<span class="string">'cylinder_16x1el_coarse'</span>);
+0172 
+0173 <span class="comment">% GREIT V1 (GREIT matrix for reconstruction to circle, 2009)</span>
+0174 <a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>(<span class="string">'GREITc1'</span>); <span class="comment">% 32x32 with Circle shape</span>
+0175 
+0176 <span class="comment">% Sheffield Backprojection</span>
+0177 <a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>(<span class="string">'b2d'</span>,<span class="string">'backproj'</span>); <span class="comment">% 32x32 with Diamond shape</span>
+0178 <a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>(<span class="string">'b2c'</span>,<span class="string">'backproj'</span>); <span class="comment">% 32x32 with Circular shape</span>
+0179 <a href="mk_common_gridmdl.html" class="code" title="function inv_mdl= mk_common_gridmdl( str, RM)">mk_common_gridmdl</a>(<span class="string">'backproj'</span>); <span class="comment">% 32x32 with Circular shape</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

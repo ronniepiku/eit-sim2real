@@ -1,0 +1,214 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of meas_icov_rm_elecs</title>
+  <meta name="keywords" content="meas_icov_rm_elecs">
+  <meta name="description" content="MEAS_ICOV_RM_ELECS: remove electrodes from consideration">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">solvers</a> &gt; <a href="index.html">inverse</a> &gt; meas_icov_rm_elecs.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/solvers/inverse&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>meas_icov_rm_elecs
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>MEAS_ICOV_RM_ELECS: remove electrodes from consideration</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function meas_icov = meas_icov_rm_elecs( imdl, elec_list) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> MEAS_ICOV_RM_ELECS: remove electrodes from consideration
+ meas_icov = meas_icov_rm_elecs( inv_model, elec_list )
+
+ PARAMETERS:
+ - elec_list = numbers of elecs to remove
+     or as imdl.meas_icov_rm_elecs.elec_list
+
+ - imdl.meas_icov_rm_elecs.exponent - exponent
+ - imdl.meas_icov_rm_elecs.SNR      - SNR to add (default inf)
+ - imdl.meas_icov_rm_elecs.replace_value (default 0)
+      Default is to modify the current meas_icov value, if replace_value==1,
+      then a new value is calculated without reference to the current
+
+ meas_icov_rm_elecs can also accept a fwd_model parameter
+ 
+ meas_icov_rm_elecs returns the inverse noise covariance matrix, with 
+ zeros at positions corresponding to the removed electrodes. Set 
+ exponent = -1 and a large SNR to get the noise covariance matrix, with 
+ large values at those positions instead. 
+
+ Reference Accounting for erroneous electrode data in EIT
+ A. Adler Physiological Measurement, 25(1):227-238, 2004.</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../../eidors/solvers/calc_meas_icov.html" class="code" title="function meas_icov = calc_meas_icov( inv_model )">calc_meas_icov</a>	meas_icov = calc_meas_icov( inv_model )</li><li><a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>	MEAS_ICOV_RM_ELECS: remove electrodes from consideration</li><li><a href="../../../eidors/tools/spdiag.html" class="code" title="function S = spdiag(V,K)">spdiag</a>	SPDIAG Sparse diagonal matrices and diagonals of a matrix.</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/models/GREIT_errors.html" class="code" title="function imdl= GREIT_errors(imdli, opts, data )">GREIT_errors</a>	GREIT_errors: Add Error Compensation to GREIT-type model</li><li><a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>	MEAS_ICOV_RM_ELECS: remove electrodes from consideration</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function meas_icov = meas_icov_rm_elecs( imdl, elec_list)</a>
+0002 <span class="comment">% MEAS_ICOV_RM_ELECS: remove electrodes from consideration</span>
+0003 <span class="comment">% meas_icov = meas_icov_rm_elecs( inv_model, elec_list )</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% PARAMETERS:</span>
+0006 <span class="comment">% - elec_list = numbers of elecs to remove</span>
+0007 <span class="comment">%     or as imdl.meas_icov_rm_elecs.elec_list</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% - imdl.meas_icov_rm_elecs.exponent - exponent</span>
+0010 <span class="comment">% - imdl.meas_icov_rm_elecs.SNR      - SNR to add (default inf)</span>
+0011 <span class="comment">% - imdl.meas_icov_rm_elecs.replace_value (default 0)</span>
+0012 <span class="comment">%      Default is to modify the current meas_icov value, if replace_value==1,</span>
+0013 <span class="comment">%      then a new value is calculated without reference to the current</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% meas_icov_rm_elecs can also accept a fwd_model parameter</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% meas_icov_rm_elecs returns the inverse noise covariance matrix, with</span>
+0018 <span class="comment">% zeros at positions corresponding to the removed electrodes. Set</span>
+0019 <span class="comment">% exponent = -1 and a large SNR to get the noise covariance matrix, with</span>
+0020 <span class="comment">% large values at those positions instead.</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% Reference Accounting for erroneous electrode data in EIT</span>
+0023 <span class="comment">% A. Adler Physiological Measurement, 25(1):227-238, 2004.</span>
+0024 
+0025 <span class="comment">% (C) 2008 Andy Adler. License: GPL version 2 or version 3</span>
+0026 <span class="comment">% $Id: meas_icov_rm_elecs.m 6252 2022-03-25 21:50:49Z bgrychtol $</span>
+0027 
+0028 <span class="keyword">if</span> ischar(imdl) &amp;&amp; strcmp(imdl,<span class="string">'UNIT_TEST'</span>); <a href="#_sub1" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0029 
+0030 <span class="keyword">switch</span> imdl.type,
+0031   <span class="keyword">case</span> <span class="string">'inv_model'</span>; fmdl = imdl.fwd_model;
+0032   <span class="keyword">case</span> <span class="string">'fwd_model'</span>; fmdl = imdl;
+0033                     imdl.meas_icov_rm_elecs.replace_value = 1;
+0034   <span class="keyword">otherwise</span>;        error(<span class="string">'meas_icov_rm_elecs: require inv- or fwd-model'</span>);
+0035 <span class="keyword">end</span>
+0036 
+0037 <span class="keyword">if</span> nargin&lt; 2
+0038    elec_list = imdl.meas_icov_rm_elecs.elec_list;
+0039 <span class="keyword">end</span>
+0040 
+0041      NSR = 0;
+0042 <span class="keyword">try</span>; NSR = (imdl.meas_icov_rm_elecs.SNR)^(-1);
+0043 <span class="keyword">end</span>
+0044 
+0045     exponent = 1;
+0046 <span class="keyword">try</span>;exponent = imdl.meas_icov_rm_elecs.exponent;
+0047 <span class="keyword">end</span>
+0048 
+0049     replace_value = 0;
+0050 <span class="keyword">try</span>;replace_value = imdl.meas_icov_rm_elecs.replace_value;
+0051 <span class="keyword">end</span>
+0052  
+0053 
+0054 meas_icov = [];
+0055 <span class="keyword">for</span> stim = fmdl.stimulation(:)'
+0056    mp = stim.meas_pattern;
+0057    sp = stim.stim_pattern;
+0058    icovi = ones(size(mp,1),1);
+0059    <span class="keyword">if</span> any(sp(elec_list) ~= 0)
+0060       icovi = 0*icovi;
+0061    <span class="keyword">else</span>
+0062       icovi = ~any( mp(:,elec_list) ~= 0, 2);
+0063    <span class="keyword">end</span>
+0064 
+0065    meas_icov = [meas_icov; icovi];
+0066 <span class="keyword">end</span>
+0067 
+0068 n = length(meas_icov);
+0069 
+0070 meas_icov(meas_icov == 0) = NSR;
+0071 meas_icov = spdiags( meas_icov.^exponent, 0, n,n );
+0072 
+0073 <span class="keyword">if</span> replace_value == 0
+0074    meas_icov = <a href="../../../eidors/solvers/calc_meas_icov.html" class="code" title="function meas_icov = calc_meas_icov( inv_model )">calc_meas_icov</a>(imdl)*meas_icov;
+0075 <span class="keyword">end</span>
+0076 
+0077 <a name="_sub1" href="#_subfunctions" class="code">function do_unit_test</a>
+0078    imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c0'</span>,4);
+0079    covar = <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl,1);
+0080    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire # 1'</span>, covar, zeros(size(covar))); 
+0081 
+0082    imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c0'</span>,8);
+0083    covar = <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl,1);
+0084    ff =    find( diag(covar)~= 1);
+0085    ffcmp = [1;2;3;4;5;10;11;15;16;20;21;25;26;30;31;36;37;38;39;40];
+0086    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire # 2'</span>, ff,ffcmp);
+0087 
+0088    covar = <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl.fwd_model,1);
+0089    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire # 3'</span>, ff,ffcmp);
+0090 
+0091    imdl.meas_icov_rm_elecs.elec_list = 1;
+0092    covar = <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl);
+0093    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire # 4'</span>, ff,ffcmp);
+0094    ff =    find( diag(covar)~= 1);
+0095 
+0096    
+0097    covar = <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl,[1,2]);
+0098    ff =    find( diag(covar)==1);
+0099    ffcmp = [12;13;14;18;19;23;24;28;29;33;34;35];
+0100    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire # 5'</span>, ff,ffcmp);
+0101 
+0102    covar = <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl,[1,2,3]);
+0103    ff =    find( diag(covar)==1);
+0104    ffcmp = [18;19;24;29;34;35];
+0105    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire # 6'</span>, ff,ffcmp);
+0106 
+0107    covar = <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl,[1,2,3,4]);
+0108    ff =    find( diag(covar)==1);
+0109    ffcmp = [24;35];
+0110    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire # 7'</span>, ff,ffcmp);
+0111 
+0112 <span class="comment">% NOW CHECK OTHER MODES</span>
+0113    imdl.meas_icov_rm_elecs.elec_list = 1:4;
+0114    imdl.meas_icov_rm_elecs.exponent = 1;
+0115    imdl.meas_icov_rm_elecs.SNR      = 0;
+0116    covar=  diag( <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl) );
+0117    ffcmp = [24;35];
+0118    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire # 8'</span>, find(covar==1),ffcmp);
+0119 
+0120    imdl.meas_icov_rm_elecs.SNR      = 100;
+0121    covar=  diag( <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl) );
+0122    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire # 9'</span>, find(covar==1),ffcmp);
+0123    ff =    find( covar~=1);
+0124    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire #10'</span>, covar(ff),1/100);
+0125 
+0126    imdl.meas_icov_rm_elecs.exponent = -1;
+0127    covar=  diag( <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl) );
+0128    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire #11'</span>, find(covar==1),ffcmp);
+0129    ff =    find( covar~=1);
+0130    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire #12'</span>, covar(ff),100);
+0131 
+0132    imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c0'</span>,8);
+0133    imdl.meas_icov = <a href="../../../eidors/tools/spdiag.html" class="code" title="function S = spdiag(V,K)">spdiag</a>((1:40)');
+0134    covar=  diag( <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl,[]) );
+0135    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire #13'</span>, covar,(1:40)');
+0136 
+0137    imdl.meas_icov_rm_elecs.replace_value = 0;
+0138    covar=  diag( <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl,[]) );
+0139    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire #14'</span>, covar,(1:40)');
+0140 
+0141    imdl.meas_icov_rm_elecs.replace_value = 1;
+0142    covar=  diag( <a href="meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>(imdl,[]) );
+0143    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ire #15'</span>, covar,1);
+0144</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

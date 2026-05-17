@@ -1,0 +1,862 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mk_head_model_adult</title>
+  <meta name="keywords" content="mk_head_model_adult">
+  <meta name="description" content="MK_HEAD_MODEL_ADULT Adult head model">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; mk_head_model_adult.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mk_head_model_adult
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MK_HEAD_MODEL_ADULT Adult head model</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function out = mk_head_model_adult(varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">MK_HEAD_MODEL_ADULT Adult head model 
+
+ MK_HEAD_MODEL_ADULT provides predefined and custom head FEMs based on
+ models contributed by Andrew Tizzard. You may be asked to download
+ missing files.
+
+ FMDL = MK_HEAD_MODEL_ADULT() 
+ Returns a head fwd_model with no electrodes or tissues
+
+ FMDL = MK_HEAD_MODEL_ADULT(elec_pos, elec_shape)
+ FMDL = MK_HEAD_MODEL_ADULT(elec_pos, elec_shape, maxh)
+ Allows specifying electrode configuration, see PLACE_ELEC_ON_SURF.
+ Default maxh = 8.
+
+ FMDL = MK_HEAD_MODEL_ADULT(elecstr)
+ A predefined model with round electrodes (radius 2 mm). 
+    '10-10'         - 73 labeled electrodes (10-10 placement system),
+                      no stimulation.
+    '2x16_planar'   - 2 rings of 16 electrodes, planar stimulation
+    '2x16_odd-even' - 2 rings, each stimulation is cross-plane 
+    '2x16_square'   - 2 rings, every second stimulation is cross-plane
+    '2x16_adjacent' - like square, but with adjacent stimulation
+    '1x32_ring'     - single ring of 32 electrodes
+    'no_elecs'      - no electrodes
+
+ IMG = MK_HEAD_MODEL_ADULT(... , tissuespec)
+ Returns a head model containing separate regions defining scalp, skull, 
+ CSF and brain as an image structure with conductivitity values. 
+ TISSUESPEC must be one of:
+    'coarse'        - (defualt) tissue surfaces with maxh = 5mm
+    'fine'          - tissue surfaces with maxh = 2mm
+    'void'          - no internal tissues (void), useful for testing
+                      electrode positions
+
+ MK_HEAD_MODEL('show_10-10') creates a figure showing the positions and
+ labels of the 10-10 electrodes.
+
+ 
+ CITATION_REQUEST:
+ TITLE: FEM Electrode Refinement for Electrical Impedance Tomography 
+ AUTHOR: B Grychtol and A Adler
+ JOURNAL: Engineering in Medicine and Biology Society (EMBC), 2013 Annual 
+ International Conference of the IEEE 
+ YEAR: 2013
+ DOI: 10.1109/EMBC.2013.6611026
+
+ CITATION_REQUEST:
+ TITLE: Improving the Finite Element Forward Model of the Human Head by 
+ Warping using Elastic Deformation
+ AUTHOR: A Tizzard and RH Bayford
+ JOURNAL: Physiol Meas
+ YEAR: 2007
+ VOL: 28
+ PAGE: S163-S182
+ DOI: 10.1088/0967-3334/28/7/S13
+
+ See also PLAC_ELEC_ON_SURF</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>	EIDORS_MSG eidors progress and status messages</li><li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../eidors/graphics/matlab/mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>	MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM</li><li><a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="../../eidors/interface/get_contrib_data.html" class="code" title="function p = get_contrib_data( contrib , file )">get_contrib_data</a>	GET_CONTRIB_DATA Get files from the EIDORS data_contrib repository</li><li><a href="../../eidors/meshing/crop_model.html" class="code" title="function [fmdl,c2f_idx]= crop_model( axis_handle, fcn_handle );">crop_model</a>	CROP_MODEL: Crop away parts of a fem model</li><li><a href="../../eidors/meshing/gmsh/gmsh_stl2tet.html" class="code" title="function mdl = gmsh_stl2tet(stlfile, mesh_size, extra, nopt)">gmsh_stl2tet</a>	GMSH_STL2TET creates a tetrahedral mesh from an stl file</li><li><a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>	FOURIER_FIT: use fourier series to interpolate onto a boundary</li><li><a href="../../eidors/meshing/netgen/ng_mk_2d_model.html" class="code" title="function mdl = ng_mk_2d_model(varargin)">ng_mk_2d_model</a>	NG_MG_2D_MODELS create a 2D mesh with Netgen via the in2d interface</li><li><a href="../../eidors/meshing/netgen/ng_stl2tet.html" class="code" title="function mdl = ng_stl2tet(stlfile, varargin)">ng_stl2tet</a>	NG_STL2TET creates a tetrahedral mesh from an stl file</li><li><a href="../../eidors/meshing/netgen/ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>	NG_WRITE_OPT Write an ng.opt file in current directory</li><li><a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>	ORDER_LOOP Order a list of points on a loop</li><li><a href="fix_boundary.html" class="code" title="function mdl = fix_boundary(mdl)">fix_boundary</a>	FIX_BOUNDARY Orient boundary triangles consistently</li><li><a href="fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>	FIX_MODEL: Add useful fields to a model</li><li><a href="merge_meshes.html" class="code" title="function out = merge_meshes(M1, varargin)">merge_meshes</a>	MERGE_MESHES - merges two meshes sharing only boundary nodes</li><li><a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>	MK_HEAD_MODEL_ADULT Adult head model</li><li><a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>	NUM_ELEMS: number of elemnts in a (fwd or inv model or image)</li><li><a href="place_elec_on_surf.html" class="code" title="function mdl2 = place_elec_on_surf(mdl,elec_pos, elec_spec,ng_opt_file, maxh)">place_elec_on_surf</a>	PLACE_ELEC_ON_SURF Place electrodes on the surface of a model</li><li><a href="../../eidors/models/private/set_predef_stim.html" class="code" title="function mdl = set_predef_stim(mdl, stimpat)">set_predef_stim</a>	SET_PREDEF_STIM</li><li><a href="remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>	REMOVE_UNUSED_NODES: identify and remove unused nodes in model</li><li><a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>	[srf, idx] = find_boundary(simp);</li><li><a href="../../eidors/tools/citeme.html" class="code" title="function citeme(fname)">citeme</a>	CITEME Display citation requests</li><li><a href="../../eidors/tools/eidors_debug.html" class="code" title="function out = eidors_debug(command, fstr)">eidors_debug</a>	EIDORS_DEBUG Global managment of debug flags</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="mk_head_model.html" class="code" title="function out = mk_head_model(str, varargin)">mk_head_model</a>	MK_HEAD_MODEL FEM models of the head</li><li><a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>	MK_HEAD_MODEL_ADULT Adult head model</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function out = build_predef_elecs(stimpat, organspec)</a></li><li><a href="#_sub2" class="code">function out = mk_shell_image(img, materials, out, organspec)</a></li><li><a href="#_sub3" class="code">function [CSF, brain, skull2, bn2] = build_brain_CSF(img,materials,maxh)</a></li><li><a href="#_sub4" class="code">function skull = build_skull(skull1, skull2, p, maxh)</a></li><li><a href="#_sub5" class="code">function brain = build_brain(brain,p)</a></li><li><a href="#_sub6" class="code">function [upper, lower, bottom_nodes] = split_surface(mdl, fun)</a></li><li><a href="#_sub7" class="code">function shell = build_shell(mdl, idx)</a></li><li><a href="#_sub8" class="code">function rz = rotation_matrix</a></li><li><a href="#_sub9" class="code">function p = bottom_z_from_xy (bn)</a></li><li><a href="#_sub10" class="code">function mdl = remesh_CSF(mdl, maxh)</a></li><li><a href="#_sub11" class="code">function idx = find_connected_bnd_elems(mdl,nd)</a></li><li><a href="#_sub12" class="code">function mdle = build_head_elecs(scalp, elec_pos, elec_spec, maxh)</a></li><li><a href="#_sub13" class="code">function [out, img, materials] = get_base_model()</a></li><li><a href="#_sub14" class="code">function mdl = fix_scalp(mdl)</a></li><li><a href="#_sub15" class="code">function opt = get_ng_opt(maxh)</a></li><li><a href="#_sub16" class="code">function [img, materials] = get_at_model()</a></li><li><a href="#_sub17" class="code">function out = get_cache_path</a></li><li><a href="#_sub18" class="code">function [e_ar, names] = get_elec_pos(mdl, show)</a></li><li><a href="#_sub19" class="code">function [e_ar names] = add_elecs(e_ar,names, e, name)</a></li><li><a href="#_sub20" class="code">function [e_ar names] = add_elec(e_ar,names,e,name);</a></li><li><a href="#_sub21" class="code">function [e1] = get_elec(e_ar,names,name)</a></li><li><a href="#_sub22" class="code">function plot_elec(e_ar,names,name)</a></li><li><a href="#_sub23" class="code">function [slc, e] = define_plane(mdl, e_ar,names,n1, n2);</a></li><li><a href="#_sub24" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = mk_head_model_adult(varargin)</a>
+0002 <span class="comment">%MK_HEAD_MODEL_ADULT Adult head model</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% MK_HEAD_MODEL_ADULT provides predefined and custom head FEMs based on</span>
+0005 <span class="comment">% models contributed by Andrew Tizzard. You may be asked to download</span>
+0006 <span class="comment">% missing files.</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% FMDL = MK_HEAD_MODEL_ADULT()</span>
+0009 <span class="comment">% Returns a head fwd_model with no electrodes or tissues</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% FMDL = MK_HEAD_MODEL_ADULT(elec_pos, elec_shape)</span>
+0012 <span class="comment">% FMDL = MK_HEAD_MODEL_ADULT(elec_pos, elec_shape, maxh)</span>
+0013 <span class="comment">% Allows specifying electrode configuration, see PLACE_ELEC_ON_SURF.</span>
+0014 <span class="comment">% Default maxh = 8.</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% FMDL = MK_HEAD_MODEL_ADULT(elecstr)</span>
+0017 <span class="comment">% A predefined model with round electrodes (radius 2 mm).</span>
+0018 <span class="comment">%    '10-10'         - 73 labeled electrodes (10-10 placement system),</span>
+0019 <span class="comment">%                      no stimulation.</span>
+0020 <span class="comment">%    '2x16_planar'   - 2 rings of 16 electrodes, planar stimulation</span>
+0021 <span class="comment">%    '2x16_odd-even' - 2 rings, each stimulation is cross-plane</span>
+0022 <span class="comment">%    '2x16_square'   - 2 rings, every second stimulation is cross-plane</span>
+0023 <span class="comment">%    '2x16_adjacent' - like square, but with adjacent stimulation</span>
+0024 <span class="comment">%    '1x32_ring'     - single ring of 32 electrodes</span>
+0025 <span class="comment">%    'no_elecs'      - no electrodes</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% IMG = MK_HEAD_MODEL_ADULT(... , tissuespec)</span>
+0028 <span class="comment">% Returns a head model containing separate regions defining scalp, skull,</span>
+0029 <span class="comment">% CSF and brain as an image structure with conductivitity values.</span>
+0030 <span class="comment">% TISSUESPEC must be one of:</span>
+0031 <span class="comment">%    'coarse'        - (defualt) tissue surfaces with maxh = 5mm</span>
+0032 <span class="comment">%    'fine'          - tissue surfaces with maxh = 2mm</span>
+0033 <span class="comment">%    'void'          - no internal tissues (void), useful for testing</span>
+0034 <span class="comment">%                      electrode positions</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% MK_HEAD_MODEL('show_10-10') creates a figure showing the positions and</span>
+0037 <span class="comment">% labels of the 10-10 electrodes.</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">%</span>
+0040 <span class="comment">% CITATION_REQUEST:</span>
+0041 <span class="comment">% TITLE: FEM Electrode Refinement for Electrical Impedance Tomography</span>
+0042 <span class="comment">% AUTHOR: B Grychtol and A Adler</span>
+0043 <span class="comment">% JOURNAL: Engineering in Medicine and Biology Society (EMBC), 2013 Annual</span>
+0044 <span class="comment">% International Conference of the IEEE</span>
+0045 <span class="comment">% YEAR: 2013</span>
+0046 <span class="comment">% DOI: 10.1109/EMBC.2013.6611026</span>
+0047 <span class="comment">%</span>
+0048 <span class="comment">% CITATION_REQUEST:</span>
+0049 <span class="comment">% TITLE: Improving the Finite Element Forward Model of the Human Head by</span>
+0050 <span class="comment">% Warping using Elastic Deformation</span>
+0051 <span class="comment">% AUTHOR: A Tizzard and RH Bayford</span>
+0052 <span class="comment">% JOURNAL: Physiol Meas</span>
+0053 <span class="comment">% YEAR: 2007</span>
+0054 <span class="comment">% VOL: 28</span>
+0055 <span class="comment">% PAGE: S163-S182</span>
+0056 <span class="comment">% DOI: 10.1088/0967-3334/28/7/S13</span>
+0057 <span class="comment">%</span>
+0058 <span class="comment">% See also PLAC_ELEC_ON_SURF</span>
+0059 
+0060 <span class="comment">% (C) 2012-2024 Bartek Grychtol. License: GPL v2 or v3</span>
+0061 <span class="comment">% $Id: mk_head_model_adult.m 7031 2024-11-28 21:12:36Z bgrychtol $</span>
+0062 
+0063 <a href="../../eidors/tools/citeme.html" class="code" title="function citeme(fname)">citeme</a>(mfilename)
+0064 
+0065 <span class="keyword">if</span> nargin==1 &amp;&amp; ischar(varargin{1}) &amp;&amp; strcmp(varargin{1},<span class="string">'UNIT_TEST'</span>)
+0066    <a href="#_sub24" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>;
+0067 <span class="keyword">end</span>
+0068 
+0069 <span class="keyword">if</span> nargin == 0
+0070    out = <a href="#_sub13" class="code" title="subfunction [out, img, materials] = get_base_model()">get_base_model</a>; <span class="comment">% Returns a head fwd_model with no electrodes or tissues</span>
+0071 <span class="keyword">end</span>
+0072 
+0073 copyright = <span class="string">''</span>;
+0074 organspec = <span class="string">'coarse'</span>;
+0075 <span class="keyword">if</span> nargin &gt; 1 &amp;&amp; ischar(varargin{end})
+0076    organspec = varargin{end};
+0077    varargin(end) = [];
+0078 <span class="keyword">end</span>
+0079 
+0080 <span class="keyword">switch</span> length(varargin)
+0081    <span class="keyword">case</span> 0
+0082       <span class="comment">% nothing</span>
+0083    <span class="keyword">case</span> 1
+0084       <span class="keyword">if</span> ischar(varargin{1})
+0085          <span class="keyword">if</span> strcmp(varargin{1},<span class="string">'show_10-10'</span>)
+0086             [out, img, ~] = <a href="#_sub13" class="code" title="subfunction [out, img, materials] = get_base_model()">get_base_model</a>;
+0087             <a href="#_sub18" class="code" title="subfunction [e_ar, names] = get_elec_pos(mdl, show)">get_elec_pos</a>(img, true);
+0088             <span class="keyword">return</span>
+0089          <span class="keyword">end</span>
+0090          copyright = <span class="string">'(C) EIDORS Project'</span>;
+0091          out = <a href="#_sub1" class="code" title="subfunction out = build_predef_elecs(stimpat, organspec)">build_predef_elecs</a>(varargin{1}, organspec);
+0092       <span class="keyword">else</span>
+0093          error(<span class="string">'EIDORS:WrongInput'</span>,<span class="string">'Electrode specification not understood'</span>);
+0094       <span class="keyword">end</span>
+0095    <span class="keyword">case</span> {2, 3}
+0096       [out, img, materials] = <a href="#_sub13" class="code" title="subfunction [out, img, materials] = get_base_model()">get_base_model</a>;
+0097       out = <a href="#_sub12" class="code" title="subfunction mdle = build_head_elecs(scalp, elec_pos, elec_spec, maxh)">build_head_elecs</a>(out, varargin{:});
+0098       out = <a href="#_sub2" class="code" title="subfunction out = mk_shell_image(img, materials, out, organspec)">mk_shell_image</a>(img, materials, out, organspec);
+0099 
+0100    <span class="keyword">otherwise</span>
+0101       error(<span class="string">'EIDORS:WrongInput'</span>, <span class="string">'Too many inputs'</span>);
+0102 <span class="keyword">end</span>
+0103 
+0104 out = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'set'</span>, out); <span class="comment">% impose standard field order</span>
+0105 
+0106 <span class="keyword">if</span> ~isempty(copyright)
+0107    out.copyright = copyright;
+0108 <span class="keyword">end</span>
+0109 
+0110 out.attribution = <span class="keyword">...</span>
+0111    [<span class="string">'Modified from &quot;SAH262&quot; by Andrew Tizzard '</span><span class="keyword">...</span>
+0112     <span class="string">'(Tizzard, A. and Bayford, R.H. (2007). Improving the Finite Element '</span> <span class="keyword">...</span>
+0113     <span class="string">'Forward Model of the Human Head by Warping using Elastic Deformation. '</span><span class="keyword">...</span>
+0114     <span class="string">'Physiol.Meas. 28:S163-S182)'</span>];
+0115 
+0116 <span class="keyword">if</span> strcmp(out.type, <span class="string">'image'</span>)
+0117    <span class="keyword">try</span> out.fwd_model.copyright = out.copyright; <span class="keyword">end</span>
+0118    out.fwd_model.attribution = out.attribution;
+0119 <span class="keyword">end</span>
+0120 
+0121 ws = warning(<span class="string">'off'</span>, <span class="string">'backtrace'</span>);
+0122 warning(<span class="string">'EIDORS:License'</span>, <span class="keyword">...</span>
+0123    [<span class="string">'The head model is a derivative of worked licensed under CC BY.\n'</span> <span class="keyword">...</span>
+0124     <span class="string">'Please make sure to attribute correctly. '</span> <span class="keyword">...</span>
+0125     <span class="string">'See the attribution field for details.'</span>]);
+0126 warning(ws.state, <span class="string">'backtrace'</span>);
+0127 
+0128 <a name="_sub1" href="#_subfunctions" class="code">function out = build_predef_elecs(stimpat, organspec)</a>
+0129 names = [];
+0130 <span class="keyword">switch</span> stimpat
+0131    <span class="keyword">case</span> {<span class="string">'10-10'</span>, <span class="string">'no_elecs'</span>}
+0132       mdl_name = stimpat;
+0133    <span class="keyword">case</span> {<span class="string">'2x16_planar'</span>; <span class="string">'2x16_odd-even'</span>; <span class="string">'2x16_square'</span>;
+0134          <span class="string">'2x16_adjacent'</span>;<span class="string">'1x32_ring'</span>}
+0135       mdl_name = <span class="string">'3_rings'</span>;
+0136    <span class="keyword">otherwise</span>
+0137       error(<span class="string">'EIDORS:WrongInput'</span>, <span class="string">'Don''t understand model %s.'</span>, stimpat )
+0138 <span class="keyword">end</span>
+0139 
+0140 cache_path = <a href="#_sub17" class="code" title="subfunction out = get_cache_path">get_cache_path</a>;
+0141 fname = sprintf(<span class="string">'head_model_%s'</span>,mdl_name);
+0142 suffix = <span class="string">''</span>;
+0143 <span class="keyword">if</span> ~isempty(organspec)
+0144    fname = [fname <span class="string">'_'</span> organspec];
+0145    suffix = [<span class="string">' - '</span> organspec];
+0146 <span class="keyword">end</span>
+0147 name = [<span class="string">'Adult Head Model'</span> suffix <span class="string">' - '</span> stimpat];
+0148 
+0149 fpath = [cache_path filesep fname <span class="string">'.mat'</span>];
+0150 <span class="keyword">if</span> exist(fpath,<span class="string">'file'</span>)
+0151    <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'@@ Using stored model.'</span>, 3);
+0152    load(fpath, <span class="string">'out'</span>);
+0153 <span class="keyword">else</span>
+0154    [out, img, materials] = <a href="#_sub13" class="code" title="subfunction [out, img, materials] = get_base_model()">get_base_model</a>;
+0155    <span class="keyword">switch</span> stimpat
+0156       <span class="keyword">case</span> <span class="string">'no_elecs'</span>
+0157          elec_pos = [];
+0158       <span class="keyword">case</span> <span class="string">'10-10'</span>
+0159          [elec_pos, names] = <a href="#_sub18" class="code" title="subfunction [e_ar, names] = get_elec_pos(mdl, show)">get_elec_pos</a>(img);
+0160          elec_spec = [2 0 0.2];
+0161          maxh = 8;
+0162       <span class="keyword">case</span> {<span class="string">'2x16_planar'</span>; <span class="string">'2x16_odd-even'</span>; <span class="string">'2x16_square'</span>;
+0163             <span class="string">'2x16_adjacent'</span>;<span class="string">'1x32_ring'</span>}
+0164          Nel = 32;
+0165          eth32 = -pi/2 : 2*pi/Nel : 2*pi-pi/2; eth32(1)=[];
+0166          eth16 = eth32(1:2:end);
+0167          eth32 = eth32 - pi/Nel;
+0168          t = [eth16, eth32, eth16];
+0169          xm=0;
+0170          ym=12;
+0171          a=80; b=95;
+0172          elec_pos(:,1) = xm+a*cos(t);
+0173          elec_pos(:,2) = ym+b*sin(t);
+0174          elec_pos(1:16,3) = 0;
+0175          elec_pos(17:48,3) = 5;
+0176          elec_pos(49:64,3) = 10;         
+0177          elec_spec = [2 0 0.2];
+0178          maxh = 8;
+0179       <span class="keyword">otherwise</span>
+0180          error(<span class="string">'EIDORS:WrongInput'</span>,<span class="string">'Parameter electsr not understood'</span>);
+0181    <span class="keyword">end</span>
+0182    <span class="keyword">if</span> ~isempty(elec_pos)
+0183       out = <a href="#_sub12" class="code" title="subfunction mdle = build_head_elecs(scalp, elec_pos, elec_spec, maxh)">build_head_elecs</a>(out, elec_pos, elec_spec, maxh);
+0184    <span class="keyword">end</span>
+0185    out.name = name;
+0186    <span class="keyword">if</span> ~isempty(names)
+0187       <span class="keyword">for</span> i = 1:length(out.electrode)
+0188          out.electrode(i).label = names{i};
+0189       <span class="keyword">end</span>
+0190    <span class="keyword">end</span>
+0191    out = <a href="#_sub2" class="code" title="subfunction out = mk_shell_image(img, materials, out, organspec)">mk_shell_image</a>(img, materials, out, organspec);
+0192    save(fpath,<span class="string">'out'</span>);
+0193 
+0194 <span class="keyword">end</span>
+0195 
+0196 out.name = name;
+0197 
+0198 <span class="keyword">if</span> strcmp(mdl_name,<span class="string">'3_rings'</span>)
+0199    out = <a href="../../eidors/models/private/set_predef_stim.html" class="code" title="function mdl = set_predef_stim(mdl, stimpat)">set_predef_stim</a>(out, stimpat);
+0200 <span class="keyword">end</span>
+0201 
+0202 <a name="_sub2" href="#_subfunctions" class="code">function out = mk_shell_image(img, materials, out, organspec)</a>
+0203 <span class="keyword">if</span> isempty(organspec), <span class="keyword">return</span>, <span class="keyword">end</span>
+0204 <span class="keyword">switch</span> organspec
+0205    <span class="keyword">case</span> <span class="string">'void'</span>
+0206       <span class="keyword">return</span>
+0207    <span class="keyword">case</span> <span class="string">'coarse'</span>
+0208       maxh = 5;
+0209    <span class="keyword">case</span> <span class="string">'fine'</span>
+0210       maxh = 2;
+0211    <span class="keyword">otherwise</span>
+0212       error(<span class="string">'EIDORS:WrongInput'</span>, <span class="string">'Parameter tissuespec not understood.'</span>);
+0213 <span class="keyword">end</span>
+0214 [CSF, brain, skull2, bn2] = <a href="#_sub3" class="code" title="subfunction [CSF, brain, skull2, bn2] = build_brain_CSF(img,materials,maxh)">build_brain_CSF</a>(img,materials,maxh);
+0215 
+0216 <span class="comment">% extract the outer skull surface from the scalp model with electrodes</span>
+0217 cond = @(xyz) xyz(:,3) &lt; -121.1 &amp; <span class="keyword">...</span><span class="comment"> </span>
+0218               xyz(:,3) &lt; (abs(xyz(:,2).^1/11) -123); 
+0219 [skull1, ~, bn1] = <a href="#_sub6" class="code" title="subfunction [upper, lower, bottom_nodes] = split_surface(mdl, fun)">split_surface</a>(out, cond);
+0220 skull1.elems(:,2:3) = skull1.elems(:,[3 2]); <span class="comment">% flip normals</span>
+0221 
+0222 <span class="comment">% close surfaces from the bottom and create volume meshes</span>
+0223 p = <a href="#_sub9" class="code" title="subfunction p = bottom_z_from_xy (bn)">bottom_z_from_xy</a> ([bn1; bn2]); 
+0224 skull = <a href="#_sub4" class="code" title="subfunction skull = build_skull(skull1, skull2, p, maxh)">build_skull</a>(skull1, skull2, p, maxh);
+0225 
+0226 <span class="comment">% put it all together one by one</span>
+0227 out.mat_idx = {1:length(out.elems)};
+0228 l1 = length(out.boundary);
+0229 out.boundary_numbers = uint32(ones(l1,1));
+0230 out = <a href="merge_meshes.html" class="code" title="function out = merge_meshes(M1, varargin)">merge_meshes</a>(out,skull,0.05);
+0231 l1 = length(out.boundary);
+0232 out.boundary_numbers(end+1:l1) = 2;
+0233 out = <a href="merge_meshes.html" class="code" title="function out = merge_meshes(M1, varargin)">merge_meshes</a>(out,CSF,0.025);
+0234 l1 = length(out.boundary);
+0235 out.boundary_numbers(end+1:l1) = 3;
+0236 out = <a href="merge_meshes.html" class="code" title="function out = merge_meshes(M1, varargin)">merge_meshes</a>(out,brain);
+0237 l1 = length(out.boundary);
+0238 out.boundary_numbers(end+1:l1) = 4;
+0239 d = sqrt(sum(out.nodes.^2,2));
+0240 [~, out.gnd_node] = min(d);
+0241 mats = [3 1 4 2];
+0242 out.mat_names = materials.names(mats);
+0243 out = <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(out,.5);
+0244 
+0245 <span class="keyword">for</span> i = 1:4
+0246    out.elem_data(out.fwd_model.mat_idx{i}) = materials.sigma(mats(i));
+0247 <span class="keyword">end</span>
+0248 <span class="comment">% show_fem(out)</span>
+0249 out.name = <span class="string">'Head image with conductivities'</span>;
+0250 
+0251 <a name="_sub3" href="#_subfunctions" class="code">function [CSF, brain, skull2, bn2] = build_brain_CSF(img,materials,maxh)</a>
+0252 
+0253 cache_path = <a href="#_sub17" class="code" title="subfunction out = get_cache_path">get_cache_path</a>;
+0254 fname = sprintf(<span class="string">'brain_C2F_maxh=%.1f.mat'</span>, maxh);
+0255 fpath = [cache_path filesep fname];
+0256 <span class="keyword">if</span> exist(fpath, <span class="string">'file'</span>)
+0257    <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'@@ Using stored internal meshes.'</span>, 3);
+0258    load(fpath, <span class="string">'CSF'</span>, <span class="string">'brain'</span>, <span class="string">'skull2'</span>, <span class="string">'bn2'</span>);
+0259    <span class="keyword">return</span>
+0260 <span class="keyword">end</span>
+0261 
+0262 idx = find(strcmp(materials.names, <span class="string">'CSF'</span>));
+0263 CSF = img.fwd_model; CSF.elems = CSF.elems(materials.ref==idx,:);
+0264 CSF = <a href="#_sub10" class="code" title="subfunction mdl = remesh_CSF(mdl, maxh)">remesh_CSF</a>(CSF, maxh);
+0265 
+0266 <span class="comment">% extract individual surfaces from the CSF model</span>
+0267 cond = @(xyz) xyz(:,3) &lt; -122.8; <span class="comment">% condition to apply to the *rotated* model</span>
+0268 [skull2, brain, bn2] = <a href="#_sub6" class="code" title="subfunction [upper, lower, bottom_nodes] = split_surface(mdl, fun)">split_surface</a>(CSF, cond);
+0269 skull2.elems(:,2:3) = skull2.elems(:,[3 2]); <span class="comment">% flip normals</span>
+0270 brain.elems(:,2:3) = brain.elems(:,[3 2]); <span class="comment">% flip normals</span>
+0271 
+0272 <span class="comment">% close surface from the bottom and create volume meshe</span>
+0273 p = <a href="#_sub9" class="code" title="subfunction p = bottom_z_from_xy (bn)">bottom_z_from_xy</a> (bn2); 
+0274 brain = <a href="#_sub5" class="code" title="subfunction brain = build_brain(brain,p)">build_brain</a>(brain,p);
+0275 
+0276 save(fpath, <span class="string">'CSF'</span>, <span class="string">'brain'</span>, <span class="string">'skull2'</span>, <span class="string">'bn2'</span>);
+0277 
+0278 <a name="_sub4" href="#_subfunctions" class="code">function skull = build_skull(skull1, skull2, p, maxh)</a>
+0279 <span class="comment">% treat the bottom as an xy plane and mesh it</span>
+0280 rz = <a href="#_sub8" class="code" title="subfunction rz = rotation_matrix">rotation_matrix</a>;
+0281 rot = rz*skull1.nodes'; rot = rot';
+0282 b1 = rot(:,3) &lt; -121.1 &amp; <span class="keyword">...</span>
+0283      rot(:,3) &lt; (abs(rot(:,2).^1/11) -123);
+0284 rot = rz*skull2.nodes'; rot = rot';
+0285 b2 = rot(:,3) &lt; -122.7;
+0286 bn1 = skull1.nodes(b1,:);<a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>(bn1,1);
+0287 bn2 = skull2.nodes(b2,:);<a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>(bn2,2);
+0288 l1 = bn1(:,1:2); l1 = <a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>(l1,-1);
+0289 l2 = bn2(:,1:2); l2 = <a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>(l2,-1);
+0290 <a href="../../eidors/meshing/netgen/ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'meshoptions.fineness'</span>,1);
+0291 bs = <a href="../../eidors/meshing/netgen/ng_mk_2d_model.html" class="code" title="function mdl = ng_mk_2d_model(varargin)">ng_mk_2d_model</a>({l1, l2});
+0292 delete(<span class="string">'ng.opt'</span>);
+0293 bs.nodes(:,3) = polyval(p,bs.nodes(:,2));
+0294 bs.elems(:,2:3) = bs.elems(:,[3 2]);
+0295 <span class="comment">% merge surfaces and mesh the inside</span>
+0296 skullsrf = <a href="merge_meshes.html" class="code" title="function out = merge_meshes(M1, varargin)">merge_meshes</a>(bs,skull1,skull2,min(maxh/5,1));
+0297 skull = <a href="../../eidors/meshing/gmsh/gmsh_stl2tet.html" class="code" title="function mdl = gmsh_stl2tet(stlfile, mesh_size, extra, nopt)">gmsh_stl2tet</a>(skullsrf,[],[],2);
+0298 
+0299 <a name="_sub5" href="#_subfunctions" class="code">function brain = build_brain(brain,p)</a>
+0300 
+0301 rz = <a href="#_sub8" class="code" title="subfunction rz = rotation_matrix">rotation_matrix</a>;
+0302 rot= rz*brain.nodes'; rot = rot';
+0303 bot = rot(:,3) &lt; -123;
+0304 loop = <a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>(brain.nodes(bot,1:2),-1);
+0305 <a href="../../eidors/meshing/netgen/ng_write_opt.html" class="code" title="function opt = ng_write_opt(varargin)">ng_write_opt</a>(<span class="string">'meshoptions.fineness'</span>,1);
+0306 bs = <a href="../../eidors/meshing/netgen/ng_mk_2d_model.html" class="code" title="function mdl = ng_mk_2d_model(varargin)">ng_mk_2d_model</a>(loop);
+0307 delete(<span class="string">'ng.opt'</span>);
+0308 bs.nodes(:,3) = polyval(p,bs.nodes(:,2));
+0309 bs.elems(:,2:3) = bs.elems(:,[3 2]); <span class="comment">% reorient normals</span>
+0310 mrgd = <a href="merge_meshes.html" class="code" title="function out = merge_meshes(M1, varargin)">merge_meshes</a>(brain,bs,0.6);
+0311 <span class="comment">% stl_write(mrgd,'brain.stl');</span>
+0312 brain = <a href="../../eidors/meshing/gmsh/gmsh_stl2tet.html" class="code" title="function mdl = gmsh_stl2tet(stlfile, mesh_size, extra, nopt)">gmsh_stl2tet</a>(mrgd,[],[],2);
+0313 
+0314 <a name="_sub6" href="#_subfunctions" class="code">function [upper, lower, bottom_nodes] = split_surface(mdl, fun)</a>
+0315 
+0316 <span class="comment">% find indecies of the bottom surface nodes</span>
+0317 rz = <a href="#_sub8" class="code" title="subfunction rz = rotation_matrix">rotation_matrix</a>;
+0318 rot= rz*mdl.nodes';
+0319 rot = rot';
+0320 bot = false(size(mdl.nodes,1),1);
+0321 bot(unique(mdl.boundary)) = true;
+0322 bot = bot &amp; fun(rot);
+0323 
+0324 
+0325 bot_idx = find(bot);
+0326 on_boundary = ismember(bot_idx, unique(mdl.boundary));
+0327 bot = false(size(bot));
+0328 bot(bot_idx(on_boundary)) = true;
+0329 
+0330 <span class="keyword">if</span> <a href="../../eidors/tools/eidors_debug.html" class="code" title="function out = eidors_debug(command, fstr)">eidors_debug</a>(<span class="string">'query'</span>,<span class="string">'mk_head_model_adult:split_surface'</span>)
+0331    clf
+0332    jnk = mdl;
+0333    jnk.nodes = rot;
+0334    <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(jnk)
+0335    <a href="../../eidors/meshing/crop_model.html" class="code" title="function [fmdl,c2f_idx]= crop_model( axis_handle, fcn_handle );">crop_model</a>([], @(x,y,z) z &gt; -120)
+0336    axis tight
+0337    hold on
+0338    plot3(rot(bot,1),rot(bot,2),rot(bot,3),<span class="string">'o'</span>);
+0339    hold off
+0340 <span class="keyword">end</span>
+0341 
+0342 <span class="comment">% remove the bottom surface from the boundary</span>
+0343 b = mdl.boundary;
+0344 b = sum(bot(b),2)==3;
+0345 mdl.boundary(b,:) = [];
+0346 bottom_nodes = mdl.nodes(bot,:); <span class="comment">% save bottom nodes for later</span>
+0347 
+0348 <span class="comment">% separate surfaces</span>
+0349 bnd = unique(mdl.boundary);
+0350 [jnk, pos] = min(abs(mdl.nodes(bnd,1))+abs(mdl.nodes(bnd,2))+mdl.nodes(bnd,3));
+0351 idx = <a href="#_sub11" class="code" title="subfunction idx = find_connected_bnd_elems(mdl,nd)">find_connected_bnd_elems</a>(mdl,bnd(pos));
+0352 
+0353 <span class="comment">% package</span>
+0354 upper = <a href="#_sub7" class="code" title="subfunction shell = build_shell(mdl, idx)">build_shell</a>(mdl, idx);
+0355 log_idx = true(size(mdl.boundary,1),1);
+0356 log_idx(idx) = false;
+0357 lower = <a href="#_sub7" class="code" title="subfunction shell = build_shell(mdl, idx)">build_shell</a>(mdl, log_idx);
+0358 
+0359 <a name="_sub7" href="#_subfunctions" class="code">function shell = build_shell(mdl, idx)</a>
+0360 shell.nodes = mdl.nodes;
+0361 shell.elems = mdl.boundary(idx,:);
+0362 shell.type = <span class="string">'fwd_model'</span>;
+0363 shell = <a href="remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>(shell);
+0364 shell.boundary = shell.elems;
+0365 
+0366 <a name="_sub8" href="#_subfunctions" class="code">function rz = rotation_matrix</a>
+0367 tz = -5.8/180 * pi;
+0368 rz = [1 0 0; 0 cos(tz) -sin(tz); 0 sin(tz) cos(tz) ;];
+0369 
+0370 <span class="comment">% find an equation relating y and z on the bottom surface</span>
+0371 <a name="_sub9" href="#_subfunctions" class="code">function p = bottom_z_from_xy (bn)</a>
+0372 p = polyfit(bn(:,2),bn(:,3),6);
+0373 <span class="comment">% clf</span>
+0374 <span class="comment">% plot(bn(:,2),bn(:,3),'.')</span>
+0375 <span class="comment">% hold on</span>
+0376 <span class="comment">% pp = polyval(p,-100:.1:100);</span>
+0377 <span class="comment">% plot(-100:.1:100,pp,'r')</span>
+0378 
+0379 <a name="_sub10" href="#_subfunctions" class="code">function mdl = remesh_CSF(mdl, maxh)</a>
+0380 
+0381 opt.options.meshsize = maxh;
+0382 opt.options.curvaturesafety = 3.0;
+0383 opt.stloptions.yangle = 20.0;
+0384 opt.stloptions.contyangle = 50.0;
+0385 opt.stloptions.edgecornerangle = 100;
+0386 opt.stloptions.chartangle = 30;
+0387 
+0388 mdl = <a href="fix_boundary.html" class="code" title="function mdl = fix_boundary(mdl)">fix_boundary</a>(mdl);
+0389 mdl = <a href="../../eidors/meshing/netgen/ng_stl2tet.html" class="code" title="function mdl = ng_stl2tet(stlfile, varargin)">ng_stl2tet</a>(mdl, <span class="string">'moderate'</span>, opt);
+0390 
+0391 <a name="_sub11" href="#_subfunctions" class="code">function idx = find_connected_bnd_elems(mdl,nd)</a>
+0392 n_elem = length(mdl.boundary);
+0393 todo = false(1,n_elem);
+0394 done = false(1,n_elem);
+0395 tmp = false(1,length(mdl.nodes));
+0396 tmp(nd) = true;
+0397 <span class="comment">% boundary elements that contain that node</span>
+0398 id = any(tmp(mdl.boundary),2);
+0399 todo(id) = true;
+0400 mdl.elems = mdl.boundary;
+0401 mdl = <a href="fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>(mdl, struct(<span class="string">'face2edge'</span>,true));
+0402 f2e = mdl.face2edge;
+0403 i = repmat((1:length(mdl.boundary))',1,3);
+0404 S = <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(i(:),f2e(:),true);
+0405 C = S*S'; <span class="comment">% face2face connectivity matrix</span>
+0406 C = logical(spdiags(zeros(n_elem,1),0,C)); <span class="comment">% remove diagonal</span>
+0407 <span class="keyword">while</span> any(todo)
+0408    [~, id] = find(C(todo,:));
+0409    done(todo) = true;
+0410    todo(id) = true;
+0411    todo(done) = false;
+0412 <span class="keyword">end</span>
+0413 idx = find(done);
+0414 
+0415 <a name="_sub12" href="#_subfunctions" class="code">function mdle = build_head_elecs(scalp, elec_pos, elec_spec, maxh)</a>
+0416 <span class="keyword">if</span> nargin &lt; 4, maxh = 8; <span class="keyword">end</span>
+0417 ng_opt = <a href="#_sub15" class="code" title="subfunction opt = get_ng_opt(maxh)">get_ng_opt</a>(maxh);
+0418 mdle = <a href="place_elec_on_surf.html" class="code" title="function mdl2 = place_elec_on_surf(mdl,elec_pos, elec_spec,ng_opt_file, maxh)">place_elec_on_surf</a>(scalp, elec_pos, elec_spec,ng_opt);
+0419 <span class="comment">% fix orientation of the boundary</span>
+0420 mdle = <a href="fix_boundary.html" class="code" title="function mdl = fix_boundary(mdl)">fix_boundary</a>(mdle); mdl = mdle;
+0421 
+0422 <a name="_sub13" href="#_subfunctions" class="code">function [out, img, materials] = get_base_model()</a>
+0423 [img, materials] = <a href="#_sub16" class="code" title="subfunction [img, materials] = get_at_model()">get_at_model</a>();
+0424 
+0425 cache_path = <a href="#_sub17" class="code" title="subfunction out = get_cache_path">get_cache_path</a>;
+0426 fname = <span class="string">'base_model.mat'</span>;
+0427 fpath = [cache_path filesep fname];
+0428 <span class="keyword">if</span> exist(fpath, <span class="string">'file'</span>)
+0429    <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'@@ Using stored base model.'</span>, 3);
+0430    load(fpath, <span class="string">'out'</span>);
+0431    <span class="keyword">return</span>
+0432 <span class="keyword">end</span>
+0433 
+0434 idx = find(strcmp(materials.names, <span class="string">'scalp'</span>));
+0435 scalp = img.fwd_model; scalp.elems = scalp.elems(materials.ref==idx,:);
+0436 out = <a href="#_sub14" class="code" title="subfunction mdl = fix_scalp(mdl)">fix_scalp</a>(scalp); <span class="comment">% re-meshes after merging duplicated surface nodes</span>
+0437 save(fpath, <span class="string">'out'</span>);
+0438 
+0439 <a name="_sub14" href="#_subfunctions" class="code">function mdl = fix_scalp(mdl)</a>
+0440 
+0441 <span class="comment">%skull has some funny holes in the eyes.... fix manually</span>
+0442 mdl = <a href="fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>(mdl);
+0443 flip = mdl.elem2face(logical(mdl.boundary_face(mdl.elem2face).*mdl.inner_normal));
+0444 mdl.faces(flip,:) = mdl.faces(flip,[1 3 2]);
+0445 mdl.normals(flip,:) = -mdl.normals(flip,:);
+0446 mdl.boundary = mdl.faces(mdl.boundary_face,:);
+0447 mdl.elems = mdl.boundary;
+0448 <span class="comment">% nodes 1065 and 1063 should be one</span>
+0449 mdl.nodes(1063,:) = mean(mdl.nodes([1063 1065],:));
+0450 mdl.nodes(1065,:) = mean(mdl.nodes([109 111], :));
+0451 mdl.nodes(1045,:) = mean(mdl.nodes([1043 1045],:));
+0452 mdl.nodes(1043,:) = mean(mdl.nodes([101 103], :));
+0453 
+0454 keep = any(reshape(mdl.nodes(mdl.elems,2) &lt; -65 &amp; <span class="keyword">...</span>
+0455                     mdl.nodes(mdl.elems,2) &gt; -75 &amp; <span class="keyword">...</span>
+0456                     mdl.nodes(mdl.elems,3) &lt; -15 &amp; <span class="keyword">...</span>
+0457                     mdl.nodes(mdl.elems,3) &gt; -30 &amp; <span class="keyword">...</span>
+0458                     mdl.nodes(mdl.elems,1) &lt; -10 &amp; <span class="keyword">...</span>
+0459                     mdl.nodes(mdl.elems,1) &gt; -20    ,[],3),2);
+0460 h63 = find(any(mdl.elems == 1063,2));
+0461 h65 = find(any(mdl.elems == 1065,2));
+0462 mdl.elems(h63(2),mdl.elems(h63(2),:)== 1063) = 1065;
+0463 mdl.elems(h63(4),mdl.elems(h63(4),:)== 1063) = 1065;
+0464 mdl.elems(h65(1),mdl.elems(h65(1),:)== 1065) = 1063;
+0465 mdl.elems(h65(3),mdl.elems(h65(3),:)== 1065) = 1063;
+0466 mdl.elems(h65(5),mdl.elems(h65(5),:)== 1065) = 1063;
+0467 h43 = find(any(mdl.elems == 1043,2));
+0468 h45 = find(any(mdl.elems == 1045,2));
+0469 mdl.elems(h43(1),mdl.elems(h43(1),:)== 1043) = 1045;
+0470 mdl.elems(h43(3),mdl.elems(h43(3),:)== 1043) = 1045;
+0471 mdl.elems(h43(5),mdl.elems(h43(5),:)== 1043) = 1045;
+0472 mdl.elems(h45(2),mdl.elems(h45(2),:)== 1045) = 1043;
+0473 mdl.elems(h45(4),mdl.elems(h45(4),:)== 1045) = 1043;
+0474 
+0475 <span class="comment">% mdl.boundary = mdl.elems(keep,:);</span>
+0476 <span class="comment">% clf</span>
+0477 <span class="comment">% show_fem(mdl);</span>
+0478 <span class="comment">% hold on</span>
+0479 
+0480 <span class="comment">% we've only fixed the surface. Re-mesh the inside</span>
+0481 mdl = <a href="../../eidors/meshing/gmsh/gmsh_stl2tet.html" class="code" title="function mdl = gmsh_stl2tet(stlfile, mesh_size, extra, nopt)">gmsh_stl2tet</a>(mdl,[],[],2);
+0482 mdl = <a href="fix_boundary.html" class="code" title="function mdl = fix_boundary(mdl)">fix_boundary</a>(mdl);
+0483 
+0484 <a name="_sub15" href="#_subfunctions" class="code">function opt = get_ng_opt(maxh)</a>
+0485    opt.meshoptions.fineness = 6; <span class="comment">% some options have no effect without this</span>
+0486    opt.options.curvaturesafety = 0.2;
+0487    <span class="comment">% small yangle preserves the original mesh, large encourages smoother</span>
+0488    <span class="comment">% surface with nicer spreading of refinement</span>
+0489    opt.stloptions.yangle = 10;
+0490  <span class="comment">%    opt.stloptions.contyangle = 20;</span>
+0491    opt.stloptions.edgecornerangle = 0;
+0492 <span class="comment">%    opt.stloptions.chartangle = 0;</span>
+0493    opt.stloptions.outerchartangle = 120;
+0494    opt.stloptions.resthchartdistenable = 1;
+0495    opt.stloptions.resthchartdistfac = 2.0; <span class="comment">% encourages slower increase of element size</span>
+0496    opt.options.meshsize = maxh;
+0497    opt.meshoptions.laststep = <span class="string">'mv'</span>; <span class="comment">% don't need volume optimization</span>
+0498    opt.options.optsteps2d =  5; <span class="comment">% but we can up surface optimization</span>
+0499    opt.options.badellimit = 120; <span class="comment">% decrease the maximum allowed angle</span>
+0500 
+0501 <a name="_sub16" href="#_subfunctions" class="code">function [img, materials] = get_at_model()</a>
+0502 
+0503 contrib = <span class="string">'at-head-mesh'</span>; file =  <span class="string">'SAH262.mat'</span>;
+0504 load(<a href="../../eidors/interface/get_contrib_data.html" class="code" title="function p = get_contrib_data( contrib , file )">get_contrib_data</a>(contrib,file),<span class="string">'tri'</span>, <span class="string">'vtx'</span>, <span class="string">'materials'</span>);
+0505 
+0506 mdl = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>,<span class="string">'sah262'</span>,<span class="string">'nodes'</span>,vtx,<span class="string">'elems'</span>,tri);
+0507 img = <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(mdl,1);
+0508 <span class="keyword">for</span> i = 1:4
+0509    img.elem_data(materials.ref==i) = materials.sigma(i);
+0510 <span class="keyword">end</span>
+0511 
+0512 materials.names = cellstr(materials.names);
+0513 
+0514 <a name="_sub17" href="#_subfunctions" class="code">function out = get_cache_path</a>
+0515 <span class="keyword">global</span> eidors_objects
+0516 out = [eidors_objects.model_cache filesep <span class="string">'head_model_adult'</span>];
+0517 <span class="keyword">if</span> ~exist(out, <span class="string">'dir'</span>)
+0518    mkdir(out);
+0519 <span class="keyword">end</span>
+0520 
+0521 <span class="comment">%% ELECTRODE POSITIONS</span>
+0522 <a name="_sub18" href="#_subfunctions" class="code">function [e_ar, names] = get_elec_pos(mdl, show)</a>
+0523 <span class="keyword">if</span> nargin &lt; 2, show = false; <span class="keyword">end</span>
+0524 <span class="comment">% cut through the nose:</span>
+0525 slc = <a href="../../eidors/graphics/matlab/mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(mdl,[0 inf inf]);
+0526 slc.fwd_model.boundary = <a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(slc.fwd_model);
+0527 
+0528 <span class="comment">% exclude the nasal cavity</span>
+0529 b = unique(slc.fwd_model.boundary);
+0530 box = [-87.6 -63.5;-88.2 -28;9.6  -26.8;11.6  -67.5];
+0531 b = b(~inpolygon(slc.fwd_model.nodes(b,2),slc.fwd_model.nodes(b,3),box(:,1),box(:,2)));
+0532 <span class="comment">% define Nasion</span>
+0533 outln = <a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>(slc.fwd_model.nodes(b,:),-1);
+0534 nasion= [-81.754 -8.157];
+0535 pp    = <a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(outln(:,2:3),51);
+0536 <span class="comment">% 0.457 seems to be a realistic place for inion, the other landmark</span>
+0537 fr    = linspace(0,0.456,1001); fr(end) = [];
+0538 cap   = <a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(pp,fr,nasion);
+0539 e_ar = [];
+0540 names = {};
+0541 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(1,:) ],<span class="string">'Nz'</span>);
+0542 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(100,:)],<span class="string">'Fpz'</span>);
+0543 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(200,:)],<span class="string">'AFz'</span>);
+0544 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(300,:)],<span class="string">'Fz'</span>);
+0545 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(400,:)],<span class="string">'FCz'</span>);
+0546 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(500,:)],<span class="string">'Cz'</span>);
+0547 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(600,:)],<span class="string">'CPz'</span>);
+0548 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(700,:)],<span class="string">'Pz'</span>);
+0549 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(800,:)],<span class="string">'POz'</span>);
+0550 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(900,:)],<span class="string">'Oz'</span>);
+0551 [e_ar,names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names, [0 cap(<span class="keyword">end</span>,:)],<span class="string">'Iz'</span>);
+0552 
+0553 <span class="keyword">if</span> show
+0554    clf
+0555    <span class="comment">% show_fem(mdl);</span>
+0556    axis equal
+0557    hold on
+0558    slc.calc_colours.transparency_thresh = -1;
+0559    slc.calc_colours.ref_level = 0.25;
+0560    <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc);
+0561 <span class="keyword">end</span>
+0562 
+0563 <span class="comment">% calculate a &quot;horizontal plane between Nz and Iz</span>
+0564 e1 = <a href="#_sub21" class="code" title="subfunction [e1] = get_elec(e_ar,names,name)">get_elec</a>(e_ar,names,<span class="string">'Fpz'</span>);
+0565 e2 = <a href="#_sub21" class="code" title="subfunction [e1] = get_elec(e_ar,names,name)">get_elec</a>(e_ar,names,<span class="string">'Oz'</span>);
+0566 d = e2 - e1;
+0567 t2 = -e1(2)/d(2);
+0568 t3 = -e1(3)/d(3);
+0569 z = e1(3) + t2*d(3);
+0570 y = e1(2) + t3*d(2);
+0571 slc = <a href="../../eidors/graphics/matlab/mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(mdl,[inf y z]);
+0572 slc.calc_colours.transparency_thresh = -1;
+0573 slc.calc_colours.ref_level = 0.25;
+0574 <span class="keyword">if</span> show
+0575    <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc);
+0576    view(3)
+0577 <span class="keyword">end</span>
+0578 slc.fwd_model.boundary = <a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(slc.fwd_model);
+0579 b = unique(slc.fwd_model.boundary);
+0580 outln = <a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>(slc.fwd_model.nodes(b,:),-1);
+0581 pp    = <a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(outln(:,1:2),51);
+0582 fr = linspace(0,1,21); fr(end) = [];
+0583 pl = <a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(pp,fr,e1(:,1:2));
+0584 pl(:,3) = e1(3) + d(3)*(pl(:,2) - e1(2))/d(2);
+0585 pl([1 11],:) = [];
+0586 nm = {<span class="string">'Fp1'</span>,<span class="string">'AF7'</span>,<span class="string">'F7'</span>,<span class="string">'FT7'</span>,<span class="string">'T7'</span>,<span class="string">'TP7'</span>,<span class="string">'P7'</span>,<span class="string">'PO7'</span>,<span class="string">'O1'</span>,<span class="keyword">...</span>
+0587       <span class="string">'O2'</span>,<span class="string">'PO8'</span>,<span class="string">'P8'</span>,<span class="string">'TP8'</span>,<span class="string">'T8'</span>,<span class="string">'FT8'</span>,<span class="string">'F8'</span>,<span class="string">'AF8'</span>,<span class="string">'Fp2'</span>};
+0588 [e_ar names] = <a href="#_sub19" class="code" title="subfunction [e_ar names] = add_elecs(e_ar,names, e, name)">add_elecs</a>(e_ar,names,pl,nm);
+0589 
+0590 
+0591 nm = {<span class="string">'AF3'</span>,<span class="string">'AF4'</span>};
+0592 [slc el] = <a href="#_sub23" class="code" title="subfunction [slc, e] = define_plane(mdl, e_ar,names,n1, n2);">define_plane</a>(mdl,e_ar, names, <span class="string">'AFz'</span>,<span class="string">'AF7'</span>);
+0593 el = el([3 6],:);
+0594 [e_ar names] = <a href="#_sub19" class="code" title="subfunction [e_ar names] = add_elecs(e_ar,names, e, name)">add_elecs</a>(e_ar,names,el,nm);
+0595 <span class="keyword">if</span> show, <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc); <span class="keyword">end</span>
+0596 
+0597 nm = {<span class="string">'F9'</span>,<span class="string">'F5'</span>,<span class="string">'F3'</span>,<span class="string">'F1'</span>,<span class="string">'F2'</span>,<span class="string">'F4'</span>,<span class="string">'F6'</span>,<span class="string">'F10'</span>};
+0598 [slc el] = <a href="#_sub23" class="code" title="subfunction [slc, e] = define_plane(mdl, e_ar,names,n1, n2);">define_plane</a>(mdl,e_ar, names, <span class="string">'Fz'</span>,<span class="string">'F7'</span>);
+0599 [e_ar names] = <a href="#_sub19" class="code" title="subfunction [e_ar names] = add_elecs(e_ar,names, e, name)">add_elecs</a>(e_ar,names,el,nm);
+0600 <span class="keyword">if</span> show, <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc); <span class="keyword">end</span>
+0601 
+0602 nm = {<span class="string">'FT9'</span>,<span class="string">'FC5'</span>,<span class="string">'FC3'</span>,<span class="string">'FC1'</span>,<span class="string">'FC2'</span>,<span class="string">'FC4'</span>,<span class="string">'FC6'</span>,<span class="string">'FT10'</span>};
+0603 [slc el] = <a href="#_sub23" class="code" title="subfunction [slc, e] = define_plane(mdl, e_ar,names,n1, n2);">define_plane</a>(mdl,e_ar, names, <span class="string">'FCz'</span>,<span class="string">'FT7'</span>);
+0604 [e_ar names] = <a href="#_sub19" class="code" title="subfunction [e_ar names] = add_elecs(e_ar,names, e, name)">add_elecs</a>(e_ar,names,el,nm);
+0605 <span class="keyword">if</span> show, <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc); <span class="keyword">end</span>
+0606 
+0607 nm = {<span class="string">'T9'</span>,<span class="string">'C5'</span>,<span class="string">'C3'</span>,<span class="string">'C1'</span>,<span class="string">'C2'</span>,<span class="string">'C4'</span>,<span class="string">'C6'</span>,<span class="string">'T10'</span>};
+0608 [slc el] = <a href="#_sub23" class="code" title="subfunction [slc, e] = define_plane(mdl, e_ar,names,n1, n2);">define_plane</a>(mdl,e_ar, names, <span class="string">'Cz'</span>,<span class="string">'T7'</span>);
+0609 [e_ar names] = <a href="#_sub19" class="code" title="subfunction [e_ar names] = add_elecs(e_ar,names, e, name)">add_elecs</a>(e_ar,names,el,nm);
+0610 <span class="keyword">if</span> show, <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc); <span class="keyword">end</span>
+0611 
+0612 nm = {<span class="string">'TP9'</span>,<span class="string">'CP5'</span>,<span class="string">'CP3'</span>,<span class="string">'CP1'</span>,<span class="string">'CP2'</span>,<span class="string">'CP4'</span>,<span class="string">'CP6'</span>,<span class="string">'TP10'</span>};
+0613 [slc el] = <a href="#_sub23" class="code" title="subfunction [slc, e] = define_plane(mdl, e_ar,names,n1, n2);">define_plane</a>(mdl,e_ar, names, <span class="string">'CPz'</span>,<span class="string">'TP7'</span>);
+0614 [e_ar names] = <a href="#_sub19" class="code" title="subfunction [e_ar names] = add_elecs(e_ar,names, e, name)">add_elecs</a>(e_ar,names,el,nm);
+0615 <span class="keyword">if</span> show, <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc); <span class="keyword">end</span>
+0616 
+0617 nm = {<span class="string">'P9'</span>,<span class="string">'P5'</span>,<span class="string">'P3'</span>,<span class="string">'P1'</span>,<span class="string">'P2'</span>,<span class="string">'P4'</span>,<span class="string">'P6'</span>,<span class="string">'P10'</span>};
+0618 [slc el] = <a href="#_sub23" class="code" title="subfunction [slc, e] = define_plane(mdl, e_ar,names,n1, n2);">define_plane</a>(mdl,e_ar, names, <span class="string">'Pz'</span>,<span class="string">'P7'</span>);
+0619 [e_ar names] = <a href="#_sub19" class="code" title="subfunction [e_ar names] = add_elecs(e_ar,names, e, name)">add_elecs</a>(e_ar,names,el,nm);
+0620 <span class="keyword">if</span> show, <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc); <span class="keyword">end</span>
+0621 
+0622 nm = {<span class="string">'PO3'</span>,<span class="string">'PO4'</span>};
+0623 [slc el] = <a href="#_sub23" class="code" title="subfunction [slc, e] = define_plane(mdl, e_ar,names,n1, n2);">define_plane</a>(mdl,e_ar, names, <span class="string">'POz'</span>,<span class="string">'PO7'</span>);
+0624 el = el([3 6],:);
+0625 [e_ar names] = <a href="#_sub19" class="code" title="subfunction [e_ar names] = add_elecs(e_ar,names, e, name)">add_elecs</a>(e_ar,names,el,nm);
+0626 <span class="keyword">if</span> show, <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc); <span class="keyword">end</span>
+0627 <span class="keyword">if</span> show
+0628    <span class="keyword">for</span> i = 1:numel(names)
+0629       <a href="#_sub22" class="code" title="subfunction plot_elec(e_ar,names,name)">plot_elec</a>(e_ar,names,names{i});
+0630    <span class="keyword">end</span>
+0631    hold off
+0632 <span class="keyword">end</span>
+0633 <span class="comment">%</span>
+0634 <span class="comment">% load epos128;</span>
+0635 <span class="comment">% phi = sign(epos(:,1))*90 - epos(:,2); phi = pi*phi/180;</span>
+0636 <span class="comment">% the = epos(:,1); the(the&gt;0) = -the(the&gt;0); the = pi*the/180;</span>
+0637 <span class="comment">% z = sin(the);</span>
+0638 <span class="comment">% x = cos(the).*sin(phi);</span>
+0639 <span class="comment">% y = cos(the).*cos(phi);</span>
+0640 
+0641 <a name="_sub19" href="#_subfunctions" class="code">function [e_ar names] = add_elecs(e_ar,names, e, name)</a>
+0642 <span class="keyword">for</span> i = 1:size(e,1)
+0643     [e_ar names] = <a href="#_sub20" class="code" title="subfunction [e_ar names] = add_elec(e_ar,names,e,name);">add_elec</a>(e_ar,names,e(i,:),name{i});
+0644 <span class="keyword">end</span>
+0645 
+0646 <a name="_sub20" href="#_subfunctions" class="code">function [e_ar names] = add_elec(e_ar,names,e,name);</a>
+0647 e_ar(end+1,:) = e;
+0648 names{end+1} = name;
+0649 <span class="comment">% function [x y z] = get_elec_cart(mdl,incl, azim)</span>
+0650 
+0651 <a name="_sub21" href="#_subfunctions" class="code">function [e1] = get_elec(e_ar,names,name)</a>
+0652 idx = find(ismember(names,name));
+0653 e1 = e_ar(idx,:);
+0654 
+0655 <a name="_sub22" href="#_subfunctions" class="code">function plot_elec(e_ar,names,name)</a>
+0656 e = <a href="#_sub21" class="code" title="subfunction [e1] = get_elec(e_ar,names,name)">get_elec</a>(e_ar,names,name);
+0657 <span class="keyword">if</span> size(e,2) == 3
+0658     plot3(e(:,1),e(:,2),e(:,3),<span class="string">'bo'</span>,<span class="string">'MarkerFaceColor'</span>,<span class="string">'b'</span>,<span class="string">'MarkerSize'</span>,10);
+0659 <span class="keyword">else</span>
+0660     plot(e(:,1),e(:,2),<span class="string">'bo'</span>,<span class="string">'MarkerFaceColor'</span>,<span class="string">'b'</span>,<span class="string">'MarkerSize'</span>,10);
+0661 <span class="keyword">end</span>
+0662 
+0663 <a name="_sub23" href="#_subfunctions" class="code">function [slc, e] = define_plane(mdl, e_ar,names,n1, n2);</a>
+0664 e1 = <a href="#_sub21" class="code" title="subfunction [e1] = get_elec(e_ar,names,name)">get_elec</a>(e_ar,names,n1);
+0665 e2 = <a href="#_sub21" class="code" title="subfunction [e1] = get_elec(e_ar,names,name)">get_elec</a>(e_ar,names,n2);
+0666 d = e2 - e1;
+0667 t2 = -e1(2)/d(2);
+0668 t3 = -e1(3)/d(3);
+0669 z = e1(3) + t2*d(3);
+0670 y = e1(2) + t3*d(2);
+0671 slc = <a href="../../eidors/graphics/matlab/mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(mdl,[inf y z]);
+0672 <span class="comment">% show_fem(slc);</span>
+0673 slc.calc_colours.transparency_thresh = -1;
+0674 slc.calc_colours.ref_level = 0.25;
+0675 slc.fwd_model.boundary = <a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(slc.fwd_model);
+0676 
+0677 <span class="comment">%exclude nasal cavity</span>
+0678 b = unique(slc.fwd_model.boundary);
+0679 box = [  -16.0484  -19.0245
+0680    22.6613  -15.7946
+0681    23.7903  -92.9910
+0682   -20.0806  -91.6990];
+0683 b = b(~inpolygon(slc.fwd_model.nodes(b,1),slc.fwd_model.nodes(b,3),box(:,1),box(:,2)));
+0684 outln = <a href="../../eidors/meshing/order_loop.html" class="code" title="function [p n] = order_loop(pp,clk)">order_loop</a>(slc.fwd_model.nodes(b,:),-1);
+0685 pp    = <a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(outln(:,[1 3]),51);
+0686 fr = linspace(0,1,10001); fr(end) = [];
+0687 pl = <a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(pp,fr,e1(:,[1 3]));
+0688 <span class="comment">% find the position of the other electrode</span>
+0689 di = sqrt(sum((pl - repmat(e2([1 3]),length(pl),1)).^2,2));
+0690 [jnk, p] = min(di);
+0691 p = p/10000;
+0692 <span class="keyword">if</span> p &gt; 0.5, p = 1-p; <span class="keyword">end</span>
+0693 fr = [-5 -3 -2 -1 1 2 3 5] ./4 .* p;
+0694 el = <a href="../../eidors/meshing/netgen/fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(pp, fr, e1(:,[1 3]));
+0695 e(:,[1 3]) = el;
+0696 e(:,2) = e1(2) + d(2).*(e(:,3) - e1(3))./d(3);
+0697 
+0698 <span class="comment">% plot3(e(:,1),e(:,2),e(:,3),'o')</span>
+0699 <span class="comment">% plot3(e(1,1),e(1,2),e(1,3),'o','MarkerFaceColor','b')</span>
+0700 
+0701 
+0702 <span class="comment">%% UNIT TEST</span>
+0703 <a name="_sub24" href="#_subfunctions" class="code">function do_unit_test</a>
+0704 
+0705 warning(<span class="string">'off'</span>,<span class="string">'EIDORS:License'</span>);
+0706 
+0707 <span class="comment">% FMDL = MK_HEAD_MODEL_ADULT()</span>
+0708 <span class="comment">% Returns a head fwd_model with no electrodes or tissues</span>
+0709 fmdl = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>();
+0710 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'fwd_model'</span>, fmdl.type, <span class="string">'fwd_model'</span>);
+0711 <span class="comment">%</span>
+0712 <span class="comment">% FMDL = MK_HEAD_MODEL_ADULT(elec_pos, elec_shape)</span>
+0713 <span class="comment">% FMDL = MK_HEAD_MODEL_ADULT(elec_pos, elec_shape, maxh)</span>
+0714 <span class="comment">% Allows specifying electrode configuration, see PLACE_ELEC_ON_SURF</span>
+0715 elec_pos = [8, 0, 0, 10]; <span class="comment">% [N, equal angles, z1, z2];</span>
+0716 elec_shape = [3, 0, 1]; <span class="comment">% [radius, 0, maxh]</span>
+0717 maxh = 10;
+0718 img1 = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(elec_pos, elec_shape); <span class="comment">% default max is 8</span>
+0719 img2 = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(elec_pos, elec_shape, maxh);
+0720 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'custom + maxh'</span>, <a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(img1) &gt; <a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(img2), true);
+0721 
+0722 <span class="comment">%</span>
+0723 <span class="comment">% FMDL = MK_HEAD_MODEL_ADULT(elecstr)</span>
+0724 <span class="comment">% A predefined model with round electrodes (radius 2 mm).</span>
+0725 <span class="comment">%    '10-10'         - 73 labeled electrodes (10-10 placement system),</span>
+0726 <span class="comment">%                      no stimulation.</span>
+0727 <span class="comment">%    '2x16_planar'   - 2 rings of 16 electrodes, planar stimulation</span>
+0728 <span class="comment">%    '2x16_odd-even' - 2 rings, each stimulation is cross-plane</span>
+0729 <span class="comment">%    '2x16_square'   - 2 rings, every second stimulation is cross-plane</span>
+0730 <span class="comment">%    '2x16_adjacent' - like square, but with adjacent stimulation</span>
+0731 <span class="comment">%    '1x32_ring'     - single ring of 32 electrodes</span>
+0732 <span class="comment">%    'no_elecs'      - no electrodes</span>
+0733 
+0734 img10 = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(<span class="string">'10-10'</span>);
+0735 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'10-10 # elecs'</span>, numel(img10.fwd_model.electrode),73);
+0736 img1 = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(<span class="string">'1x32_ring'</span>);
+0737 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'1x32 # elecs'</span>, numel(img1.fwd_model.electrode),32);
+0738 img1 = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(<span class="string">'no_elecs'</span>);
+0739 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'no elecs'</span>, isfield(img1.fwd_model, <span class="string">'electrode'</span>),false);
+0740 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'materials'</span>, numel(img1.fwd_model.mat_idx), 4);
+0741 
+0742 <span class="comment">%</span>
+0743 <span class="comment">% IMG = MK_HEAD_MODEL_ADULT(... , tissuespec)</span>
+0744 <span class="comment">% Returns a head model containing separate regions defining scalp, skull,</span>
+0745 <span class="comment">% CSF and brain as an image structure with conductivitity values.</span>
+0746 <span class="comment">% TISSUESPEC must be one of:</span>
+0747 <span class="comment">%    'coarse'        - (defualt) tissue surfaces with maxh = 5mm</span>
+0748 <span class="comment">%    'fine'          - tissue surfaces with maxh = 2mm</span>
+0749 <span class="comment">%    'void'          - no internal tissues (void), useful for testing</span>
+0750 <span class="comment">%                      electrode positions</span>
+0751 
+0752 fmdl = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(elec_pos, elec_shape, maxh, <span class="string">'void'</span>);
+0753 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'void type'</span>, fmdl.type, <span class="string">'fwd_model'</span>);
+0754 img1 = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(<span class="string">'10-10'</span>, <span class="string">'fine'</span>);
+0755 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'fine'</span>, <a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(img10) &lt; <a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(img1), true);
+0756 
+0757 warning(<span class="string">'on'</span>,<span class="string">'EIDORS:License'</span>);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

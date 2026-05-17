@@ -1,0 +1,173 @@
+%% EE52037 MSc Dissertation - University of Bath
+%% LaTeX Template following Department of Electronic & Electrical Engineering guidelines
+%% Harvard (Bath) referencing style via biblatex-bath
+
+\documentclass[12pt, a4paper, oneside]{report}
+
+%% ─── Packages ─────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% Graphics and figures
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+
+% Mathematics
+\usepackage{amsmath, amssymb, amsfonts}
+
+% Code listings
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    captionpos=b,
+}
+
+% Hyperlinks
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+% Harvard (Bath) referencing style
+\usepackage[style=bath, backend=biber, sorting=nyt]{biblatex}
+\addbibresource{references.bib}
+
+% Captions
+\usepackage[font=small, labelfont=bf]{caption}
+
+% Header/footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Appendix
+\usepackage[toc,page]{appendix}
+
+% Glossary / abbreviations
+\usepackage[acronym, toc]{glossaries}
+\makeglossaries
+
+%% ─── Acronyms ─────────────────────────────────────────────────────────────────
+\newacronym{eit}{EIT}{Electrical Impedance Tomography}
+\newacronym{ert}{ERT}{Electrical Resistance Tomography}
+\newacronym{cnn}{CNN}{Convolutional Neural Network}
+\newacronym{svm}{SVM}{Support Vector Machine}
+\newacronym{rf}{RF}{Random Forest}
+\newacronym{mlp}{MLP}{Multi-Layer Perceptron}
+\newacronym{snr}{SNR}{Signal-to-Noise Ratio}
+\newacronym{fem}{FEM}{Finite Element Method}
+\newacronym{adc}{ADC}{Analogue-to-Digital Converter}
+\newacronym{pca}{PCA}{Principal Component Analysis}
+\newacronym{dnn}{DNN}{Deep Neural Network}
+
+%% ─── Document Metadata ────────────────────────────────────────────────────────
+\title{Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach}
+\author{Ronald P}
+\date{September 2026}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+%% ─── Title Page ───────────────────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Large\bfseries Ronald P\par}
+    \vspace{1cm}
+    
+    {\LARGE\bfseries Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach\par}
+    \vspace{2cm}
+    
+    {\large A dissertation submitted to the degree of Master of Science\par}
+    \vspace{0.5cm}
+    {\large MSc Artificial Intelligence in Engineering and Design\par}
+    \vspace{2cm}
+    
+    {\large\textbf{Supervisor}\par}
+    {\large Name Surname\par}
+    \vspace{2cm}
+    
+    {\large The University of Bath\par}
+    {\large Department of Electronic and Electrical Engineering\par}
+    \vspace{1cm}
+    {\large September 2026\par}
+    \vspace{2cm}
+    
+    {\large Word Count (from introduction to conclusions): \rule{3cm}{0.4pt}\par}
+\end{titlepage}
+
+%% ─── Copyright ────────────────────────────────────────────────────────────────
+\newpage
+\thispagestyle{empty}
+\vspace*{5cm}
+\noindent\textbf{COPYRIGHT}
+
+\vspace{0.5cm}
+\noindent Attention is drawn to the fact that the copyright of this thesis rests with the author. A copy of this dissertation has been supplied on condition that anyone who consults it is understood to recognise that its copyright rests with the author and that they must not copy it or use material from it except as permitted by law or with the consent of the author.
+
+\vspace{1cm}
+\noindent This thesis may be made available for consultation within the University Library and may be photocopied or lent to other libraries for the purposes of consultation with effect from \rule{3cm}{0.4pt}.
+
+\vspace{2cm}
+\noindent\rule{8cm}{0.4pt}\\
+Signed on behalf of the Department of Electronic and Electrical Engineering
+
+%% ─── Abstract ─────────────────────────────────────────────────────────────────
+\newpage
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+% TODO: Write abstract after all chapters are complete.
+
+%% ─── Acknowledgements ─────────────────────────────────────────────────────────
+\newpage
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+
+% TODO: Write acknowledgements.
+
+%% ─── Table of Contents ────────────────────────────────────────────────────────
+\tableofcontents
+\listoffigures
+\listoftables
+\printglossary[type=\acronymtype, title=List of Abbreviations]
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+%% MAIN BODY
+%% ═══════════════════════════════════════════════════════════════════════════════
+
+\input{chapters/introduction}
+\input{chapters/literature_review}
+\input{chapters/methodology}
+\input{chapters/results}
+\input{chapters/discussion}
+\input{chapters/conclusions}
+
+%% ─── References ───────────────────────────────────────────────────────────────
+\printbibliography[heading=bibintoc, title={References}]
+
+%% ─── Appendices ───────────────────────────────────────────────────────────────
+\begin{appendices}
+\input{chapters/appendix}
+\end{appendices}
+
+\end{document}

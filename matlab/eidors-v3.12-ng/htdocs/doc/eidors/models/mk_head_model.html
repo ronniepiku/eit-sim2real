@@ -1,0 +1,218 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mk_head_model</title>
+  <meta name="keywords" content="mk_head_model">
+  <meta name="description" content="MK_HEAD_MODEL FEM models of the head">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; mk_head_model.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mk_head_model
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MK_HEAD_MODEL FEM models of the head</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function out = mk_head_model(str, varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">MK_HEAD_MODEL FEM models of the head
+
+ MK_HEAD_MODEL provides a shorthand to predefined head FEMs and 
+ for using contributed models with PLACE_ELEC_ON_SURF. You may be asked
+ to download missing files. Specialized MK_HEAD_MODEL_* functions provide
+ additional presets and options.
+
+ MK_HEAD_MODEL(shapestr,elec_pos, elec_shape, maxh) where:
+  shapestr    - a string specifying the underlying model.
+                Run MK_HEAD_MODEL('list_shapes') for a list.
+  elec_pos    - a vector specifying electrode positions.
+                See PLACE_ELEC_ON_SURF for details.
+  elec_shape  - a vector specifying electrode shapes.
+                See PLACE_ELEC_ON_SURF for details.
+  This usage returns a fwd_model structure.
+
+ MK_HEAD_MODEL(modelstr) provides quick access to predefined models.
+ Run MK_HEAD_MODEL('list') for a list. This usage returns either a 
+ fwd_model or an image structure. Specialized MK_HEAD_MODEL_* functions
+ provide additional presets.
+
+ MK_HEAD_MODEL('list_shapes') lists available thorax shapes without 
+  electrodes.
+
+ MK_HEAD_MODEL('list') lists available predefined models.
+
+ See also: <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">MK_HEAD_MODEL_ADULT</a>, <a href="place_elec_on_surf.html" class="code" title="function mdl2 = place_elec_on_surf(mdl,elec_pos, elec_spec,ng_opt_file, maxh)">PLACE_ELEC_ON_SURF</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>	EIDORS_MSG eidors progress and status messages</li><li><a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="fix_boundary.html" class="code" title="function mdl = fix_boundary(mdl)">fix_boundary</a>	FIX_BOUNDARY Orient boundary triangles consistently</li><li><a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>	MDL_NORMALIZE Check or set the normalize_measurements flag on a model.</li><li><a href="mk_head_model.html" class="code" title="function out = mk_head_model(str, varargin)">mk_head_model</a>	MK_HEAD_MODEL FEM models of the head</li><li><a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>	MK_HEAD_MODEL_ADULT Adult head model</li><li><a href="place_elec_on_surf.html" class="code" title="function mdl2 = place_elec_on_surf(mdl,elec_pos, elec_spec,ng_opt_file, maxh)">place_elec_on_surf</a>	PLACE_ELEC_ON_SURF Place electrodes on the surface of a model</li><li><a href="../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>	EIDORS_CACHE Control eidors caching</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="mk_head_model.html" class="code" title="function out = mk_head_model(str, varargin)">mk_head_model</a>	MK_HEAD_MODEL FEM models of the head</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function out = do_mk_head_model(str, elec_pos, elec_shape, maxh)</a></li><li><a href="#_sub2" class="code">function ls = list_basic_shapes</a></li><li><a href="#_sub3" class="code">function out = build_basic_model(str)</a></li><li><a href="#_sub4" class="code">function out = build_advanced_model(str, elec_pos, elec_shape, maxh)</a></li><li><a href="#_sub5" class="code">function ls = list_predef_models</a></li><li><a href="#_sub6" class="code">function out = build_predef_models(str)</a></li><li><a href="#_sub7" class="code">function do_unit_test</a></li><li><a href="#_sub8" class="code">function test_predef_models</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = mk_head_model(str, varargin)</a>
+0002 <span class="comment">%MK_HEAD_MODEL FEM models of the head</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% MK_HEAD_MODEL provides a shorthand to predefined head FEMs and</span>
+0005 <span class="comment">% for using contributed models with PLACE_ELEC_ON_SURF. You may be asked</span>
+0006 <span class="comment">% to download missing files. Specialized MK_HEAD_MODEL_* functions provide</span>
+0007 <span class="comment">% additional presets and options.</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% MK_HEAD_MODEL(shapestr,elec_pos, elec_shape, maxh) where:</span>
+0010 <span class="comment">%  shapestr    - a string specifying the underlying model.</span>
+0011 <span class="comment">%                Run MK_HEAD_MODEL('list_shapes') for a list.</span>
+0012 <span class="comment">%  elec_pos    - a vector specifying electrode positions.</span>
+0013 <span class="comment">%                See PLACE_ELEC_ON_SURF for details.</span>
+0014 <span class="comment">%  elec_shape  - a vector specifying electrode shapes.</span>
+0015 <span class="comment">%                See PLACE_ELEC_ON_SURF for details.</span>
+0016 <span class="comment">%  This usage returns a fwd_model structure.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% MK_HEAD_MODEL(modelstr) provides quick access to predefined models.</span>
+0019 <span class="comment">% Run MK_HEAD_MODEL('list') for a list. This usage returns either a</span>
+0020 <span class="comment">% fwd_model or an image structure. Specialized MK_HEAD_MODEL_* functions</span>
+0021 <span class="comment">% provide additional presets.</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% MK_HEAD_MODEL('list_shapes') lists available thorax shapes without</span>
+0024 <span class="comment">%  electrodes.</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% MK_HEAD_MODEL('list') lists available predefined models.</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% See also: MK_HEAD_MODEL_ADULT, PLACE_ELEC_ON_SURF</span>
+0029 
+0030 <span class="comment">% (C) 2015-2024 Bartlomiej Grychtol. License: GPL version 2 or 3</span>
+0031 <span class="comment">% $Id: mk_head_model.m 7124 2024-12-29 15:18:32Z aadler $</span>
+0032 
+0033 <span class="keyword">if</span> nargin&gt;0 &amp;&amp; ischar(str) 
+0034    <span class="keyword">switch</span>(str)
+0035       <span class="keyword">case</span> <span class="string">'UNIT_TEST'</span>
+0036          <a href="#_sub7" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>;
+0037       <span class="keyword">case</span> <span class="string">'list_shapes'</span>
+0038          out = <a href="#_sub2" class="code" title="subfunction ls = list_basic_shapes">list_basic_shapes</a>; <span class="keyword">return</span>;
+0039       <span class="keyword">case</span> <span class="string">'list'</span>
+0040          out = <a href="#_sub5" class="code" title="subfunction ls = list_predef_models">list_predef_models</a>; <span class="keyword">return</span>;
+0041    <span class="keyword">end</span>
+0042 <span class="keyword">end</span>
+0043 
+0044 opt.fstr = <span class="string">'mk_head_model'</span>;
+0045 out = <a href="../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(@<a href="#_sub1" class="code" title="subfunction out = do_mk_head_model(str, elec_pos, elec_shape, maxh)">do_mk_head_model</a>,[{str}, varargin(:)'],opt);
+0046 <span class="keyword">switch</span> out.type
+0047    <span class="keyword">case</span> <span class="string">'image'</span>
+0048       out.fwd_model = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(out.fwd_model, <span class="string">'default'</span>);
+0049    <span class="keyword">case</span> <span class="string">'fwd_model'</span>
+0050       out = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(out, <span class="string">'default'</span>);
+0051    <span class="keyword">otherwise</span>
+0052       error(<span class="string">'Produced struct with unrecognized type'</span>);
+0053 <span class="keyword">end</span>
+0054 <span class="keyword">end</span>
+0055 
+0056 <a name="_sub1" href="#_subfunctions" class="code">function out = do_mk_head_model(str, elec_pos, elec_shape, maxh)</a>
+0057 
+0058 <span class="keyword">if</span> ismember(str,<a href="#_sub5" class="code" title="subfunction ls = list_predef_models">list_predef_models</a>)
+0059    out = <a href="#_sub6" class="code" title="subfunction out = build_predef_models(str)">build_predef_models</a>(str);
+0060    <span class="keyword">return</span>
+0061 <span class="keyword">end</span>
+0062 
+0063 <span class="keyword">if</span> ~ismember(str, <a href="#_sub2" class="code" title="subfunction ls = list_basic_shapes">list_basic_shapes</a>)
+0064    error(<span class="string">'Shape str &quot;%s&quot; not understood.'</span>,str);
+0065 <span class="keyword">end</span>
+0066 
+0067 <span class="keyword">if</span> ~any(str==<span class="string">'-'</span>) <span class="comment">% basic shaps have no hyphens</span>
+0068    out = <a href="#_sub3" class="code" title="subfunction out = build_basic_model(str)">build_basic_model</a>(str);
+0069    <span class="keyword">if</span> nargin &gt; 1
+0070       out = <a href="place_elec_on_surf.html" class="code" title="function mdl2 = place_elec_on_surf(mdl,elec_pos, elec_spec,ng_opt_file, maxh)">place_elec_on_surf</a>(out,elec_pos,elec_shape,[],maxh);
+0071       out = <a href="fix_boundary.html" class="code" title="function mdl = fix_boundary(mdl)">fix_boundary</a>(out);
+0072    <span class="keyword">end</span>
+0073 <span class="keyword">else</span>
+0074    out = <a href="#_sub4" class="code" title="subfunction out = build_advanced_model(str, elec_pos, elec_shape, maxh)">build_advanced_model</a>(str, elec_pos, elec_shape, maxh);
+0075 <span class="keyword">end</span>
+0076 
+0077 <span class="keyword">end</span>
+0078 
+0079 <a name="_sub2" href="#_subfunctions" class="code">function ls = list_basic_shapes</a>
+0080    ls = {<span class="string">'adult'</span>, <span class="string">'adult-organs'</span>};
+0081 <span class="keyword">end</span>
+0082 
+0083 <a name="_sub3" href="#_subfunctions" class="code">function out = build_basic_model(str)</a>
+0084 <span class="keyword">switch</span>(str)
+0085    <span class="keyword">case</span> <span class="string">'adult'</span>
+0086       out = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>();
+0087 <span class="keyword">end</span>
+0088 <span class="keyword">end</span>
+0089 
+0090 <a name="_sub4" href="#_subfunctions" class="code">function out = build_advanced_model(str, elec_pos, elec_shape, maxh)</a>
+0091 <span class="keyword">switch</span>(str)
+0092    <span class="keyword">case</span> {<span class="string">'adult-organs'</span>}
+0093       out = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(elec_pos, elec_shape, maxh, <span class="string">'coarse'</span>);
+0094 <span class="keyword">end</span>
+0095 <span class="keyword">end</span>
+0096 
+0097 <a name="_sub5" href="#_subfunctions" class="code">function ls = list_predef_models</a>
+0098    ls = {<span class="string">'adult_10-10'</span>
+0099          <span class="string">'adult_2x16'</span>
+0100          <span class="string">'adult_1x32'</span>
+0101         };
+0102 <span class="keyword">end</span>
+0103 
+0104 <a name="_sub6" href="#_subfunctions" class="code">function out = build_predef_models(str)</a>
+0105 <span class="keyword">switch</span> str
+0106    <span class="keyword">case</span> <span class="string">'adult_10-10'</span>
+0107       out = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(<span class="string">'10-10'</span>,<span class="string">'coarse'</span>);
+0108    <span class="keyword">case</span> <span class="string">'adult_2x16'</span>
+0109       out = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(<span class="string">'2x16_planar'</span>,<span class="string">'coarse'</span>);
+0110    <span class="keyword">case</span> <span class="string">'adult_1x32'</span>
+0111       out = <a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>(<span class="string">'1x32_ring'</span>, <span class="string">'coarse'</span>);
+0112 <span class="keyword">end</span>
+0113 <span class="keyword">end</span>
+0114 
+0115 <a name="_sub7" href="#_subfunctions" class="code">function do_unit_test</a>
+0116 <a href="#_sub8" class="code" title="subfunction test_predef_models">test_predef_models</a>
+0117 <span class="keyword">end</span>
+0118 
+0119 <a name="_sub8" href="#_subfunctions" class="code">function test_predef_models</a>
+0120    models = <a href="mk_head_model.html" class="code" title="function out = mk_head_model(str, varargin)">mk_head_model</a>(<span class="string">'list'</span>);
+0121    n_models = numel(models);
+0122 <span class="comment">%    sqrt_n_models = ceil(sqrt(n_models));</span>
+0123    error_list = {};
+0124    <span class="keyword">for</span> i = 1:numel(models)
+0125       <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'\n\n\n DOING  MODEL (%s)\n\n\n'</span>,models{i},0);
+0126       <span class="keyword">try</span>
+0127          mdl = <a href="mk_head_model.html" class="code" title="function out = mk_head_model(str, varargin)">mk_head_model</a>(models{i});
+0128       <span class="keyword">catch</span>
+0129          error_list = [error_list, models(i)];
+0130          <span class="keyword">continue</span>;
+0131       <span class="keyword">end</span>
+0132    
+0133 <span class="comment">%       subplot(sqrt_n_models, sqrt_n_models,i);</span>
+0134       <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(mdl,[0,1,0]); axis off;
+0135       title(models{i},<span class="string">'Interpreter'</span>,<span class="string">'none'</span>);
+0136       drawnow
+0137    <span class="keyword">end</span>
+0138    <span class="keyword">if</span> ~isempty(error_list)
+0139       disp(<span class="string">'There were errors in generating the following models:'</span>)
+0140       disp(error_list);
+0141    <span class="keyword">end</span>
+0142 <span class="keyword">end</span>
+0143</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

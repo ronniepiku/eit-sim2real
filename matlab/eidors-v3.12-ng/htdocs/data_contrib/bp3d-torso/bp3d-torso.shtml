@@ -1,0 +1,217 @@
+<html>
+<!-- Style file for all the nav-sidebars
+     $Id: header.html 1535 2008-07-26 15:36:27Z aadler $ -->
+<head>
+<title>EIDORS</title>
+   <style type="text/css">
+        body, td, th {
+        font-family: Verdana, Helvetica, Arial, sans-serif;
+        font-size:80%;
+        }
+        pre, tt {
+        font-family:lucida console, FixedSys, Courier, Terminal, monospaced;
+        font-size:100%;
+        }
+        pre {
+        background-color: #E0F0FE;
+        border-style: groove;
+        border-color: black;
+        border-width: 2px;
+        }
+   </style>
+</head>
+
+<body>
+
+<H2>Contributed EIT Data:</H2>
+   <table>
+   <tr><th valign="top"> Authors:
+       <td>
+Bart&#322;omiej Grychtol
+       <hr>
+   <tr><th valign="top"> Date:
+       <td> 2024
+       <hr>
+   <tr><th valign="top"> Brief Description:
+       <td> 
+High density smooth triangulated organ surfaces of the human torso 
+derived from the 
+<a href="http://lifesciencedb.jp/bp3d/">BodyParts3D</a> 
+database by The Database Center for Life Science.
+<p>
+This is a copy of a dataset published on <a href="https://zenodo.org/records/11047831">
+Zenodo </a>, packaged as EIDORS-compatible meshes.
+<p>
+Data were published as
+<ul>
+B Grychtol.
+Torso Organ Meshes (1.0.0) [Data set]. 
+  <i>Zenodo</i> 2024 <a href="https://doi.org/10.5281/zenodo.11047831"
+>https://doi.org/10.5281/zenodo.11047831</a> 
+</ul>
+and described in
+<ul>
+B Grychtol and A Adler.
+<a href="https://doi.org/10.1088/1361-6579/ad2eb3"
+>Anatomically accurate torso mesh for EIT</a>
+  <i>Physiol Meas</i>  45:035010, 2024.
+</ul>
+       <hr>
+   <tr><th valign="top"> License:
+       <td> <a href="http://creativecommons.org/licenses/by-sa/2.1/jp/deed.en_US">
+       Creative Commons Attribution-ShareAlike 2.1 Japan</a>
+       <hr>
+   <tr><th valign="top"> Attribution Requirement:
+       <td> 
+Use or presentation of these data must acknowledge 
+<ul>
+"Torso Organ Meshes" (https://doi.org/10.5281/zenodo.11047831) by Bart&#322;omiej Grychtol
+/ A derivative of "BodyParts3D" (https://dbarchive.biosciencedbc.jp/en/bodyparts3d) by 
+The Database Center for Life Science
+</ul>
+and cite this publication:
+<ul>
+B Grychtol and A Adler
+<a href=""
+>Anatomically accurate torso mesh for EIT</a>
+  Conf. EIT 2024, Hangzhou, China, June 27−30, 2024
+</ul>
+   <tr><th valign="top"> Format:
+       <td>
+Data are stored in Matlab v7 file format. See <a href="https://zenodo.org/records/11047831">Zenodo</a> for more details.
+       <hr>
+   <tr><th valign="top"> Data:
+       <td> <ul>
+            <li><a href = "http://eidors3d.sourceforge.net/data_contrib/bp3d-torso/bp3d_torso.mat")
+                >bp3d_torso.mat</a> - torso surface
+            <li><a href = "http://eidors3d.sourceforge.net/data_contrib/bp3d-torso/bp3d_organs.mat")
+                >bp3d_organs.mat</a> - organ surfaces
+            </ul>
+       <hr>
+   </table>
+<p>
+The data is used by the functions <code>mk_thorax_model_bp3d</code> and <code>mk_thorax_model</code>.
+
+<!---
+<pre>
+torso = mk_thorax_model_bp3d('2x16_odd-even','fine');
+
+%%
+fmdl = torso.fwd_model;
+clf
+h = show_fem(fmdl);
+ch = get(gca, 'Children');
+for i = 1:numel(ch)
+   set(ch(i),'EdgeColor','none');
+end
+set(h,'FaceColor',[.5 .5 .5]);
+set(h,'FaceLighting','phong','AmbientStrength',0.7)
+light('Position',[1 -.5 0.2],'Style','infinite');
+set(h,'FaceAlpha',.3)
+
+hold on
+
+idx   = [   2,    3,    4];
+alpha = [   .3,   .3,    1];
+color = [  .3     0     0;
+           .3     0     0;
+           .75    0     0;];
+
+for i = 1:numel(idx)
+   obj = rmfield(fmdl,'boundary');
+   obj.elems = obj.elems(fmdl.mat_idx{idx(i)},:);
+   obj = fix_boundary(obj);
+   oh(i) = show_fem(obj);
+   set(oh(i),'EdgeColor','none')
+   set(oh(i),'FaceColor',color(i,:),'FaceLighting','phong')
+   set(oh(i),'FaceAlpha',alpha(i))
+end
+
+%oxygenated blood
+idx = [5 9:12];
+for i = 1:numel(idx)
+   obj = rmfield(fmdl,'boundary');
+   obj.elems = obj.elems(fmdl.mat_idx{idx(i)},:);
+   obj = fix_boundary(obj);
+   oh(i) = show_fem(obj);
+   set(oh(i),'EdgeColor','none')
+   set(oh(i),'FaceColor',[1 0 0],'FaceLighting','phong')
+   
+end
+
+%de-oxygenated blood
+idx = [6:8];
+for i = 1:numel(idx)
+   obj = rmfield(fmdl,'boundary');
+   obj.elems = obj.elems(fmdl.mat_idx{idx(i)},:);
+   obj = fix_boundary(obj);
+   oh(i) = show_fem(obj);
+   set(oh(i),'EdgeColor','none')
+   set(oh(i),'FaceColor',[0 0 1],'FaceLighting','phong')
+end
+axis off
+hold off
+%%
+view(3)
+print_convert('torso_colors_01.jpg','-r600')
+%%
+view(0,0)
+print_convert('torso_colors_02.jpg','-r600')
+
+clf
+torso.calc_colours.ref_level = 1;
+torso.calc_colours.transparency_thresh = .01;
+%show_3d_slices(torso, [1242],[],[]);
+for i = [13 15 19:22]
+   torso.elem_data(torso.fwd_model.mat_idx{i}) = 3;
+end
+
+[slc, p] = mdl_slice_mesher(torso, [inf inf 1242]);
+slc.calc_colours.ref_level = 1;
+slc.calc_colours.transparency_thresh = .01;
+h = show_fem(slc);
+set(h,'LineWidth',1)
+ch = get(gca,'Children');
+% need a custom colormap
+idx = unique(get(ch(18), 'FaceVertexCData'));
+color = [  .3     0     0; % lung
+            1    .7    .7; % vessel
+           .75    0     0; % heart wall
+           0      0     1; % deox HB
+           1      0     0; % oxHB 
+            ];
+c = ones(254,3);
+for i = 1:numel(idx)
+   c(idx(i),:) = color(i,:);
+end
+colormap(c);
+view(2)
+set(gca,'ydir','reverse')
+p.FaceVertexCData(:) = 0;
+h2 = patch(p);
+set(h2,'FaceAlpha',0)
+set(h2,'LineWidth',0.1)
+set(h2,'EdgeAlpha',.8)
+axis off
+print_convert('torso_slice_01.jpg','-r600');
+
+</pre>
+--->
+
+For other examples of the use, see <tt>eidors-svn/pubs/conferences/EIT2024/torso-mesh-bp3d/mk_figures.m</tt>
+
+<center>
+   <img src="EIT2024-BP3d-model.jpg">
+<br>
+Illustrations of an FEM with multiple electrode planes generated with <code>mk_thorax_model_bp3d</code>.
+A) Full model with coloured organ regions, B) zoomed image into the full model
+in the heard region, C) FEM mesh in a slice through the ventricles.<br>
+Figure from Grychtol and Adler, 2024.
+</center>
+
+<p>
+<small>
+    Last Modified: $Date: 2024-12-29 12:39:25 -0500 (Sun, 29 Dec 2024) $ by $Author: aadler $
+</small>
+</body></html>
+

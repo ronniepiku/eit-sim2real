@@ -1,0 +1,824 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mk_common_model</title>
+  <meta name="keywords" content="mk_common_model">
+  <meta name="description" content="MK_COMMON_MODEL: make common EIT models">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; mk_common_model.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mk_common_model
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MK_COMMON_MODEL: make common EIT models</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function inv_mdl= mk_common_model( str, n_elec, varargin ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> MK_COMMON_MODEL: make common EIT models
+
+ Utility function to create common EIT FEM models,
+ so that users do not need to re-write common code
+
+ Usage:
+      inv_mdl = mk_common_model( mdl_string, [n_elec/plane, n_planes])
+
+ 2D Models using distmesh (D = show distmesh graphics, d= no graphics)
+   mk_common_model('a2d0c',16)  - 2D circ model using distmesh
+   mk_common_model('b2d1c',16)  - 2D circ model using distmesh ~ 1300 elems
+   mk_common_model('d2d4c',16)  - 2D circ model using distmesh ~ 3200 elems
+      a-j =&gt; mesh density
+      2d  =&gt; 2d Distmesh model
+      0-4 =&gt; element refinement
+      c   =&gt; circular mesh
+   mk_common_model('b2d1t2',16)  - 2D circ model using distmesh ~ 1300 elems
+       deformed to T2 thorax shape
+
+ 2D Models using distmesh using fixed point electrodes (faster but worse refinement)
+   mk_common_model('a2d0d',16)  - 2D circ model using distmesh
+
+ 2D Models circular models:
+   mk_common_model('a2C',16)   - 2D circ model (64 elems) with 16 elecs
+   mk_common_model('b2C',16)   - 2D circ model (256 elems)
+   mk_common_model('c2C',16)   - 2D circ model (576 elems)
+   mk_common_model('d2C',16)   - 2D circ model (1024 elems)
+   mk_common_model('e2C',16)   - 2D circ model (1600 elems)
+   mk_common_model('f2C',16)   - 2D circ model (2304 elems)
+   mk_common_model('g2C',16)   - 2D circ model (3136 elems)
+   mk_common_model('h2C',16)   - 2D circ model (4096 elems)
+   mk_common_model('i2C',16)   - 2D circ model (5184 elems)
+   mk_common_model('j2C',16)   - 2D circ model (6400 elems)
+
+   models with 'c' are point electrode models,
+   models with 'C' use the complete electrode model (with 2 nodes/elec)
+
+   models ??c or ??c0 are rotated by zero.
+   models ??c1, ??c2, ??c3 are rotated by 22.5, 45, 67.5 degrees
+
+ 2D Thorax models (levels 1 - 5 from shoulders to abdomen)
+   mk_common_model('b2t2',16)  - 2D Thorax#2 (chest) (256 elems)
+   mk_common_model('c2t4',16)  - 2D Thorax#3 (upper abdomen) (576 elems)
+   - all t1-t5 are available for each a-f models
+
+ 2D square models:
+   mk_common_model('a2s',8)   - 2D square model (4x4x2 elems) (max 8 elecs)
+   mk_common_model('b2s',16)  - 2D square model (8x8x2 elems) (16 elecs)
+   mk_common_model('c2s',16)  - 2D square model (16x16x2 elems)
+   mk_common_model('d2s',16)  - 2D square model (24x24x2 elems)
+   mk_common_model('e2s',16)  - 2D square model (32x32x2 elems)
+   mk_common_model('f2s',16)  - 2D square model (40x40x2 elems)
+   mk_common_model('g2s',16)  - 2D square model (56x56x2 elems)
+   mk_common_model('h2s',16)  - 2D square model (80x80x2 elems)
+   mk_common_model('i2s',16)  - 2D square model (96x96x2 elems)
+   mk_common_model('j2s',16)  - 2D square model (144x144x2 elems)
+   mk_common_model('k2s',16)  - 2D square model (200x200x2 elems)
+
+   models ??c or ??c0 are rotated by zero.
+   models ??c1, ??c2, ??c3 are rotated by 22.5, 45, 67.5 degrees
+
+ 3D Models:
+   mk_common_model('n3r2',[16,2])  - NP's 3D model with 2 rings of 16 elecs
+
+   mk_common_model('b3cr',[16,3])  - cylinder with 3 rings of 16 elecs
+   mk_common_model('b3t2r',[16,1]) - t2 thorax shape with 1 ring of 16 elecs
+   mk_common_model('b3cz2',[16,1]) - cylinder with 2 rows of 8
+           zigzag pattern elecs. Stimulation treats this as 16x1 pattern
+   mk_common_model('b3cp2',16)      - cylinder with 2 rows of 8
+           elecs in 'planar' pattern. Stim treats this as 16x1 pattern
+
+   mk_common_model('a3cr',16)      - 64 elems * 4 planes
+   mk_common_model('b3cr',16)      - 256 elems * 10 planes
+   mk_common_model('c3cr',16)      - 576 elems * 20 planes
+   mk_common_model('d3cr',16)      - 1024 elems * 40 planes
+   mk_common_model('e3cr',16)      - 1600 elems * 60 planes
+   mk_common_model('f3cr',16)      - 2304 elems * 80 planes
+   mk_common_model('g3cr',16)      - 3136 elems * 100 planes
+   mk_common_model('h3cr',16)      - 4096 elems * 120 planes</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/deprecated/get_3d_meas.html" class="code" title="function [voltageH,voltageV,indH,indV,df] = get_3d_meas(elec,vtx,V,Ib,no_pl);">get_3d_meas</a>	GET_3D_MEAS: extracts multiplane voltage measurements from a calculated</li><li><a href="../../eidors/deprecated/set_3d_currents.html" class="code" title="function [I,Ib] = set_3d_currents(protocol,elec,vtx,gnd_ind,no_pl);">set_3d_currents</a>	function [I,Ib]=set_3d_currents(protocol,elec,vtx,gnd_ind,no_pl);</li><li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../eidors/meshing/distmesh/dm_2d_circ_pt_elecs.html" class="code" title="function fmdl = dm_2d_circ_pt_elecs( elec_pts, pfix, spacing);">dm_2d_circ_pt_elecs</a>	DM_2D_CIRC_PT_ELECS: Create circle mesh (or radius 1) refined with electrodes</li><li><a href="../../eidors/meshing/distmesh/dm_mk_elec_nodes.html" class="code" title="function [elec_nodes, refine_nodes] = dm_mk_elec_nodes( elec_posn,elec_width, refine_level);">dm_mk_elec_nodes</a>	DM_MK_ELEC_NODES: create node points for dm_mk_fwd_model</li><li><a href="../../eidors/meshing/distmesh/dm_mk_fwd_model.html" class="code" title="function [fwd_mdl]= dm_mk_fwd_model( fd, fh, nnodes, bbox, elec_nodes,refine_nodes, z_contact, name)">dm_mk_fwd_model</a>	DM_MK_FWD_MODEL: create a fwd_model object using distmesh</li><li><a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>	MDL_NORMALIZE Check or set the normalize_measurements flag on a model.</li><li><a href="mk_circ_tank.html" class="code" title="function param= mk_circ_tank(rings, levels, elec_spec );">mk_circ_tank</a>	MK_CIRC_TANK: make a cylindrical tank FEM geometry in 2D or 3D</li><li><a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>	MK_GRID_MODEL: Create reconstruction model on pixelated grid</li><li><a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li><li><a href="thorax_geometry.html" class="code" title="function [out1, out2, out3 ] = thorax_geometry(in1,in2);">thorax_geometry</a>	THORAX_GEOMETRY: deform mesh to have a human thorax like shape</li><li><a href="valid_inv_model.html" class="code" title="function [pass, err_str] = valid_inv_model(imdl)">valid_inv_model</a>	[pass, err_str] = valid_fwd_model(imdl)</li><li><a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>	[srf, idx] = find_boundary(simp);</li><li><a href="../../eidors/solvers/forward/fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>	FWD_SOLVE_1ST_ORDER: data= fwd_solve_1st_order( img)</li><li><a href="../../eidors/solvers/forward/jacobian_adjoint.html" class="code" title="function J= jacobian_adjoint( fwd_model, img)">jacobian_adjoint</a>	JACOBIAN_ADJOINT: J= jacobian_adjoint( img )</li><li><a href="../../eidors/solvers/forward/system_mat_1st_order.html" class="code" title="function s_mat= system_mat_1st_order( fwd_model, img)">system_mat_1st_order</a>	SYSTEM_MAT_1ST_ORDER: SS= system_mat_1st_order( fwd_model, img)</li><li><a href="../../eidors/solvers/inverse/inv_solve_diff_GN_one_step.html" class="code" title="function img= inv_solve_diff_GN_one_step( inv_model, data1, data2)">inv_solve_diff_GN_one_step</a>	INV_SOLVE_DIFF_GN_ONE_STEP inverse solver using approach of Adler&Guardo 1996</li><li><a href="../../eidors/solvers/inverse/prior_laplace.html" class="code" title="function Reg= prior_laplace( inv_model )">prior_laplace</a>	PRIOR_LAPLACE calculate image prior</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/algorithms/left_divide.html" class="code" title="function [V] = left_divide(E,I,tol,~,V)">left_divide</a>	[V] = LEFT_DIVIDE(E,I,tol,pp,V);</li><li><a href="../../eidors/deprecated/calc_noise_params.html" class="code" title="function params = calc_noise_params(imdl, vh, vi )">calc_noise_params</a>	params = GREIT_noise_params(imdl, homg_voltage, sig_voltage)</li><li><a href="../../eidors/deprecated/manchester_tomography.html" class="code" title="function manchester_tomography( example_no)">manchester_tomography</a>	Example to show reconstructions from</li><li><a href="../../eidors/examples/cheating_2d.html" class="code" title="function out=cheating_2d( figno, rand_seed )">cheating_2d</a>	code to simulate inverse crimes in EIT</li><li><a href="../../eidors/examples/compare_2d_algs.html" class="code" title="function [imgr, img]= compare_2d_algs(option,shape);">compare_2d_algs</a>	Compare different 2D reconstructions</li><li><a href="../../eidors/examples/compare_3d_algs.html" class="code" title="function imgr= compare_3d_algs( algno )">compare_3d_algs</a>	Compare different 3D reconstructions</li><li><a href="../../eidors/examples/ex_fwd2d_high_order.html" class="code" title="">ex_fwd2d_high_order</a>	ensure dev/m_crabb/forward_problem is on the path</li><li><a href="../../eidors/examples/ex_fwd3d_high_order.html" class="code" title="">ex_fwd3d_high_order</a>	Make common model, and make an image</li><li><a href="../../eidors/examples/image_2d_algs.html" class="code" title="">image_2d_algs</a>	Based on the 'bubble' data from Eidors2D, use several</li><li><a href="../../eidors/examples/moving_tank_objs.html" class="code" title="function imgs= moving_tank_objs(data_sel, inv_sel, options)">moving_tank_objs</a>	MOVING_TANK_OBJS: create movies of objects moving in tanks</li><li><a href="../../eidors/graphics/matlab/calc_grid_points.html" class="code" title="function [val, c2f] = calc_grid_points(img, xpts, ypts, zpts)">calc_grid_points</a>	CALC_GRID_POINTS - image values at points in grid</li><li><a href="../../eidors/graphics/matlab/calc_slices.html" class="code" title="function rimg = calc_slices( img, levels );">calc_slices</a>	calc_slices (img, levels, clim  ) show slices at levels of an</li><li><a href="../../eidors/graphics/matlab/calc_voxels.html" class="code" title="function [V, rimg] = calc_voxels(img, opt, level)">calc_voxels</a>	CALC_VOXELS Calculate volumetric data from an image</li><li><a href="../../eidors/graphics/matlab/eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>	EIDORS_COLOURBAR - create an eidors colourbar with scaling to image</li><li><a href="../../eidors/graphics/matlab/emphasize_electrode_text.html" class="code" title="function emphasize_electrode_text(elecs);">emphasize_electrode_text</a>	EMPHASIZE_ELECTRODE_TEXT: ephazise the electrode</li><li><a href="../../eidors/graphics/matlab/level_model_slice.html" class="code" title="function [out, out2, out3, out4] = level_model_slice(varargin)">level_model_slice</a>	LEVEL_MODEL_SLICE - level 3D points for slicing at z=0</li><li><a href="../../eidors/graphics/matlab/mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>	MDL_SLICE_MAPPER: map pixels to FEM elements or nodes</li><li><a href="../../eidors/graphics/matlab/mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>	MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM</li><li><a href="../../eidors/graphics/matlab/mk_mosaic.html" class="code" title="function r_img = mk_mosaic(rimg, sep, vh, n_col)">mk_mosaic</a>	MK_MOSAIC Arrange multidimensional image matrix for display.</li><li><a href="../../eidors/graphics/matlab/print_convert.html" class="code" title="function print_convert(filename, varargin)">print_convert</a>	PRINT_CONVERT: print figures with anti-aliasing and trim them</li><li><a href="../../eidors/graphics/matlab/set_slice.html" class="code" title="function img = set_slice(img, level, spec)">set_slice</a>	SET_SLICE  Set parameters for slice display.</li><li><a href="../../eidors/graphics/matlab/show_3d_slices.html" class="code" title="function h = show_3d_slices(img, varargin);">show_3d_slices</a>	show_3d_slices(img, z_cuts, x_cuts, y_cuts, any_cuts)</li><li><a href="../../eidors/graphics/matlab/show_current.html" class="code" title="function quiv = show_current( img, vv )">show_current</a>	SHOW_CURRENT: show current or other quantity defined</li><li><a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="../../eidors/graphics/matlab/show_fem_enhanced.html" class="code" title="function hh = show_fem_enhanced(mdl, options)">show_fem_enhanced</a>	SHOW_FEM_ENHANCED: show the EIDORS3D finite element model</li><li><a href="../../eidors/graphics/matlab/show_fem_move.html" class="code" title="function [hf,hh] = show_fem_move( img, move, scale, options )">show_fem_move</a>	SHOW_FEM_MOVE   Plot EIT finite element model (FEM) and movement</li><li><a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>	out_img = show_slices (img, levels ) show slices at levels of an</li><li><a href="../../eidors/graphics/matlab/show_slices_move.html" class="code" title="function show_slices_move( img, move, move_scale )">show_slices_move</a>	SHOW_SLICES_MOVE   Shows planar slices of a 3D FEM with movement vectors</li><li><a href="../../eidors/interface/eidors_saveimg.html" class="code" title="function eidors_saveimg( img, fname, format, pp )">eidors_saveimg</a>	EIDORS saveimg - save reconstructed image files in formats</li><li><a href="../../eidors/interface/fwd_model_device.html" class="code" title="function fmdl = fmdl_model_device(fmdl,device, opt);">fwd_model_device</a>	FMDL_MODEL_DEVICE: set vendor/device specific parameters</li><li><a href="../../eidors/interface/sigmatome2_filter.html" class="code" title="function [Filter, stim_pattern]= sigmatome2_filter(test);">sigmatome2_filter</a>	SIGMATOME2_FILTER:  Hardware filter and stim_patterns for Sigmatome II device</li><li><a href="../../eidors/meshing/calc_mesh_quality.html" class="code" title="function [Q mdl] = calc_mesh_quality(mdl, show)">calc_mesh_quality</a>	CALC_MESH_QUALITY Various measures of mesh quality.</li><li><a href="../../eidors/meshing/crop_model.html" class="code" title="function [fmdl,c2f_idx]= crop_model( axis_handle, fcn_handle );">crop_model</a>	CROP_MODEL: Crop away parts of a fem model</li><li><a href="../../eidors/meshing/join_models.html" class="code" title="function [fmdlo]= join_models(fmdl1, fmdl2, tol)">join_models</a>	JOIN_MODELS: Join two fmdl structures to create one</li><li><a href="../../eidors/meshing/mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>	MAT_IDX_TO_ELECTRODE: create electrodes from mat_idx values</li><li><a href="../../eidors/meshing/remove_elems.html" class="code" title="function [fmdl, c2f_idx] = remove_elems(fmdl, idx, elec_opt)">remove_elems</a>	REMOVE_ELEMS   Remove nodes from a fwd_model.</li><li><a href="../../eidors/meshing/remove_nodes.html" class="code" title="function [fmdl, c2f_idx] = remove_nodes(fmdl, idx, elec_opt)">remove_nodes</a>	REMOVE_NODES   Remove nodes from a fwd_model.</li><li><a href="analytic_2d_circle.html" class="code" title="function V = analytic_2d_circle(I, params)">analytic_2d_circle</a>	V = analytic_2d_circle(J, [s_h, s_i, b, a, angl])</li><li><a href="calc_elem_current.html" class="code" title="function elemcur = calc_elem_current( img, vv )">calc_elem_current</a>	calc_elem_current: calculate current vector in each FEM element</li><li><a href="calc_model_reduction.html" class="code" title="function mr = calc_model_reduction(fmdl)">calc_model_reduction</a>	calc_model_reduction: calculate the fields for a reduced model</li><li><a href="data_mapper.html" class="code" title="function img = data_mapper(img, reverse)">data_mapper</a>	DATA_MAPPER maps img.params data to elem or node data</li><li><a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>	DEFINE_ROIS: define ROI regions in image</li><li><a href="elec_rearrange.html" class="code" title="function [elec_idx, new_fmdl] = elec_rearrange( pattern, newarrange, fwd_model )">elec_rearrange</a>	ELEC_REARRANGE: rearrange electrodes for given pattern</li><li><a href="elem_dim.html" class="code" title="function num = elem_dim( mdl );">elem_dim</a>	ELEM_DIM: dimension of elements in space (are elements in 2D or 3D space)</li><li><a href="elem_select.html" class="code" title="function memb_frac = elem_select( fmdl, select_fcn )">elem_select</a>	ELEM_SELECT: select element fractions inside a function</li><li><a href="fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>	FIX_MODEL: Add useful fields to a model</li><li><a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>	GET_ELEM_VOLUME: VOL = get_elem_volume(fwd_model, map_node )</li><li><a href="interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>	INTERP_MESH: calculate interpolation points onto mdl elements</li><li><a href="linear_reorder.html" class="code" title="function [fwd_model] = linear_reorder(fwd_model,ccw)">linear_reorder</a>	[fwd_model] = linear_reorder(fwd_model,ccw)</li><li><a href="mdl_dim.html" class="code" title="function num = mdl_dim( mdl );">mdl_dim</a>	MDL_DIM: dimension of model space (are nodes in 2D or 3D space)</li><li><a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>	MDL_NORMALIZE Check or set the normalize_measurements flag on a model.</li><li><a href="mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>	MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach</li><li><a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>	MK_C2F_CIRC_MAPPING: create a mapping matrix from circles/spheres to FEM</li><li><a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="mk_geophysics_model.html" class="code" title="function imdl = mk_geophysics_model(str, ne, opt);">mk_geophysics_model</a>	imdl = mk_geophysics_model(str, ne, [option])</li><li><a href="mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>	MK_GRID_MODEL: Create reconstruction model on pixelated grid</li><li><a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="mk_pixel_slice.html" class="code" title="function [imdl fmdl] = mk_pixel_slice(imdl,level,opt)">mk_pixel_slice</a>	MK_PIXEL_SLICE create a pixel model to reconstruct on</li><li><a href="mk_tri2tet_c2f.html" class="code" title="function c2f = mk_tri2tet_c2f(fmdl,rmdl, opt)">mk_tri2tet_c2f</a>	MK_TRI2TET_C2F - coarse2fine mapping between tri-based and tet-based models</li><li><a href="mk_tri_c2f.html" class="code" title="function c2f = mk_tri_c2f(fmdl,rmdl,opt)">mk_tri_c2f</a>	MK_TRI_C2F - calculate a coarse2fine mapping for triangle-based models.</li><li><a href="mk_voxel_volume.html" class="code" title="function [imdl, fmdl] = mk_voxel_volume(varargin)">mk_voxel_volume</a>	MK_VOXEL_VOLUME create a voxel model to reconstruct on</li><li><a href="num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>	NUM_ELECS: number of electrodes attached to model</li><li><a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>	NUM_ELEMS: number of elemnts in a (fwd or inv model or image)</li><li><a href="num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>	NUM_NODES: number of elemnts in a (fwd or inv model or image)</li><li><a href="point_in_tet.html" class="code" title="function point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)">point_in_tet</a>	POINT_IN_TET test for points contained in elements</li><li><a href="remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>	REMOVE_UNUSED_NODES: identify and remove unused nodes in model</li><li><a href="select_imdl.html" class="code" title="function [inv_mdl,opt_out]= select_imdl( mdl, options )">select_imdl</a>	SELECT_IMDL: select pre-packaged inverse model features</li><li><a href="simulate_2d_movement.html" class="code" title="function [vh,vi,xyr_pt]= simulate_2d_movement( n_sims, fmdl, rad_pr, movefcn )">simulate_2d_movement</a>	SIMULATE_2D_MOVEMENT simulate rotational movement in 2D</li><li><a href="simulate_3d_movement.html" class="code" title="function [vh,vi,xyzr_pt]= simulate_3d_movement( n_sims, fmdl, rad_pr,movefcn )">simulate_3d_movement</a>	SIMULATE_3D_MOVEMENT simulate rotational movement in 3D</li><li><a href="simulate_movement.html" class="code" title="function [vh,vi,xyzr,c2f]= simulate_movement( img, xyzr, UNUSED );">simulate_movement</a>	SIMULATE_MOVEMENT simulate small conductivity perturbations</li><li><a href="stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">stim_meas_list</a>	STIM_MEAS_LIST: mk stimulation pattern from list of electrodes</li><li><a href="test_GREIT_model.html" class="code" title="">test_GREIT_model</a>	</li><li><a href="tet_to_inequal.html" class="code" title="function [A,b]=tet_to_inequal(v,e)">tet_to_inequal</a>	[A,b]=tet_to_inequal(v)</li><li><a href="valid_inv_model.html" class="code" title="function [pass, err_str] = valid_inv_model(imdl)">valid_inv_model</a>	[pass, err_str] = valid_fwd_model(imdl)</li><li><a href="../../eidors/sample_data/write_hdf5_sample.html" class="code" title="function fname = write_and_test;">write_hdf5_sample</a>	Write HDF5 Sample data</li><li><a href="../../eidors/solvers/calc_R_prior.html" class="code" title="function R_prior = calc_R_prior( inv_model, varargin )">calc_R_prior</a>	R = calc_R_prior( inv_model, varargin )</li><li><a href="../../eidors/solvers/calc_RtR_prior.html" class="code" title="function RtR_prior = calc_RtR_prior( inv_model )">calc_RtR_prior</a>	RtR = calc_RtR_prior( inv_model )</li><li><a href="../../eidors/solvers/calc_jacobian.html" class="code" title="function J = calc_jacobian( fwd_model, img)">calc_jacobian</a>	CALC_JACOBIAN: calculate jacobian from an inv_model</li><li><a href="../../eidors/solvers/calc_jacobian_bkgnd.html" class="code" title="function img_bkgnd = calc_jacobian_bkgnd( inv_model )">calc_jacobian_bkgnd</a>	CALC_JACOBIAN_BKGND: calculate background image around</li><li><a href="../../eidors/solvers/calc_meas_icov.html" class="code" title="function meas_icov = calc_meas_icov( inv_model )">calc_meas_icov</a>	meas_icov = calc_meas_icov( inv_model )</li><li><a href="../../eidors/solvers/forward/eit_spice.html" class="code" title="function spice = eit_spice(img, name)">eit_spice</a>	function spice = eit_spice(img, [name])</li><li><a href="../../eidors/solvers/forward/fem_1st_to_higher_order.html" class="code" title="function [boundary,elems,nodes]=fem_1st_to_higher_order(fwd_model)">fem_1st_to_higher_order</a>	FEM_1ST_TO_HIGH_ORDER:  Modify the FEM for high order FEM called as</li><li><a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>	[srf, idx] = find_boundary(simp);</li><li><a href="../../eidors/solvers/forward/fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>	FWD_MODEL_PARAMETERS: data= fwd_solve_1st_order( fwd_model, image)</li><li><a href="../../eidors/solvers/forward/fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>	FWD_SOLVE_1ST_ORDER: data= fwd_solve_1st_order( img)</li><li><a href="../../eidors/solvers/forward/fwd_solve_apparent_resistivity.html" class="code" title="function data =fwd_solve_apparent_resistivity(fwd_model, img)">fwd_solve_apparent_resistivity</a>	fwd_solve_apparent_resistivity: fwd_solve output as apparent resistivity</li><li><a href="../../eidors/solvers/forward/fwd_solve_higher_order.html" class="code" title="function[data] = fwd_solve_higher_order(fwd_model,img)">fwd_solve_higher_order</a>	Solve for voltages (nodes/electrodes) for a forward model.</li><li><a href="../../eidors/solvers/forward/jacobian_adjoint_higher_order.html" class="code" title="function J = jacobian_adjoint_higher_order(fwd_model,img)">jacobian_adjoint_higher_order</a>	Find the Jacobian associated with an image (and forward model)</li><li><a href="../../eidors/solvers/forward/jacobian_movement.html" class="code" title="function J = jacobian_movement(fwd_model, img)">jacobian_movement</a>	JACOBIAN_MOVEMENT   Computes the Jacobian matrix for conductivity and</li><li><a href="../../eidors/solvers/forward/jacobian_perturb.html" class="code" title="function J= jacobian_perturb( fwd_model, img)">jacobian_perturb</a>	JACOBIAN_PERTURB: J= jacobian_perturb( fwd_model, img)</li><li><a href="../../eidors/solvers/forward/system_mat_1st_order.html" class="code" title="function s_mat= system_mat_1st_order( fwd_model, img)">system_mat_1st_order</a>	SYSTEM_MAT_1ST_ORDER: SS= system_mat_1st_order( fwd_model, img)</li><li><a href="../../eidors/solvers/forward/system_mat_2p5d_fields.html" class="code" title="function FT= system_mat_2p5d_fields( fwd_model )">system_mat_2p5d_fields</a>	SYSTEM_MAT_2P5D_FIELDS: fields (elem to nodes) fraction of system mat</li><li><a href="../../eidors/solvers/forward/system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>	SYSTEM_MAT_FIELDS: fields (elem to nodes) fraction of system mat</li><li><a href="../../eidors/solvers/forward/system_mat_higher_order.html" class="code" title="function [s_mat]=system_mat_higher_order(fwd_model,img)">system_mat_higher_order</a>	Assemble the total stiffness matrix : s_mat.E=At;</li><li><a href="../../eidors/solvers/forward/system_mat_instrument.html" class="code" title="function s_mat = system_mat_instrument( img);">system_mat_instrument</a>	SYSTEM_MAT_INSTRUMENT:</li><li><a href="../../eidors/solvers/forward/update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>	UPDATE_SYSTEM_MAT_FIELDS: fields (elem to nodes) fraction of system mat</li><li><a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>	FWD_SOLVE: calculate data from a fwd_model object and an image</li><li><a href="../../eidors/solvers/get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>	GET_IMG_DATA: get parameter data from eidors image object</li><li><a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>	INV_SOLVE: calculate imag from an inv_model and data</li><li><a href="../../eidors/solvers/inverse/GREIT_desired_img_FEMmesh.html" class="code" title="function PSF= GREIT_desired_img_FEMmesh(xyc, radius, opt)">GREIT_desired_img_FEMmesh</a>	GREIT_DESIRED_IMG_FEMmesh  GREIT onto a FEM mesh</li><li><a href="../../eidors/solvers/inverse/calc_GREIT_RM.html" class="code" title="function [RM, PJt, M, noiselev] = calc_GREIT_RM(vh,vi, xyc, radius, weight, options)">calc_GREIT_RM</a>	CALCULATE GREIT reconstruction matrix</li><li><a href="../../eidors/solvers/inverse/calc_TSVD_RM.html" class="code" title="function RM= calc_TSVD_RM(mdl,hp)">calc_TSVD_RM</a>	CALC_TSVD_RM: Calculated truncated Jacobian SVD reconstruction matrix</li><li><a href="../../eidors/solvers/inverse/calc_lambda_regtools.html" class="code" title="function lambdas = calc_lambda_regtools(imdl, vh, vi, type, doPlot)">calc_lambda_regtools</a>	% CALC_LAMBDA_REGTOOLS: Find optimal hyperparameter by the L-curve (LCC)</li><li><a href="../../eidors/solvers/inverse/calc_noise_figure.html" class="code" title="function [NF,SE] = calc_noise_figure( inv_model, hp, iterations, extraparam)">calc_noise_figure</a>	CALC_NOISE_FIGURE: calculate the noise amplification (NF) of an algorithm</li><li><a href="../../eidors/solvers/inverse/choose_noise_figure.html" class="code" title="function HP= choose_noise_figure( inv_model );">choose_noise_figure</a>	CHOOSE_NOISE_FIGURE: choose hyperparameter based on NF calculation</li><li><a href="../../eidors/solvers/inverse/inv_solve_TSVD.html" class="code" title="function sol = inv_solve_TSVD(inv_model, data1, data2)">inv_solve_TSVD</a>	INV_SOLVE_TSVD: inverse solver based on truncatated SVD</li><li><a href="../../eidors/solvers/inverse/inv_solve_cg.html" class="code" title="function img= inv_solve_cg( inv_model, data1, data2);">inv_solve_cg</a>	function img= inv_solve_cg( inv_model, data1);</li><li><a href="../../eidors/solvers/inverse/inv_solve_conj_grad.html" class="code" title="function img= inv_solve_conj_grad( inv_model, data1, data2)">inv_solve_conj_grad</a>	INV_SOLVE_CONJ_GRAD inverse solver based on the CG</li><li><a href="../../eidors/solvers/inverse/inv_solve_core.html" class="code" title="function img= inv_solve_core( inv_model, data0, data1);">inv_solve_core</a>	INV_SOLVE_CORE Solver using a generic iterative algorithm</li><li><a href="../../eidors/solvers/inverse/inv_solve_gn.html" class="code" title="function img= inv_solve_gn( inv_model, data1, data2);">inv_solve_gn</a>	function img= inv_solve_gn( inv_model, data1);</li><li><a href="../../eidors/solvers/inverse/inv_solve_time_prior.html" class="code" title="function img= inv_solve_time_prior( inv_model, data1, data2)">inv_solve_time_prior</a>	INV_SOLVE_TIME_PRIOR inverse solver to account for time differences</li><li><a href="../../eidors/solvers/inverse/meas_icov_rm_elecs.html" class="code" title="function meas_icov = meas_icov_rm_elecs( imdl, elec_list)">meas_icov_rm_elecs</a>	MEAS_ICOV_RM_ELECS: remove electrodes from consideration</li><li><a href="../../eidors/solvers/inverse/prior_covar.html" class="code" title="function Reg= prior_covar( inv_model )">prior_covar</a>	PRIOR_COVAR image prior with distance-based interelement covar</li><li><a href="../../eidors/solvers/inverse/prior_gaussian_HPF.html" class="code" title="function Reg= prior_gaussian_HPF( fwd_model );">prior_gaussian_HPF</a>	PRIOR_GAUSSIAN_HPF calculate image prior</li><li><a href="../../eidors/solvers/inverse/prior_laplace.html" class="code" title="function Reg= prior_laplace( inv_model )">prior_laplace</a>	PRIOR_LAPLACE calculate image prior</li><li><a href="../../eidors/solvers/inverse/prior_laplace_old.html" class="code" title="function Reg= prior_laplace_old( inv_model );">prior_laplace_old</a>	PRIOR_LAPLACE calculate image prior</li><li><a href="../../eidors/tests/test_c2f_jacobian.html" class="code" title="function test_c2f_jacobian">test_c2f_jacobian</a>	Test calc of jacobian given coarse to fine mapping</li><li><a href="../../eidors/tests/test_colour_direction.html" class="code" title="">test_colour_direction</a>	Test colour mapping</li><li><a href="../../eidors/tests/test_compl_elec_mdl.html" class="code" title="">test_compl_elec_mdl</a>	Test formation of complete electrode model</li><li><a href="../../eidors/tools/test_performance.html" class="code" title="function [r, params] =  test_performance( imdls, fmdl );">test_performance</a>	TEST_PERFORMANCE: test of difference reconstruction algorithms</li><li><a href="../../eidors/tools/test_performance_img.html" class="code" title="function [params_img] =  test_performance_img( imdls, fmdl );">test_performance_img</a>	TEST_PERFORMANCE: test of difference reconstruction algorithms</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function inv_mdl = distmesh_2d_model(str, n_elec, options);</a></li><li><a href="#_sub2" class="code">function inv2d = distmesh_2d_model_depr(str, n_elec, options);</a></li><li><a href="#_sub3" class="code">function inv2d= mk_2c_model( n_elec, n_circles, options )</a></li><li><a href="#_sub4" class="code">function inv2d= mk_2r_model( n_elec, xy_size, options)</a></li><li><a href="#_sub5" class="code">function inv2d= add_params_2d_mdl( params, n_elec, options);</a></li><li><a href="#_sub6" class="code">function inv3d = mk_3c_model( n_elec, xy_layers, z_layers, elec_space,</a></li><li><a href="#_sub7" class="code">function inv_mdl = mk_n3z_model( n_elec, options );</a></li><li><a href="#_sub8" class="code">function inv_mdl = mk_n3r2_model( n_elec, options );</a></li><li><a href="#_sub9" class="code">function inv3d= mk_b3r1_model( n_elec, options )</a></li><li><a href="#_sub10" class="code">function inv3d= mk_b3r2_model( n_elec, nr, options )</a></li><li><a href="#_sub11" class="code">function inv_mdl = rotate_model( inv_mdl, rotate_mdl);</a></li><li><a href="#_sub12" class="code">function inv_mdl = turn_model( inv_mdl, angle );</a></li><li><a href="#_sub13" class="code">function inv_mdl = mk_complete_elec_mdl( inv_mdl, layers);</a></li><li><a href="#_sub14" class="code">function do_unit_test</a></li><li><a href="#_sub15" class="code">function test_np_get_3d_meas</a></li><li><a href="#_sub16" class="code">function test_circ_models</a></li><li><a href="#_sub17" class="code">function test_3d_models</a></li><li><a href="#_sub18" class="code">function test_distmesh_models</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function inv_mdl= mk_common_model( str, n_elec, varargin )</a>
+0002 <span class="comment">% MK_COMMON_MODEL: make common EIT models</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Utility function to create common EIT FEM models,</span>
+0005 <span class="comment">% so that users do not need to re-write common code</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Usage:</span>
+0008 <span class="comment">%      inv_mdl = mk_common_model( mdl_string, [n_elec/plane, n_planes])</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% 2D Models using distmesh (D = show distmesh graphics, d= no graphics)</span>
+0011 <span class="comment">%   mk_common_model('a2d0c',16)  - 2D circ model using distmesh</span>
+0012 <span class="comment">%   mk_common_model('b2d1c',16)  - 2D circ model using distmesh ~ 1300 elems</span>
+0013 <span class="comment">%   mk_common_model('d2d4c',16)  - 2D circ model using distmesh ~ 3200 elems</span>
+0014 <span class="comment">%      a-j =&gt; mesh density</span>
+0015 <span class="comment">%      2d  =&gt; 2d Distmesh model</span>
+0016 <span class="comment">%      0-4 =&gt; element refinement</span>
+0017 <span class="comment">%      c   =&gt; circular mesh</span>
+0018 <span class="comment">%   mk_common_model('b2d1t2',16)  - 2D circ model using distmesh ~ 1300 elems</span>
+0019 <span class="comment">%       deformed to T2 thorax shape</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% 2D Models using distmesh using fixed point electrodes (faster but worse refinement)</span>
+0022 <span class="comment">%   mk_common_model('a2d0d',16)  - 2D circ model using distmesh</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% 2D Models circular models:</span>
+0025 <span class="comment">%   mk_common_model('a2C',16)   - 2D circ model (64 elems) with 16 elecs</span>
+0026 <span class="comment">%   mk_common_model('b2C',16)   - 2D circ model (256 elems)</span>
+0027 <span class="comment">%   mk_common_model('c2C',16)   - 2D circ model (576 elems)</span>
+0028 <span class="comment">%   mk_common_model('d2C',16)   - 2D circ model (1024 elems)</span>
+0029 <span class="comment">%   mk_common_model('e2C',16)   - 2D circ model (1600 elems)</span>
+0030 <span class="comment">%   mk_common_model('f2C',16)   - 2D circ model (2304 elems)</span>
+0031 <span class="comment">%   mk_common_model('g2C',16)   - 2D circ model (3136 elems)</span>
+0032 <span class="comment">%   mk_common_model('h2C',16)   - 2D circ model (4096 elems)</span>
+0033 <span class="comment">%   mk_common_model('i2C',16)   - 2D circ model (5184 elems)</span>
+0034 <span class="comment">%   mk_common_model('j2C',16)   - 2D circ model (6400 elems)</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">%   models with 'c' are point electrode models,</span>
+0037 <span class="comment">%   models with 'C' use the complete electrode model (with 2 nodes/elec)</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">%   models ??c or ??c0 are rotated by zero.</span>
+0040 <span class="comment">%   models ??c1, ??c2, ??c3 are rotated by 22.5, 45, 67.5 degrees</span>
+0041 <span class="comment">%</span>
+0042 <span class="comment">% 2D Thorax models (levels 1 - 5 from shoulders to abdomen)</span>
+0043 <span class="comment">%   mk_common_model('b2t2',16)  - 2D Thorax#2 (chest) (256 elems)</span>
+0044 <span class="comment">%   mk_common_model('c2t4',16)  - 2D Thorax#3 (upper abdomen) (576 elems)</span>
+0045 <span class="comment">%   - all t1-t5 are available for each a-f models</span>
+0046 <span class="comment">%</span>
+0047 <span class="comment">% 2D square models:</span>
+0048 <span class="comment">%   mk_common_model('a2s',8)   - 2D square model (4x4x2 elems) (max 8 elecs)</span>
+0049 <span class="comment">%   mk_common_model('b2s',16)  - 2D square model (8x8x2 elems) (16 elecs)</span>
+0050 <span class="comment">%   mk_common_model('c2s',16)  - 2D square model (16x16x2 elems)</span>
+0051 <span class="comment">%   mk_common_model('d2s',16)  - 2D square model (24x24x2 elems)</span>
+0052 <span class="comment">%   mk_common_model('e2s',16)  - 2D square model (32x32x2 elems)</span>
+0053 <span class="comment">%   mk_common_model('f2s',16)  - 2D square model (40x40x2 elems)</span>
+0054 <span class="comment">%   mk_common_model('g2s',16)  - 2D square model (56x56x2 elems)</span>
+0055 <span class="comment">%   mk_common_model('h2s',16)  - 2D square model (80x80x2 elems)</span>
+0056 <span class="comment">%   mk_common_model('i2s',16)  - 2D square model (96x96x2 elems)</span>
+0057 <span class="comment">%   mk_common_model('j2s',16)  - 2D square model (144x144x2 elems)</span>
+0058 <span class="comment">%   mk_common_model('k2s',16)  - 2D square model (200x200x2 elems)</span>
+0059 <span class="comment">%</span>
+0060 <span class="comment">%   models ??c or ??c0 are rotated by zero.</span>
+0061 <span class="comment">%   models ??c1, ??c2, ??c3 are rotated by 22.5, 45, 67.5 degrees</span>
+0062 <span class="comment">%</span>
+0063 <span class="comment">% 3D Models:</span>
+0064 <span class="comment">%   mk_common_model('n3r2',[16,2])  - NP's 3D model with 2 rings of 16 elecs</span>
+0065 <span class="comment">%</span>
+0066 <span class="comment">%   mk_common_model('b3cr',[16,3])  - cylinder with 3 rings of 16 elecs</span>
+0067 <span class="comment">%   mk_common_model('b3t2r',[16,1]) - t2 thorax shape with 1 ring of 16 elecs</span>
+0068 <span class="comment">%   mk_common_model('b3cz2',[16,1]) - cylinder with 2 rows of 8</span>
+0069 <span class="comment">%           zigzag pattern elecs. Stimulation treats this as 16x1 pattern</span>
+0070 <span class="comment">%   mk_common_model('b3cp2',16)      - cylinder with 2 rows of 8</span>
+0071 <span class="comment">%           elecs in 'planar' pattern. Stim treats this as 16x1 pattern</span>
+0072 <span class="comment">%</span>
+0073 <span class="comment">%   mk_common_model('a3cr',16)      - 64 elems * 4 planes</span>
+0074 <span class="comment">%   mk_common_model('b3cr',16)      - 256 elems * 10 planes</span>
+0075 <span class="comment">%   mk_common_model('c3cr',16)      - 576 elems * 20 planes</span>
+0076 <span class="comment">%   mk_common_model('d3cr',16)      - 1024 elems * 40 planes</span>
+0077 <span class="comment">%   mk_common_model('e3cr',16)      - 1600 elems * 60 planes</span>
+0078 <span class="comment">%   mk_common_model('f3cr',16)      - 2304 elems * 80 planes</span>
+0079 <span class="comment">%   mk_common_model('g3cr',16)      - 3136 elems * 100 planes</span>
+0080 <span class="comment">%   mk_common_model('h3cr',16)      - 4096 elems * 120 planes</span>
+0081 
+0082 <span class="comment">% (C) 2005 Andy Adler. License: GPL version 2 or version 3</span>
+0083 <span class="comment">% $Id: mk_common_model.m 6918 2024-05-30 11:33:00Z bgrychtol $</span>
+0084 
+0085 <span class="keyword">if</span> ischar(str) &amp;&amp; strcmp(str,<span class="string">'UNIT_TEST'</span>); <a href="#_sub14" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0086 
+0087 
+0088 options = {<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>};
+0089 <span class="comment">% n_elec is number of [elec/ring n_rings]</span>
+0090 <span class="keyword">if</span> nargin&lt;2
+0091     n_elec= [16,1]; <span class="comment">% default</span>
+0092 <span class="keyword">end</span>
+0093 <span class="keyword">if</span> length(n_elec)==1
+0094     n_elec= [n_elec,1]; <span class="comment">% default</span>
+0095 <span class="keyword">end</span>
+0096 
+0097 <span class="keyword">if</span> length(str)&lt;3
+0098    error(<span class="string">'format specified not recognized'</span>)
+0099 <span class="keyword">end</span>
+0100 
+0101 <span class="keyword">if</span> strcmp(str(2:3),<span class="string">'2c'</span>) || strcmp(str(2:3),<span class="string">'2C'</span>)
+0102 <span class="comment">% 2D circular models</span>
+0103    <span class="keyword">switch</span> str(1)
+0104       <span class="keyword">case</span> <span class="string">'a'</span>; layers=  4;
+0105       <span class="keyword">case</span> <span class="string">'b'</span>; layers=  8;
+0106       <span class="keyword">case</span> <span class="string">'c'</span>; layers= 12;
+0107       <span class="keyword">case</span> <span class="string">'d'</span>; layers= 16;
+0108       <span class="keyword">case</span> <span class="string">'e'</span>; layers= 20;
+0109       <span class="keyword">case</span> <span class="string">'f'</span>; layers= 24;
+0110       <span class="keyword">case</span> <span class="string">'g'</span>; layers= 28;
+0111       <span class="keyword">case</span> <span class="string">'h'</span>; layers= 32;
+0112       <span class="keyword">case</span> <span class="string">'i'</span>; layers= 36;
+0113       <span class="keyword">case</span> <span class="string">'j'</span>; layers= 40;
+0114       <span class="keyword">case</span> <span class="string">'k'</span>; layers= 44;
+0115       <span class="keyword">case</span> <span class="string">'l'</span>; layers= 48;
+0116       <span class="keyword">case</span> <span class="string">'m'</span>; layers= 52;
+0117       <span class="keyword">otherwise</span>; error([<span class="string">'don`t know what to do with option=%s'</span>,str]);
+0118    <span class="keyword">end</span>
+0119 
+0120    inv_mdl = <a href="#_sub3" class="code" title="subfunction inv2d= mk_2c_model( n_elec, n_circles, options )">mk_2c_model</a>( n_elec, layers, options );
+0121 
+0122    <span class="keyword">if</span> length(str)==3; str= [str,<span class="string">'0'</span>];<span class="keyword">end</span>
+0123 
+0124    inv_mdl = <a href="#_sub11" class="code" title="subfunction inv_mdl = rotate_model( inv_mdl, rotate_mdl);">rotate_model</a>( inv_mdl, str2num(str(4)));
+0125 
+0126    <span class="keyword">if</span> str(3)==<span class="string">'C'</span> <span class="comment">% complete electrode model</span>
+0127       inv_mdl = <a href="#_sub13" class="code" title="subfunction inv_mdl = mk_complete_elec_mdl( inv_mdl, layers);">mk_complete_elec_mdl</a>( inv_mdl, layers);
+0128    <span class="keyword">end</span>
+0129 
+0130 <span class="keyword">elseif</span> lower(str(2:3))==<span class="string">'2d'</span>
+0131    <span class="keyword">global</span> distmesh_do_graphics;
+0132    <span class="keyword">if</span> str(3)==<span class="string">'d'</span>; distmesh_do_graphics= 0;
+0133    <span class="keyword">else</span>          ; distmesh_do_graphics= 1;
+0134    <span class="keyword">end</span>
+0135 
+0136    <span class="keyword">switch</span> str(5)
+0137       <span class="keyword">case</span> <span class="string">'d'</span> <span class="comment">% Deprecated circle functions</span>
+0138          inv_mdl= <a href="#_sub2" class="code" title="subfunction inv2d = distmesh_2d_model_depr(str, n_elec, options);">distmesh_2d_model_depr</a>(str, n_elec, options);
+0139       <span class="keyword">case</span> <span class="string">'c'</span>
+0140          inv_mdl= <a href="#_sub1" class="code" title="subfunction inv_mdl = distmesh_2d_model(str, n_elec, options);">distmesh_2d_model</a>(str, n_elec, options);
+0141       <span class="keyword">case</span> <span class="string">'t'</span>
+0142          inv_mdl= <a href="#_sub1" class="code" title="subfunction inv_mdl = distmesh_2d_model(str, n_elec, options);">distmesh_2d_model</a>(str, n_elec, options);
+0143          inv_mdl.fwd_model = <a href="thorax_geometry.html" class="code" title="function [out1, out2, out3 ] = thorax_geometry(in1,in2);">thorax_geometry</a>( inv_mdl.fwd_model, str2num(str(6)));
+0144       <span class="keyword">otherwise</span>;
+0145          error([<span class="string">'can''t parse command string:'</span>, str]);
+0146    <span class="keyword">end</span>
+0147 <span class="keyword">elseif</span> str(2:3)==<span class="string">'2s'</span>
+0148 <span class="comment">% 2D square models</span>
+0149    <span class="keyword">if</span>     str(1)==<span class="string">'a'</span>; layers=  4;
+0150    <span class="keyword">elseif</span> str(1)==<span class="string">'b'</span>; layers=  8;
+0151    <span class="keyword">elseif</span> str(1)==<span class="string">'c'</span>; layers= 16;
+0152    <span class="keyword">elseif</span> str(1)==<span class="string">'d'</span>; layers= 24;
+0153    <span class="keyword">elseif</span> str(1)==<span class="string">'e'</span>; layers= 32;
+0154    <span class="keyword">elseif</span> str(1)==<span class="string">'f'</span>; layers= 40;
+0155    <span class="keyword">elseif</span> str(1)==<span class="string">'g'</span>; layers= 56;
+0156    <span class="keyword">elseif</span> str(1)==<span class="string">'h'</span>; layers= 80;
+0157    <span class="keyword">elseif</span> str(1)==<span class="string">'i'</span>; layers= 96;
+0158    <span class="keyword">elseif</span> str(1)==<span class="string">'j'</span>; layers= 144;
+0159    <span class="keyword">elseif</span> str(1)==<span class="string">'k'</span>; layers= 200;
+0160    <span class="keyword">else</span>;  error(<span class="string">'don`t know what to do with option=%s'</span>,str);
+0161    <span class="keyword">end</span>
+0162 
+0163    <span class="keyword">if</span> rem( layers, n_elec(1)/2)~=0;
+0164       error(<span class="string">'the %s model can`t support %d electrodes'</span>,str,n_elec(1));
+0165    <span class="keyword">end</span>
+0166    inv_mdl = <a href="#_sub4" class="code" title="subfunction inv2d= mk_2r_model( n_elec, xy_size, options)">mk_2r_model</a>( n_elec, layers, options);
+0167 
+0168 <span class="keyword">elseif</span> ( strcmp(str(2:3),<span class="string">'2t'</span>) || strcmp(str(2:3),<span class="string">'2T'</span>)) &amp;&amp; length(str)==4
+0169    <span class="keyword">if</span>     str(1)==<span class="string">'a'</span>; layers=  4;
+0170    <span class="keyword">elseif</span> str(1)==<span class="string">'b'</span>; layers=  8;
+0171    <span class="keyword">elseif</span> str(1)==<span class="string">'c'</span>; layers= 12;
+0172    <span class="keyword">elseif</span> str(1)==<span class="string">'d'</span>; layers= 16;
+0173    <span class="keyword">elseif</span> str(1)==<span class="string">'e'</span>; layers= 20;
+0174    <span class="keyword">elseif</span> str(1)==<span class="string">'f'</span>; layers= 24;
+0175    <span class="keyword">elseif</span> str(1)==<span class="string">'g'</span>; layers= 28;
+0176    <span class="keyword">elseif</span> str(1)==<span class="string">'h'</span>; layers= 32;
+0177    <span class="keyword">elseif</span> str(1)==<span class="string">'i'</span>; layers= 36;
+0178    <span class="keyword">elseif</span> str(1)==<span class="string">'j'</span>; layers= 40;
+0179    <span class="keyword">else</span>;  error([<span class="string">'don`t know what to do with option(1)='</span>,str]);
+0180    <span class="keyword">end</span>
+0181 
+0182    inv_mdl = <a href="#_sub3" class="code" title="subfunction inv2d= mk_2c_model( n_elec, n_circles, options )">mk_2c_model</a>( n_elec, layers, options );
+0183    inv_mdl = <a href="#_sub11" class="code" title="subfunction inv_mdl = rotate_model( inv_mdl, rotate_mdl);">rotate_model</a>( inv_mdl, 2); <span class="comment">% 45 degrees</span>
+0184 
+0185    <span class="keyword">if</span> length(str)==0; str= [str,<span class="string">' '</span>];<span class="keyword">end</span>
+0186 
+0187    <span class="keyword">if</span> str(3)==<span class="string">'T'</span> <span class="comment">% complete electrode model</span>
+0188       inv_mdl = <a href="#_sub13" class="code" title="subfunction inv_mdl = mk_complete_elec_mdl( inv_mdl, layers);">mk_complete_elec_mdl</a>( inv_mdl, layers);
+0189    <span class="keyword">end</span>
+0190 
+0191    inv_mdl.fwd_model = <a href="thorax_geometry.html" class="code" title="function [out1, out2, out3 ] = thorax_geometry(in1,in2);">thorax_geometry</a>( inv_mdl.fwd_model, str2num(str(4)));
+0192 
+0193 <span class="keyword">elseif</span> strcmp( str, <span class="string">'n3r2'</span>)
+0194     inv_mdl = <a href="#_sub8" class="code" title="subfunction inv_mdl = mk_n3r2_model( n_elec, options );">mk_n3r2_model</a>( n_elec, options );
+0195 <span class="keyword">elseif</span> strcmp( str, <span class="string">'n3z'</span>) || strcmp(str, <span class="string">'n3z2'</span>)
+0196     inv_mdl = <a href="#_sub7" class="code" title="subfunction inv_mdl = mk_n3z_model( n_elec, options );">mk_n3z_model</a>( n_elec, options );
+0197 <span class="keyword">elseif</span> strcmp( str(2:3), <span class="string">'3c'</span>) || strcmp(str(2:3),<span class="string">'3t'</span>)
+0198    <span class="keyword">if</span>     str(1)==<span class="string">'a'</span>; xy_layers=  4; z_layers= linspace(-.5,.5,5);
+0199    <span class="keyword">elseif</span> str(1)==<span class="string">'b'</span>; xy_layers=  8; z_layers= linspace(-.7,.7,11);
+0200    <span class="keyword">elseif</span> str(1)==<span class="string">'c'</span>; xy_layers= 12; z_layers= linspace(-.9,.9,21);
+0201    <span class="keyword">elseif</span> str(1)==<span class="string">'d'</span>; xy_layers= 16; z_layers= linspace(-1,1,41);
+0202    <span class="keyword">elseif</span> str(1)==<span class="string">'e'</span>; xy_layers= 20; z_layers= linspace(-1.3,1.3,61);
+0203    <span class="keyword">elseif</span> str(1)==<span class="string">'f'</span>; xy_layers= 24; z_layers= linspace(-1.6,1.6,81);
+0204    <span class="keyword">elseif</span> str(1)==<span class="string">'g'</span>; xy_layers= 28; z_layers= linspace(-1.9,1.9,101);
+0205    <span class="keyword">elseif</span> str(1)==<span class="string">'h'</span>; xy_layers= 32; z_layers= linspace(-2.2,2.2,121);
+0206    <span class="keyword">else</span>;  error([<span class="string">'don`t know what to do with option(1)='</span>,str]);
+0207    <span class="keyword">end</span>
+0208 
+0209    <span class="keyword">if</span> str(3)== <span class="string">'c'</span>
+0210       elec_cfg_str= str(4:end);
+0211    <span class="keyword">elseif</span> str(3) == <span class="string">'t'</span>
+0212       elec_cfg_str= str(5:end);
+0213    <span class="keyword">else</span>
+0214       error([<span class="string">'don`t know what to do with option(3)='</span>,str]);
+0215    <span class="keyword">end</span>
+0216 
+0217    elec_per_plane = n_elec(1);
+0218    spacing=.5;
+0219    <span class="keyword">if</span>     elec_cfg_str==<span class="string">'r'</span>;
+0220       elec_conf= <span class="string">'planes'</span>;
+0221       ne_1  = (n_elec(2)-1)/2;
+0222       elec_space= [ne_1:-1:-ne_1]*spacing;
+0223    <span class="keyword">elseif</span> elec_cfg_str==<span class="string">'z2'</span>;
+0224       elec_conf= <span class="string">'zigzag'</span>;
+0225       elec_space= [1,-1]*spacing/2;
+0226    <span class="keyword">elseif</span> elec_cfg_str==<span class="string">'p2'</span>;
+0227       elec_conf= <span class="string">'planes'</span>;
+0228       elec_space= [1,-1]*spacing/2;
+0229       elec_per_plane = n_elec(1)/2;
+0230    <span class="keyword">else</span>;
+0231       error([<span class="string">'don`t know what to do with option(4)='</span>,str]);
+0232    <span class="keyword">end</span>
+0233 
+0234    inv_mdl = <a href="#_sub6" class="code" title="subfunction inv3d = mk_3c_model( n_elec, xy_layers, z_layers, elec_space, ">mk_3c_model</a>( n_elec, xy_layers, z_layers, elec_space, <span class="keyword">...</span>
+0235                               elec_per_plane, elec_conf, options );
+0236 
+0237    <span class="keyword">if</span> str(3) == <span class="string">'t'</span> <span class="comment">% thorax models</span>
+0238       inv_mdl = <a href="#_sub11" class="code" title="subfunction inv_mdl = rotate_model( inv_mdl, rotate_mdl);">rotate_model</a>( inv_mdl, 2); <span class="comment">% 45 degrees</span>
+0239       inv_mdl.fwd_model = <a href="thorax_geometry.html" class="code" title="function [out1, out2, out3 ] = thorax_geometry(in1,in2);">thorax_geometry</a>( inv_mdl.fwd_model, str2num(str(4)));
+0240    <span class="keyword">end</span>
+0241 <span class="keyword">else</span>
+0242     error([<span class="string">'Don`t know what to do with option='</span>,str]);
+0243 <span class="keyword">end</span>
+0244 
+0245 inv_mdl.name= [<span class="string">'EIDORS common_model_'</span>,str];
+0246 inv_mdl= <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'inv_model'</span>, inv_mdl);
+0247 
+0248 <span class="comment">% check we are giving back a good specimen</span>
+0249 <a href="valid_inv_model.html" class="code" title="function [pass, err_str] = valid_inv_model(imdl)">valid_inv_model</a>(inv_mdl);
+0250 
+0251 <a name="_sub1" href="#_subfunctions" class="code">function inv_mdl = distmesh_2d_model(str, n_elec, options);</a>
+0252 <span class="comment">% This function is an interface to distmesh_2d_model for some common values</span>
+0253 <span class="comment">% fmdl = dm_2d_circ_pt_elecs( elec_pts, pfix, spacing);</span>
+0254 <span class="comment">%  params.base_spacing = spacing(1);</span>
+0255 <span class="comment">%  params.refine_ratio = spacing(2);</span>
+0256 <span class="comment">%  params.gradient     = spacing(3);</span>
+0257    Elec_width= 4; <span class="comment">% 2 degrees - electrode width</span>
+0258    <span class="keyword">switch</span> [str(1),str(4)]
+0259       <span class="keyword">case</span> <span class="string">'j0'</span>; params = [ 55,0,100]./[1000,1,100];
+0260       <span class="keyword">case</span> <span class="string">'i0'</span>; params = [ 67,0,100]./[1000,1,100];
+0261       <span class="keyword">case</span> <span class="string">'h0'</span>; params = [ 77,0,100]./[1000,1,100];
+0262       <span class="keyword">case</span> <span class="string">'g0'</span>; params = [ 87,0,100]./[1000,1,100];
+0263       <span class="keyword">case</span> <span class="string">'f0'</span>; params = [100,0,100]./[1000,1,100];
+0264       <span class="keyword">case</span> <span class="string">'e0'</span>; params = [120,0,100]./[1000,1,100];
+0265       <span class="keyword">case</span> <span class="string">'d0'</span>; params = [150,0,100]./[1000,1,100];
+0266       <span class="keyword">case</span> <span class="string">'c0'</span>; params = [200,0,100]./[1000,1,100];
+0267       <span class="keyword">case</span> <span class="string">'b0'</span>; params = [270,0,100]./[1000,1,100];
+0268       <span class="keyword">case</span> <span class="string">'a0'</span>; params = [500,0,100]./[1000,1,100];
+0269 
+0270       <span class="keyword">case</span> <span class="string">'j1'</span>; params = [ 21,3,5]./[1000,1,100];
+0271       <span class="keyword">case</span> <span class="string">'i1'</span>; params = [ 23,3,5]./[1000,1,100];
+0272       <span class="keyword">case</span> <span class="string">'h1'</span>; params = [ 26,3,5]./[1000,1,100];
+0273       <span class="keyword">case</span> <span class="string">'g1'</span>; params = [ 30,3,5]./[1000,1,100];
+0274       <span class="keyword">case</span> <span class="string">'f1'</span>; params = [ 35,3,5]./[1000,1,100];
+0275       <span class="keyword">case</span> <span class="string">'e1'</span>; params = [ 39,3,5]./[1000,1,100];
+0276       <span class="keyword">case</span> <span class="string">'d1'</span>; params = [ 54,3,5]./[1000,1,100];
+0277       <span class="keyword">case</span> <span class="string">'c1'</span>; params = [100,3,5]./[1000,1,100];
+0278       <span class="keyword">case</span> <span class="string">'b1'</span>; params = [180,3,5]./[1000,1,100];
+0279       <span class="keyword">case</span> <span class="string">'a1'</span>; params = [400,3,5]./[1000,1,100];
+0280 
+0281       <span class="keyword">case</span> <span class="string">'j2'</span>; params = [ 12,5,3]./[1000,1,100];
+0282       <span class="keyword">case</span> <span class="string">'i2'</span>; params = [ 14,5,3]./[1000,1,100];
+0283       <span class="keyword">case</span> <span class="string">'h2'</span>; params = [ 16,5,3]./[1000,1,100];
+0284       <span class="keyword">case</span> <span class="string">'g2'</span>; params = [ 19,5,3]./[1000,1,100];
+0285       <span class="keyword">case</span> <span class="string">'f2'</span>; params = [ 21,5,3]./[1000,1,100];
+0286       <span class="keyword">case</span> <span class="string">'e2'</span>; params = [ 39,5,3]./[1000,1,100];
+0287       <span class="keyword">case</span> <span class="string">'d2'</span>; params = [ 50,5,3]./[1000,1,100];
+0288       <span class="keyword">case</span> <span class="string">'c2'</span>; params = [100,5,3]./[1000,1,100];
+0289       <span class="keyword">case</span> <span class="string">'b2'</span>; params = [200,5,3]./[1000,1,100];
+0290       <span class="keyword">case</span> <span class="string">'a2'</span>; params = [500,5,3]./[1000,1,100];
+0291 
+0292       <span class="keyword">case</span> <span class="string">'j3'</span>; params = [  6,10,2]./[1000,1,100];
+0293       <span class="keyword">case</span> <span class="string">'i3'</span>; params = [  7,10,2]./[1000,1,100];
+0294       <span class="keyword">case</span> <span class="string">'h3'</span>; params = [  8,10,2]./[1000,1,100];
+0295       <span class="keyword">case</span> <span class="string">'g3'</span>; params = [  9,10,2]./[1000,1,100];
+0296       <span class="keyword">case</span> <span class="string">'f3'</span>; params = [ 10,10,2]./[1000,1,100];
+0297       <span class="keyword">case</span> <span class="string">'e3'</span>; params = [ 13,10,2]./[1000,1,100];
+0298       <span class="keyword">case</span> <span class="string">'d3'</span>; params = [ 20,10,2]./[1000,1,100];
+0299       <span class="keyword">case</span> <span class="string">'c3'</span>; params = [ 70,10,2]./[1000,1,100];
+0300       <span class="keyword">case</span> <span class="string">'b3'</span>; params = [150,10,2]./[1000,1,100];
+0301       <span class="keyword">case</span> <span class="string">'a3'</span>; params = [250,10,2]./[1000,1,100];
+0302 
+0303 <span class="comment">% We set refinement 4==3. This is OK for this mdl density</span>
+0304       <span class="keyword">case</span> <span class="string">'j4'</span>; params = [  6,10,2]./[1000,1,100];
+0305       <span class="keyword">case</span> <span class="string">'i4'</span>; params = [  7,10,2]./[1000,1,100];
+0306       <span class="keyword">case</span> <span class="string">'h4'</span>; params = [  8,10,2]./[1000,1,100];
+0307       <span class="keyword">case</span> <span class="string">'g4'</span>; params = [  9,10,2]./[1000,1,100];
+0308       <span class="keyword">case</span> <span class="string">'f4'</span>; params = [ 10,10,2]./[1000,1,100];
+0309       <span class="keyword">case</span> <span class="string">'e4'</span>; params = [ 13,10,2]./[1000,1,100];
+0310       <span class="keyword">case</span> <span class="string">'d4'</span>; params = [ 20,10,2]./[1000,1,100];
+0311       <span class="keyword">case</span> <span class="string">'c4'</span>; params = [ 70,10,2]./[1000,1,100];
+0312       <span class="keyword">case</span> <span class="string">'b4'</span>; params = [150,10,2]./[1000,1,100];
+0313       <span class="keyword">case</span> <span class="string">'a4'</span>; params = [250,10,2]./[1000,1,100];
+0314 
+0315       <span class="keyword">otherwise</span>; error(<span class="string">'don`t know what to do with option=%s'</span>,str);
+0316    <span class="keyword">end</span>
+0317    ea = Elec_width/2 *(2*pi/360);
+0318    <span class="keyword">for</span> i=1:n_elec(1);
+0319      ai = (i-1)/n_elec(1) * 2*pi;
+0320      elec_pts{i} = [sin(ai+ea),cos(ai+ea);sin(ai-ea),cos(ai-ea)];
+0321    <span class="keyword">end</span>
+0322    fwd_mdl= <a href="../../eidors/meshing/distmesh/dm_2d_circ_pt_elecs.html" class="code" title="function fmdl = dm_2d_circ_pt_elecs( elec_pts, pfix, spacing);">dm_2d_circ_pt_elecs</a>( elec_pts, [], params);
+0323    inv_mdl= <a href="#_sub5" class="code" title="subfunction inv2d= add_params_2d_mdl( params, n_elec, options);">add_params_2d_mdl</a>( fwd_mdl, n_elec(1), options);
+0324 
+0325 <span class="comment">% THIS FUNCTION IS DEPRECATED (from EIDORS 3.3)</span>
+0326 <a name="_sub2" href="#_subfunctions" class="code">function inv2d = distmesh_2d_model_depr(str, n_elec, options);</a>
+0327    <span class="keyword">switch</span> str(1)
+0328       <span class="keyword">case</span> <span class="string">'a'</span>; n_nodes=  50;
+0329       <span class="keyword">case</span> <span class="string">'b'</span>; n_nodes= 100;
+0330       <span class="keyword">case</span> <span class="string">'c'</span>; n_nodes= 200;
+0331       <span class="keyword">case</span> <span class="string">'d'</span>; n_nodes= 400;
+0332       <span class="keyword">case</span> <span class="string">'e'</span>; n_nodes= 800;
+0333       <span class="keyword">case</span> <span class="string">'f'</span>; n_nodes=1200;
+0334       <span class="keyword">case</span> <span class="string">'g'</span>; n_nodes=1800;
+0335       <span class="keyword">case</span> <span class="string">'h'</span>; n_nodes=2400;
+0336       <span class="keyword">case</span> <span class="string">'i'</span>; n_nodes=3000;
+0337       <span class="keyword">case</span> <span class="string">'j'</span>; n_nodes=4000;
+0338       <span class="keyword">otherwise</span>; error(<span class="string">'don`t know what to do with option=%s'</span>,str);
+0339    <span class="keyword">end</span>
+0340 
+0341    refine_level= abs(str(4))-<span class="string">'0'</span>;
+0342 
+0343    elec_width= .1;
+0344    th=linspace(0,2*pi,n_elec(1)+1)';th(end)=[];
+0345    elec_posn= [sin(th),cos(th)];
+0346    [elec_nodes, refine_nodes] = <a href="../../eidors/meshing/distmesh/dm_mk_elec_nodes.html" class="code" title="function [elec_nodes, refine_nodes] = dm_mk_elec_nodes( elec_posn,elec_width, refine_level);">dm_mk_elec_nodes</a>( elec_posn, <span class="keyword">...</span>
+0347           elec_width, refine_level);
+0348    fd=@(p) sqrt(sum(p.^2,2))-1;
+0349    bbox = [-1,-1;1,1];
+0350    z_contact = 0.01;
+0351    fwd_mdl= <a href="../../eidors/meshing/distmesh/dm_mk_fwd_model.html" class="code" title="function [fwd_mdl]= dm_mk_fwd_model( fd, fh, nnodes, bbox, elec_nodes,refine_nodes, z_contact, name)">dm_mk_fwd_model</a>( fd, [], n_nodes, bbox, <span class="keyword">...</span>
+0352                              elec_nodes, refine_nodes, z_contact);
+0353 
+0354    inv2d= <a href="#_sub5" class="code" title="subfunction inv2d= add_params_2d_mdl( params, n_elec, options);">add_params_2d_mdl</a>( fwd_mdl, n_elec(1), options);
+0355 
+0356 
+0357 <a name="_sub3" href="#_subfunctions" class="code">function inv2d= mk_2c_model( n_elec, n_circles, options )</a>
+0358 
+0359     n_elec= n_elec(1);
+0360     params= <a href="mk_circ_tank.html" class="code" title="function param= mk_circ_tank(rings, levels, elec_spec );">mk_circ_tank</a>(n_circles, [], n_elec);
+0361     inv2d= <a href="#_sub5" class="code" title="subfunction inv2d= add_params_2d_mdl( params, n_elec, options);">add_params_2d_mdl</a>( params, n_elec, options);
+0362 
+0363 
+0364 <a name="_sub4" href="#_subfunctions" class="code">function inv2d= mk_2r_model( n_elec, xy_size, options)</a>
+0365     <span class="keyword">if</span> length(xy_size)==1; xy_size= xy_size*[1,1]; <span class="keyword">end</span>
+0366     xy_size= xy_size+1;
+0367 
+0368     xvec = linspace(-1,1,xy_size(1));
+0369     yvec = linspace(-1,1,xy_size(2));
+0370     fmdl = <a href="mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>([],xvec,yvec);
+0371 
+0372     <span class="comment">% put 1/4 of elecs on each side</span>
+0373     tb_elecs= linspace(1, xy_size(1), 1+2*n_elec(1)/4);
+0374     tb_elecs= tb_elecs(2:2:end);
+0375     sd_elecs= linspace(1, xy_size(2), 1+2*n_elec(1)/4);
+0376     sd_elecs= sd_elecs(2:2:end);
+0377 
+0378     el_nodes= [];
+0379     <span class="comment">% Top nodes -left to right</span>
+0380     bdy_nodes= (1:xy_size(1)) + xy_size(1)*(xy_size(2)-1);
+0381     el_nodes= [el_nodes, bdy_nodes(tb_elecs)];
+0382     <span class="comment">% Right nodes - top to bottom</span>
+0383     bdy_nodes= (1:xy_size(2))*xy_size(1);
+0384     el_nodes= [el_nodes, bdy_nodes(fliplr(sd_elecs))];
+0385     <span class="comment">% Bottom nodes - right to left</span>
+0386     bdy_nodes= 1:xy_size(1);
+0387     el_nodes= [el_nodes, bdy_nodes(fliplr(tb_elecs))];
+0388     <span class="comment">% Left nodes - bottom to top</span>
+0389     bdy_nodes= (0:xy_size(2)-1)*xy_size(1)+1;
+0390     el_nodes= [el_nodes, bdy_nodes(sd_elecs)];
+0391 
+0392 <span class="comment">%   trimesh(fmdl.elems,fmdl.nodes(:,1), fmdl.nodes(:,2));</span>
+0393     <span class="keyword">for</span> i=1:n_elec(1)
+0394        n= el_nodes(i);
+0395        fmdl.electrode(i).nodes= n;
+0396        fmdl.electrode(i).z_contact= .001; <span class="comment">% choose a low value</span>
+0397 <span class="comment">%      plot(fmdl.nodes(n,1),fmdl.nodes(n,2),'*'); pause;</span>
+0398     <span class="keyword">end</span>
+0399     inv2d= <a href="#_sub5" class="code" title="subfunction inv2d= add_params_2d_mdl( params, n_elec, options);">add_params_2d_mdl</a>( fmdl, n_elec(1), options);
+0400 
+0401 <span class="comment">% params is the part of the fwd_model</span>
+0402 <a name="_sub5" href="#_subfunctions" class="code">function inv2d= add_params_2d_mdl( params, n_elec, options);</a>
+0403     n_rings= 1;
+0404     [st, els]= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(n_elec, n_rings, <span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options, 10);
+0405     params.stimulation= st;
+0406     params.meas_select= els;
+0407     params.solve=      <span class="string">'eidors_default'</span>;
+0408     params.system_mat= <span class="string">'eidors_default'</span>;
+0409     params.jacobian=   <span class="string">'eidors_default'</span>;
+0410     params.normalize_measurements = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(<span class="string">'default'</span>);
+0411     mdl_2d   = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>, params);
+0412 
+0413     inv2d.solve=       <span class="string">'eidors_default'</span>;
+0414     inv2d.hyperparameter.value = 3e-2;
+0415     <span class="comment">%inv2d.hyperparameter.func = 'choose_noise_figure';</span>
+0416     <span class="comment">%inv2d.hyperparameter.noise_figure= 1;</span>
+0417     <span class="comment">%inv2d.hyperparameter.tgt_elems= 1:4;</span>
+0418      inv2d.RtR_prior= <span class="string">'eidors_default'</span>;
+0419     <span class="comment">%inv2d.RtR_prior= 'prior_gaussian_HPF';</span>
+0420     inv2d.jacobian_bkgnd.value= 1;
+0421     inv2d.reconst_type= <span class="string">'difference'</span>;
+0422     inv2d.fwd_model= mdl_2d;
+0423 
+0424 <a name="_sub6" href="#_subfunctions" class="code">function inv3d = mk_3c_model( n_elec, xy_layers, z_layers, elec_space, </a><span class="keyword">...</span>
+0425                               elec_per_plane, elec_conf, options );
+0426 
+0427     e_layers=[];
+0428     <span class="keyword">for</span> es= elec_space;
+0429        ff= abs(z_layers  -es);
+0430        ff= find(ff==min(ff));
+0431        e_layers= [e_layers,ff(1)];
+0432     <span class="keyword">end</span>
+0433 
+0434     params= <a href="mk_circ_tank.html" class="code" title="function param= mk_circ_tank(rings, levels, elec_spec );">mk_circ_tank</a>( xy_layers, z_layers, <span class="keyword">...</span>
+0435            { elec_conf, elec_per_plane, e_layers} );
+0436 
+0437     [st, els]= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(n_elec(1), n_elec(2), <span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options, 10);
+0438 
+0439     params.stimulation= st;
+0440     params.meas_select= els;
+0441     params.solve=      <span class="string">'eidors_default'</span>;
+0442     params.system_mat= <span class="string">'eidors_default'</span>;
+0443     params.jacobian=   <span class="string">'eidors_default'</span>;
+0444     params.normalize_measurements = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(<span class="string">'default'</span>);
+0445     fm3d = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>, params);
+0446 
+0447     inv3d.name=  <span class="string">'EIT inverse: 3D'</span>;
+0448     inv3d.solve= <span class="string">'eidors_default'</span>;
+0449     inv3d.RtR_prior= <span class="string">'eidors_default'</span>;
+0450 <span class="comment">%     inv3d.inv_solve_time_prior.time_steps=   0;</span>
+0451 <span class="comment">%     inv3d.prior_time_smooth.space_prior = @prior_noser;</span>
+0452 <span class="comment">%     inv3d.prior_time_smooth.time_weight = 0;</span>
+0453 <span class="comment">%     inv3d.inv_solve_time_prior.time_steps   = 0;</span>
+0454 
+0455     inv3d.hyperparameter.value = 3e-2;
+0456     inv3d.reconst_type= <span class="string">'difference'</span>;
+0457     inv3d.jacobian_bkgnd.value= 1;
+0458     inv3d.fwd_model= fm3d;
+0459 
+0460 <a name="_sub7" href="#_subfunctions" class="code">function inv_mdl = mk_n3z_model( n_elec, options );</a>
+0461    <span class="keyword">if</span> isempty(n_elec) || ~all(n_elec == [16,1])
+0462       warning(sprintf([<span class="string">'You have requested an &quot;n3z&quot; model with [%d,%d] electrodes. '</span> <span class="keyword">...</span>
+0463          <span class="string">'Note that these models always have 16 electrodes (16x1)'</span>], n_elec));
+0464    <span class="keyword">end</span>
+0465    inv_mdl= <a href="#_sub8" class="code" title="subfunction inv_mdl = mk_n3r2_model( n_elec, options );">mk_n3r2_model</a>( [16, 2], options);
+0466    fwd_mdl= inv_mdl.fwd_model;
+0467    renumber= [1:2:15; 18:2:32];
+0468    fwd_mdl.electrode= fwd_mdl.electrode(renumber(:));
+0469   
+0470    [st, els]= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16, 1, <span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options, 10);
+0471    fwd_mdl.stimulation= st;
+0472    fwd_mdl.meas_select= els;
+0473    inv_mdl.fwd_model= fwd_mdl;
+0474    inv_mdl.name= <span class="string">'NP 3D model with zigzag electrodes'</span>;
+0475 
+0476 <a name="_sub8" href="#_subfunctions" class="code">function inv_mdl = mk_n3r2_model( n_elec, options );</a>
+0477    <span class="keyword">if</span> ~isempty(n_elec) <span class="keyword">if</span>  ~all(n_elec == [16,2]);
+0478       <span class="keyword">if</span> length(n_elec)~=2; n_elec= [n_elec(1),1]; <span class="keyword">end</span>
+0479       warning(sprintf([<span class="string">'You have requested an &quot;n3&quot; model with [%d,%d] electrodes.'</span> <span class="keyword">...</span>
+0480          <span class="string">'Note that these models always have 32 electrodes (16x2)'</span>], n_elec));
+0481    <span class="keyword">end</span>; <span class="keyword">end</span>
+0482 
+0483    load( <span class="string">'datareal.mat'</span> );
+0484 
+0485    fmdl.nodes= vtx;
+0486    fmdl.elems= simp;
+0487    fmdl.boundary= <a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>( simp );
+0488 
+0489    fmdl.solve=      @<a href="../../eidors/solvers/forward/fwd_solve_1st_order.html" class="code" title="function data =fwd_solve_1st_order(fwd_model, img)">fwd_solve_1st_order</a>;
+0490    fmdl.jacobian=   @<a href="../../eidors/solvers/forward/jacobian_adjoint.html" class="code" title="function J= jacobian_adjoint( fwd_model, img)">jacobian_adjoint</a>;
+0491    fmdl.system_mat= @<a href="../../eidors/solvers/forward/system_mat_1st_order.html" class="code" title="function s_mat= system_mat_1st_order( fwd_model, img)">system_mat_1st_order</a>;
+0492    fmdl.normalize_measurements = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(<span class="string">'default'</span>);
+0493 
+0494    fmdl.demo_targ_elems.A = [390;391;393;396;
+0495      402;478;479;480;484;486;664;665;666;667;
+0496      668;670;671;672;676;677;678;755;760;761];
+0497    fmdl.demo_targ_elems.B = [318;319;321;324;
+0498      330;439;440;441;445;447;592;593;594;595;
+0499      596;598;599;600;604;605;606;716;721;722];
+0500 
+0501    <span class="keyword">for</span> i=1:length(zc)
+0502        electrodes(i).z_contact= zc(i);
+0503        electrodes(i).nodes=     unique( elec(i,:) );
+0504    <span class="keyword">end</span>
+0505 
+0506    fmdl.gnd_node=           gnd_ind;
+0507    fmdl.electrode =         electrodes;
+0508 
+0509    fmdl.stimulation = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,2,[0,1],[0,1], <span class="keyword">...</span>
+0510              {<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},-1);
+0511 
+0512    fmdl.name= <span class="string">'NP 3D model'</span>;
+0513    fmdl= <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>, fmdl);
+0514 
+0515    inv_mdl.name=         <span class="string">'Nick Polydorides EIT inverse'</span>;
+0516    inv_mdl.solve=       @<a href="../../eidors/solvers/inverse/inv_solve_diff_GN_one_step.html" class="code" title="function img= inv_solve_diff_GN_one_step( inv_model, data1, data2)">inv_solve_diff_GN_one_step</a>;
+0517    inv_mdl.hyperparameter.value = 1e-2;
+0518    inv_mdl.RtR_prior= @<a href="../../eidors/solvers/inverse/prior_laplace.html" class="code" title="function Reg= prior_laplace( inv_model )">prior_laplace</a>;
+0519    inv_mdl.reconst_type= <span class="string">'difference'</span>;
+0520    inv_mdl.jacobian_bkgnd.value= 1;
+0521    inv_mdl.fwd_model= fmdl;
+0522 
+0523 
+0524 
+0525 <a name="_sub9" href="#_subfunctions" class="code">function inv3d= mk_b3r1_model( n_elec, options )</a>
+0526     n_rings= 1;
+0527     levels= [-.5:.1:.5];
+0528     e_levels= 6;
+0529     nr= 8;
+0530 
+0531     params= <a href="mk_circ_tank.html" class="code" title="function param= mk_circ_tank(rings, levels, elec_spec );">mk_circ_tank</a>( nr, levels, { <span class="string">'planes'</span>, n_elec, e_levels } );
+0532     [st, els]= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(n_elec, n_rings, <span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options, 10);
+0533 
+0534     params.stimulation= st;
+0535     params.meas_select= els;
+0536     params.solve=      <span class="string">'fwd_solve_1st_order'</span>;
+0537     params.system_mat= <span class="string">'system_mat_1st_order'</span>;
+0538     params.jacobian=   <span class="string">'jacobian_adjoint'</span>;
+0539     params.normalize_measurements = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(<span class="string">'default'</span>);
+0540     mdl_3d = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>, params);
+0541 
+0542     inv3d.name = <span class="string">'EIT inverse: 3D'</span>;
+0543     inv3d.solve=       <span class="string">'inv_solve_diff_GN_one_step'</span>;
+0544     <span class="comment">%inv3d.solve=       'aa_inv_conj_grad';</span>
+0545     inv3d.hyperparameter.value = 1e-5;
+0546     inv3d.RtR_prior= <span class="string">'prior_laplace'</span>;
+0547     <span class="comment">%inv3d.RtR_prior= 'prior_gaussian_HPF';</span>
+0548     inv3d.jacobian_bkgnd.value= 1;
+0549     inv3d.reconst_type= <span class="string">'difference'</span>;
+0550     inv3d.fwd_model= mdl_3d;
+0551 
+0552 <a name="_sub10" href="#_subfunctions" class="code">function inv3d= mk_b3r2_model( n_elec, nr, options )</a>
+0553     n_rings= 2;
+0554     z_axis = [0:.1:1];
+0555     e_levels= [4,8];
+0556     nr= 4;
+0557     n_elec = 8;
+0558 
+0559     params= <a href="mk_circ_tank.html" class="code" title="function param= mk_circ_tank(rings, levels, elec_spec );">mk_circ_tank</a>( nr, z_axis, { <span class="string">'planes'</span>, n_elec, e_levels } );
+0560     [st, els]= <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(n_elec, n_rings, <span class="string">'{ad}'</span>,<span class="string">'{ad}'</span>, options, 10);
+0561 
+0562     params.stimulation= st;
+0563     params.meas_select= els;
+0564     params.solve=      <span class="string">'fwd_solve_1st_order'</span>;
+0565     params.system_mat= <span class="string">'system_mat_1st_order'</span>;
+0566     params.jacobian=   <span class="string">'jacobian_adjoint'</span>;
+0567     params.normalize_measurements = <a href="mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(<span class="string">'default'</span>);
+0568     mdl_3d = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>, params);
+0569 
+0570     <span class="comment">% Specify number of levels in mesh for imaging slices</span>
+0571     num_levs = length(e_levels);
+0572     levels = inf*ones(num_levs,3);
+0573     levels(:,3) = e_levels / (length(z_axis)-1);
+0574     levels(:,4) = ones(num_levs,1);
+0575     levels(:,5) = (1:num_levs)';
+0576     mdl_3d.levels = levels;
+0577 
+0578     inv3d.name = <span class="string">'EIT inverse: 3D'</span>;
+0579     inv3d.solve=       <span class="string">'inv_solve_diff_GN_one_step'</span>;
+0580     <span class="comment">%inv3d.solve=       'aa_inv_conj_grad';</span>
+0581     inv3d.hyperparameter.value = 1e-5;
+0582     inv3d.RtR_prior= <span class="string">'prior_laplace'</span>;
+0583     <span class="comment">%inv3d.RtR_prior= 'prior_gaussian_HPF';</span>
+0584     inv3d.jacobian_bkgnd.value= 1;
+0585     inv3d.reconst_type= <span class="string">'difference'</span>;
+0586     inv3d.fwd_model= mdl_3d;
+0587 
+0588 <span class="comment">% rotate model rotate_model/16 times around</span>
+0589 <a name="_sub11" href="#_subfunctions" class="code">function inv_mdl = rotate_model( inv_mdl, rotate_mdl);</a>
+0590     inv_mdl = <a href="#_sub12" class="code" title="subfunction inv_mdl = turn_model( inv_mdl, angle );">turn_model</a>( inv_mdl, pi/8*rotate_mdl );
+0591 
+0592     n_elec= length( inv_mdl.fwd_model.electrode );
+0593     renum = rem(  rotate_mdl*n_elec/16 + (0:n_elec-1),n_elec)+1;
+0594     renum = floor(renum); <span class="comment">% round is not quite right for all model</span>
+0595                           <span class="comment">% cases, but no errors.</span>
+0596     inv_mdl.fwd_model.electrode = <span class="keyword">...</span>
+0597        inv_mdl.fwd_model.electrode( renum);
+0598 
+0599 <span class="comment">% rotate model rotate_model/16 times around</span>
+0600 <a name="_sub12" href="#_subfunctions" class="code">function inv_mdl = turn_model( inv_mdl, angle );</a>
+0601     nodes= inv_mdl.fwd_model.nodes;
+0602     cos_rot = cos( angle );
+0603     sin_rot = sin( angle );
+0604     nodes(:,1)= inv_mdl.fwd_model.nodes(:,1:2)*[ cos_rot;-sin_rot];
+0605     nodes(:,2)= inv_mdl.fwd_model.nodes(:,1:2)*[ sin_rot; cos_rot];
+0606     inv_mdl.fwd_model.nodes= nodes;
+0607 
+0608 <a name="_sub13" href="#_subfunctions" class="code">function inv_mdl = mk_complete_elec_mdl( inv_mdl, layers);</a>
+0609       inv_mdl = <a href="#_sub12" class="code" title="subfunction inv_mdl = turn_model( inv_mdl, angle );">turn_model</a>( inv_mdl, 2*pi/4/layers/2 );
+0610 
+0611       bdy= inv_mdl.fwd_model.boundary;
+0612       <span class="keyword">for</span> i=1:length(inv_mdl.fwd_model.electrode);
+0613          enode= inv_mdl.fwd_model.electrode(i).nodes;
+0614          ff= find( enode== bdy(:,1) );
+0615          inv_mdl.fwd_model.electrode(i).nodes = bdy(ff,:);
+0616       <span class="keyword">end</span>
+0617 
+0618 <span class="comment">%%%%%%%%%%%%%%%%%%%%%% TESTS %%%%%%%%%%%%%%%%%%%%%%%</span>
+0619 <a name="_sub14" href="#_subfunctions" class="code">function do_unit_test</a>
+0620 
+0621 <a href="#_sub16" class="code" title="subfunction test_circ_models">test_circ_models</a>
+0622 <a href="#_sub17" class="code" title="subfunction test_3d_models">test_3d_models</a>
+0623 <a href="#_sub15" class="code" title="subfunction test_np_get_3d_meas">test_np_get_3d_meas</a>
+0624 <a href="#_sub18" class="code" title="subfunction test_distmesh_models">test_distmesh_models</a>
+0625 
+0626 <a name="_sub15" href="#_subfunctions" class="code">function test_np_get_3d_meas</a>
+0627    imdl=<a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]); st1=imdl.fwd_model.stimulation;
+0628    fmdl = imdl.fwd_model;
+0629 
+0630    <span class="comment">% get the measurement patterns, only indH is used in this model</span>
+0631    <span class="comment">%   here we only want to get the meas pattern from 'get_3d_meas',</span>
+0632    <span class="comment">%   not the voltages, so we enter zeros</span>
+0633    load( <span class="string">'datareal.mat'</span> );
+0634    [I,Ib] = <a href="../../eidors/deprecated/set_3d_currents.html" class="code" title="function [I,Ib] = set_3d_currents(protocol,elec,vtx,gnd_ind,no_pl);">set_3d_currents</a>(protocol, elec, <span class="keyword">...</span>
+0635                fmdl.nodes, fmdl.gnd_node, no_pl);
+0636    [jnk,jnk,indH,indV,jnk] = <a href="../../eidors/deprecated/get_3d_meas.html" class="code" title="function [voltageH,voltageV,indH,indV,df] = get_3d_meas(elec,vtx,V,Ib,no_pl);">get_3d_meas</a>( elec, <span class="keyword">...</span>
+0637             fmdl.nodes, zeros(size(I)), Ib, no_pl );
+0638    n_elec= size(elec,1);
+0639    n_meas= size(indH,1) / size(Ib,2);
+0640    <span class="keyword">for</span> i=1:size(Ib,2)
+0641       fmdl.stimulation(i).stimulation= <span class="string">'Amp'</span>;
+0642       fmdl.stimulation(i).stim_pattern= Ib(:,i);
+0643 
+0644       idx= ( 1+ (i-1)*n_meas ):( i*n_meas );
+0645       fmdl.stimulation(i).meas_pattern= <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a> ( <span class="keyword">...</span>
+0646               (1:n_meas)'*[1,1], <span class="keyword">...</span>
+0647               indH( idx, : ), <span class="keyword">...</span>
+0648               ones(n_meas,2)*[1,0;0,-1], <span class="keyword">...</span>
+0649               n_meas, n_elec );
+0650    <span class="keyword">end</span>
+0651    st2 = fmdl.stimulation;
+0652 
+0653 
+0654    sp1=[]; sp2=[]; mp1=[]; mp2=[];
+0655    <span class="keyword">for</span> i=1:32;
+0656       sp1= [sp1, st1(i).stim_pattern]; mp1= [mp1, st1(i).meas_pattern];
+0657       sp2= [sp2, st2(i).stim_pattern]; mp2= [mp2, st2(i).meas_pattern];
+0658    <span class="keyword">end</span>
+0659    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'STIM_PAT:'</span>,sp1,sp2);
+0660    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'MEAS_PAT:'</span>,mp1,mp2);
+0661 
+0662 
+0663 
+0664 <a name="_sub16" href="#_subfunctions" class="code">function test_circ_models</a>
+0665 <span class="comment">% 2D Circular Models</span>
+0666 <span class="keyword">for</span> j=(<span class="string">'a'</span>+0):(<span class="string">'j'</span>+0)
+0667     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(sprintf(<span class="string">'%c2C2'</span>,j),16);
+0668     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(sprintf(<span class="string">'%c2c0'</span>,j),16);
+0669     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(sprintf(<span class="string">'%c2t3'</span>,j),16);
+0670     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(sprintf(<span class="string">'%c2T4'</span>,j),16);
+0671 <span class="keyword">end</span>;
+0672 
+0673 <span class="keyword">for</span> j=(<span class="string">'a'</span>+0):(<span class="string">'f'</span>+0)
+0674     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(sprintf(<span class="string">'%c2s'</span>,j),8);
+0675 <span class="keyword">end</span>;
+0676 
+0677 <a name="_sub17" href="#_subfunctions" class="code">function test_3d_models</a>
+0678 <span class="comment">% 3D Models:</span>
+0679     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]);
+0680     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3z'</span>,16);
+0681 
+0682     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'b3cr'</span>,[16,3]);
+0683     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'b3t2r'</span>,[16,1]);
+0684     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'b3cz2'</span>,[16,1]);
+0685     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'b3cp2'</span>,16);
+0686 
+0687     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a3cr'</span>,16);
+0688     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'b3cr'</span>,16);
+0689     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'c3cr'</span>,16);
+0690     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'d3cr'</span>,16);
+0691 
+0692 <a name="_sub18" href="#_subfunctions" class="code">function test_distmesh_models</a>
+0693 <span class="comment">% Distmesh models</span>
+0694 <span class="keyword">for</span> i=0:4; <span class="keyword">for</span> j=(<span class="string">'a'</span>+0):(<span class="string">'j'</span>+0)
+0695     <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(sprintf(<span class="string">'%c2d%dd'</span>,j,i),16);
+0696 <span class="keyword">end</span>; <span class="keyword">end</span>
+0697</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

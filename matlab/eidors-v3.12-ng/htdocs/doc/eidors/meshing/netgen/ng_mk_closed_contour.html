@@ -1,0 +1,256 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ng_mk_closed_contour</title>
+  <meta name="keywords" content="ng_mk_closed_contour">
+  <meta name="description" content="NG_MK_CLOSED_CONTOUR: fit elliptical model to a contour">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">meshing</a> &gt; <a href="index.html">netgen</a> &gt; ng_mk_closed_contour.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/meshing/netgen&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>ng_mk_closed_contour
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>NG_MK_CLOSED_CONTOUR: fit elliptical model to a contour</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code); </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> NG_MK_CLOSED_CONTOUR: fit elliptical model to a contour
+[fmdl,mat_idx] = ng_mk_closed_contour(shape, elec_pos, ...
+                 elec_shape, extra_ng_code);
+
+ This function creates netgen models of a closed contour in x,y.
+   An elliptical FEM is created and then perturbed using Fourier 
+   descriptors into the final model.
+ It should work well for cases where the contour is roughtly elliptical
+
+ INPUT:
+ ellip_shape = cell{height, xy_points, [maxsz]]}
+    if height = 0 -&gt; calculate a 2D shape
+    xy_points     -&gt; Npoints x 2. points on the object boundary
+    maxsz  (OPT)  -&gt; max size of mesh elems (default = course mesh)
+
+ ELECTRODE POSITIONS:
+  elec_pos = [n_elecs_per_plane,z_planes] 
+     OR
+  elec_pos = [degrees,z] centres of each electrode (N_elecs x 2)
+ Note that electrode positions are in the ellipse before fitting
+
+ ELECTRODE SHAPES::
+  elec_shape = [width,height, maxsz]  % Rectangular elecs
+     OR
+  elec_shape = [radius, 0, maxsz ]    % Circular elecs
+     OR 
+  elec_shape = [0, 0, maxsz ]         % Point electrodes
+    (point elecs does some tricks with netgen, so the elecs aren't exactly where you ask)
+
+ Specify either a common electrode shape or for each electrode
+
+ EXTRA_NG_CODE
+   string of extra code to put into netgen geo file. Normally this
+   would be to insert extra materials into the space
+
+ OUTPUT:
+  fmdl    - fwd_model object
+  mat_idx - indices of materials (if extra_ng_code is used)
+    Note mat_idx does not work in 2D. Netgen does not provide it.
+
+
+ USAGE EXAMPLES:
+ Thorax shape
+ xy_points = .01*[
+  963 534;1013 538;1056 535;1102 517;1130 492;
+ 1150 454;1169 419;1182 375;1172 345;1149 318;
+ 1112 301;1095 297;1039 285; 982 284; 928 283;
+  870 279; 816 299; 776 328; 761 374; 782 429;
+  805 482; 844 518; 900 533; 961 532];
+ % refine cylendar from ellip_shape
+ ng_write_opt('MSZCYLINDER',[0,0,1,0,0,1.2,2,.05]);
+  fmdl= ng_mk_closed_contour({3,xy_points},[8,1.1,1.9],[0.1]);</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>	FOURIER_FIT: use fourier series to interpolate onto a boundary</li><li><a href="ng_mk_closed_contour.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_closed_contour</a>	NG_MK_CLOSED_CONTOUR: fit elliptical model to a contour</li><li><a href="ng_mk_ellip_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_ellip_models</a>	NG_MAKE_ELLIP_MODELS: create elliptical models using netgen</li><li><a href="../../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>	NUM_ELECS: number of electrodes attached to model</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="ng_mk_closed_contour.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_closed_contour</a>	NG_MK_CLOSED_CONTOUR: fit elliptical model to a contour</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [ellip_shape,params] = analyse_shape(ellip_shape);</a></li><li><a href="#_sub2" class="code">function C = fourier_fit(xy_shape,N);</a></li><li><a href="#_sub3" class="code">function fmdl = fit_to_shape( fmdl, params );</a></li><li><a href="#_sub4" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos, </a><span class="keyword">...</span>
+0002                   elec_shape, extra_ng_code);
+0003 <span class="comment">% NG_MK_CLOSED_CONTOUR: fit elliptical model to a contour</span>
+0004 <span class="comment">%[fmdl,mat_idx] = ng_mk_closed_contour(shape, elec_pos, ...</span>
+0005 <span class="comment">%                 elec_shape, extra_ng_code);</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% This function creates netgen models of a closed contour in x,y.</span>
+0008 <span class="comment">%   An elliptical FEM is created and then perturbed using Fourier</span>
+0009 <span class="comment">%   descriptors into the final model.</span>
+0010 <span class="comment">% It should work well for cases where the contour is roughtly elliptical</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% INPUT:</span>
+0013 <span class="comment">% ellip_shape = cell{height, xy_points, [maxsz]]}</span>
+0014 <span class="comment">%    if height = 0 -&gt; calculate a 2D shape</span>
+0015 <span class="comment">%    xy_points     -&gt; Npoints x 2. points on the object boundary</span>
+0016 <span class="comment">%    maxsz  (OPT)  -&gt; max size of mesh elems (default = course mesh)</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% ELECTRODE POSITIONS:</span>
+0019 <span class="comment">%  elec_pos = [n_elecs_per_plane,z_planes]</span>
+0020 <span class="comment">%     OR</span>
+0021 <span class="comment">%  elec_pos = [degrees,z] centres of each electrode (N_elecs x 2)</span>
+0022 <span class="comment">% Note that electrode positions are in the ellipse before fitting</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% ELECTRODE SHAPES::</span>
+0025 <span class="comment">%  elec_shape = [width,height, maxsz]  % Rectangular elecs</span>
+0026 <span class="comment">%     OR</span>
+0027 <span class="comment">%  elec_shape = [radius, 0, maxsz ]    % Circular elecs</span>
+0028 <span class="comment">%     OR</span>
+0029 <span class="comment">%  elec_shape = [0, 0, maxsz ]         % Point electrodes</span>
+0030 <span class="comment">%    (point elecs does some tricks with netgen, so the elecs aren't exactly where you ask)</span>
+0031 <span class="comment">%</span>
+0032 <span class="comment">% Specify either a common electrode shape or for each electrode</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">% EXTRA_NG_CODE</span>
+0035 <span class="comment">%   string of extra code to put into netgen geo file. Normally this</span>
+0036 <span class="comment">%   would be to insert extra materials into the space</span>
+0037 <span class="comment">%</span>
+0038 <span class="comment">% OUTPUT:</span>
+0039 <span class="comment">%  fmdl    - fwd_model object</span>
+0040 <span class="comment">%  mat_idx - indices of materials (if extra_ng_code is used)</span>
+0041 <span class="comment">%    Note mat_idx does not work in 2D. Netgen does not provide it.</span>
+0042 <span class="comment">%</span>
+0043 <span class="comment">%</span>
+0044 <span class="comment">% USAGE EXAMPLES:</span>
+0045 <span class="comment">% Thorax shape</span>
+0046 <span class="comment">% xy_points = .01*[</span>
+0047 <span class="comment">%  963 534;1013 538;1056 535;1102 517;1130 492;</span>
+0048 <span class="comment">% 1150 454;1169 419;1182 375;1172 345;1149 318;</span>
+0049 <span class="comment">% 1112 301;1095 297;1039 285; 982 284; 928 283;</span>
+0050 <span class="comment">%  870 279; 816 299; 776 328; 761 374; 782 429;</span>
+0051 <span class="comment">%  805 482; 844 518; 900 533; 961 532];</span>
+0052 <span class="comment">% % refine cylendar from ellip_shape</span>
+0053 <span class="comment">% ng_write_opt('MSZCYLINDER',[0,0,1,0,0,1.2,2,.05]);</span>
+0054 <span class="comment">%  fmdl= ng_mk_closed_contour({3,xy_points},[8,1.1,1.9],[0.1]);</span>
+0055 <span class="comment">%</span>
+0056 
+0057 <span class="comment">% (C) Andy Adler, 2010. Licenced under GPL v2 or v3</span>
+0058 <span class="comment">% $Id: ng_mk_closed_contour.m 6934 2024-06-12 20:27:34Z aadler $</span>
+0059 
+0060 <span class="keyword">if</span> ischar(ellip_shape) &amp;&amp; strcmp(ellip_shape,<span class="string">'UNIT_TEST'</span>); <a href="#_sub4" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0061 
+0062 <span class="keyword">if</span> nargin &lt; 4; extra_ng_code = {<span class="string">''</span>,<span class="string">''</span>}; <span class="keyword">end</span>
+0063 <span class="comment">% Caching should be done in the ng_mk_ellip_models</span>
+0064 
+0065 [ellip_shape,params] = <a href="#_sub1" class="code" title="subfunction [ellip_shape,params] = analyse_shape(ellip_shape);">analyse_shape</a>(ellip_shape);
+0066 [fmdl, mat_idx] = <a href="ng_mk_ellip_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_ellip_models</a>(ellip_shape, elec_pos, <span class="keyword">...</span>
+0067                   elec_shape, extra_ng_code);
+0068 fmdl = <a href="#_sub3" class="code" title="subfunction fmdl = fit_to_shape( fmdl, params );">fit_to_shape</a>( fmdl, params );
+0069 
+0070 <a name="_sub1" href="#_subfunctions" class="code">function [ellip_shape,params] = analyse_shape(ellip_shape);</a>
+0071   height = ellip_shape{1}; 
+0072   xy_shape=ellip_shape{2};
+0073   <span class="keyword">if</span> length(ellip_shape)&gt;=3
+0074     maxh= ellip_shape{3};
+0075   <span class="keyword">else</span>
+0076     maxh= [];
+0077   <span class="keyword">end</span>
+0078 
+0079   [u,d,v]= svd(cov(xy_shape));
+0080   params.rot = [1,0;0,-1]*u;
+0081   params.xy_mean = mean(xy_shape,1);
+0082 
+0083   ellip_ax = sqrt(2*[d(1,1),d(2,2)]);
+0084   ellip_shape= [height, ellip_ax, maxh];
+0085 
+0086   N = min(15, ceil( size(xy_shape,1) / 3 )); <span class="comment">% can't fit too many components</span>
+0087   params.f_fit_point = <a href="fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(xy_shape, N);
+0088 
+0089 <span class="comment">% Now, fit the ellipse to the point</span>
+0090   th = linspace(0,2*pi,4*N)';
+0091   ellip_pts = [cos(th),sin(th)]*sqrt(2*d)*params.rot;
+0092   params.f_fit_ellip = <a href="fourier_fit.html" class="code" title="function [C,th] = fourier_fit(points,N,start);">fourier_fit</a>(ellip_pts, N);
+0093 <span class="comment">%plot(ellip_pts(:,1),ellip_pts(:,2),'b-*',xy_shape(:,1),xy_shape(:,2),'r-*')</span>
+0094 
+0095 <a name="_sub2" href="#_subfunctions" class="code">function C = fourier_fit(xy_shape,N);</a>
+0096 <span class="comment">% Fourier Fit</span>
+0097 <span class="comment">% [1, cos(t1), cos(2*t1), ... sin(t1) ...] * [C1] = [R1]</span>
+0098 <span class="comment">%            ...</span>
+0099 <span class="comment">% [1, cos(tN), cos(2*tN), ... sin(tN) ...] * [CN] = [RM]</span>
+0100 
+0101    xc = xy_shape(:,1); xm= mean(xc);   xc= xc-xm;
+0102    yc = xy_shape(:,2); ym= mean(yc);   yc= yc-ym;
+0103 
+0104    ang = atan2(yc,xc);
+0105    rad = sqrt(yc.^2 + xc.^2);
+0106    A = ones(length(ang), 2*N+1);
+0107    <span class="keyword">for</span> i=1:N
+0108      A(:,i+1  ) = cos(i*ang);
+0109      A(:,i+1+N) = sin(i*ang);
+0110    <span class="keyword">end</span>
+0111    C = A\rad;
+0112 
+0113 <a name="_sub3" href="#_subfunctions" class="code">function fmdl = fit_to_shape( fmdl, params );</a>
+0114    <span class="comment">% Rotate and move the objects</span>
+0115    xnodes = fmdl.nodes(:,1:2)*params.rot(:,1);
+0116    ynodes = fmdl.nodes(:,1:2)*params.rot(:,2);
+0117 
+0118    N = (length(params.f_fit_point)-1)/2;
+0119    [ang,rad] = cart2pol(xnodes,ynodes);
+0120    A = ones(length(ang), 2*N+1);
+0121    <span class="keyword">for</span> i=1:N
+0122      A(:,i+1  ) = cos(i*ang);
+0123      A(:,i+1+N) = sin(i*ang);
+0124    <span class="keyword">end</span>
+0125 
+0126    r_ellip = A*params.f_fit_ellip;
+0127    r_point = A*params.f_fit_point;
+0128    rad = rad.* (r_point ./ r_ellip);
+0129    xnodes = rad.*cos(ang) + params.xy_mean(1);
+0130    ynodes = rad.*sin(ang) + params.xy_mean(2);
+0131 
+0132    fmdl.nodes(:,1) = xnodes;
+0133    fmdl.nodes(:,2) = ynodes;
+0134 
+0135 <a name="_sub4" href="#_subfunctions" class="code">function do_unit_test</a>
+0136    xy_points = [
+0137     963 534; 987 535;1013 538;1036 540;1056 535;
+0138    1077 527;1102 517;1115 506;1130 492;1141 474;
+0139    1150 454;1157 435;1169 419;1179 397;1182 375;
+0140    1178 358;1172 345;1163 331;1149 318;1132 307;
+0141    1112 301;1097 293;1095 297;1077 289;1039 285;
+0142    1011 284; 982 284; 955 285; 928 283; 900 280;
+0143     870 279; 845 289; 816 299; 788 310; 776 328;
+0144     767 349; 761 374; 768 395; 782 429; 795 456;
+0145     805 482; 823 505; 844 518; 868 523; 900 533;
+0146     929 536; 961 532]/100;
+0147    fmdl= <a href="ng_mk_closed_contour.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_closed_contour</a>({3,xy_points},[8,1.1,1.9],[0.1]); 
+0148    <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(fmdl)
+0149    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'contour A'</span>,<a href="../../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmdl),16);
+0150    mnod = max(fmdl.nodes,[],1); 
+0151    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'contour B'</span>,mnod(3),3)
+0152    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'contour C'</span>,mnod(1:2),max(xy_points),3e-2)
+0153    mnod = min(fmdl.nodes,[],1); 
+0154    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'contour D'</span>,mnod(3),0)
+0155    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'contour E'</span>,mnod(1:2),min(xy_points),3e-2)
+0156</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

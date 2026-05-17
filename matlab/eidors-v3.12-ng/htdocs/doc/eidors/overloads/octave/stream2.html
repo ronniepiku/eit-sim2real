@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of stream2</title>
+  <meta name="keywords" content="stream2">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="#">overloads</a> &gt; <a href="index.html">octave</a> &gt; stream2.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/overloads/octave&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>stream2
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="stream2.html" class="code" title="">stream2</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="stream2.html" class="code" title="">stream2</a>	</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function xy = stream2 (varargin)</a></li><li><a href="#_sub2" class="code">function [x, u] = fix_to_matrix(x, u, axis);</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 ########################################################################
+0002 ##
+0003 ## Copyright (C) 2019-2022 The Octave Project Developers
+0004 ##
+0005 ## Added to EIDORS 2022 by Andy Adler
+0006 ##   -- modifications to fix matlab compatibilities
+0007 ##
+0008 ## See the file COPYRIGHT.md in the top-level directory of this
+0009 ## distribution or &lt;https://octave.org/copyright/&gt;.
+0010 ##
+0011 ## This file is part of Octave.
+0012 ##
+0013 ## Octave is free software: you can redistribute it and/or modify it
+0014 ## under the terms of the GNU General Public License as published by
+0015 ## the Free Software Foundation, either version 3 of the License, or
+0016 ## (at your option) any later version.
+0017 ##
+0018 ## Octave is distributed in the hope that it will be useful, but
+0019 ## WITHOUT ANY WARRANTY; without even the implied warranty of
+0020 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+0021 ## GNU General Public License <span class="keyword">for</span> more details.
+0022 ##
+0023 ## You should have received a copy of the GNU General Public License
+0024 ## along with Octave; see the file COPYING.  If not, see
+0025 ## &lt;https://www.gnu.org/licenses/&gt;.
+0026 ##
+0027 ########################################################################
+0028 
+0029 ## -*- texinfo -*-
+0030 ## @deftypefn  {} {@var{xy} =} <a href="stream2.html" class="code" title="">stream2</a> (@var{x}, @var{y}, @var{u}, @var{v}, @var{sx}, @var{sy})
+0031 ## @deftypefnx {} {@var{xy} =} <a href="stream2.html" class="code" title="">stream2</a> (@var{u}, @var{v}, @var{sx}, @var{sy})
+0032 ## @deftypefnx {} {@var{xy} =} <a href="stream2.html" class="code" title="">stream2</a> (@dots{}, @var{options})
+0033 ## Compute 2-D streamline data.
+0034 ##
+0035 ## Calculates streamlines of a vector field given by @code{[@var{u}, @var{v}]}.
+0036 ## The vector field is defined over a rectangular grid given by
+0037 ## @code{[@var{x}, @var{y}]}.  The streamlines start at the seed points
+0038 ## @code{[@var{sx}, @var{sy}]}.  The returned value @var{xy} contains a cell
+0039 ## array of vertex arrays.  If the starting point is outside the vector field,
+0040 ## @code{[]} is returned.
+0041 ##
+0042 ## The input parameter @var{options} is a 2-D vector of the form
+0043 ## @code{[@var{stepsize}, @var{max_vertices}]}.  The first parameter
+0044 ## specifies the step size used <span class="keyword">for</span> trajectory integration (default 0.1).  A
+0045 ## negative value is allowed which will reverse the direction of integration.
+0046 ## The second parameter specifies the maximum number of segments used to
+0047 ## create a streamline (default 10,000).
+0048 ##
+0049 ## The <span class="keyword">return</span> value @var{xy} is a @nospell{nverts x 2} matrix containing the
+0050 ## coordinates of the field line segments.
+0051 ##
+0052 ## Example:
+0053 ##
+0054 ## @example
+0055 ## @group
+0056 ## [x, y] = meshgrid (0:3);
+0057 ## u = 2 * x;
+0058 ## v = y;
+0059 ## xy = <a href="stream2.html" class="code" title="">stream2</a> (x, y, u, v, 1.0, 0.5);
+0060 ## @end group
+0061 ## @end example
+0062 ##
+0063 ## @seealso{streamline, stream3}
+0064 ## @end deftypefn
+0065 
+0066 ## References:
+0067 ##
+0068 ## @article{
+0069 ##    title = {Particle Tracing Algorithms <span class="keyword">for</span> 3D Curvilinear Grids},
+0070 ##    year = {2000},
+0071 ##    author = {Nielson, Gregory and Uller, H. and Sadarjoen, I. and Walsum, Theo and Hin, Andrea and Post, Frits}
+0072 ## }
+0073 ##
+0074 ## @article{
+0075 ##    title = {Sources of error in the graphical analysis of CFD results},
+0076 ##    publisher = {Journal of Scientific Computing},
+0077 ##    year = {1988},
+0078 ##    volume = {3},
+0079 ##    number = {2},
+0080 ##    pages = {149--164},
+0081 ##    author = {Buning, Pieter G.},
+0082 ## }
+0083 
+0084 <a name="_sub0" href="#_subfunctions" class="code">function xy = stream2 (varargin)</a>
+0085 
+0086   options = [];
+0087   <span class="keyword">switch</span> (numel (varargin))
+0088     <span class="keyword">case</span> {4,5}
+0089       <span class="keyword">if</span> (numel (varargin) == 4)
+0090         [u, v, spx, spy] = varargin{:};
+0091       <span class="keyword">else</span>
+0092         [u, v, spx, spy, options] = varargin{:};
+0093       endif
+0094       [m, n] = size (u);
+0095       [x, y] = meshgrid (1:n, 1:m);
+0096     <span class="keyword">case</span> 6
+0097       [x, y, u, v, spx, spy] = varargin{:};
+0098       [x, u] = <a href="#_sub2" class="code" title="subfunction [x, u] = fix_to_matrix(x, u, axis);">fix_to_matrix</a>(x, u, 1);
+0099       [y, v] = <a href="#_sub2" class="code" title="subfunction [x, u] = fix_to_matrix(x, u, axis);">fix_to_matrix</a>(y, v, 2);
+0100      
+0101     <span class="keyword">case</span> 7
+0102       [x, y, u, v, spx, spy, options] = varargin{:};
+0103       [x, u] = <a href="#_sub2" class="code" title="subfunction [x, u] = fix_to_matrix(x, u, axis);">fix_to_matrix</a>(x, u, 1);
+0104       [y, v] = <a href="#_sub2" class="code" title="subfunction [x, u] = fix_to_matrix(x, u, axis);">fix_to_matrix</a>(y, v, 2);
+0105     <span class="keyword">otherwise</span>
+0106       print_usage ();
+0107   endswitch
+0108 
+0109   stepsize = 0.1;
+0110   max_vertices = 10_000;
+0111   <span class="keyword">if</span> (! isempty (options))
+0112     <span class="keyword">switch</span> (numel (options))
+0113       <span class="keyword">case</span> 1
+0114         stepsize = options(1);
+0115       <span class="keyword">case</span> 2
+0116         stepsize = options(1);
+0117         max_vertices = options(2);
+0118       <span class="keyword">otherwise</span>
+0119         error (&quot;<a href="stream2.html" class="code" title="">stream2</a>: OPTIONS must be a 1- or 2-element vector&quot;);
+0120     endswitch
+0121 
+0122     <span class="keyword">if</span> (! isreal (stepsize) || stepsize == 0)
+0123       error (&quot;<a href="stream2.html" class="code" title="">stream2</a>: STEPSIZE must be a real scalar != 0&quot;);
+0124     endif
+0125     <span class="keyword">if</span> (! isreal (max_vertices) || max_vertices &lt; 1)
+0126       error (&quot;<a href="stream2.html" class="code" title="">stream2</a>: MAX_VERTICES must be an integer &gt; 0&quot;);
+0127     endif
+0128     max_vertices = fix (max_vertices);
+0129   endif
+0130 
+0131   <span class="keyword">if</span> (! (size_equal (u, v, x, y) &amp;&amp; size_equal (spx, spy)))
+0132     error (&quot;<a href="stream2.html" class="code" title="">stream2</a>: matrix dimensions must match&quot;);
+0133   endif
+0134   <span class="keyword">if</span> (iscomplex (u) || iscomplex (v) || iscomplex (x) || iscomplex (y)
+0135       || iscomplex (spx) || iscomplex (spy))
+0136     error (&quot;<a href="stream2.html" class="code" title="">stream2</a>: all inputs must be real-valued&quot;);
+0137   endif
+0138 
+0139   gx = x(1,:);
+0140   gy = y(:,1).';
+0141 
+0142   ## Jacobian Matrix
+0143   dx = diff (gx);
+0144   dy = diff (gy);
+0145   ## &quot;&lt;&quot; used to check <span class="keyword">if</span> the mesh is ascending
+0146   <span class="keyword">if</span> (any (dx &lt;= 0) || any (dy &lt;= 0)
+0147       || any (isnan (dx)) || any (isnan (dy)))
+0148     error (&quot;<a href="stream2.html" class="code" title="">stream2</a>: non-monotonically increasing or NaN values found in mesh&quot;);
+0149   endif
+0150   tx = 1 ./ dx;
+0151   ty = 1 ./ dy;
+0152   ## &quot;Don't cares&quot; used <span class="keyword">for</span> handling points located on the border
+0153   tx(end + 1) = 0;
+0154   ty(end + 1) = 0;
+0155   dx(end + 1) = 0;
+0156   dy(end + 1) = 0;
+0157 
+0158   px = spx(:);
+0159   py = spy(:);
+0160 
+0161   <span class="keyword">for</span> nseed = 1 : numel (px)
+0162 
+0163     xp = px(nseed);
+0164     yp = py(nseed);
+0165     idx = find (diff (gx &lt;= xp), 1);
+0166     <span class="keyword">if</span> (gx(end) == xp)
+0167       idx = numel (gx);
+0168     endif
+0169     idy = find (diff (gy &lt;= yp), 1);
+0170     <span class="keyword">if</span> (gy(end) == yp)
+0171       idy = numel (gy);
+0172     endif
+0173 
+0174     <span class="keyword">if</span> (isempty (idx) || isempty (idy))
+0175       xy{nseed} = [];
+0176     <span class="keyword">else</span>
+0177       ## Transform seed from P coordinates to C coordinates
+0178       zeta = (idx - 1) + (xp - gx(idx)) * tx(idx);
+0179       xi = (idy - 1) + (yp - gy(idy)) * ty(idy);
+0180 
+0181       C = __streameuler2d__ (u, v, tx, ty, zeta, xi, stepsize, max_vertices);
+0182 
+0183       ## Transform from C coordinates to P coordinates
+0184       idu = floor (C(:,1));
+0185       idv = floor (C(:,2));
+0186       xy{nseed} = [gx(idu + 1).' + (C(:,1) - idu).*(dx(idu + 1).'), <span class="keyword">...</span>
+0187                    gy(idv + 1).' + (C(:,2) - idv).*(dy(idv + 1).')];
+0188     endif
+0189 
+0190   endfor
+0191 
+0192 endfunction
+0193 
+0194 # check <span class="keyword">if</span> x is vector. Make full size
+0195 # axix (=1 <span class="keyword">for</span> x and =2 <span class="keyword">for</span> y)
+0196 <a name="_sub1" href="#_subfunctions" class="code">function [x, u] = fix_to_matrix(x, u, axis);</a>
+0197   <span class="keyword">if</span> size_equal(x,u)
+0198     <span class="keyword">return</span>
+0199   endif
+0200   <span class="keyword">if</span> all(size(x)&gt;1)
+0201     <span class="keyword">return</span>
+0202   endif
+0203    
+0204   dirn = diff( x );
+0205   <span class="keyword">if</span> all(dirn&gt;0)
+0206     doflip = false;
+0207   <span class="keyword">elseif</span> all(dirn&lt;0)
+0208     doflip = true;
+0209   <span class="keyword">else</span>
+0210     error (&quot;<a href="stream2.html" class="code" title="">stream2</a>: axis not monotonic&quot;);
+0211   <span class="keyword">end</span>
+0212   
+0213   # extend x in the rows
+0214   x = x(:).';
+0215   x = x(ones(size(u,axis),1),:);
+0216   <span class="keyword">if</span> axis==2
+0217     x = x.';
+0218   endif
+0219 
+0220   <span class="keyword">if</span> doflip <span class="comment">% flipud if axis=2, rl if axis=1</span>
+0221     x = flip( x, 3-axis );
+0222     u = flip( u, 3-axis );
+0223   endif
+0224 endfunction
+0225 
+0226 <span class="comment">%!demo</span>
+0227 <span class="comment">%! clf;</span>
+0228 <span class="comment">%! [x, y] = meshgrid (-5:5, -4:4);</span>
+0229 <span class="comment">%! u = x - 2 * y;</span>
+0230 <span class="comment">%! v = 2 * x - 3 * y;</span>
+0231 <span class="comment">%! sx = [3, 0, -1, -2, -3, 0, 1, 2];</span>
+0232 <span class="comment">%! sy = [3, 3, 3, 3, -3, -3, -3, -3];</span>
+0233 <span class="comment">%! h = streamline (x, y, u, v, sx, sy, 0.05);</span>
+0234 <span class="comment">%! set (h, &quot;color&quot;, &quot;r&quot;);</span>
+0235 <span class="comment">%! hold on;</span>
+0236 <span class="comment">%! quiver (x, y, u, v);</span>
+0237 <span class="comment">%! scatter (sx(:), sy(:), 20, &quot;filled&quot;, &quot;o&quot;, &quot;markerfacecolor&quot;, &quot;r&quot;);</span>
+0238 <span class="comment">%! grid on;</span>
+0239 <span class="comment">%! title (&quot;Asymptotically Stable Equilibrium&quot;);</span>
+0240 <span class="comment">%! axis equal;</span>
+0241 
+0242 <span class="comment">%!test</span>
+0243 <span class="comment">%! xy = stream2 ([1,1,1;2,2,2;3,3,3], [1,1,1;2,2,2;3,3,3], 1, 1, [0.01,5]);</span>
+0244 <span class="comment">%! assert (numel (xy{:}), 10);</span>
+0245 
+0246 ## Test input validation
+0247 <span class="comment">%!error &lt;Invalid call&gt; stream2 ()</span>
+0248 <span class="comment">%!error &lt;Invalid call&gt; stream2 (1)</span>
+0249 <span class="comment">%!error &lt;Invalid call&gt; stream2 (1,2)</span>
+0250 <span class="comment">%!error &lt;Invalid call&gt; stream2 (1,2,3)</span>
+0251 <span class="comment">%!error &lt;OPTIONS must be a 1- or 2-element&gt; stream2 (1,2,3,4, [1,2,3])</span>
+0252 <span class="comment">%!error &lt;STEPSIZE must be a real scalar != 0&gt; stream2 (1,2,3,4, [1i])</span>
+0253 <span class="comment">%!error &lt;STEPSIZE must be a real scalar != 0&gt; stream2 (1,2,3,4, [0])</span>
+0254 <span class="comment">%!error &lt;MAX_VERTICES must be an integer&gt; stream2 (1,2,3,4, [1, 1i])</span>
+0255 <span class="comment">%!error &lt;MAX_VERTICES must be an integer&gt; stream2 (1,2,3,4, [1, 0])</span>
+0256 <span class="comment">%!error &lt;matrix dimensions must match&gt; stream2 ([1 1],2,3,4)</span>
+0257 <span class="comment">%!error &lt;matrix dimensions must match&gt; stream2 (1,[2 2],3,4)</span>
+0258 <span class="comment">%!error &lt;matrix dimensions must match&gt; stream2 (1,2,[3 3],4)</span>
+0259 <span class="comment">%!error &lt;matrix dimensions must match&gt; stream2 (1,2,3,[4 4])</span>
+0260 <span class="comment">%!error &lt;all inputs must be real-valued&gt; stream2 (1i,2,3,4)</span>
+0261 <span class="comment">%!error &lt;all inputs must be real-valued&gt; stream2 (1,2i,3,4)</span>
+0262 <span class="comment">%!error &lt;all inputs must be real-valued&gt; stream2 (1,2,3i,4)</span>
+0263 <span class="comment">%!error &lt;all inputs must be real-valued&gt; stream2 (1,2,3,4i)</span>
+0264 <span class="comment">%!error &lt;non-monotonically increasing or NaN values found in mesh&gt;</span>
+0265 <span class="comment">%! stream2 ([2 1], [1 2], [1 1], [2 2], [3 3], [4 4]);</span>
+0266 <span class="comment">%!error &lt;non-monotonically increasing or NaN values found in mesh&gt;</span>
+0267 <span class="comment">%! stream2 ([1 NaN], [1 2], [1 1], [2 2], [3 3], [4 4]);</span>
+0268 ## FIXME: vectors representing x, y mesh are not accepted.
+0269 <span class="comment">%#!error &lt;non-monotonically increasing or NaN values found in mesh&gt;</span>
+0270 <span class="comment">%! stream2 ([1 2], [2 1], [1 1], [2 2], [3 3], [4 4]);</span>
+0271 <span class="comment">%#!error &lt;non-monotonically increasing or NaN values found in mesh&gt;</span>
+0272 <span class="comment">%! stream2 ([1 2], [1 NaN], [1 1], [2 2], [3 3], [4 4]);</span>
+0273 
+0274</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

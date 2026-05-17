@@ -1,0 +1,184 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of get_img_data</title>
+  <meta name="keywords" content="get_img_data">
+  <meta name="description" content="GET_IMG_DATA: get parameter data from eidors image object">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">solvers</a> &gt; get_img_data.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/solvers&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>get_img_data
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>GET_IMG_DATA: get parameter data from eidors image object</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [img_data, n_images]= get_img_data(img) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> GET_IMG_DATA: get parameter data from eidors image object
+ [img_data, n_images]= get_img_data(img)
+ img_data - img parameter data mapped onto chosen mesh
+   get_img_data looks at the elem_data or node_data
+   parameters in the image. If a course2fine parameter
+   exists in img.fwd_model, then it is used. 
+ img.get_img_data.frame_select: Show these frames
+ img.get_img_data.frame_skip: Skip frames</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/models/data_mapper.html" class="code" title="function img = data_mapper(img, reverse)">data_mapper</a>	DATA_MAPPER maps img.params data to elem or node data</li><li><a href="../../eidors/models/mk_coarse_fine_mapping.html" class="code" title="function [mapping, outside] = mk_coarse_fine_mapping(varargin)">mk_coarse_fine_mapping</a>	MK_COARSE_FINE_MAPPING: create a mapping matrix from coarse to fine FEM</li><li><a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>	NUM_NODES: number of elemnts in a (fwd or inv model or image)</li><li><a href="calc_jacobian_bkgnd.html" class="code" title="function img_bkgnd = calc_jacobian_bkgnd( inv_model )">calc_jacobian_bkgnd</a>	CALC_JACOBIAN_BKGND: calculate background image around</li><li><a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>	GET_IMG_DATA: get parameter data from eidors image object</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/graphics/matlab/calc_colours.html" class="code" title="function [colours,scl_data]= calc_colours(img, set_value, do_colourbar)">calc_colours</a>	[colours,scl_data]= calc_colours(img, set_value, do_colourbar)</li><li><a href="../../eidors/graphics/matlab/calc_grid_points.html" class="code" title="function [val, c2f] = calc_grid_points(img, xpts, ypts, zpts)">calc_grid_points</a>	CALC_GRID_POINTS - image values at points in grid</li><li><a href="../../eidors/graphics/matlab/calc_slices.html" class="code" title="function rimg = calc_slices( img, levels );">calc_slices</a>	calc_slices (img, levels, clim  ) show slices at levels of an</li><li><a href="../../eidors/graphics/matlab/eidors_colourbar.html" class="code" title="function hh= eidors_colourbar(max_scale,ref_lev, cb_shrink_move, greyscale)">eidors_colourbar</a>	EIDORS_COLOURBAR - create an eidors colourbar with scaling to image</li><li><a href="../../eidors/graphics/matlab/img_point_mapper.html" class="code" title="function val = img_point_mapper(img, pts, maptype )">img_point_mapper</a>	IMG_POINT_MAPPER - image values at points</li><li><a href="../../eidors/graphics/matlab/mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>	MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM</li><li><a href="../../eidors/graphics/matlab/show_3d_slices.html" class="code" title="function h = show_3d_slices(img, varargin);">show_3d_slices</a>	show_3d_slices(img, z_cuts, x_cuts, y_cuts, any_cuts)</li><li><a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="../../eidors/graphics/matlab/show_fem_enhanced.html" class="code" title="function hh = show_fem_enhanced(mdl, options)">show_fem_enhanced</a>	SHOW_FEM_ENHANCED: show the EIDORS3D finite element model</li><li><a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>	GET_IMG_DATA: get parameter data from eidors image object</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [img_data, n_images]= get_img_data(img)</a>
+0002 <span class="comment">% GET_IMG_DATA: get parameter data from eidors image object</span>
+0003 <span class="comment">% [img_data, n_images]= get_img_data(img)</span>
+0004 <span class="comment">% img_data - img parameter data mapped onto chosen mesh</span>
+0005 <span class="comment">%   get_img_data looks at the elem_data or node_data</span>
+0006 <span class="comment">%   parameters in the image. If a course2fine parameter</span>
+0007 <span class="comment">%   exists in img.fwd_model, then it is used.</span>
+0008 <span class="comment">% img.get_img_data.frame_select: Show these frames</span>
+0009 <span class="comment">% img.get_img_data.frame_skip: Skip frames</span>
+0010 
+0011 <span class="comment">% (C) 2008 Andy Adler. License: GPL version 2 or version 3</span>
+0012 <span class="comment">% $Id: get_img_data.m 6607 2023-06-01 11:06:55Z aadler $</span>
+0013 
+0014 <span class="comment">% TODO</span>
+0015 <span class="comment">% FLAGS: flag = 0 (default)</span>
+0016 <span class="comment">%    get data mapped onto elems in the fwd_model</span>
+0017 <span class="comment">%if nargin==1; flag=0; end</span>
+0018 
+0019 <span class="comment">% TEST</span>
+0020 <span class="keyword">if</span> ischar(img) &amp;&amp; strcmp(img,<span class="string">'UNIT_TEST'</span>); <a href="#_sub1" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0021 
+0022 <span class="keyword">if</span> ~strcmp( img(1).type, <span class="string">'image'</span> );
+0023     error(<span class="string">'get_img_data expects an image type object'</span>);
+0024     <span class="keyword">return</span>;
+0025 <span class="keyword">end</span>
+0026 
+0027 <span class="keyword">if</span> ~isfield(img,<span class="string">'elem_data'</span>) &amp;&amp; ~isfield(img,<span class="string">'node_data'</span>)
+0028    img = <a href="../../eidors/models/data_mapper.html" class="code" title="function img = data_mapper(img, reverse)">data_mapper</a>(img);
+0029 <span class="keyword">end</span>
+0030 
+0031 <span class="keyword">if</span> isfield(img(1),<span class="string">'elem_data'</span>)
+0032    <span class="keyword">for</span> i=1:length(img(:))
+0033       <span class="keyword">try</span> 
+0034          gidi = img(i).get_img_data;
+0035          iied = img(i).elem_data;
+0036          <span class="keyword">if</span> isfield(gidi,<span class="string">'frame_select'</span>)
+0037             img_data{i}= [iied(:,gidi.frame_select)];
+0038          <span class="keyword">else</span>
+0039 <span class="comment">% try a frame_skip</span>
+0040             img_data{i}= [iied(:,1:gidi.frame_skip:end)];
+0041          <span class="keyword">end</span>
+0042       <span class="keyword">catch</span>
+0043          <span class="comment">% concatenate img.elem_data for each img</span>
+0044          img_data{i}= [img(i).elem_data];
+0045       <span class="keyword">end</span>
+0046    <span class="keyword">end</span>
+0047    img_data = [img_data{:}];
+0048 <span class="keyword">elseif</span> isfield(img,<span class="string">'node_data'</span>)
+0049    <span class="keyword">for</span> i=1:length(img(:))
+0050       <span class="keyword">try</span> 
+0051          gidi = img(i).get_img_data;
+0052          iind = img(i).node_data;
+0053          <span class="keyword">if</span> isfield(gidi,<span class="string">'frame_select'</span>)
+0054             img_data{i}= [iind(:,gidi.frame_select)];
+0055          <span class="keyword">else</span>
+0056 <span class="comment">% try a frame_skip</span>
+0057             img_data{i}= [iind(:,1:gidi.frame_skip:end)];
+0058          <span class="keyword">end</span>
+0059       <span class="keyword">catch</span>
+0060          img_data{i}= [img(i).node_data];
+0061       <span class="keyword">end</span>
+0062    <span class="keyword">end</span>
+0063    img_data = [img_data{:}];
+0064 <span class="keyword">else</span>
+0065    error(<span class="string">'No field elem_data or node_data found on img'</span>);
+0066 <span class="keyword">end</span>
+0067 
+0068 <span class="keyword">if</span> size(img_data,1)==1; img_data=img_data';<span class="keyword">end</span>
+0069 
+0070 n_images= size(img_data,2);
+0071 
+0072 <span class="keyword">try</span>
+0073    c2f= img.fwd_model.coarse2fine;
+0074 <span class="keyword">catch</span>
+0075    <span class="keyword">return</span>;
+0076 <span class="keyword">end</span>
+0077 
+0078 <span class="keyword">if</span> size(img_data,1)==size(c2f,2)
+0079    img_data=c2f * img_data;
+0080 <span class="keyword">end</span>
+0081 
+0082 <span class="comment">% TESTS:</span>
+0083 <a name="_sub1" href="#_subfunctions" class="code">function do_unit_test</a>
+0084    img=<a href="calc_jacobian_bkgnd.html" class="code" title="function img_bkgnd = calc_jacobian_bkgnd( inv_model )">calc_jacobian_bkgnd</a>(<a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c0'</span>,8)); 
+0085    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'elem_01'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(img), ones(64,1) )
+0086 
+0087    imgk = img; imgk.elem_data = img.elem_data';
+0088    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'elem_02'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgk), ones(64,1) )
+0089 
+0090 
+0091    imgk = img; imgk(2) = img;
+0092    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'elem_03'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgk), ones(64,2) )
+0093 
+0094    <span class="comment">% EXPECTED FAIL</span>
+0095    <span class="comment">% imgk(2).elem_data = imgk(2).elem_data';</span>
+0096 
+0097    imgk(1).elem_data = imgk(1).elem_data*[1,2];
+0098    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'elem_04'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgk(1)), ones(64,1)*[1,2] )
+0099    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'elem_05'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgk), ones(64,1)*[1,2,1] )
+0100 
+0101    imgk = img; imgk.elem_data = img.elem_data*[1,2];
+0102    imgk.get_img_data.frame_select = 2;
+0103    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'elem_06'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgk), 2*ones(64,1) )
+0104    <span class="comment">% TODO: This fails because we need a loop in the test function.</span>
+0105    <span class="comment">%   Lookup whether this can be vectorized in matlab</span>
+0106 
+0107    imgk(2) = imgk(1); imgk(2).elem_data = img.elem_data*[3,4];
+0108    imgk(2).get_img_data.frame_select = 2;
+0109    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'elem_07'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgk), ones(64,1)*[2,4] )
+0110    imgk(2).get_img_data.frame_select = 1:2;
+0111    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'elem_08'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgk), ones(64,1)*[2,3,4] )
+0112 
+0113    nd =ones(<a href="../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(img),1);
+0114    imgn = rmfield(img,<span class="string">'elem_data'</span>); imgn.node_data=nd;
+0115    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'node_01'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgn), nd)
+0116 
+0117    imgn.node_data = nd*[3,4,5];
+0118    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'node_02'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgn), nd*[3,4,5]);
+0119    imgn(2) = imgn;
+0120    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'node_03'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgn), nd*[3,4,5,3,4,5]);
+0121    imgn(1).get_img_data.frame_select = 1;
+0122    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'node_04'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgn), nd*[3,3,4,5]);
+0123    imgn(2).get_img_data.frame_select = 3;
+0124    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'node_05'</span>, <a href="get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(imgn), nd*[3,5]);
+0125    
+0126 
+0127    i2 = <a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'b2c0'</span>,8); fmdl2= i2.fwd_model;
+0128    c2f = <a href="../../eidors/models/mk_coarse_fine_mapping.html" class="code" title="function [mapping, outside] = mk_coarse_fine_mapping(varargin)">mk_coarse_fine_mapping</a>(fmdl2, img.fwd_model);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

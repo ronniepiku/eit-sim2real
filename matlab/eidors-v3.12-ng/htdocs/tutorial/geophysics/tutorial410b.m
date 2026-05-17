@@ -1,0 +1,29 @@
+% Reconstruct data on Gallery
+% $Id: tutorial410b.m 4088 2013-05-27 15:32:00Z bgrychtol $
+
+% homogeneous starting model
+background_resistivity= 15.0; % Unit is Ohm.m
+background_conductivity= 1./background_resistivity;
+
+gallery_3D_img= mk_image( gallery_3D_fwd, background_conductivity);
+
+% build the parameter-to-elements mapping
+%USE: sparse pilot-point parameterization
+sparsity = 1;
+gallery_3D_img= mk_Pilot2DtoFine3D_mapping(gallery_3D_img,sparsity);
+gallery_3D_img.fwd_model.coarse2fine = kron(ones(42,1), speye(1024));
+
+gallery_3D_img.rec_model.type = 'fwd_model';
+gallery_3D_img.rec_model.name = '2d';
+gallery_3D_img.rec_model.elems = gallery_3D_img.fwd_model.misc.model2d.elems;
+gallery_3D_img.rec_model.nodes = gallery_3D_img.fwd_model.misc.model2d.nodes;
+
+%disp(['Computing the CC and SS matrices = ' gallery_3D_img.fwd_model.misc.compute_CCandSS]);
+%[ref_data,gallery_3D_img]= fwd_solve_1st_order(gallery_3D_img);
+[ref_data]= fwd_solve(gallery_3D_img);
+residuals= real_data.meas-ref_data.meas;
+
+%% plot the data
+subplot(211);
+plot([ref_data.meas,real_data.meas]);
+% print_convert tutorial410b.png '-density 75';

@@ -1,0 +1,304 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of gmsh_mk_fwd_model</title>
+  <meta name="keywords" content="gmsh_mk_fwd_model">
+  <meta name="description" content="GMSH_MK_FWD_MODEL: create a fwd_model object from a Gmsh file">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">meshing</a> &gt; <a href="index.html">gmsh</a> &gt; gmsh_mk_fwd_model.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/meshing/gmsh&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>gmsh_mk_fwd_model
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>GMSH_MK_FWD_MODEL: create a fwd_model object from a Gmsh file</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [fwd_mdl, mat_indices]=gmsh_mk_fwd_model( vol_filename, name, eprefix,stim_pattern, z_contact) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> GMSH_MK_FWD_MODEL: create a fwd_model object from a Gmsh file
+ [fwd_mdl, mat_indices]= ...
+      gmsh_mk_fwd_model( vol_filename, centres, ...
+                       name, stim_pattern, z_contact)
+
+  vol_filename:      filename output from Gmsh
+  name:              name for object (if [] use vol_filename)
+  eprefix:           prefix used for names of electrodes
+                     (if [] or omitted use 'electrode-')
+  stim_pattern:      a stimulation pattern structure
+                     empty ([]) if stim_pattern is not available
+  z_contact:         vector or scalar electrode contact impedance
+
+  fwd_mdl:           eidors format fwd_model
+  mat_indices:       cell array of element indices, per material</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="gmsh_mk_fwd_model.html" class="code" title="function [fwd_mdl, mat_indices]=gmsh_mk_fwd_model( vol_filename, name, eprefix,stim_pattern, z_contact)">gmsh_mk_fwd_model</a>	GMSH_MK_FWD_MODEL: create a fwd_model object from a Gmsh file</li><li><a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>	[srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)</li><li><a href="../../../eidors/models/mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>	MDL_NORMALIZE Check or set the normalize_measurements flag on a model.</li><li><a href="../../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>	[srf, idx] = find_boundary(simp);</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="gmsh_mk_fwd_model.html" class="code" title="function [fwd_mdl, mat_indices]=gmsh_mk_fwd_model( vol_filename, name, eprefix,stim_pattern, z_contact)">gmsh_mk_fwd_model</a>	GMSH_MK_FWD_MODEL: create a fwd_model object from a Gmsh file</li><li><a href="gmsh_stl2tet.html" class="code" title="function mdl = gmsh_stl2tet(stlfile, mesh_size, extra, nopt)">gmsh_stl2tet</a>	GMSH_STL2TET creates a tetrahedral mesh from an stl file</li><li><a href="gmsh_write_mesh.html" class="code" title="function gmsh_write_mesh(mdl, data, outfile)">gmsh_write_mesh</a>	gmsh_read_mesh(mdl, [data,] outfile)</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function mdl= construct_fwd_model(srf,vtx,simp,bc, name,</a></li><li><a href="#_sub2" class="code">function [mat_indices,mat_names]= mk_mat_indices(mat_ind,phys_names);</a></li><li><a href="#_sub3" class="code">function electrodes = find_elec(phys_names,prefix,z_contact)</a></li><li><a href="#_sub4" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [fwd_mdl, mat_indices]= </a><span class="keyword">...</span>
+0002              <a href="gmsh_mk_fwd_model.html" class="code" title="function [fwd_mdl, mat_indices]=gmsh_mk_fwd_model( vol_filename, name, eprefix,stim_pattern, z_contact)">gmsh_mk_fwd_model</a>( vol_filename, name, eprefix,stim_pattern, z_contact)
+0003 <span class="comment">% GMSH_MK_FWD_MODEL: create a fwd_model object from a Gmsh file</span>
+0004 <span class="comment">% [fwd_mdl, mat_indices]= ...</span>
+0005 <span class="comment">%      gmsh_mk_fwd_model( vol_filename, centres, ...</span>
+0006 <span class="comment">%                       name, stim_pattern, z_contact)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">%  vol_filename:      filename output from Gmsh</span>
+0009 <span class="comment">%  name:              name for object (if [] use vol_filename)</span>
+0010 <span class="comment">%  eprefix:           prefix used for names of electrodes</span>
+0011 <span class="comment">%                     (if [] or omitted use 'electrode-')</span>
+0012 <span class="comment">%  stim_pattern:      a stimulation pattern structure</span>
+0013 <span class="comment">%                     empty ([]) if stim_pattern is not available</span>
+0014 <span class="comment">%  z_contact:         vector or scalar electrode contact impedance</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">%  fwd_mdl:           eidors format fwd_model</span>
+0017 <span class="comment">%  mat_indices:       cell array of element indices, per material</span>
+0018 
+0019 <span class="comment">% Gmsh mesher for EIDORS was based on Netgen interface.</span>
+0020 <span class="comment">% (C) 2009 Bartosz Sawicki. License: GPL version 2 or version 3</span>
+0021 <span class="comment">% Modified by James Snyder, Bartlomiej Grychtol, Alistair Boyle</span>
+0022 <span class="comment">% $Id: gmsh_mk_fwd_model.m 7004 2024-11-24 15:18:55Z aadler $</span>
+0023 
+0024 <span class="keyword">if</span> ischar(vol_filename) &amp;&amp; strcmp(vol_filename,<span class="string">'UNIT_TEST'</span>); <a href="#_sub4" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0025 
+0026 <span class="keyword">if</span> nargin&lt;2;
+0027    name = vol_filename;
+0028 <span class="keyword">end</span>
+0029 
+0030 <span class="keyword">if</span> nargin&lt;3 || isempty(eprefix);
+0031    eprefix = <span class="string">'electrode-'</span>;
+0032 <span class="keyword">end</span>
+0033 
+0034 <span class="keyword">if</span> nargin &lt; 4
+0035     stim_pattern=[];
+0036 <span class="keyword">end</span>
+0037 
+0038 <span class="keyword">if</span> nargin&lt;5
+0039    z_contact=0.01; <span class="comment">% singular if z_contact=0</span>
+0040 <span class="keyword">end</span>
+0041 
+0042 
+0043 <span class="comment">% Model Geometry</span>
+0044 [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names] = <a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>(vol_filename);
+0045 fwd_mdl= <a href="#_sub1" class="code" title="subfunction mdl= construct_fwd_model(srf,vtx,simp,bc, name, ">construct_fwd_model</a>(srf,vtx,simp,bc, name, <span class="keyword">...</span>
+0046                              stim_pattern, eprefix, z_contact, fc,phys_names);
+0047 [mat_indices,mat_names] = <a href="#_sub2" class="code" title="subfunction [mat_indices,mat_names]= mk_mat_indices(mat_ind,phys_names);">mk_mat_indices</a>( mat_ind, phys_names);
+0048 <span class="keyword">if</span> isempty(srf)
+0049    fwd_mdl.boundary = <a href="../../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(fwd_mdl);
+0050 <span class="keyword">end</span>
+0051 
+0052 fwd_mdl.mat_idx = mat_indices;
+0053 <span class="keyword">if</span> length(mat_names) &gt; 0
+0054     fwd_mdl.mat_names = mat_names;
+0055 <span class="keyword">end</span>
+0056 
+0057 fwd_mdl = <a href="../../../eidors/models/mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fwd_mdl, <span class="string">'default'</span>); <span class="comment">% also orders fields</span>
+0058 
+0059 
+0060 <span class="comment">% build fwd_model structure</span>
+0061 <a name="_sub1" href="#_subfunctions" class="code">function mdl= construct_fwd_model(srf,vtx,simp,bc, name, </a><span class="keyword">...</span>
+0062     stim_pattern, eprefix, z_contact, fc, phys_names)
+0063     
+0064     mdl = <a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>, name);
+0065     mdl.nodes    = vtx;
+0066     mdl.elems    = simp;
+0067     mdl.boundary = srf;
+0068     mdl.boundary_numbers=fc; <span class="comment">% TODO this is not very useful without mapping to phys_names, like mat_idx/mat_names</span>
+0069     mdl.gnd_node = 1;
+0070     
+0071 
+0072     <span class="comment">% Model Stimulation</span>
+0073     <span class="keyword">if</span> ~isempty(stim_pattern)
+0074         mdl.stimulation= stim_pattern;
+0075     <span class="keyword">end</span>
+0076 
+0077     <span class="comment">% Electrodes</span>
+0078     electrodes = <a href="#_sub3" class="code" title="subfunction electrodes = find_elec(phys_names,prefix,z_contact)">find_elec</a>(phys_names,eprefix,z_contact);
+0079     <span class="keyword">if</span> ~isempty(fieldnames(electrodes));
+0080         mdl.electrode =     electrodes;
+0081     <span class="keyword">end</span>
+0082     mdl.solve=          <span class="string">'eidors_default'</span>;
+0083     mdl.jacobian=       <span class="string">'eidors_default'</span>;
+0084     mdl.system_mat=     <span class="string">'eidors_default'</span>;
+0085 
+0086 
+0087 <span class="comment">% Output cell array of indices into each material type</span>
+0088 <span class="comment">%   array order is sorted by length of material type</span>
+0089 <a name="_sub2" href="#_subfunctions" class="code">function [mat_indices,mat_names]= mk_mat_indices(mat_ind,phys_names);</a>
+0090     <span class="comment">% find length of mat_indices</span>
+0091     <span class="comment">% test example: mat_ind=[10 12 14 14 12 12 14 12];</span>
+0092     sort_mi= sort(mat_ind(:));
+0093     find_mi= find( diff([-1e8;sort_mi]) );
+0094     len_mi = diff([find_mi;length(sort_mi)+1]);
+0095     [jnk,idxs]= sort(-len_mi); <span class="comment">%reverse sort</span>
+0096     l_idxs= length(idxs);
+0097     mat_indices= cell(1, l_idxs);
+0098     <span class="keyword">for</span> i= 1:l_idxs;
+0099         mat_idx_i= sort_mi(find_mi(idxs(i)));
+0100         mat_indices{i}= find(mat_ind == mat_idx_i);
+0101     <span class="keyword">end</span>
+0102     mat_names = {};
+0103     <span class="keyword">if</span> length(phys_names) &gt; 0
+0104         phys_dims = max(cat(1,phys_names(:).dim));
+0105         dim = max(phys_dims);
+0106         mat_names = cell(1, l_idxs);
+0107         <span class="keyword">for</span> i = 1:l_idxs
+0108             tag = sort_mi(find_mi(idxs(i)));
+0109             idx = find(arrayfun(@(x) and((x.tag == tag), (x.dim == dim)), phys_names));
+0110             assert(length(idx) == 1, <span class="string">'missing physical name for tag'</span>);
+0111             mat_names{i} = phys_names(idx).name;
+0112         <span class="keyword">end</span>
+0113     <span class="keyword">end</span>
+0114 
+0115 <span class="comment">% Assumes that electrodes are numbered starting at 1, with prefix provided</span>
+0116 <a name="_sub3" href="#_subfunctions" class="code">function electrodes = find_elec(phys_names,prefix,z_contact)</a>
+0117 electrodes = struct();
+0118 phys_elecs = find(arrayfun(@(x)strncmp(x.name,prefix,length(prefix)),phys_names));
+0119 n_prefix = length(prefix);
+0120 <span class="keyword">for</span> i = 1:length(phys_elecs)
+0121     cur_elec = arrayfun(@(x) str2double(x.name((n_prefix+1):end)) == i,phys_names(phys_elecs));
+0122     electrodes(i).nodes = unique(phys_names(phys_elecs(cur_elec)).nodes(:));
+0123     electrodes(i).z_contact = z_contact;
+0124 <span class="keyword">end</span>
+0125 
+0126 <a name="_sub4" href="#_subfunctions" class="code">function do_unit_test</a>
+0127 DEBUG = 0; <span class="comment">% enable if tests fail to help diagnose the problem</span>
+0128 
+0129 selfdir = fileparts(which(<span class="string">'gmsh_read_mesh'</span>));
+0130 vers = {<span class="string">'2.2'</span>, <span class="string">'4.0'</span>, <span class="string">'4.1'</span>};
+0131 <span class="keyword">for</span> ver = vers(:)'
+0132     ver = ver{1};
+0133 
+0134     <span class="comment">% Expected forward model:</span>
+0135     stim = <span class="string">'asdf'</span>;
+0136     elec.nodes = [];
+0137     elec.z_contact = 0.11;
+0138     fmdl2d.nodes = [0,0;1,0;1,1;0,1;0.5,0.5];
+0139     fmdl2d.elems = uint32([2,5,1;1,5,4;3,5,2;,4,5,3]);
+0140     fmdl2d.boundary = uint32([1,2;1,4;2,3;3,4]);
+0141     fmdl2d.boundary_numbers = uint32(ones(4,1)*5);
+0142     fmdl2d.gnd_node = 1;
+0143     fmdl2d.name = <span class="string">'test-name'</span>;
+0144     fmdl2d.stimulation = stim;
+0145     fmdl2d.solve = <span class="string">'eidors_default'</span>;
+0146     fmdl2d.jacobian = <span class="string">'eidors_default'</span>;
+0147     fmdl2d.system_mat = <span class="string">'eidors_default'</span>;
+0148     fmdl2d.electrode(1) = elec;
+0149     fmdl2d.electrode(2) = elec;
+0150     fmdl2d.electrode(1).nodes = uint32([1,4])';
+0151     fmdl2d.electrode(2).nodes = uint32([2,3])';
+0152     fmdl2d.type = <span class="string">'fwd_model'</span>;
+0153     fmdl2d.mat_idx = {[1:4]'};
+0154     fmdl2d.mat_names = {<span class="string">'main'</span>};
+0155 
+0156     fmdl3d = fmdl2d;
+0157     fmdl3d.electrode(1).nodes = uint32([1,2,3,4,9])';
+0158     fmdl3d.electrode(2).nodes = uint32([5,6,7,8,10])';
+0159     fmdl3d.mat_idx = {[1:24]'};
+0160     fmdl3d.boundary_numbers = uint32([ones(4,1)*13; ones(4,1)*14]);
+0161     fmdl3d.boundary = uint32([
+0162          2     1     9
+0163          1     3     9
+0164          4     2     9
+0165          3     4     9
+0166          6    10     5
+0167          5    10     7
+0168          8    10     6
+0169          7    10     8 ]);
+0170     fmdl3d.elems = uint32([
+0171         10    11    12    13
+0172          9    12    14    11
+0173         12    14    11    10
+0174          9    12    11    13
+0175          2     9     1    11
+0176          1     9     3    14
+0177         11    14     1     5
+0178          4     9    12     3
+0179          2     4     9    13
+0180         12     3    14     7
+0181          5    10    14     7
+0182          7    10    12     8
+0183         11    10     5     6
+0184         12     4     8    13
+0185         13     8    10     6
+0186         13    11     2     6
+0187         14     1     9    11
+0188          9    12     3    14
+0189         11     2     9    13
+0190         12     9     4    13
+0191          8    10    12    13
+0192         14    11    10     5
+0193         12    14    10     7
+0194         13    10    11     6 ]);
+0195     fmdl3d.nodes = [
+0196              0         0    1.0000
+0197              0         0         0
+0198              0    1.0000    1.0000
+0199              0    1.0000         0
+0200         1.0000         0    1.0000
+0201         1.0000         0         0
+0202         1.0000    1.0000    1.0000
+0203         1.0000    1.0000         0
+0204              0    0.5000    0.5000
+0205         1.0000    0.5000    0.5000
+0206         0.5000         0    0.5000
+0207         0.5000    1.0000    0.5000
+0208         0.5000    0.5000         0
+0209         0.5000    0.5000    1.0000 ];
+0210    fmdl2d = <a href="../../../eidors/models/mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl2d,<span class="string">'default'</span>);
+0211    fmdl3d = <a href="../../../eidors/models/mdl_normalize.html" class="code" title="function out = mdl_normalize(mdl, val)">mdl_normalize</a>(fmdl3d,<span class="string">'default'</span>);
+0212 
+0213     <span class="comment">% Test 2D and 3D parsing</span>
+0214     [fmdl,mat_ind] = <a href="gmsh_mk_fwd_model.html" class="code" title="function [fwd_mdl, mat_indices]=gmsh_mk_fwd_model( vol_filename, name, eprefix,stim_pattern, z_contact)">gmsh_mk_fwd_model</a>( <span class="keyword">...</span>
+0215         fullfile(selfdir, [<span class="string">'tests/box-'</span> ver <span class="string">'.msh'</span>]), fmdl2d.name, <span class="string">'elec#'</span>, stim, elec.z_contact );
+0216     <span class="keyword">if</span> DEBUG
+0217         <span class="keyword">for</span> x = fields(fmdl)'
+0218             x = x{1};
+0219             <span class="keyword">if</span> ~<a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'2d v'</span> ver <span class="string">' fmdl.'</span> x],fmdl.(x),fmdl2d.(x))
+0220                keyboard
+0221             <span class="keyword">end</span>
+0222         <span class="keyword">end</span>
+0223         fmdl
+0224         fmdl2d
+0225     <span class="keyword">end</span>
+0226     <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'2d v'</span> ver <span class="string">' fmdl'</span>],fmdl,fmdl2d)
+0227 
+0228     [fmdl,mat_ind] = <a href="gmsh_mk_fwd_model.html" class="code" title="function [fwd_mdl, mat_indices]=gmsh_mk_fwd_model( vol_filename, name, eprefix,stim_pattern, z_contact)">gmsh_mk_fwd_model</a>( <span class="keyword">...</span>
+0229         fullfile(selfdir, [<span class="string">'tests/cube-'</span> ver <span class="string">'.msh'</span>]), fmdl3d.name, <span class="string">'elec#'</span>, stim, elec.z_contact );
+0230     <span class="keyword">if</span> DEBUG
+0231         <span class="keyword">for</span> x = fields(fmdl)'
+0232             x = x{1};
+0233             <span class="keyword">if</span> ~<a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'3d v'</span> ver <span class="string">' fmdl.'</span> x],fmdl.(x),fmdl3d.(x))
+0234             <span class="keyword">end</span>
+0235         <span class="keyword">end</span>
+0236                 keyboard
+0237         fmdl
+0238         fmdl3d
+0239     <span class="keyword">end</span>
+0240     <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'3d v'</span> ver <span class="string">' fmdl'</span>],fmdl,fmdl3d)
+0241 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

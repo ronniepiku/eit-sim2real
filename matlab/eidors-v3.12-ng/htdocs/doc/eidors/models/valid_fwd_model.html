@@ -1,0 +1,317 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of valid_fwd_model</title>
+  <meta name="keywords" content="valid_fwd_model">
+  <meta name="description" content="[pass, err_str] = valid_fwd_model(fmdl, [type])">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; valid_fwd_model.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>valid_fwd_model
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>[pass, err_str] = valid_fwd_model(fmdl, [type])</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [pass, err_str] = valid_fwd_model(fmdl, type) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> [pass, err_str] = valid_fwd_model(fmdl, [type])
+
+ Confirms that a valid forward model structure exists or
+ explain why a model is not valid.
+
+ The model is assumed to be a fwd_model and all fields are
+ checked unless type='rec_model'. A reconstruction model
+ (rec_model) is only checked to confirm it has a valid mesh
+ associated with it.
+
+ If called without an output argument (nargout=0), will
+ error out if invalid. Otherwise the function is silent,
+ returning an explaination of failures in err_str.</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="mk_circ_tank.html" class="code" title="function param= mk_circ_tank(rings, levels, elec_spec );">mk_circ_tank</a>	MK_CIRC_TANK: make a cylindrical tank FEM geometry in 2D or 3D</li><li><a href="valid_fwd_model.html" class="code" title="function [pass, err_str] = valid_fwd_model(fmdl, type)">valid_fwd_model</a>	[pass, err_str] = valid_fwd_model(fmdl, [type])</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="valid_fwd_model.html" class="code" title="function [pass, err_str] = valid_fwd_model(fmdl, type)">valid_fwd_model</a>	[pass, err_str] = valid_fwd_model(fmdl, [type])</li><li><a href="valid_img.html" class="code" title="function pass = valid_img(img)">valid_img</a>	[pass, err_str] = valid_img(img)</li><li><a href="valid_inv_model.html" class="code" title="function [pass, err_str] = valid_inv_model(imdl)">valid_inv_model</a>	[pass, err_str] = valid_fwd_model(imdl)</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [pass,err_str]= validate_fmdl(fmdl,f_x,f_y,pass,err_str);</a></li><li><a href="#_sub2" class="code">function t=isfunc(f)</a></li><li><a href="#_sub3" class="code">function [pass, err_str] = valid_stim(stim, i, nel, pass, err_str)</a></li><li><a href="#_sub4" class="code">function [pass, err_str] = valid_elec(elec, i, nn, pass, err_str);</a></li><li><a href="#_sub5" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [pass, err_str] = valid_fwd_model(fmdl, type)</a>
+0002 <span class="comment">% [pass, err_str] = valid_fwd_model(fmdl, [type])</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Confirms that a valid forward model structure exists or</span>
+0005 <span class="comment">% explain why a model is not valid.</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% The model is assumed to be a fwd_model and all fields are</span>
+0008 <span class="comment">% checked unless type='rec_model'. A reconstruction model</span>
+0009 <span class="comment">% (rec_model) is only checked to confirm it has a valid mesh</span>
+0010 <span class="comment">% associated with it.</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% If called without an output argument (nargout=0), will</span>
+0013 <span class="comment">% error out if invalid. Otherwise the function is silent,</span>
+0014 <span class="comment">% returning an explaination of failures in err_str.</span>
+0015 
+0016 <span class="comment">% (C) 2015 Alistair Boyle. License: GPL version 2 or version 3</span>
+0017 <span class="comment">% $Id: valid_fwd_model.m 7067 2024-12-09 01:48:58Z aadler $</span>
+0018 
+0019 <span class="keyword">if</span> ischar(fmdl) &amp;&amp; strcmp(fmdl,<span class="string">'UNIT_TEST'</span>); <a href="#_sub5" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0020 
+0021 pass = 1;
+0022 err_str = <span class="string">''</span>;
+0023 
+0024 <span class="keyword">if</span> nargin &lt; 2
+0025    type = <span class="string">'fwd_model'</span>;
+0026 <span class="keyword">end</span>
+0027 <span class="keyword">if</span> ~any(strcmp(type, {<span class="string">'fwd_model'</span>,<span class="string">'rec_model'</span>}))
+0028    error(<span class="string">'unexpected &quot;type&quot;'</span>);
+0029 <span class="keyword">end</span>
+0030 
+0031 <span class="comment">% it's a struct with fields</span>
+0032 <span class="keyword">if</span> ~isstruct(fmdl)
+0033    pass = 0;
+0034    err_str = [err_str <span class="string">'- not a struct\n'</span>];
+0035 <span class="keyword">end</span>
+0036 
+0037 <span class="comment">% required fields</span>
+0038 <span class="comment">%      field         type</span>
+0039 f = {<span class="string">'name'</span>,        <span class="string">'char'</span>, <span class="keyword">...</span>
+0040      <span class="string">'nodes'</span>,       <span class="string">'numeric'</span>, <span class="keyword">...</span><span class="comment"> % uintX</span>
+0041      <span class="string">'elems'</span>,       <span class="string">'numeric'</span>, <span class="keyword">...</span><span class="comment"> % uintX</span>
+0042      <span class="string">'gnd_node'</span>,    <span class="string">'numeric'</span>, <span class="keyword">...</span><span class="comment"> % uintX</span>
+0043      <span class="string">'electrode'</span>,   <span class="string">'none_or_struct'</span>, <span class="keyword">...</span>
+0044      <span class="string">'stimulation'</span>, <span class="string">'none_or_struct'</span>, <span class="keyword">...</span>
+0045      <span class="string">'solve'</span>,       <span class="string">'function'</span>, <span class="keyword">...</span>
+0046      <span class="string">'system_mat'</span>,  <span class="string">'function_or_numeric'</span>, <span class="keyword">...</span>
+0047      <span class="string">'jacobian'</span>,    <span class="string">'function_or_numeric'</span>, <span class="keyword">...</span>
+0048      <span class="string">'normalize_measurements'</span>, <span class="string">'numeric_or_logical'</span>, <span class="keyword">...</span><span class="comment"> % logical</span>
+0049      <span class="string">'type'</span>,        <span class="string">'char'</span>};
+0050 <span class="comment">%     'boundary',   'numeric', ... % uintX OPTIONAL</span>
+0051 <span class="comment">%     'meas_select','numeric', ... % uintX OPTIONAL</span>
+0052 <span class="comment">% reduced set of requirements for a rec_model</span>
+0053 <span class="keyword">if</span> strcmp(type, <span class="string">'rec_model'</span>)
+0054    f = {<span class="string">'name'</span>,     <span class="string">'char'</span>, <span class="keyword">...</span>
+0055         <span class="string">'nodes'</span>,    <span class="string">'numeric'</span>, <span class="keyword">...</span>
+0056         <span class="string">'elems'</span>,    <span class="string">'numeric'</span>};
+0057 <span class="keyword">end</span>
+0058 <span class="keyword">for</span> i=1:length(f)/2
+0059    x=2*(i-1)+1;
+0060    y=x+1;
+0061 <span class="comment">%  if strcmp(f{x},'normalize_measurements'); keyboard; end</span>
+0062    [pass,err_str]= <a href="#_sub1" class="code" title="subfunction [pass,err_str]= validate_fmdl(fmdl,f_x,f_y,pass,err_str);">validate_fmdl</a>(fmdl,f{x},f{y},pass,err_str);
+0063 <span class="keyword">end</span>
+0064 <span class="keyword">if</span> ~strcmp(type, <span class="string">'rec_model'</span>)
+0065    <span class="comment">% validate electrode struct</span>
+0066    nn = size(fmdl.nodes,1); <span class="comment">% number of nodes</span>
+0067    <span class="keyword">if</span> isfield(fmdl,<span class="string">'electrode'</span>); <span class="comment">% ok if not specified</span>
+0068        <span class="keyword">for</span> i=1:length(fmdl.electrode)
+0069           [pass, err_str] = <a href="#_sub4" class="code" title="subfunction [pass, err_str] = valid_elec(elec, i, nn, pass, err_str);">valid_elec</a>(fmdl.electrode(i), i, nn, pass, err_str);
+0070        <span class="keyword">end</span>
+0071        nel = length(fmdl.electrode); <span class="comment">% number of electrodes</span>
+0072    <span class="keyword">end</span>
+0073    <span class="comment">% validate stimulation struct</span>
+0074    <span class="keyword">if</span> isfield(fmdl,<span class="string">'stimulation'</span>); <span class="comment">% ok if not specified</span>
+0075        <span class="keyword">for</span> i=1:length(fmdl.stimulation)
+0076           [pass, err_str] = <a href="#_sub3" class="code" title="subfunction [pass, err_str] = valid_stim(stim, i, nel, pass, err_str)">valid_stim</a>(fmdl.stimulation(i), i, nel, pass, err_str);
+0077        <span class="keyword">end</span>
+0078    <span class="keyword">end</span>
+0079 <span class="keyword">end</span>
+0080 <span class="comment">% check for correct 'type'</span>
+0081 <span class="keyword">if</span> ~any(strcmp(fmdl.type, {<span class="string">'fwd_model'</span>, <span class="string">'rec_model'</span>}))
+0082    pass = 0;
+0083    err_str = [err_str <span class="string">'- field &quot;type&quot; must be &quot;fwd_model&quot; or &quot;rec_model&quot;\n'</span>];
+0084 <span class="keyword">end</span>
+0085 
+0086 <span class="comment">% optional fields</span>
+0087 <span class="comment">%      field       type</span>
+0088 f = {<span class="string">'boundary'</span>,   <span class="string">'numeric'</span>, <span class="keyword">...</span><span class="comment"> % uintX</span>
+0089      <span class="string">'meas_select'</span>,<span class="string">'logical'</span>};
+0090 <span class="keyword">for</span> i=1:length(f)/2
+0091    x=2*(i-1)+1;
+0092    y=x+1;
+0093    <span class="keyword">if</span> isfield(fmdl, f{x}) &amp;&amp; ~isa(fmdl.(f{x}), f{y})
+0094       pass = 0;
+0095       err_str = [err_str <span class="string">'- optional field &quot;'</span> f{x} <span class="string">'&quot; is not a '</span> f{y} <span class="string">'\n'</span>];
+0096    <span class="keyword">end</span>
+0097 <span class="keyword">end</span>
+0098 
+0099 <span class="comment">% illegal fields (common typos, etc)</span>
+0100 <span class="comment">%      field</span>
+0101 f = {<span class="string">'fwd_model'</span>, <span class="keyword">...</span>
+0102      <span class="string">'rec_model'</span>, <span class="keyword">...</span><span class="comment"> % no recursion</span>
+0103      <span class="string">'stim'</span>, <span class="keyword">...</span><span class="comment"> % not short form</span>
+0104      <span class="string">'elec'</span>, <span class="keyword">...</span>
+0105      <span class="string">'fmdl'</span>, <span class="keyword">...</span>
+0106      <span class="string">'fwd_mdl'</span>, <span class="keyword">...</span>
+0107      <span class="string">'cmdl'</span>, <span class="keyword">...</span>
+0108      <span class="string">'rmdl'</span>, <span class="keyword">...</span>
+0109      <span class="string">'rec_mdl'</span>, <span class="keyword">...</span>
+0110      <span class="string">'electrodes'</span>, <span class="keyword">...</span><span class="comment"> % not plural</span>
+0111      <span class="string">'stimulations'</span>, <span class="keyword">...</span>
+0112      <span class="string">'node'</span>, <span class="keyword">...</span><span class="comment"> % plural</span>
+0113      <span class="string">'elem'</span>};
+0114 <span class="keyword">for</span> i=1:length(f)
+0115    x=i;
+0116    <span class="keyword">if</span> isfield(fmdl, f{x})
+0117       pass = 0;
+0118       err_str = [err_str <span class="string">'- illegal field &quot;'</span> f{x} <span class="string">'&quot; found\n'</span>];
+0119    <span class="keyword">end</span>
+0120 <span class="keyword">end</span>
+0121 
+0122 <span class="comment">% result</span>
+0123 <span class="keyword">if</span> ~pass
+0124    err_str = err_str(1:end-2); <span class="comment">% drop last \n</span>
+0125 <span class="keyword">end</span>
+0126 <span class="keyword">if</span> ( nargout == 0 ) &amp;&amp; ~pass
+0127    error(sprintf([<span class="string">'Reasons:\n'</span> err_str]));
+0128 <span class="keyword">end</span>
+0129 
+0130 <a name="_sub1" href="#_subfunctions" class="code">function [pass,err_str]= validate_fmdl(fmdl,f_x,f_y,pass,err_str);</a>
+0131    hasfield= isfield(fmdl, f_x);
+0132    <span class="keyword">if</span> strcmp(f_y(1:4),<span class="string">'none'</span>)
+0133       <span class="keyword">if</span> ~hasfield
+0134           <span class="keyword">return</span>
+0135       <span class="keyword">else</span>
+0136           f_y(1:8) = <span class="string">''</span>; <span class="comment">% remove 'none_or_'</span>
+0137       <span class="keyword">end</span>
+0138    <span class="keyword">end</span>
+0139 
+0140    <span class="keyword">if</span> ~hasfield
+0141       pass = 0;
+0142       err_str = [err_str <span class="string">'- missing required field: &quot;'</span> f_x <span class="string">'&quot;\n'</span>];
+0143    <span class="keyword">elseif</span> strcmp(f_y,<span class="string">'function'</span>)
+0144       <span class="keyword">if</span> ~<a href="#_sub2" class="code" title="subfunction t=isfunc(f)">isfunc</a>(fmdl.(f_x))
+0145          pass = 0;
+0146          err_str = [err_str <span class="string">'- expected function (pointer or string): &quot;'</span> f_x <span class="string">'&quot;\n'</span>];
+0147       <span class="keyword">end</span>
+0148    <span class="keyword">elseif</span> strcmp(f_y,<span class="string">'function_or_numeric'</span>)
+0149       <span class="keyword">if</span> ~<a href="#_sub2" class="code" title="subfunction t=isfunc(f)">isfunc</a>(fmdl.(f_x)) &amp;&amp; ~isa(fmdl.(f_x), <span class="string">'numeric'</span>)
+0150          pass = 0;
+0151          err_str = [err_str <span class="string">'- expected function (pointer or string) or a matrix: &quot;'</span> f_x <span class="string">'&quot;\n'</span>];
+0152       <span class="keyword">end</span>
+0153    <span class="keyword">elseif</span> strcmp(f_y,<span class="string">'numeric_or_logical'</span>)
+0154       <span class="keyword">if</span> ~isa(fmdl.(f_x), <span class="string">'numeric'</span>) &amp;&amp; ~isa(fmdl.(f_x),<span class="string">'logical'</span>)
+0155          pass = 0;
+0156          err_str = [err_str <span class="string">'- expected numerical or logical value: &quot;'</span> f_x <span class="string">'&quot;\n'</span>];
+0157       <span class="keyword">end</span>
+0158    <span class="keyword">elseif</span> ~isa(fmdl.(f_x), f_y)
+0159       pass = 0;
+0160       err_str = [err_str <span class="string">'- required field &quot;'</span> f_x <span class="string">'&quot; is not a '</span> f_y <span class="string">'\n'</span>];
+0161    <span class="keyword">end</span>
+0162 
+0163 <a name="_sub2" href="#_subfunctions" class="code">function t=isfunc(f)</a>
+0164 t=isa(f, <span class="string">'function_handle'</span>) || isa(f, <span class="string">'char'</span>);
+0165 
+0166 <a name="_sub3" href="#_subfunctions" class="code">function [pass, err_str] = valid_stim(stim, i, nel, pass, err_str)</a>
+0167 pass_local = 1;
+0168 <span class="comment">% required fields</span>
+0169 <span class="comment">%      field         type</span>
+0170 f = {<span class="string">'stim_pattern'</span>, <span class="string">'numeric'</span>, <span class="keyword">...</span>
+0171      <span class="string">'meas_pattern'</span>, <span class="string">'numeric'</span>};
+0172 <span class="keyword">for</span> i=1:length(f)/2
+0173    x=2*(i-1)+1;
+0174    y=x+1;
+0175    <span class="keyword">if</span> ~isfield(stim, f{x})
+0176       pass_local = 0;
+0177       err_str = [err_str <span class="string">'- missing required field: &quot;stimulation('</span> num2str(i) <span class="string">').'</span> f{x} <span class="string">'&quot;\n'</span>];
+0178    <span class="keyword">elseif</span> ~isa(stim.(f{x}), f{y})
+0179       pass_local = 0;
+0180       err_str = [err_str <span class="string">'- required field &quot;stimulation('</span> num2str(i) <span class="string">').'</span> f{x} <span class="string">'&quot; is not a '</span> f{y} <span class="string">'\n'</span>];
+0181    <span class="keyword">end</span>
+0182 <span class="keyword">end</span>
+0183 <span class="comment">% optional fields</span>
+0184 <span class="comment">%      field       type</span>
+0185 f = {<span class="string">'stimulation'</span>,  <span class="string">'char'</span>};
+0186 <span class="keyword">for</span> i=1:length(f)/2
+0187    x=2*(i-1)+1;
+0188    y=x+1;
+0189    <span class="keyword">if</span> isfield(stim, f{x}) &amp;&amp; ~isa(stim.(f{x}), f{y})
+0190       pass_local = 0;
+0191       err_str = [err_str <span class="string">'- optional field &quot;stimulation('</span> num2str(i) <span class="string">').'</span> f{x} <span class="string">'&quot; is not a '</span> f{y} <span class="string">'\n'</span>];
+0192    <span class="keyword">end</span>
+0193 <span class="keyword">end</span>
+0194 <span class="comment">% we don't need to check further</span>
+0195 <span class="keyword">if</span> ~pass_local
+0196    pass = 0;
+0197    <span class="keyword">return</span>
+0198 <span class="keyword">end</span>
+0199 clear pass_local;
+0200 <span class="comment">% we expect only stimulation, meas/stim_pattern fields</span>
+0201 len = length(fieldnames(stim));
+0202 <span class="keyword">if</span> (len &gt; 3) || ((len &gt; 2) &amp;&amp; ~any(strcmp(fieldnames(stim),<span class="string">'stimulation'</span>)))
+0203    pass = 0;
+0204    err_str = [err_str <span class="string">'- extraneous fields in &quot;stimulation('</span> num2str(i) <span class="string">')\n'</span>];
+0205 <span class="keyword">end</span>
+0206 <span class="keyword">if</span> size(stim.stim_pattern,1) &gt; nel
+0207    pass = 0;
+0208    err_str = [err_str <span class="string">'- field &quot;stimulation('</span> num2str(i) <span class="string">').stim_pattern has more rows than electrodes in the model\n'</span>];
+0209 <span class="keyword">end</span>
+0210 <span class="keyword">if</span> size(stim.meas_pattern,2) &gt; nel
+0211    pass = 0;
+0212    err_str = [err_str <span class="string">'- field &quot;stimulation('</span> num2str(i) <span class="string">').meas_pattern has more columns than electrodes in the model\n'</span>];
+0213 <span class="keyword">end</span>
+0214 
+0215 <a name="_sub4" href="#_subfunctions" class="code">function [pass, err_str] = valid_elec(elec, i, nn, pass, err_str);</a>
+0216 pass_local = 1;
+0217 <span class="comment">% required fields</span>
+0218 <span class="comment">%      field         type</span>
+0219 f = {<span class="string">'nodes'</span>,     <span class="string">'numeric'</span>, <span class="keyword">...</span>
+0220      <span class="string">'z_contact'</span>, <span class="string">'numeric'</span>};
+0221 <span class="keyword">for</span> i=1:length(f)/2
+0222    x=2*(i-1)+1;
+0223    y=x+1;
+0224    <span class="keyword">if</span> ~isfield(elec, f{x})
+0225       pass_local = 0;
+0226       err_str = [err_str <span class="string">'- missing required field: &quot;electrode('</span> num2str(i) <span class="string">').'</span> f{x} <span class="string">'&quot;\n'</span>];
+0227    <span class="keyword">elseif</span> ~isa(elec.(f{x}), f{y})
+0228       pass_local = 0;
+0229       err_str = [err_str <span class="string">'- required field &quot;electrode('</span> num2str(i) <span class="string">').'</span> f{x} <span class="string">'&quot; is not a '</span> f{y} <span class="string">'\n'</span>];
+0230    <span class="keyword">end</span>
+0231 <span class="keyword">end</span>
+0232 <span class="comment">% we don't need to check further</span>
+0233 <span class="keyword">if</span> ~pass_local
+0234    pass = 0;
+0235    <span class="keyword">return</span>
+0236 <span class="keyword">end</span>
+0237 clear pass_local;
+0238 <span class="comment">% check that 'nodes' are valid</span>
+0239 <span class="keyword">if</span> any((elec.nodes &gt; nn) | (elec.nodes &lt; 1))
+0240    pass = 0;
+0241    err_str = [err_str <span class="string">'- field &quot;electrode('</span> num2str(i) <span class="string">').nodes do not exist on the model.nodes\n'</span>];
+0242 <span class="keyword">end</span>
+0243 
+0244 <a name="_sub5" href="#_subfunctions" class="code">function do_unit_test</a>
+0245    fmdl = <a href="mk_circ_tank.html" class="code" title="function param= mk_circ_tank(rings, levels, elec_spec );">mk_circ_tank</a>(2,[],0);
+0246    pass=1; 
+0247    <span class="keyword">try</span>   [pass, err_str] = <a href="valid_fwd_model.html" class="code" title="function [pass, err_str] = valid_fwd_model(fmdl, type)">valid_fwd_model</a>(fmdl);
+0248    <span class="keyword">catch</span> pass=0; 
+0249    <span class="keyword">end</span>
+0250    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'valid_fwd_model 1'</span>,pass,1);
+0251 
+0252    fmdl= rmfield(fmdl,<span class="string">'nodes'</span>);
+0253    <span class="keyword">try</span>   [pass, err_str] = <a href="valid_fwd_model.html" class="code" title="function [pass, err_str] = valid_fwd_model(fmdl, type)">valid_fwd_model</a>(fmdl);
+0254    <span class="keyword">catch</span> pass=0; 
+0255    <span class="keyword">end</span>
+0256    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'valid_fwd_model 2'</span>,pass,0);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

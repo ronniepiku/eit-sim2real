@@ -1,0 +1,457 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of gmsh_read_mesh</title>
+  <meta name="keywords" content="gmsh_read_mesh">
+  <meta name="description" content="[srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">meshing</a> &gt; <a href="index.html">gmsh</a> &gt; gmsh_read_mesh.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/meshing/gmsh&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>gmsh_read_mesh
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>[srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">[srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)
+ Function to read in a mesh model from Gmsh and saves it in
+ five arrays; surface (srf), veritices (vtx), face no. (fc)
+ volume (simp) and edges (edg)
+
+ srf        = The surfaces indices into vtx
+ simp       = The volume indices into vtx
+ vtx        = The vertices matrix
+ fc         = A one column matrix containing the face numbers
+ edg        = Edge segment information
+ filename   = Name of file containing NetGen .vol information
+ mat_ind    = Material index
+ phys_names = Structure of &quot;Physical&quot; entities in the mesh
+              .dim   = dimension
+              .name  = name (string)
+              .tag   = physical tag
+              .nodes = N-x-dim array of indices into vtx
+
+ This mostly works on GMSH v2. A very basic GMSH v4 reader is now
+ included.</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>	[srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="create_circle_mesh_gmsh.html" class="code" title="function mdl = create_circle_mesh_gmsh(basename, center, rad, elem_size )">create_circle_mesh_gmsh</a>	Create a 2D Circular FEM using GMSH</li><li><a href="gmsh_mk_2d_model.html" class="code" title="function mdl = gmsh_mk_2d_model(varargin)">gmsh_mk_2d_model</a>	GMSH_MK_2D_MODEL create a 2D mesh with GMSH</li><li><a href="gmsh_mk_fwd_model.html" class="code" title="function [fwd_mdl, mat_indices]=gmsh_mk_fwd_model( vol_filename, name, eprefix,stim_pattern, z_contact)">gmsh_mk_fwd_model</a>	GMSH_MK_FWD_MODEL: create a fwd_model object from a Gmsh file</li><li><a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>	[srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function mat = get_lines_with_nodes( lines, gmshformat )</a></li><li><a href="#_sub2" class="code">function gmshformat = parse_format(lines)</a></li><li><a href="#_sub3" class="code">function n_rows = parse_rows(tline, gmshformat)</a></li><li><a href="#_sub4" class="code">function names = parse_names( lines, version )</a></li><li><a href="#_sub5" class="code">function elements = parse_entities( lines, gmshformat )</a></li><li><a href="#_sub6" class="code">function entities = parse_v4_entities(lines, gmshformat)</a></li><li><a href="#_sub7" class="code">function elements = parse_elements( lines, gmshformat )</a></li><li><a href="#_sub8" class="code">function elements = parse_v4_elements(lines,gmshformat)</a></li><li><a href="#_sub9" class="code">function elements = parse_v2_elements(lines,n_rows)</a></li><li><a href="#_sub10" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)</a>
+0002 <span class="comment">%[srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)</span>
+0003 <span class="comment">% Function to read in a mesh model from Gmsh and saves it in</span>
+0004 <span class="comment">% five arrays; surface (srf), veritices (vtx), face no. (fc)</span>
+0005 <span class="comment">% volume (simp) and edges (edg)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% srf        = The surfaces indices into vtx</span>
+0008 <span class="comment">% simp       = The volume indices into vtx</span>
+0009 <span class="comment">% vtx        = The vertices matrix</span>
+0010 <span class="comment">% fc         = A one column matrix containing the face numbers</span>
+0011 <span class="comment">% edg        = Edge segment information</span>
+0012 <span class="comment">% filename   = Name of file containing NetGen .vol information</span>
+0013 <span class="comment">% mat_ind    = Material index</span>
+0014 <span class="comment">% phys_names = Structure of &quot;Physical&quot; entities in the mesh</span>
+0015 <span class="comment">%              .dim   = dimension</span>
+0016 <span class="comment">%              .name  = name (string)</span>
+0017 <span class="comment">%              .tag   = physical tag</span>
+0018 <span class="comment">%              .nodes = N-x-dim array of indices into vtx</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% This mostly works on GMSH v2. A very basic GMSH v4 reader is now</span>
+0021 <span class="comment">% included.</span>
+0022 
+0023 <span class="comment">% $Id: gmsh_read_mesh.m 6848 2024-05-04 22:20:11Z bgrychtol $</span>
+0024 <span class="comment">% (C) 2009 Bartosz Sawicki. Licensed under GPL V2</span>
+0025 <span class="comment">% Modified by James Snyder, Mark Campbell, Symon Stowe, Alistair Boyle,</span>
+0026 <span class="comment">% Bartek Grychtol</span>
+0027 
+0028 <span class="keyword">if</span> ischar(filename) &amp;&amp; strcmp(filename,<span class="string">'UNIT_TEST'</span>); <a href="#_sub10" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0029 
+0030 fid = fopen(filename,<span class="string">'r'</span>);
+0031 content = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0032 content = content{:};
+0033 fclose(fid);
+0034 phys_names = [];
+0035 entities = [];
+0036 idx = find(startsWith(content,<span class="string">'$'</span>));
+0037 <span class="keyword">for</span> i = 1:2:numel(idx)
+0038    block = content( (idx(i)+1) : idx(i+1)-1 );
+0039    <span class="keyword">switch</span> content{idx(i)}
+0040       <span class="keyword">case</span> <span class="string">'$MeshFormat'</span>
+0041          gmshformat = <a href="#_sub2" class="code" title="subfunction gmshformat = parse_format(lines)">parse_format</a>(block);
+0042       <span class="keyword">case</span> <span class="string">'$Entities'</span>
+0043          entities= <a href="#_sub5" class="code" title="subfunction elements = parse_entities( lines, gmshformat )">parse_entities</a>( block, gmshformat );
+0044       <span class="keyword">case</span> <span class="string">'$Elements'</span>
+0045          elements= <a href="#_sub7" class="code" title="subfunction elements = parse_elements( lines, gmshformat )">parse_elements</a>( block, gmshformat );
+0046       <span class="keyword">case</span> <span class="string">'$Nodes'</span>
+0047          nodes= <a href="#_sub1" class="code" title="subfunction mat = get_lines_with_nodes( lines, gmshformat )">get_lines_with_nodes</a>( block, gmshformat );
+0048       <span class="keyword">case</span> <span class="string">'$PhysicalNames'</span>
+0049          phys_names= <a href="#_sub4" class="code" title="subfunction names = parse_names( lines, version )">parse_names</a>( block, gmshformat );
+0050    <span class="keyword">end</span>
+0051 <span class="keyword">end</span>
+0052 
+0053 <span class="comment">% look up nodes for each of phys_names</span>
+0054 <span class="keyword">if</span> ~isempty(phys_names)
+0055     <span class="keyword">if</span> (gmshformat &gt;= 4.0)
+0056         assert(~isempty(entities), <span class="string">'expected $Entities section (GMSH format 4)'</span>);
+0057         <span class="keyword">for</span> i = 1:length(phys_names)
+0058             phys_tag = phys_names(i).tag;
+0059             dim = phys_names(i).dim;
+0060             tmpentities = find(arrayfun(@(x) any(x.phys_tag == phys_tag), entities));
+0061             tags = cat(1,entities(tmpentities).entity_tag);
+0062             idx = ismember(elements.entity_tag, tags) &amp; elements.dim == dim;
+0063             phys_names(i).nodes = elements.simp(idx,1:dim+1);
+0064             elements.phys_tag(idx) = phys_tag;
+0065         <span class="keyword">end</span>
+0066     <span class="keyword">else</span> <span class="comment">% GMSH 2.0 doesn't have Entities</span>
+0067         assert(isempty(entities), <span class="string">'unexpected $Entities section (GMSH format 2)'</span>);
+0068         <span class="keyword">for</span> i = 1:length(phys_names)
+0069             dim = phys_names(i).dim;
+0070             tag = phys_names(i).tag;
+0071             idx = elements.phys_tag == tag &amp; elements.dim == dim;
+0072             phys_names(i).nodes = elements.simp(idx,1:dim+1);
+0073         <span class="keyword">end</span>
+0074     <span class="keyword">end</span>
+0075 <span class="keyword">end</span>
+0076 
+0077 edg = [];
+0078 bc = [];
+0079 
+0080 <span class="comment">% Type 2: 3-node triangle</span>
+0081 tri = elements.type==2;
+0082 <span class="comment">% Type 4: 4-node tetrahedron</span>
+0083 tet = elements.type==4;
+0084 
+0085 <span class="comment">% Select 2d vs 3d model by checking if Z is all the same</span>
+0086 <span class="keyword">if</span> any(nodes(:,4) ~= nodes(1,4))
+0087     vtx = nodes(:,2:4);
+0088     simp = elements.simp(tet,:);
+0089     srf = elements.simp(tri,1:3);
+0090     mat_ind = elements.phys_tag(tet);
+0091 <span class="keyword">else</span>
+0092     vtx = nodes(:,2:3);
+0093     simp = elements.simp(tri,1:3);
+0094     srf = [];
+0095     mat_ind = elements.phys_tag(tri);
+0096 <span class="keyword">end</span>
+0097 
+0098 fc = elements.phys_tag(tri); <span class="comment">% for 4.1, these are all zero, why?</span>
+0099 <span class="keyword">end</span>
+0100 
+0101 <a name="_sub1" href="#_subfunctions" class="code">function mat = get_lines_with_nodes( lines, gmshformat )</a>
+0102     
+0103     
+0104     <span class="keyword">switch</span> floor(gmshformat)
+0105     <span class="comment">% Version 2 Line Format:</span>
+0106     <span class="comment">% node-number x-coord y-coord z-coord</span>
+0107     <span class="comment">% Version 4 Line Format: (not always like this)</span>
+0108     <span class="comment">% node-number</span>
+0109     <span class="comment">% x-coord y-coord z-coord</span>
+0110     <span class="keyword">case</span> 2 
+0111       n_rows = <a href="#_sub3" class="code" title="subfunction n_rows = parse_rows(tline, gmshformat)">parse_rows</a>(lines{1},gmshformat);
+0112       <span class="comment">%mat= sscanf(sprintf('%s ',lines{2:end}),'%f',[4,n_rows])';</span>
+0113       mat= textscan(sprintf(<span class="string">'%s '</span>,lines{2:end}),<span class="string">'%f'</span>);
+0114       mat = reshape(mat{1},[4,n_rows])';
+0115     <span class="keyword">case</span> 4;
+0116         n = sscanf(lines{1}, <span class="string">'%d'</span>)';
+0117         n_block = n(1);
+0118         n_nodes = n(2);
+0119         mat = zeros(n_nodes,4);
+0120         count = 2;
+0121         <span class="keyword">while</span> n_block &gt; 0
+0122             n_block = n_block - 1;
+0123             tline = lines{count}; count = count + 1; <span class="comment">% fgetl(fid);</span>
+0124             blk = sscanf(tline, <span class="string">'%d'</span>)';
+0125             blk_nodes = blk(end); <span class="comment">% n(2) for v4.0, n(4) for v4.1</span>
+0126             <span class="keyword">if</span> blk_nodes == 0,  <span class="keyword">continue</span>, <span class="keyword">end</span>
+0127             <span class="keyword">if</span> gmshformat == 4.1 <span class="comment">% v4.1: node tags first as a block, then node coordinates in a block</span>
+0128                node_tag =  textscan(sprintf(<span class="string">'%s '</span>,lines{count:count+blk_nodes-1}),<span class="string">'%f'</span>);
+0129                node_tag = node_tag{1};
+0130                count = count + blk_nodes;
+0131 <span class="comment">%                el = sscanf(sprintf('%s ',lines{count:count+blk_nodes-1}),'%f',[3 blk_nodes])';</span>
+0132                el = textscan(sprintf(<span class="string">'%s '</span>,lines{count:count+blk_nodes-1}),<span class="string">'%f'</span>);
+0133                el = reshape(el{1},[3 blk_nodes])';
+0134                count = count + blk_nodes;
+0135                mat(node_tag,:) = [node_tag(:), el(:,1:end)];
+0136             <span class="keyword">else</span> <span class="comment">% v4.0: node tag and coordinates on the same line</span>
+0137 <span class="comment">%                data = sscanf(sprintf('%s ',lines{count:count+blk_nodes-1}),'%f',[4 blk_nodes])';</span>
+0138                data = textscan(sprintf(<span class="string">'%s '</span>,lines{count:count+blk_nodes-1}),<span class="string">'%f'</span>);
+0139                data = reshape(data{1},[4 blk_nodes])';
+0140                mat(data(:,1),:) = data;
+0141                count = count + blk_nodes;               
+0142             <span class="keyword">end</span>
+0143             
+0144         <span class="keyword">end</span>
+0145         assert(n_block == 0, <span class="string">'failed to consume all $Nodes blocks'</span>);
+0146     <span class="keyword">otherwise</span>; error(<span class="string">'cant parse gmsh file of this format'</span>);
+0147     <span class="keyword">end</span>
+0148 <span class="keyword">end</span>
+0149 
+0150 <a name="_sub2" href="#_subfunctions" class="code">function gmshformat = parse_format(lines)</a>
+0151    rawformat = sscanf(lines{1},<span class="string">'%f'</span>);
+0152    gmshformat = rawformat(1);
+0153 <span class="keyword">end</span>
+0154 
+0155 <a name="_sub3" href="#_subfunctions" class="code">function n_rows = parse_rows(tline, gmshformat)</a>
+0156    n_rows = sscanf(tline,<span class="string">'%d'</span>);
+0157    <span class="keyword">switch</span> floor(gmshformat)
+0158      <span class="keyword">case</span> 2; n_rows = n_rows(1);
+0159      <span class="keyword">case</span> 4; n_rows = n_rows(2);
+0160      <span class="keyword">otherwise</span>; error(<span class="string">'cant parse gmsh file of this format'</span>);
+0161    <span class="keyword">end</span>
+0162 <span class="keyword">end</span>
+0163 
+0164 <a name="_sub4" href="#_subfunctions" class="code">function names = parse_names( lines, version )</a>
+0165     <span class="comment">% Line Format:</span>
+0166     <span class="comment">% physical-dimension physical-number &quot;physical-name&quot;</span>
+0167     n_rows = sscanf(lines{1},<span class="string">'%d'</span>);
+0168     names = struct(<span class="string">'tag'</span>,{},<span class="string">'dim'</span>,{},<span class="string">'name'</span>,{});
+0169     <span class="keyword">for</span> i = 1:n_rows
+0170         tline = lines{1+i};
+0171         parts = regexp(tline,<span class="string">' '</span>,<span class="string">'split'</span>);
+0172         nsz = size(names,2)+1;
+0173         names(nsz).dim = str2double( parts(1) );
+0174         names(nsz).tag = str2double( parts(2) );
+0175         tname = parts(3);
+0176         names(nsz).name = strrep(tname{1},<span class="string">'&quot;'</span>,<span class="string">''</span>);
+0177     <span class="keyword">end</span>
+0178 <span class="keyword">end</span> <span class="comment">% end function</span>
+0179 
+0180 <a name="_sub5" href="#_subfunctions" class="code">function elements = parse_entities( lines, gmshformat )</a>
+0181     elements = [];
+0182     <span class="keyword">switch</span> floor(gmshformat)
+0183       <span class="keyword">case</span> 2; warning(<span class="string">'ignoring $Entities$ for GMSH v2 file'</span>);
+0184       <span class="keyword">case</span> 4;
+0185           elements = <a href="#_sub6" class="code" title="subfunction entities = parse_v4_entities(lines, gmshformat)">parse_v4_entities</a>(lines, gmshformat);
+0186       <span class="keyword">otherwise</span> error(<span class="string">'cant parse this file type'</span>);
+0187     <span class="keyword">end</span>
+0188  <span class="keyword">end</span>
+0189 
+0190  <a name="_sub6" href="#_subfunctions" class="code">function entities = parse_v4_entities(lines, gmshformat)</a>
+0191 <span class="comment">% http://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format</span>
+0192 <span class="comment">% $Entities</span>
+0193 <span class="comment">%  numPoints(size_t) numCurves(size_t)</span>
+0194 <span class="comment">%    numSurfaces(size_t) numVolumes(size_t)</span>
+0195 <span class="comment">%  pointTag(int) X(double) Y(double) Z(double)</span>
+0196 <span class="comment">%    numPhysicalTags(size_t) physicalTag(int) ...</span>
+0197 <span class="comment">%  ...</span>
+0198 <span class="comment">%  curveTag(int) minX(double) minY(double) minZ(double)</span>
+0199 <span class="comment">%    maxX(double) maxY(double) maxZ(double)</span>
+0200 <span class="comment">%    numPhysicalTags(size_t) physicalTag(int) ...</span>
+0201 <span class="comment">%    numBoundingPoints(size_t) pointTag(int) ...</span>
+0202 <span class="comment">%  ...</span>
+0203 <span class="comment">%  surfaceTag(int) minX(double) minY(double) minZ(double)</span>
+0204 <span class="comment">%    maxX(double) maxY(double) maxZ(double)</span>
+0205 <span class="comment">%    numPhysicalTags(size_t) physicalTag(int) ...</span>
+0206 <span class="comment">%    numBoundingCurves(size_t) curveTag(int) ...</span>
+0207 <span class="comment">%  ...</span>
+0208 <span class="comment">%  volumeTag(int) minX(double) minY(double) minZ(double)</span>
+0209 <span class="comment">%    maxX(double) maxY(double) maxZ(double)</span>
+0210 <span class="comment">%    numPhysicalTags(size_t) physicalTag(int) ...</span>
+0211 <span class="comment">%    numBoundngSurfaces(size_t) surfaceTag(int) ...</span>
+0212 <span class="comment">%  ...</span>
+0213 <span class="comment">% $EndEntities</span>
+0214 <span class="comment">% Entities are necessary to map '$PhysicalNames' to 'entityDim' &amp; 'entityTag'</span>
+0215 <span class="comment">% in $Elements and $Nodes.</span>
+0216 <span class="comment">% Note that the entityTag can repeat for each type of entityDim, so when we</span>
+0217 <span class="comment">% look up the elements associated with a PhysicalName we need to then use the</span>
+0218 <span class="comment">% entityDim AND entityTag to find matching Nodes/Elements.</span>
+0219     entities = struct(<span class="string">'phys_tag'</span>,{},<span class="string">'dim'</span>,{},<span class="string">'entity_tag'</span>,{});
+0220 
+0221     bl = sscanf(lines{1}, <span class="string">'%d'</span>)'; <span class="comment">% Get the line info</span>
+0222     n_points = bl(1);
+0223     n_curves = bl(2);
+0224     n_surf = bl(3);
+0225     n_vol = bl(4);
+0226     <span class="comment">%fprintf('entities: %d pts, %d curves, %d surf, %d vol\n', n_points, n_curves, n_surf, n_vol);</span>
+0227     <span class="keyword">for</span> i = 2:numel(lines)
+0228         tline = lines{i};
+0229         bl = sscanf(tline, <span class="string">'%f'</span>)'; <span class="comment">% Get the line info</span>
+0230         off = 8; <span class="comment">% offset for 'numPhysicalTags'</span>
+0231         <span class="keyword">if</span> n_points &gt; 0
+0232             n_points = n_points - 1;
+0233             dim = 0; <span class="comment">% point</span>
+0234             off = 5; <span class="comment">% offset for 'numPhysicalTags'</span>
+0235         <span class="keyword">elseif</span> n_curves &gt; 0
+0236             n_curves = n_curves - 1;
+0237             dim = 1; <span class="comment">% line/curve</span>
+0238         <span class="keyword">elseif</span> n_surf &gt; 0
+0239             n_surf = n_surf - 1;
+0240             dim = 2; <span class="comment">% surface</span>
+0241         <span class="keyword">elseif</span> n_vol &gt; 0
+0242             n_vol = n_vol - 1;
+0243             dim = 3; <span class="comment">% volume</span>
+0244         <span class="keyword">else</span>
+0245             error(<span class="string">'extra $Entities found in v4.1 GMSH file'</span>);
+0246         <span class="keyword">end</span>
+0247         <span class="keyword">if</span> bl(off) &gt; 0
+0248             entities(end+1).phys_tag = bl((off+1):uint32(off+bl(off)));
+0249             entities(end).entity_tag = uint32(bl(1));
+0250             entities(end).dim = dim;
+0251         <span class="keyword">end</span>
+0252     <span class="keyword">end</span>
+0253     assert(n_points == 0, <span class="string">'missing Entity/points from GMSH 4.1 file'</span>);
+0254     assert(n_curves == 0, <span class="string">'missing Entity/curves from GMSH 4.1 file'</span>);
+0255     assert(n_surf == 0, <span class="string">'missing Entity/surfaces from GMSH 4.1 file'</span>);
+0256     assert(n_vol == 0, <span class="string">'missing Entity/volumes from GMSH 4.1 file'</span>);
+0257 <span class="keyword">end</span>
+0258 
+0259 
+0260 <a name="_sub7" href="#_subfunctions" class="code">function elements = parse_elements( lines, gmshformat )</a>
+0261    n_rows = <a href="#_sub3" class="code" title="subfunction n_rows = parse_rows(tline, gmshformat)">parse_rows</a>(lines{1},gmshformat);
+0262    <span class="keyword">switch</span> floor(gmshformat)
+0263      <span class="keyword">case</span> 2; elements = <a href="#_sub9" class="code" title="subfunction elements = parse_v2_elements(lines,n_rows)">parse_v2_elements</a>(lines(2:end),n_rows);
+0264      <span class="keyword">case</span> 4; elements = <a href="#_sub8" class="code" title="subfunction elements = parse_v4_elements(lines,gmshformat)">parse_v4_elements</a>(lines,gmshformat);
+0265      <span class="keyword">otherwise</span> error(<span class="string">'cant parse this file type'</span>);
+0266    <span class="keyword">end</span>
+0267 <span class="keyword">end</span>
+0268 
+0269 <a name="_sub8" href="#_subfunctions" class="code">function elements = parse_v4_elements(lines,gmshformat)</a>
+0270 <span class="comment">% http://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format</span>
+0271 <span class="comment">% $Elements</span>
+0272 <span class="comment">% numEntityBlocks numElements minElementTag maxElementTag</span>
+0273 <span class="comment">% ...</span>
+0274 <span class="comment">% entityDim entityTag elementType numElementsInBlock</span>
+0275 <span class="comment">% elementTag nodeTag ... nodeTag</span>
+0276 <span class="comment">% ...</span>
+0277 <span class="comment">% $EndElements</span>
+0278 <span class="comment">% An entity is a node, curve, surface or volume</span>
+0279 <span class="comment">% Each entity has a list of contained elements and corresponding node tags</span>
+0280 <span class="comment">% 0D - 1 node tag (ignore these)</span>
+0281 <span class="comment">% 1D - 2 node tags</span>
+0282 <span class="comment">% 2D - 3 node tags</span>
+0283 <span class="comment">% 3D - 4 node tags</span>
+0284  
+0285     bl = sscanf(lines{1}, <span class="string">'%d'</span>)'; <span class="comment">% Get the line info</span>
+0286     n_blocks = bl(1);
+0287     n_elems = bl(2);
+0288     e_block = 0;
+0289     simp = zeros([n_elems,4],<span class="string">'uint32'</span>);
+0290     type = zeros([n_elems,1],<span class="string">'uint8'</span>);
+0291     entity_tag = zeros([n_elems,1],<span class="string">'uint32'</span>);
+0292     type = zeros([n_elems,1], <span class="string">'uint8'</span>);
+0293     dim = zeros([n_elems,1], <span class="string">'uint8'</span>);
+0294     phys_tag = zeros([n_elems,1], <span class="string">'uint32'</span>); 
+0295     count = 2;
+0296     <span class="keyword">for</span> i = 1:n_blocks
+0297         bl = sscanf(lines{count}, <span class="string">'%d'</span>)'; <span class="comment">% Get the line info</span>
+0298         count = count + 1;
+0299         <span class="keyword">if</span> gmshformat &gt;= 4.1
+0300            e_dim = bl(1); <span class="comment">% entityDim</span>
+0301            e_tag = bl(2); <span class="comment">% entityTag</span>
+0302         <span class="keyword">else</span> <span class="comment">% 4.0</span>
+0303            e_tag = bl(1); <span class="comment">% entityTag</span>
+0304            e_dim = bl(2); <span class="comment">% entityDim</span>
+0305         <span class="keyword">end</span>
+0306         e_type = bl(3); <span class="comment">% elementType</span>
+0307         e_block = bl(4); <span class="comment">% numElementsInBlock: Size of entity block</span>
+0308 <span class="comment">%         data = sscanf(sprintf('%s ',lines{count:count+e_block-1}),'%d',[e_dim+2 e_block])';</span>
+0309         data = textscan(sprintf(<span class="string">'%s '</span>,lines{count:count+e_block-1}),<span class="string">'%d'</span>);
+0310         data = reshape(data{1},[e_dim+2 e_block])';
+0311         count = count + e_block;
+0312         n_elems = n_elems - size(data,1);
+0313         idx = data(:,1);
+0314         simp(idx,1:e_dim+1) = data(:,2:end);
+0315         type(idx) = e_type;
+0316         entity_tag(idx) = e_tag;
+0317         dim(idx) = e_dim;
+0318     <span class="keyword">end</span>
+0319     assert(n_elems == 0, <span class="string">'missing Elements from GMSH 4 file'</span>);
+0320 <span class="comment">%     assert(n_blocks == 0, 'missing Element/blocks from GMSH 4 file');</span>
+0321     elements = struct(<span class="string">'simp'</span>,simp,<span class="string">'type'</span>,type,<span class="string">'entity_tag'</span>,entity_tag,<span class="keyword">...</span>
+0322                       <span class="string">'dim'</span>,dim,<span class="string">'phys_tag'</span>,phys_tag);
+0323 
+0324 <span class="comment">% Copied from somewhere else in the code, to reintroduce once we deal</span>
+0325 <span class="comment">% with PhysTags again</span>
+0326 <span class="comment">%     assert(length(elements(j).phys_tag) &gt; 0, ...</span>
+0327 <span class="comment">%        'GMSH format v4 mesh volume elements can only have one $PhysicalName when imported into EIDORS');</span>
+0328 <span class="keyword">end</span>
+0329 
+0330 <a name="_sub9" href="#_subfunctions" class="code">function elements = parse_v2_elements(lines,n_rows)</a>
+0331 <span class="comment">% Line Format:</span>
+0332 <span class="comment">% elm-number elm-type number-of-tags &lt; tag &gt; ... node-number-list</span>
+0333 elements.simp = zeros([n_rows,4],<span class="string">'uint32'</span>);;
+0334 elements.phys_tag = zeros([n_rows,1], <span class="string">'uint32'</span>);
+0335 elements.geom_tag = zeros([n_rows,1],<span class="string">'uint32'</span>);;
+0336 elements.type = zeros([n_rows,1],<span class="string">'uint8'</span>);
+0337 elements.dim = zeros([n_rows,1], <span class="string">'uint8'</span>);
+0338 
+0339 <span class="keyword">for</span> i = 1:n_rows <span class="comment">% can we get rid of this loop?</span>
+0340     tline = lines{i};
+0341     n = sscanf(tline, <span class="string">'%d'</span>)';
+0342     ndim = numel(n) - n(3) - 4;
+0343     elements.simp(i,1:ndim+1) = n(n(3) + 4:end);
+0344     elements.type(i) = n(2);
+0345     elements.dim(i) = ndim;
+0346     <span class="keyword">if</span> n(3) &gt; 0 <span class="comment">% get tags if they exist</span>
+0347         <span class="comment">% By default, first tag is number of parent physical entity</span>
+0348         <span class="comment">% second is parent elementary geometrical entity</span>
+0349         <span class="comment">% third is number of parent mesh partitions followed by</span>
+0350         <span class="comment">% partition ids</span>
+0351         tags = n(4:3+n(3));
+0352         <span class="keyword">if</span> length(tags) &gt;= 1
+0353             elements.phys_tag(i) = tags(1);
+0354             <span class="keyword">if</span> length(tags) &gt;= 2
+0355                 elements.geom_tag(i) = tags(2);
+0356             <span class="keyword">end</span>
+0357         <span class="keyword">end</span>
+0358     <span class="keyword">end</span>
+0359 <span class="keyword">end</span>
+0360 <span class="keyword">end</span>
+0361 
+0362 <a name="_sub10" href="#_subfunctions" class="code">function do_unit_test</a>
+0363    selfdir = fileparts(which(<span class="string">'gmsh_read_mesh'</span>));
+0364    [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names] = <a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>(fullfile(selfdir, <span class="string">'tests/test-4.0.msh'</span>));
+0365     <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'v4 vtx '</span>,vtx(2:3,:),[1,0;-1,0])
+0366     <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'v4 simp'</span>,simp(2:3,:),[3,7,12; 12, 7,14]);
+0367 
+0368    [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names] = <a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>(fullfile(selfdir, <span class="string">'tests/test-2.2.msh'</span>));
+0369     <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'v2 vtx '</span>,vtx(2:3,:),[1,0;-1,0])
+0370     <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'v2 simp'</span>,simp(2:3,:),[2,4,15; 14,17,19]);
+0371 
+0372    vers = {<span class="string">'2.2'</span>, <span class="string">'4.0'</span>, <span class="string">'4.1'</span>};
+0373    <span class="keyword">for</span> ver = vers(:)'
+0374        ver = ver{1};
+0375        [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names] = <span class="keyword">...</span>
+0376            <a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>( fullfile(selfdir, [<span class="string">'tests/box-'</span> ver <span class="string">'.msh'</span>]) );
+0377        <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'2d v'</span> ver <span class="string">' vtx '</span>],vtx,[0,0;1,0;1,1;0,1;0.5,0.5])
+0378        <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'2d v'</span> ver <span class="string">' simp'</span>],simp,[2,5,1;1,5,4;3,5,2;,4,5,3]);
+0379        <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'2d v'</span> ver <span class="string">' phys'</span>],{phys_names(:).name},{<span class="string">'elec#1'</span>,<span class="string">'elec#2'</span>,<span class="string">'main'</span>});
+0380 
+0381        [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names] = <span class="keyword">...</span>
+0382            <a href="gmsh_read_mesh.html" class="code" title="function [srf,vtx,fc,bc,simp,edg,mat_ind,phys_names,entities] = gmsh_read_mesh(filename)">gmsh_read_mesh</a>( fullfile(selfdir, [<span class="string">'tests/cube-'</span> ver <span class="string">'.msh'</span>]) );
+0383        <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'3d v'</span> ver <span class="string">' vtx '</span>],vtx([1,2,13,end],:),[0,0,1;0,0,0;,0.5,0.5,0;0.5,0.5,1])
+0384        <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'3d v'</span> ver <span class="string">' simp'</span>],simp([1,2,23,end],:), <span class="keyword">...</span>
+0385            [10,11,12,13;9,12,14,11;12,14,10,7;13,10,11,6]);
+0386        <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>([<span class="string">'3d v'</span> ver <span class="string">' phys'</span>],{phys_names(:).name},{<span class="string">'elec#1'</span>,<span class="string">'elec#2'</span>,<span class="string">'main'</span>});
+0387    <span class="keyword">end</span>
+0388 
+0389 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of write_hdf5_sample</title>
+  <meta name="keywords" content="write_hdf5_sample">
+  <meta name="description" content="Write HDF5 Sample data">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">sample_data</a> &gt; write_hdf5_sample.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/sample_data&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>write_hdf5_sample
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>Write HDF5 Sample data</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function fname = write_and_test; </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Write HDF5 Sample data
+ Possner, Bulst, Adler &quot;HDF5-based data format for EIT data&quot;, Conf. EIT2023
+ $Id: write_hdf5_sample.m 7124 2024-12-29 15:18:32Z aadler $</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>	out_img = show_slices (img, levels ) show slices at levels of an</li><li><a href="../../eidors/interface/eidors_readdata.html" class="code" title="function [vv, auxdata, stim]= eidors_readdata( fname, format, frame_range, extra )">eidors_readdata</a>	EIDORS readdata - read data files from various EIT equipment</li><li><a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../eidors/models/mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li><li><a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>	INV_SOLVE: calculate imag from an inv_model and data</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/interface/eidors_readdata.html" class="code" title="function [vv, auxdata, stim]= eidors_readdata( fname, format, frame_range, extra )">eidors_readdata</a>	EIDORS readdata - read data files from various EIT equipment</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function hdf5_sample_write</a></li><li><a href="#_sub2" class="code">function h5createwrite(DS, data, datatype);</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% Write HDF5 Sample data</span>
+0002 <span class="comment">% Possner, Bulst, Adler &quot;HDF5-based data format for EIT data&quot;, Conf. EIT2023</span>
+0003 <span class="comment">% $Id: write_hdf5_sample.m 7124 2024-12-29 15:18:32Z aadler $</span>
+0004 <a name="_sub0" href="#_subfunctions" class="code">function fname = write_and_test;</a>
+0005   fname = <span class="string">'montreal_data_1995_breathold.h5'</span>;
+0006   delete(fname)
+0007   <a href="#_sub1" class="code" title="subfunction hdf5_sample_write">hdf5_sample_write</a>
+0008   [dd,~,stim] = <a href="../../eidors/interface/eidors_readdata.html" class="code" title="function [vv, auxdata, stim]= eidors_readdata( fname, format, frame_range, extra )">eidors_readdata</a>(<span class="string">'montreal_data_1995_breathold.h5'</span>,<span class="string">'h5'</span>,<span class="string">'datasetEIT'</span>);
+0009   imdl = <a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'c2t2'</span>,16);
+0010   imdl.fwd_model = rmfield(imdl.fwd_model,<span class="string">'meas_select'</span>);
+0011   imdl.fwd_model.stimulation = stim;
+0012   imgr = <a href="../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(imdl, dd(:,1), dd);
+0013   <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(imgr);
+0014 
+0015 <a name="_sub1" href="#_subfunctions" class="code">function hdf5_sample_write</a>
+0016    load <span class="string">'montreal_data_1995.mat'</span>
+0017    txt = fileread(<span class="string">'montreal_data_1995.readme'</span>);
+0018    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/VERSION'</span>,2023.4,<span class="string">'double'</span>);
+0019    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/patient/Readme'</span>,txt,<span class="string">'string'</span>);
+0020    [stim,msel] = <a href="../../eidors/models/mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(16,1,[0,1],[0,1],{<span class="string">'no_meas_current'</span>},1);
+0021    freq=13000; oo=ones(1,13); FR = 1/7; <span class="comment">% 13 meas / frame</span>
+0022    stimprot= []; measprot= [];
+0023    <span class="keyword">for</span> i=1:length(stim);
+0024       stimprot = [stimprot, stim(i).stim_pattern*oo];
+0025       measprot = [measprot, stim(i).meas_pattern'];
+0026    <span class="keyword">end</span>
+0027    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetEIT/Meas.V.Abs'</span>,zc_breathhold(msel,:),<span class="string">'int16'</span>);
+0028    <span class="keyword">for</span> i=1:16;
+0029       field = sprintf(<span class="string">'/data/datasetEIT/protocol/Stim.I.%02d(A)'</span>,i);
+0030       <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(field,stimprot(i,:),<span class="string">'int8'</span>);
+0031       field = sprintf(<span class="string">'/data/datasetEIT/protocol/Meas.V.%02d(V)'</span>,i);
+0032       <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(field,measprot(i,:),<span class="string">'int8'</span>);
+0033    <span class="keyword">end</span>
+0034    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetEIT/protocol/Stim.I.freq(Hz)'</span>,freq,<span class="string">'double'</span>);
+0035 
+0036    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetECG/Meas.V.Abs'</span>,ecg_breathhold,<span class="string">'int16'</span>);
+0037    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetECG/protocol/Stim.I.01(A)'</span>,0,<span class="string">'int8'</span>);
+0038    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetECG/protocol/Stim.I.02(A)'</span>,0,<span class="string">'int8'</span>);
+0039    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetECG/protocol/Stim.I.freq(Hz)'</span>,0,<span class="string">'double'</span>);
+0040    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetECG/protocol/Meas.V.01(V)'</span>, 1,<span class="string">'int8'</span>);
+0041    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetECG/protocol/Meas.V.02(V)'</span>,-1,<span class="string">'int8'</span>);
+0042    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetECG/protocol/Meas.V.freq(Hz)'</span>,0,<span class="string">'double'</span>);
+0043    <a href="#_sub2" class="code" title="subfunction h5createwrite(DS, data, datatype);">h5createwrite</a>(<span class="string">'/data/datasetECG/protocol/Meas.Dtime(s)'</span>,FR/16,<span class="string">'double'</span>);
+0044 
+0045 <a name="_sub2" href="#_subfunctions" class="code">function h5createwrite(DS, data, datatype);</a>
+0046    fname = <span class="string">'montreal_data_1995_breathold.h5'</span>;
+0047    sz = size(data);
+0048    <span class="keyword">if</span> strcmp(datatype,<span class="string">'string'</span>);
+0049       ver = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'interpreter_version'</span>)
+0050       <span class="keyword">if</span> ~ver.isoctave &amp;&amp; ver.ver&gt;=10 <span class="comment">%only in newer versions</span>
+0051          sz=1;
+0052          data = convertCharsToStrings(data);
+0053       <span class="keyword">else</span>
+0054          data(data&gt;255) = <span class="string">'e'</span>; <span class="comment">% we know this string, it only has e acute</span>
+0055          data = uint8(data);
+0056          datatype=<span class="string">'uint8'</span>; 
+0057          sz=length(data);
+0058       <span class="keyword">end</span>
+0059    <span class="keyword">end</span>
+0060    h5create(fname,DS,sz, <span class="string">'Datatype'</span>, datatype);
+0061    h5write(fname,DS, full(data));</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

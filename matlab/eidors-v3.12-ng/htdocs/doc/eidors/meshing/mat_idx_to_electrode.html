@@ -1,0 +1,378 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mat_idx_to_electrode</title>
+  <meta name="keywords" content="mat_idx_to_electrode">
+  <meta name="description" content="MAT_IDX_TO_ELECTRODE: create electrodes from mat_idx values">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">meshing</a> &gt; mat_idx_to_electrode.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/meshing&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mat_idx_to_electrode
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MAT_IDX_TO_ELECTRODE: create electrodes from mat_idx values</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> MAT_IDX_TO_ELECTRODE: create electrodes from mat_idx values
+ fmdl = mat_idx_to_electrode(fmdl, mat_idxes)
+ fmdl: input and output fmdl
+ Options: fmdl.mat_idx_to_electrode.z_contact  (z_contact value to use ... or default)
+ mat_idxes = cell array of mat_idxes =&gt; convert electrode
+    example mat_idxes = {1:2, 5, [12,14]}
+
+ by default, adds a 'faces'-type electrode (i.e. an
+    electrode defined in terms of its faces)
+ Parameter
+   fmdl.mat_idx_to_electrode.nodes_electrode = true
+      Add a 'nodes'-type electrode
+
+ To work with an image object, use:
+  [img.fwd_model,rm_elems] = mat_idx_to_electrode(img.fwd_model,{mat_idxes});
+  img.elem_data(rm_elems) = [];
+
+ Notes:
+   mat_idx regions cannot be directly touching each other.</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>	EIDORS_MSG eidors progress and status messages</li><li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>	MAT_IDX_TO_ELECTRODE: create electrodes from mat_idx values</li><li><a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>	NG_MAKE_CYL_MODELS: create cylindrical models using netgen</li><li><a href="../../eidors/meshing/netgen/ng_mk_gen_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_gen_models(shape_str, elec_pos,  elec_shape, elec_obj, extra_ng_code, mszpoints);">ng_mk_gen_models</a>	NG_MK_GEN_MODELS: create generic models using netgen</li><li><a href="../../eidors/models/get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>	GET_ELEM_VOLUME: VOL = get_elem_volume(fwd_model, map_node )</li><li><a href="../../eidors/models/mdl_dim.html" class="code" title="function num = mdl_dim( mdl );">mdl_dim</a>	MDL_DIM: dimension of model space (are nodes in 2D or 3D space)</li><li><a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>	NUM_ELECS: number of electrodes attached to model</li><li><a href="../../eidors/models/num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>	NUM_ELEMS: number of elemnts in a (fwd or inv model or image)</li><li><a href="../../eidors/models/remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>	REMOVE_UNUSED_NODES: identify and remove unused nodes in model</li><li><a href="../../eidors/models/stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">stim_meas_list</a>	STIM_MEAS_LIST: mk stimulation pattern from list of electrodes</li><li><a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>	FWD_SOLVE: calculate data from a fwd_model object and an image</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/graphics/matlab/show_3d_slices.html" class="code" title="function h = show_3d_slices(img, varargin);">show_3d_slices</a>	show_3d_slices(img, z_cuts, x_cuts, y_cuts, any_cuts)</li><li><a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>	MAT_IDX_TO_ELECTRODE: create electrodes from mat_idx values</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [fmdl,femobj] = create_electrode_nodes_from_mat_idx(fmdl,nmat_idx);</a></li><li><a href="#_sub2" class="code">function fmdl = remove_unused_boundary(fmdl);</a></li><li><a href="#_sub3" class="code">function [fmdl,faces] = rm_elems( fmdl, femobj, faces);</a></li><li><a href="#_sub4" class="code">function [fmdl,femobj] = create_electrode_faces_from_mat_idx(fmdl,nmat_idx);</a></li><li><a href="#_sub5" class="code">function fmdl = add_elec(fmdl, elstr)</a></li><li><a href="#_sub6" class="code">function faces = calc_elec_faces(elems,femobj);</a></li><li><a href="#_sub7" class="code">function do_unit_test</a></li><li><a href="#_sub8" class="code">function do_unit_test_2d(nodes_electrode)</a></li><li><a href="#_sub9" class="code">function do_unit_test_3d_netgen(node_elecs_flag)</a></li><li><a href="#_sub10" class="code">function do_unit_test_3d_netgen2(node_elecs_flag)</a></li><li><a href="#_sub11" class="code">function do_unit_test_contained_shape(node_elecs_flag)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)</a>
+0002 <span class="comment">% MAT_IDX_TO_ELECTRODE: create electrodes from mat_idx values</span>
+0003 <span class="comment">% fmdl = mat_idx_to_electrode(fmdl, mat_idxes)</span>
+0004 <span class="comment">% fmdl: input and output fmdl</span>
+0005 <span class="comment">% Options: fmdl.mat_idx_to_electrode.z_contact  (z_contact value to use ... or default)</span>
+0006 <span class="comment">% mat_idxes = cell array of mat_idxes =&gt; convert electrode</span>
+0007 <span class="comment">%    example mat_idxes = {1:2, 5, [12,14]}</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% by default, adds a 'faces'-type electrode (i.e. an</span>
+0010 <span class="comment">%    electrode defined in terms of its faces)</span>
+0011 <span class="comment">% Parameter</span>
+0012 <span class="comment">%   fmdl.mat_idx_to_electrode.nodes_electrode = true</span>
+0013 <span class="comment">%      Add a 'nodes'-type electrode</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% To work with an image object, use:</span>
+0016 <span class="comment">%  [img.fwd_model,rm_elems] = mat_idx_to_electrode(img.fwd_model,{mat_idxes});</span>
+0017 <span class="comment">%  img.elem_data(rm_elems) = [];</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Notes:</span>
+0020 <span class="comment">%   mat_idx regions cannot be directly touching each other.</span>
+0021 
+0022 <span class="comment">% (C) 2019 Andy Adler. License: GPL v2 or v3.</span>
+0023 <span class="comment">% $Id: mat_idx_to_electrode.m 6982 2024-11-12 17:35:36Z aadler $</span>
+0024 
+0025 <span class="keyword">if</span> ischar(fmdl) &amp;&amp; strcmp(fmdl,<span class="string">'UNIT_TEST'</span>); <a href="#_sub7" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0026 
+0027 <span class="comment">% Calculate electrodes on faces or nodes</span>
+0028 elec_faces = true;
+0029 <span class="keyword">try</span> 
+0030    elec_faces = ~fmdl.mat_idx_to_electrode.nodes_electrode;
+0031 <span class="keyword">end</span>
+0032 
+0033 <a href="#_sub3" class="code" title="subfunction [fmdl,faces] = rm_elems( fmdl, femobj, faces);">rm_elems</a> = [];
+0034 <span class="keyword">for</span> i = 1:length(mat_idxes)
+0035    <span class="keyword">if</span> elec_faces 
+0036       [fmdl,rm_elemi] = <a href="#_sub4" class="code" title="subfunction [fmdl,femobj] = create_electrode_faces_from_mat_idx(fmdl,nmat_idx);">create_electrode_faces_from_mat_idx</a>(fmdl, mat_idxes{i});
+0037    <span class="keyword">else</span>
+0038       [fmdl,rm_elemi] = <a href="#_sub1" class="code" title="subfunction [fmdl,femobj] = create_electrode_nodes_from_mat_idx(fmdl,nmat_idx);">create_electrode_nodes_from_mat_idx</a>(fmdl, mat_idxes{i});
+0039    <span class="keyword">end</span>
+0040    <a href="#_sub3" class="code" title="subfunction [fmdl,faces] = rm_elems( fmdl, femobj, faces);">rm_elems</a> = union(<a href="#_sub3" class="code" title="subfunction [fmdl,faces] = rm_elems( fmdl, femobj, faces);">rm_elems</a>,rm_elemi); 
+0041 <span class="keyword">end</span>
+0042 
+0043 fmdl = <a href="../../eidors/models/remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>(fmdl); <span class="comment">% used to use , 'quiet') but that doesn't flag model errors</span>
+0044 fmdl = <a href="#_sub2" class="code" title="subfunction fmdl = remove_unused_boundary(fmdl);">remove_unused_boundary</a>(fmdl);
+0045 <span class="keyword">if</span> any(fmdl.boundary(:) == 0)
+0046    <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'WARNING: PROBLEM WITH BOUNDARY'</span>,1)
+0047 <span class="keyword">end</span>
+0048 <span class="keyword">for</span> i=1:<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmdl)
+0049     zeroface = false;
+0050     <span class="keyword">try</span>  
+0051        zeroface = any(fmdl.electrode(i).faces(:) == 0);
+0052     <span class="keyword">end</span>
+0053     <span class="keyword">if</span> zeroface || any(fmdl.electrode(i).nodes(:) == 0)
+0054        <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'WARNING: PROBLEM WITH BOUNDARY %d'</span>,i,1)
+0055        keyboard
+0056     <span class="keyword">end</span>
+0057 <span class="keyword">end</span>
+0058 <span class="comment">% Standard field order</span>
+0059 fmdl = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>, fmdl);
+0060 
+0061 <span class="comment">% This code adds the new electrode as a elec(i).nodes</span>
+0062 <span class="comment">% adds electrode to the end</span>
+0063 <span class="comment">% femobj is removed elems</span>
+0064 <a name="_sub1" href="#_subfunctions" class="code">function [fmdl,femobj] = create_electrode_nodes_from_mat_idx(fmdl,nmat_idx);</a>
+0065    zc = 1e-5;
+0066    <span class="keyword">try</span> zc = fmdl.mat_idx_to_electrode.z_contact;
+0067    <span class="keyword">end</span>
+0068    femobj = vertcat(fmdl.mat_idx{nmat_idx});
+0069    faces = <a href="#_sub6" class="code" title="subfunction faces = calc_elec_faces(elems,femobj);">calc_elec_faces</a>(fmdl.elems,femobj);
+0070 
+0071    femobjnodes = fmdl.elems(femobj,:);
+0072    [fmdl,faces] = <a href="#_sub3" class="code" title="subfunction [fmdl,faces] = rm_elems( fmdl, femobj, faces);">rm_elems</a>( fmdl, femobj, faces);
+0073 
+0074    <span class="comment">% Add to the boundary with the boundary of the new electrode</span>
+0075    fmdl.boundary = unique([fmdl.boundary;faces],<span class="string">'rows'</span>);
+0076 
+0077    <span class="comment">% vtx= intersect(fmdl.boundary,femobjnodes);</span>
+0078    <span class="comment">% This doesn't seem needed, just unique faces</span>
+0079    <span class="comment">% vt = find_bdynodes(fmdl,femobjnodes);</span>
+0080    vt = unique(faces);
+0081 
+0082    elstr =  struct(<span class="string">'nodes'</span>,vt(:)',<span class="string">'z_contact'</span>,zc);
+0083    fmdl = <a href="#_sub5" class="code" title="subfunction fmdl = add_elec(fmdl, elstr)">add_elec</a>(fmdl, elstr);
+0084 
+0085 <a name="_sub2" href="#_subfunctions" class="code">function fmdl = remove_unused_boundary(fmdl);</a>
+0086    elems= fmdl.elems;
+0087    fmdl.boundary = unique(sort(fmdl.boundary,2),<span class="string">'rows'</span>);
+0088    <span class="keyword">switch</span> <a href="../../eidors/models/mdl_dim.html" class="code" title="function num = mdl_dim( mdl );">mdl_dim</a>(fmdl)
+0089       <span class="keyword">case</span> 2; selem = [sort(elems(:,[1,2]),2);
+0090                        sort(elems(:,[1,3]),2);
+0091                        sort(elems(:,[2,3]),2)];
+0092       <span class="keyword">case</span> 3; selem = [sort(elems(:,[1,2,3]),2);
+0093                        sort(elems(:,[1,2,4]),2);
+0094                        sort(elems(:,[1,3,4]),2);
+0095                        sort(elems(:,[2,3,4]),2)];
+0096       <span class="keyword">otherwise</span>; error(<span class="string">'Dims must be 2 or 3'</span>);
+0097    <span class="keyword">end</span>
+0098    [~,idx] = setdiff(fmdl.boundary, selem,<span class="string">'rows'</span>);
+0099 <span class="comment">%  disp( fmdl.boundary(idx,:) )</span>
+0100    fmdl.boundary(idx,:) = [];
+0101 
+0102 <a name="_sub3" href="#_subfunctions" class="code">function [fmdl,faces] = rm_elems( fmdl, femobj, faces);</a>
+0103    <span class="comment">% fix the mat_idx object, since we remove femobj</span>
+0104    <span class="keyword">for</span> i=1:length(fmdl.mat_idx) 
+0105       els = false(<a href="../../eidors/models/num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(fmdl),1);
+0106       els(fmdl.mat_idx{i}) = true;
+0107       els(femobj) = [];
+0108       fmdl.mat_idx{i} = find(els);
+0109    <span class="keyword">end</span>
+0110    fmdl.elems(femobj,:) = [];
+0111 
+0112 <span class="comment">% Taken care of by remove_unused_boundary</span>
+0113 <span class="comment">%  % remove faces that are no longer on the boundary</span>
+0114 <span class="comment">%  if nargin&gt;2</span>
+0115 <span class="comment">%     inels = reshape(...</span>
+0116 <span class="comment">%          ismember(faces(:),fmdl.elems(:)), size(faces));</span>
+0117 <span class="comment">%     faces(any(~inels,2),:) = [];</span>
+0118 <span class="comment">%     sfaces = sort(faces,2);</span>
+0119 <span class="comment">%     selem1 = sort(fmdl.elems(:,[1,2,3]),2);</span>
+0120 <span class="comment">%     selem2 = sort(fmdl.elems(:,[1,2,4]),2);</span>
+0121 <span class="comment">%     selem3 = sort(fmdl.elems(:,[1,3,4]),2);</span>
+0122 <span class="comment">%     selem4 = sort(fmdl.elems(:,[2,3,4]),2);</span>
+0123 <span class="comment">%     [~,idx] = setdiff(sfaces,[selem1;selem2;selem3;selem4],'rows');</span>
+0124 <span class="comment">%     faces(idx,:) = [];</span>
+0125 <span class="comment">%  end</span>
+0126 
+0127 <span class="comment">% This code adds the new electrode as a elec(i).faces</span>
+0128 <span class="comment">% adds electrode to the end</span>
+0129 <span class="comment">% femobj is removed elems</span>
+0130 <a name="_sub4" href="#_subfunctions" class="code">function [fmdl,femobj] = create_electrode_faces_from_mat_idx(fmdl,nmat_idx);</a>
+0131    zc = 1e-5;
+0132    <span class="keyword">try</span> zc = fmdl.mat_idx_to_electrode.z_contact;
+0133    <span class="keyword">end</span>
+0134    femobj = vertcat(fmdl.mat_idx{nmat_idx});
+0135    faces = <a href="#_sub6" class="code" title="subfunction faces = calc_elec_faces(elems,femobj);">calc_elec_faces</a>(fmdl.elems,femobj);
+0136    [fmdl,faces] = <a href="#_sub3" class="code" title="subfunction [fmdl,faces] = rm_elems( fmdl, femobj, faces);">rm_elems</a>( fmdl, femobj, faces);
+0137    fmdl.boundary = unique([fmdl.boundary;faces],<span class="string">'rows'</span>);
+0138 
+0139    elstr =  struct(<span class="string">'nodes'</span>,[],<span class="string">'z_contact'</span>,zc,<span class="string">'faces'</span>,faces);
+0140 
+0141    fmdl = <a href="#_sub5" class="code" title="subfunction fmdl = add_elec(fmdl, elstr)">add_elec</a>(fmdl, elstr);
+0142 
+0143 <a name="_sub5" href="#_subfunctions" class="code">function fmdl = add_elec(fmdl, elstr)</a>
+0144    <span class="keyword">if</span> isfield(fmdl,<span class="string">'electrode'</span>)
+0145 <span class="comment">%    Stupid matlab forces you to add this</span>
+0146      <span class="keyword">if</span> isfield(elstr,<span class="string">'faces'</span>) &amp;&amp; ~isfield(fmdl.electrode,<span class="string">'faces'</span>);
+0147         [fmdl.electrode(:).faces] = deal([]);
+0148      <span class="keyword">end</span>
+0149      fmdl.electrode(end+1) = elstr;
+0150    <span class="keyword">else</span>
+0151      fmdl.electrode(    1) = elstr;
+0152    <span class="keyword">end</span>
+0153 
+0154 <span class="comment">% Detect outer face of electrode by</span>
+0155 <span class="comment">%  removing all tet faces which exist more</span>
+0156 <span class="comment">%  than once</span>
+0157 <a name="_sub6" href="#_subfunctions" class="code">function faces = calc_elec_faces(elems,femobj);</a>
+0158    thisels = elems(femobj,:);
+0159    <span class="keyword">switch</span> size(thisels,2)  <span class="comment">% dimentions</span>
+0160      <span class="keyword">case</span> 2; <span class="comment">% 1D</span>
+0161        allfaces = thisels;
+0162      <span class="keyword">case</span> 3; <span class="comment">% 2D</span>
+0163        allfaces = [thisels(:,[1,2]);
+0164                    thisels(:,[2,3]);
+0165                    thisels(:,[1,3])];
+0166      <span class="keyword">case</span> 4; <span class="comment">% 3D</span>
+0167        allfaces = [thisels(:,[1,2,3]);
+0168                    thisels(:,[1,2,4]);
+0169                    thisels(:,[1,3,4]);
+0170                    thisels(:,[2,3,4])];
+0171      <span class="keyword">otherwise</span>;
+0172        error <span class="string">'Dimensions of elems'</span>;
+0173    <span class="keyword">end</span>
+0174    allfaces = sort(allfaces,2);
+0175    <span class="comment">% remove all faces which exist more than once</span>
+0176    [faces,ia,ib] = unique(allfaces,<span class="string">'rows'</span>);
+0177    exist_faces = <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(1,ib,1);
+0178    faces(exist_faces&gt;1,:) = [];
+0179 
+0180 <span class="comment">% This functions doesn't seem necessary ... remove</span>
+0181 <span class="comment">% AA: mar 2021</span>
+0182 <span class="comment">%function vt = find_bdynodes(fmdl,femobjnodes)</span>
+0183 <span class="comment">%% Slow way</span>
+0184 <span class="comment">%   vt = intersect(femobjnodes,find_boundary(fmdl));</span>
+0185 <span class="comment">%% Fast: pre-process</span>
+0186 <span class="comment">%   usenodes = reshape( ismember( ...</span>
+0187 <span class="comment">%      fmdl.elems, femobjnodes), size(fmdl.elems));</span>
+0188 <span class="comment">%   fmdl.elems(~any(usenodes,2),:) = [];</span>
+0189 <span class="comment">%   vt = intersect(femobjnodes,find_boundary(fmdl));</span>
+0190       
+0191 
+0192 <a name="_sub7" href="#_subfunctions" class="code">function do_unit_test</a>
+0193    clf; <a href="#_sub11" class="code" title="subfunction do_unit_test_contained_shape(node_elecs_flag)">do_unit_test_contained_shape</a>(true)
+0194    clf; <a href="#_sub11" class="code" title="subfunction do_unit_test_contained_shape(node_elecs_flag)">do_unit_test_contained_shape</a>(false)
+0195    <span class="keyword">return</span>
+0196    clf; subplot(221);
+0197    <a href="#_sub8" class="code" title="subfunction do_unit_test_2d(nodes_electrode)">do_unit_test_2d</a>(true)
+0198    <a href="#_sub8" class="code" title="subfunction do_unit_test_2d(nodes_electrode)">do_unit_test_2d</a>(false)
+0199    subplot(223);
+0200    <a href="#_sub9" class="code" title="subfunction do_unit_test_3d_netgen(node_elecs_flag)">do_unit_test_3d_netgen</a>(true)
+0201    <a href="#_sub9" class="code" title="subfunction do_unit_test_3d_netgen(node_elecs_flag)">do_unit_test_3d_netgen</a>(false)
+0202    <a href="#_sub10" class="code" title="subfunction do_unit_test_3d_netgen2(node_elecs_flag)">do_unit_test_3d_netgen2</a>(true)
+0203    <a href="#_sub10" class="code" title="subfunction do_unit_test_3d_netgen2(node_elecs_flag)">do_unit_test_3d_netgen2</a>(false)
+0204 
+0205 <a name="_sub8" href="#_subfunctions" class="code">function do_unit_test_2d(nodes_electrode)</a>
+0206    fmdl = getfield(<a href="../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c2'</span>,1),<span class="string">'fwd_model'</span>);
+0207    fmdl.mat_idx_to_electrode.nodes_electrode = nodes_electrode;
+0208    fmdl.electrode(1).nodes = 26:41;
+0209    fmdl.mat_idx{1} = [1:4];
+0210    fmdl= <a href="mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>(fmdl, {1});
+0211    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2-01'</span>,<a href="../../eidors/models/num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(fmdl),64-4);
+0212    <span class="keyword">if</span> nodes_electrode;
+0213       <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2-02'</span>,length(fmdl.electrode(2).nodes),4);
+0214    <span class="keyword">else</span>
+0215       <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2-02a'</span>,length(fmdl.electrode(2).nodes),0);
+0216       <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2-02b'</span>,size(fmdl.electrode(2).faces),[4,2]);
+0217    <span class="keyword">end</span>
+0218 
+0219    fmdl.stimulation = <a href="../../eidors/models/stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">stim_meas_list</a>([1,2,1,2]);
+0220    img = <a href="../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,1);
+0221    img.fwd_solve.get_all_meas = true;
+0222    vh = <a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img);
+0223 
+0224    img = rmfield(img,<span class="string">'elem_data'</span>);
+0225    img.node_data = vh.volt;
+0226    
+0227    img.fwd_model = rmfield(img.fwd_model,<span class="string">'electrode'</span>);
+0228    <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(img,[0,0,2]);
+0229 <span class="comment">%  plot(sqrt(sum(fmdl.nodes.^2,2)),vh.volt,'*');</span>
+0230    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2-03'</span>, std(vh.volt(13:24)),0,0.002);
+0231    vd = mean(vh.volt(5:12)) - mean(vh.volt(13:24));
+0232    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'a2c2-03'</span>, vd,0.065251,1e-6);
+0233 
+0234 
+0235 
+0236 <a name="_sub9" href="#_subfunctions" class="code">function do_unit_test_3d_netgen(node_elecs_flag)</a>
+0237    extra={<span class="string">'ball_inside'</span>,<span class="string">'ball_surface'</span>, [ <span class="keyword">...</span>
+0238           <span class="string">'solid ball_inside  = sphere(-0.4,0,0.5;0.05);'</span> <span class="keyword">...</span>
+0239           <span class="string">'solid ball_surface = sphere( 0.4,0,1.0;0.05) -maxh=.005;'</span> <span class="keyword">...</span>
+0240           ]};
+0241    fmdl= <a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>(1,[8,.5],[.1],extra); 
+0242    fmdl.mat_idx_to_electrode.nodes_electrode = node_elecs_flag;
+0243 
+0244    fmd_= <a href="mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>(fmdl, {2,3});
+0245    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cyl_models 01'</span>,<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmd_),10);
+0246 
+0247    fmd_= <a href="mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>(fmdl, {2:3});
+0248    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cyl_models 02'</span>,<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmd_),9);
+0249 
+0250    fmd_= <a href="mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>(fmdl, {2});
+0251    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cyl_models 03'</span>,<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmd_),9);
+0252 
+0253    img = <a href="../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmd_,1);
+0254    img.elem_data(fmd_.mat_idx{3})= 1.1;
+0255    img.calc_colours.ref_level = 1;
+0256    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cyl_models 04'</span>,<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(img),9);
+0257 
+0258    img = <a href="../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,1);
+0259    img.elem_data(vertcat(fmdl.mat_idx{2:3}))= 1.1;
+0260    img.fwd_model.mat_idx_to_electrode.nodes_electrode=node_elecs_flag;
+0261    [img.fwd_model,<a href="#_sub3" class="code" title="subfunction [fmdl,faces] = rm_elems( fmdl, femobj, faces);">rm_elems</a>]= <a href="mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>( <span class="keyword">...</span>
+0262         img.fwd_model, {2});
+0263    img.elem_data(<a href="#_sub3" class="code" title="subfunction [fmdl,faces] = rm_elems( fmdl, femobj, faces);">rm_elems</a>) = [];
+0264    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cyl_models 05'</span>,<a href="../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(img),9);
+0265    vol = <a href="../../eidors/models/get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>(img);
+0266    vvs = sum(vol(find(img.elem_data == 1.1)));
+0267    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cyl_models 05a'</span>,vvs,4/3*pi*.05^3,1e-5);
+0268   
+0269 
+0270 
+0271    img.calc_colours.ref_level = 1;
+0272    <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(img); view(3,12);
+0273 
+0274 
+0275 <a name="_sub10" href="#_subfunctions" class="code">function do_unit_test_3d_netgen2(node_elecs_flag)</a>
+0276    shape_str = [<span class="string">'solid sqelec = orthobrick(-1,-1,-1;1,1,0); tlo sqelec;'</span> <span class="keyword">...</span>
+0277                 <span class="string">'solid mainobj= orthobrick(-5,-5,-5;5,5,0) and not sqelec;'</span>];
+0278    fmdl = <a href="../../eidors/meshing/netgen/ng_mk_gen_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_gen_models(shape_str, elec_pos,  elec_shape, elec_obj, extra_ng_code, mszpoints);">ng_mk_gen_models</a>(shape_str, [],[],<span class="string">''</span>);
+0279    fmdl.mat_idx_to_electrode.nodes_electrode = node_elecs_flag;
+0280    fmdl = <a href="mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>(fmdl,{1});
+0281    elimnodes = [2 35 36; 4 34 36; 6 31 35; 8 31 34; 31 34 35; 34 35 36];
+0282    sd = intersect(elimnodes,sort(fmdl.boundary,2),<span class="string">'rows'</span>);
+0283    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cut boundary'</span>, size(sd,1),0);
+0284 
+0285 <a name="_sub11" href="#_subfunctions" class="code">function do_unit_test_contained_shape(node_elecs_flag)</a>
+0286     splus = [ <span class="string">' -maxh=10.02; tlo shape;'</span> <span class="keyword">...</span>
+0287        <span class="string">'solid el1 = sphere(1,0,0;0.11); tlo el1;'</span> <span class="keyword">...</span>
+0288        <span class="string">'solid el2 = sphere(0,1,0;0.11); tlo el2;'</span> <span class="keyword">...</span>
+0289        <span class="string">'solid nots = not( shape or el1 or el2);'</span> <span class="keyword">...</span>
+0290        <span class="string">'solid ground_ = sphere(0,0,0;2);'</span> <span class="keyword">...</span>
+0291        <span class="string">'solid ground  = ground_ and nots; tlo ground;'</span> <span class="keyword">...</span>
+0292        <span class="string">'solid mainobj = sphere(0,0,0;3) and not ground_;'</span>];
+0293     shape = <span class="string">'solid shape = sphere(0.5,0.0,.5;0.2)'</span>;
+0294     shape = <span class="string">'solid shape = orthobrick(0.4,-0.1,.4;0.6,0.1,.6)'</span>;
+0295     shape_str = [shape, splus ];
+0296     fmdl = <a href="../../eidors/meshing/netgen/ng_mk_gen_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_gen_models(shape_str, elec_pos,  elec_shape, elec_obj, extra_ng_code, mszpoints);">ng_mk_gen_models</a>(shape_str,[],[],<span class="string">''</span>);
+0297     fmdl.mat_idx_to_electrode.nodes_electrode = node_elecs_flag;
+0298     fmdl = <a href="mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>(fmdl,{1,2,3,5});
+0299     <span class="keyword">if</span> node_elecs_flag
+0300         sizes = [8,61,61,134];
+0301         <span class="keyword">for</span> i=1:4; 
+0302            <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Contained '</span>, <span class="keyword">...</span>
+0303               size(fmdl.electrode(i).nodes),[1,sizes(i)])
+0304         <span class="keyword">end</span>
+0305     <span class="keyword">else</span>
+0306         sizes = [12,118,118,264];
+0307         <span class="keyword">for</span> i=1:4; 
+0308            <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Contained '</span>, <span class="keyword">...</span>
+0309               size(fmdl.electrode(i).faces),[sizes(i),3])
+0310         <span class="keyword">end</span>
+0311     <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

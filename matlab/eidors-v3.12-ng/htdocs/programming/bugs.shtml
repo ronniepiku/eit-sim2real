@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+   <head>
+<title>EIDORS</title>
+   <style type="text/css">
+        body, td, th {
+        font-family: Verdana, Helvetica, Arial, sans-serif;
+        font-size:80%;
+        }
+        pre, tt {
+        font-family:lucida console, FixedSys, Courier, Terminal, monospaced;
+        font-size:100%;
+        }
+        pre {
+        background-color: #E0F0FE;
+        border-style: groove;
+        border-color: black;
+        border-width: 2px;
+        }
+   </style>
+
+</head>
+
+<body link="#800000"
+      marginwidth=5 marginheight=5 topmargin=5 leftmargin=5 
+      vlink="#400000" >
+<table border="0" cellspacing="0" cellpadding="0">
+<tr height="80"><td valign="middle">
+<a href="http://www.eidors.org">
+<img alt="Eidors-logo" src="../eidors-logo.jpg"></a>&nbsp;&nbsp;&nbsp;&nbsp;
+</td><td>
+<h2>
+    EIDORS:
+    <small><i>Electrical Impedance Tomography and
+    Diffuse Optical Tomography Reconstruction Software</i></small>
+</h2>
+</td></tr></table>
+<table border="0"> <tr>
+<td valign="top" width="100">
+<a href="http://eidors3d.sf.net/" >EIDORS</a>
+(<a href="http://www.sce.carleton.ca/faculty/adler/eidors/index.shtml"
+    >mirror</a>)<br>
+<a href="../index.shtml"
+>Main</a><br>
+<a href="../docs.shtml"
+   >Documentation</a><br>
+<a href="../tutorial/tutorial.shtml"
+   >Tutorials</a><br>
+
+<a href="../download.shtml"
+   >Download</a><br>
+<a href="../data_contrib.shtml"
+   >Contrib Data</a><br>
+<a href="../GREIT/index.shtml"
+   >GREIT</a><br>
+<a href="../doc/index.html"
+   >Browse Docs</a><br>
+<a href="https://sourceforge.net/p/eidors3d/code/HEAD/tree/trunk/"
+   >Browse SVN</a><br>
+<hr>
+<a href="../news.shtml">News</a><br>
+<a href="https://lists.sourceforge.net/lists/listinfo/eidors3d-help"
+   >Mailing list</a><br>
+(<a href="https://sourceforge.net/mailarchive/forum.php?forum_name=eidors3d-help"
+   >archive</a>)<br>
+<a href="../faq.shtml">FAQ</a><br>
+<a href="../programming/programming.shtml">Developer</a><br>
+
+<a href="../programming/examples.shtml"
+      >&minus; Examples</a><br>
+<a href="../programming/structure.shtml"
+      >&minus; Structure</a><br>
+<a href="../programming/objects.shtml"
+      >&minus; Objects</a><br>
+<a href="../programming/caching.shtml"
+      >&minus; Caching</a><br>
+
+
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+<!-- EIDORS Navigation sidebar
+     $Id: nav-sidebar.shtml 6533 2022-12-31 00:53:54Z aadler $
+  -->
+<p>&nbsp;
+<p>
+<small>Hosted by</small><br>
+<a  href="http://sourceforge.net/projects/eidors3d">
+   <img src="http://sourceforge.net/sflogo.php?group_id=100454&type=4"
+         border="0" alt="SourceForge.net Logo"  />
+</a>
+</td><td>&nbsp;</td><td valign="top">
+
+
+
+
+<h2>EIDORS: List of feature requests / plans / bugs</h2>
+
+<ul>
+   <li><b>EIDORS infrastructure</b>
+   <ul>
+      <li> Testing: build test for each image reconstruction algorithm
+<pre>
+- can take multiple measurements?
+- size of data input
+- stim_patterns / meas_patterns required
+</pre>
+
+   </ul>
+
+   <li><b>Todo for V3.4</b>
+<pre>
+- Backward compatibility limit ====} Matlab. 6.5
+    - remove bad shortcuts, remove isfields
+- Jacobian calculation accuracy (calc_jacobian_test)
+    - this is mostly a z_contact issue
+
+- Fix NP code to take arbitrary current patterns.
+
+- Document new features for inv_model
+    - accept_multiple_frames
+- Document new features for fwd_solve
+    - meas_select
+    - normalize_measurements
+    - calc_difference_data
+
+- nodal solvers and elem solvers should emit the same
+   data and inv_solve should take care of it.
+- eidors_msg should print then remove low log level entries
+
+- proper functions to call data_form solver variables
+- proper temporal solver calling data_form priors
+- The code in time_prior_solve is somewhat disorganized;
+  it really should use calc_JiRtRJt, but this function
+
+- sort out calc_JiRtRJt to take inverses of RtR and vice-versa.
+- measures of hyperparameter - get Brad G to contribute?
+
+- build general nodal solver framework
+
+- move static examples into main code
+  needs to be thought out properly, too.
+- complex examples and complex tests
+    - issues with point electrodes and current on electrodes
+- create function eidors_defaults in algorithms
+   - set default properites, 
+   - work around matlab bugs (ie no int16 support)
+   - create extra parameters (n_elems etc) - (from np_fwd_parameters)
+
+- make mk_common_models cleanly in 3D with multi electrode rings
+- bugs in mk_stim_patterns with no_meas_current
+</pre>
+
+   <li><b>Todo for V3.2</b>
+<pre>
+- Announce
+    - new features
+
+- Features to do
+    * check solvers can handle multiple images
+    * Check normalized_difference
+    * move all difference algs to use calc_difference_data
+    * Proper NF calculator?
+    - Gaussian filters - and test with lungs
+    * inv_solve memory **
+    * build lung imaging examples
+
+    * caching - set timestamp with each cached variable
+       * allow deleting of old variables 
+            eidors_cache clear old timestamp
+       * allow deleting of from timestamp
+            eidors_cache clear new timestamp
+             (ie to delete intermediate calcs: moving ball)
+
+    - caching - allow high value specifier on cached objects
+    - caching - allow caching to disk
+
+    * code to calculate BR and position of an image
+
+- Bugs
+    * fwd_model.stimulation.meas_pattern is transposed wrt the 
+      documentation. Fix one or the other
+    * bug on 3d boundary in mk_circ_model
+
+    * remove 'misc' structure from np_solvers. Change 
+      to 'fwd_solve.np_fwd_solve'
+
+</pre>
+
+   <li><b>Algorithms</b>
+   <ul>
+
+   <li>EIDORS 1.0 code &minus; need to integrate
+
+   </ul>
+
+   <li><b>Questions / Artefacts</b>
+   <ul>
+
+    <li> why artefacts in centre of lung images?
+<br>&minus; prior does not do spatial filtering?
+<br>&minus; homogeneous background assumption is wrong?
+<br>&minus; features outside of 3D plane
+
+    <li> why does aa_inv_solve take a higher hyperparameter
+
+    <li> why does aa_calc_noise_figure only work when defined
+         for mean(abs(signal)) and not norm(signal)?
+<br>&minus;
+<br>&minus;
+<br>&minus;
+
+   </ul>
+</ul>
+</td></tr></table>
+<p>
+<small>
+    Last Modified: $Date: 2017-02-28 13:02:17 -0500 (Tue, 28 Feb 2017) $ by $Author: aadler $
+</small>
+</BODY></HTML>
+<!--
+      <p><li><b>
+      </b><br>
+      <ul>
+      </ul>
+      <i>Questions</i>:
+      <br>&minus;
+
+      -->

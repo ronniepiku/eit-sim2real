@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of define_ROIs</title>
+  <meta name="keywords" content="define_ROIs">
+  <meta name="description" content="DEFINE_ROIS: define ROI regions in image">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; define_ROIs.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>define_ROIs
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>DEFINE_ROIS: define ROI regions in image</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> DEFINE_ROIS: define ROI regions in image
+
+ [ROIs, imgR, imdl] = define_ROIs(imdl, xcuts, ycuts, ..., opts)
+   imdl: inv_ or fwd_model structure
+   xcuts, ycuts: x and y cuts of ROI grid
+   opts: options structure
+     opts.reorder = reorder defined ROIs
+     opts.normalize = set ROI of each =1
+     opts.usec2f    = true if use fwd_model.coarse2fine
+ 
+   ROIs: matrix [n_ROIs x n_elems]
+   imgR: image of ROIs (mostly for debugging)
+   imdl: inv_model which reconstructs onto ROIs (if possible)
+
+ Example:
+  fmdl = mk_library_model('neonate_16el_lungs');
+  fmdl.stimulation = mk_stim_patterns(16,1,[0,1],[0,1],{},1);
+  imdl= select_imdl(fmdl,'GREIT:NF=0.500 32x32');
+  opts.reorder = reshape(1:16,4,4)';
+  [ROIs,imgR] = define_ROIs(imdl,-1:0.5:1,1:-0.5:-1,opts);</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>	out_img = show_slices (img, levels ) show slices at levels of an</li><li><a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>	DEFINE_ROIS: define ROI regions in image</li><li><a href="mk_approx_c2f.html" class="code" title="function [mapping, outside] = mk_approx_c2f( f_mdl, c_mdl );">mk_approx_c2f</a>	MK_APPROX_C2F: create a mapping matrix from coarse to fine FEM</li><li><a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>	MK_GRID_MODEL: Create reconstruction model on pixelated grid</li><li><a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="mk_library_model.html" class="code" title="function out = mk_library_model(shape,elec_pos,elec_shape,maxsz,nfft,scale)">mk_library_model</a>	MK_LIBRARY_MODEL - extruded FEM models based on curves in SHAPE_LIBRARY</li><li><a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li><li><a href="select_imdl.html" class="code" title="function [inv_mdl,opt_out]= select_imdl( mdl, options )">select_imdl</a>	SELECT_IMDL: select pre-packaged inverse model features</li><li><a href="../../eidors/tools/mergestructs.html" class="code" title="function s_out = mergestructs(s_in, varargin)">mergestructs</a>	MERGESTRUCTS: merge structs where fields in later structs override earlier</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/interface/eidors_readdata.html" class="code" title="function [vv, auxdata, stim]= eidors_readdata( fname, format, frame_range, extra )">eidors_readdata</a>	EIDORS readdata - read data files from various EIT equipment</li><li><a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>	DEFINE_ROIS: define ROI regions in image</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_unit_test</a></li><li><a href="#_sub2" class="code">function do_GREIT_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)</a>
+0002 <span class="comment">% DEFINE_ROIS: define ROI regions in image</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% [ROIs, imgR, imdl] = define_ROIs(imdl, xcuts, ycuts, ..., opts)</span>
+0005 <span class="comment">%   imdl: inv_ or fwd_model structure</span>
+0006 <span class="comment">%   xcuts, ycuts: x and y cuts of ROI grid</span>
+0007 <span class="comment">%   opts: options structure</span>
+0008 <span class="comment">%     opts.reorder = reorder defined ROIs</span>
+0009 <span class="comment">%     opts.normalize = set ROI of each =1</span>
+0010 <span class="comment">%     opts.usec2f    = true if use fwd_model.coarse2fine</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">%   ROIs: matrix [n_ROIs x n_elems]</span>
+0013 <span class="comment">%   imgR: image of ROIs (mostly for debugging)</span>
+0014 <span class="comment">%   imdl: inv_model which reconstructs onto ROIs (if possible)</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% Example:</span>
+0017 <span class="comment">%  fmdl = mk_library_model('neonate_16el_lungs');</span>
+0018 <span class="comment">%  fmdl.stimulation = mk_stim_patterns(16,1,[0,1],[0,1],{},1);</span>
+0019 <span class="comment">%  imdl= select_imdl(fmdl,'GREIT:NF=0.500 32x32');</span>
+0020 <span class="comment">%  opts.reorder = reshape(1:16,4,4)';</span>
+0021 <span class="comment">%  [ROIs,imgR] = define_ROIs(imdl,-1:0.5:1,1:-0.5:-1,opts);</span>
+0022 
+0023 <span class="comment">% TODO:</span>
+0024 <span class="comment">%   - create imdl</span>
+0025 <span class="comment">%   - add 3D</span>
+0026 <span class="comment">%   - create rec_model if not there</span>
+0027 <span class="comment">%   - can it work for non-solve_use_matrix?</span>
+0028 <span class="comment">%</span>
+0029 
+0030 <span class="keyword">if</span> ischar(imdl) &amp;&amp; strcmp(imdl,<span class="string">'UNIT_TEST'</span>); <a href="#_sub1" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0031 
+0032 <span class="keyword">if</span> isstruct(varargin{end})
+0033    opts = varargin{end};
+0034    last = 1;
+0035 <span class="keyword">else</span>
+0036    opts = struct([]);
+0037    last = 0;
+0038 <span class="keyword">end</span>
+0039 <span class="comment">% Set defaults</span>
+0040 <span class="comment">%     opts.reorder = reorder defined ROIs</span>
+0041 <span class="comment">%     opts.normalize = set ROI of each =1</span>
+0042 <span class="comment">%     opts.usec2f    = true if use fwd_model.coarse2fine</span>
+0043 opts = <a href="../../eidors/tools/mergestructs.html" class="code" title="function s_out = mergestructs(s_in, varargin)">mergestructs</a>(struct( <span class="keyword">...</span>
+0044     <span class="string">'reorder'</span>,[],<span class="string">'normalize'</span>,false,<span class="string">'usec2f'</span>,false), opts);
+0045 
+0046 recc2f = 1;
+0047 <span class="keyword">switch</span> imdl.type
+0048    <span class="keyword">case</span> <span class="string">'fwd_model'</span>;
+0049       fmdl = imdl;
+0050    <span class="keyword">case</span> <span class="string">'inv_model'</span>;
+0051       <span class="keyword">if</span> isfield(imdl,<span class="string">'rec_model'</span>);
+0052          fmdl = imdl.rec_model;
+0053          recc2f = fmdl.coarse2fine;
+0054       <span class="keyword">else</span>
+0055          fmdl = imdl.fwd_model;
+0056       <span class="keyword">end</span>
+0057 
+0058    <span class="keyword">otherwise</span>;
+0059       error(<span class="string">'define_ROIs: require fwd_ or inv_model'</span>);
+0060 <span class="keyword">end</span>
+0061 <span class="keyword">if</span> opts.usec2f
+0062   recc2f = fmdl.coarse2fine;
+0063 <span class="keyword">end</span>
+0064 
+0065 
+0066 rmdl = <a href="mk_grid_model.html" class="code" title="function [cmdl, c2f]= mk_grid_model(fmdl, xvec, yvec, zvec, removefn);">mk_grid_model</a>([],varargin{1:end-last});
+0067 
+0068 ROIa = <a href="mk_approx_c2f.html" class="code" title="function [mapping, outside] = mk_approx_c2f( f_mdl, c_mdl );">mk_approx_c2f</a>(fmdl,rmdl);
+0069 <span class="comment">% Octave ./ doesn't expand dimensions for sparse for v9.2</span>
+0070 <span class="comment">% ROIs = ROIa.' * recc2f./sum(recc2f,1);</span>
+0071 <span class="comment">% Bug report submitted to octave: 2024-12-19</span>
+0072 ROIs = ROIa.' * bsxfun(@rdivide, recc2f, sum(recc2f,1) );
+0073 <span class="keyword">if</span> ~isempty(opts.reorder)
+0074    ROIs = ROIs(opts.reorder(:),:);
+0075 <span class="keyword">end</span>
+0076 <span class="keyword">if</span> opts.normalize
+0077    ROIs = ROIs ./ sum(ROIs,2);
+0078 <span class="keyword">end</span>
+0079 imgR= <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,ROIs.');
+0080 imgR.calc_colours.ref_level = 0;
+0081 
+0082 <span class="comment">% Can only replace in this case</span>
+0083 <span class="keyword">if</span> strcmp(imdl.type,<span class="string">'inv_model'</span>) &amp;&amp; <span class="keyword">...</span>
+0084    isfield(imdl,<span class="string">'rec_model'</span>) &amp;&amp; <span class="keyword">...</span>
+0085    isfield(imdl,<span class="string">'solve_use_matrix'</span>)
+0086 
+0087    imdl.rec_model.coarse2fine = ROIa;
+0088    imdl.solve_use_matrix.RM = ROIs*imdl.solve_use_matrix.RM;
+0089 <span class="keyword">end</span>
+0090 
+0091 <a name="_sub1" href="#_subfunctions" class="code">function do_unit_test</a>
+0092    <a href="#_sub2" class="code" title="subfunction do_GREIT_test">do_GREIT_test</a>
+0093 <span class="comment">%  do_simple_test</span>
+0094 <span class="comment">%  do_3D_test</span>
+0095 
+0096 <a name="_sub2" href="#_subfunctions" class="code">function do_GREIT_test</a>
+0097    imdl = <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]);
+0098    [ROIs,imgR] = <a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>(imdl,-1:0.5:1,-1:0.5:1);
+0099    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'n3r2: 2D 1'</span>,     size(ROIs), [16,828]);
+0100    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'n3r2: 2D 2'</span>,     ROIs(:,1:9), <span class="keyword">...</span>
+0101        [0;0;0;0;0;0;0;0;0;0;0;1;0;0;0;0]*ones(1,9));
+0102    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'n3r2: 2D 2'</span>,     ROIs(:,10:11), <span class="keyword">...</span>
+0103        [0,0;0,0;0,0;0,0;0,0;0,0;0,0;0,0;
+0104         0,0;0,0;0,0;95,80;0,0;0,0;0,0;5,20]/100,1e-14);
+0105    [ROIs,imgR] = <a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>(imdl,-1:1,-1:1,0:2);
+0106    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'n3r2: 3D 1'</span>,     size(ROIs), [8,828]);
+0107    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'n3r2: 3D 2'</span>,     ROIs(:,1:9), <span class="keyword">...</span>
+0108        [0;0;0;1;0;0;0;0]*ones(1,9),1e-14);
+0109    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'n3r2: 3D 3'</span>,     ROIs(:,61:69), <span class="keyword">...</span>
+0110        [0;0;1;0;0;0;0;0]*ones(1,9),1e-14);
+0111 
+0112    fmdl = <a href="mk_library_model.html" class="code" title="function out = mk_library_model(shape,elec_pos,elec_shape,maxsz,nfft,scale)">mk_library_model</a>(<span class="string">'neonate_32el_lungs'</span>);
+0113    [stim,msel] = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(32,1,[0,5],[0,5],{<span class="string">'no_meas_current_next2'</span>},1);
+0114    fmdl.stimulation = stim;
+0115    fmdl.meas_select = msel;
+0116    imdl= <a href="select_imdl.html" class="code" title="function [inv_mdl,opt_out]= select_imdl( mdl, options )">select_imdl</a>(fmdl,<span class="string">'GREIT:NF=0.500 32x32'</span>);
+0117    [ROIs,imgR] = <a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>(imdl,-1:0.5:1,-1:0.5:1);
+0118    subplot(221); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(imgR)
+0119    imdl= <a href="select_imdl.html" class="code" title="function [inv_mdl,opt_out]= select_imdl( mdl, options )">select_imdl</a>(fmdl,<span class="string">'GREIT:NF=0.500 16x16'</span>);
+0120    [ROIs,imgR] = <a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>(imdl,-1:0.5:1,-1:0.5:1);
+0121    subplot(222); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(imgR)
+0122    opts.reorder = reshape(1:16,4,4)';
+0123    [ROIs,imgR] = <a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>(imdl,-1:0.5:1,-1:0.5:1,opts);
+0124    subplot(223); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(imgR)
+0125    [ROIs,imgR] = <a href="define_ROIs.html" class="code" title="function [ROIs, imgR, imdl] = define_ROIs(imdl, varargin)">define_ROIs</a>(imdl,-1:0.5:1,1:-0.5:-1,opts);
+0126    subplot(224); <a href="../../eidors/graphics/matlab/show_slices.html" class="code" title="function out_img= show_slices( img, levels, vh )">show_slices</a>(imgR)</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

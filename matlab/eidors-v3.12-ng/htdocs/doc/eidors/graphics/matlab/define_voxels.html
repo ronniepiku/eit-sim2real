@@ -1,0 +1,270 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of define_voxels</title>
+  <meta name="keywords" content="define_voxels">
+  <meta name="description" content="DEFINE VOXELS define edges of a voxel grid covering a model">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="#">graphics</a> &gt; <a href="index.html">matlab</a> &gt; define_voxels.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/graphics/matlab&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>define_voxels
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>DEFINE VOXELS define edges of a voxel grid covering a model</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [xvec, yvec, zvec, opt] = define_voxels(fmdl, varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">DEFINE VOXELS define edges of a voxel grid covering a model 
+ [XVEC, YVEC, ZVEC, OPT] = DEFINE_VOXELS(FMDL)
+ [XVEC, YVEC, ZVEC, OPT] = DEFINE_VOXELS(FMDL, OPT)
+
+ Inputs:
+  FMDL  = an EIDORS forward model structure
+  OPT   = an option structure with the following fields and defaults:
+     opt.imgsz = [32 32 32]; % X, Y and Z dimensions of the voxel grid.
+                             % If opt.zvec is provided, Z need not be 
+                             % specified. If imgsz is a scalar, X = Y = Z
+                             % and cube_voxels defaults to 1;
+     opt.xvec  = []          % Specific X cut-planes between voxels
+                             % A scalar means the number of planes
+                             % Takes precedence over other options
+     opt.yvec  = []          % Specific Y cut-planes between voxels
+                             % A scalar means the number of planes
+                             % Takes precedence over other options
+     opt.zvec  = []          % Specific Z cut-planes between voxels
+                             % A scalar means the number of planes
+                             % Takes precedence over other options
+     opt.xlim  = []          % 2-element vector specifying the minimum and
+                             % maximum extent in the X direction. 
+                             % Default: extent of FMDL.nodes
+     opt.ylim  = []          % 2-element vector specifying the minimum and
+                             % maximum extent in the X direction. 
+                             % Default: extent of FMDL.nodes
+     opt.zlim  = []          % 2-element vector specifying the minimum and
+                             % maximum extent in the X direction. 
+                             % Default: extent of FMDL.nodes
+     opt.square_pixels = 1;  % adjust imgsz to get square pixels (in XY)
+                             % Default: 1 if imgsz is scalar, 0 otherwise
+     opt.cube_voxels = 1;    % adjust imgsz to get cube voxels (in XYZ)  
+                             % Default: 1 if imgsz is scalar, 0 otherwise
+
+ Outputs:
+   XVEC, YVEC, ZVEC = edges of voxels suitable for use with NDGRID
+   OPT              = an option structure as above with all fields present 
+                      and consistent, and the additional fields 
+                      x_pts, y_pts, and z_pts defining cordinates of voxel
+                      centers (to be passed to mdl_slice_mapper)
+
+ DEFINE_VOXELS(FMDL, 'Key', Value, ...) is an alternative way to specify
+ options.
+
+ Example:
+   [xvec, yvec, zvec] = define_voxels(img.fwd_model);
+   [~,~,~,opt] = define_voxels(fmdl,'imgsz',32,'zvec',[0,1,2,3]);
+   [~,~,~,opt] = define_voxels(fmdl,'imgsz',32, ...
+                                    'cube_voxels', 0, 'square_pixels', 0);
+ See also MK_VOXEL_VOLUME, <a href="calc_voxels.html" class="code" title="function [V, rimg] = calc_voxels(img, opt, level)">CALC_VOXELS</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="calc_voxels.html" class="code" title="function [V, rimg] = calc_voxels(img, opt, level)">calc_voxels</a>	CALC_VOXELS Calculate volumetric data from an image</li><li><a href="../../../eidors/models/mk_voxel_volume.html" class="code" title="function [imdl, fmdl] = mk_voxel_volume(varargin)">mk_voxel_volume</a>	MK_VOXEL_VOLUME create a voxel model to reconstruct on</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [xvec, yvec, zvec, opt] = define_voxels(fmdl, varargin)</a>
+0002 <span class="comment">%DEFINE VOXELS define edges of a voxel grid covering a model</span>
+0003 <span class="comment">% [XVEC, YVEC, ZVEC, OPT] = DEFINE_VOXELS(FMDL)</span>
+0004 <span class="comment">% [XVEC, YVEC, ZVEC, OPT] = DEFINE_VOXELS(FMDL, OPT)</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Inputs:</span>
+0007 <span class="comment">%  FMDL  = an EIDORS forward model structure</span>
+0008 <span class="comment">%  OPT   = an option structure with the following fields and defaults:</span>
+0009 <span class="comment">%     opt.imgsz = [32 32 32]; % X, Y and Z dimensions of the voxel grid.</span>
+0010 <span class="comment">%                             % If opt.zvec is provided, Z need not be</span>
+0011 <span class="comment">%                             % specified. If imgsz is a scalar, X = Y = Z</span>
+0012 <span class="comment">%                             % and cube_voxels defaults to 1;</span>
+0013 <span class="comment">%     opt.xvec  = []          % Specific X cut-planes between voxels</span>
+0014 <span class="comment">%                             % A scalar means the number of planes</span>
+0015 <span class="comment">%                             % Takes precedence over other options</span>
+0016 <span class="comment">%     opt.yvec  = []          % Specific Y cut-planes between voxels</span>
+0017 <span class="comment">%                             % A scalar means the number of planes</span>
+0018 <span class="comment">%                             % Takes precedence over other options</span>
+0019 <span class="comment">%     opt.zvec  = []          % Specific Z cut-planes between voxels</span>
+0020 <span class="comment">%                             % A scalar means the number of planes</span>
+0021 <span class="comment">%                             % Takes precedence over other options</span>
+0022 <span class="comment">%     opt.xlim  = []          % 2-element vector specifying the minimum and</span>
+0023 <span class="comment">%                             % maximum extent in the X direction.</span>
+0024 <span class="comment">%                             % Default: extent of FMDL.nodes</span>
+0025 <span class="comment">%     opt.ylim  = []          % 2-element vector specifying the minimum and</span>
+0026 <span class="comment">%                             % maximum extent in the X direction.</span>
+0027 <span class="comment">%                             % Default: extent of FMDL.nodes</span>
+0028 <span class="comment">%     opt.zlim  = []          % 2-element vector specifying the minimum and</span>
+0029 <span class="comment">%                             % maximum extent in the X direction.</span>
+0030 <span class="comment">%                             % Default: extent of FMDL.nodes</span>
+0031 <span class="comment">%     opt.square_pixels = 1;  % adjust imgsz to get square pixels (in XY)</span>
+0032 <span class="comment">%                             % Default: 1 if imgsz is scalar, 0 otherwise</span>
+0033 <span class="comment">%     opt.cube_voxels = 1;    % adjust imgsz to get cube voxels (in XYZ)</span>
+0034 <span class="comment">%                             % Default: 1 if imgsz is scalar, 0 otherwise</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% Outputs:</span>
+0037 <span class="comment">%   XVEC, YVEC, ZVEC = edges of voxels suitable for use with NDGRID</span>
+0038 <span class="comment">%   OPT              = an option structure as above with all fields present</span>
+0039 <span class="comment">%                      and consistent, and the additional fields</span>
+0040 <span class="comment">%                      x_pts, y_pts, and z_pts defining cordinates of voxel</span>
+0041 <span class="comment">%                      centers (to be passed to mdl_slice_mapper)</span>
+0042 <span class="comment">%</span>
+0043 <span class="comment">% DEFINE_VOXELS(FMDL, 'Key', Value, ...) is an alternative way to specify</span>
+0044 <span class="comment">% options.</span>
+0045 <span class="comment">%</span>
+0046 <span class="comment">% Example:</span>
+0047 <span class="comment">%   [xvec, yvec, zvec] = define_voxels(img.fwd_model);</span>
+0048 <span class="comment">%   [~,~,~,opt] = define_voxels(fmdl,'imgsz',32,'zvec',[0,1,2,3]);</span>
+0049 <span class="comment">%   [~,~,~,opt] = define_voxels(fmdl,'imgsz',32, ...</span>
+0050 <span class="comment">%                                    'cube_voxels', 0, 'square_pixels', 0);</span>
+0051 <span class="comment">% See also MK_VOXEL_VOLUME, CALC_VOXELS</span>
+0052 
+0053 <span class="comment">% (C) 2015-2024 Bartlomiej Grychtol - all rights reserved by Swisstom AG</span>
+0054 <span class="comment">% License: GPL version 2 or 3</span>
+0055 <span class="comment">% $Id: define_voxels.m 6877 2024-05-10 13:26:26Z bgrychtol $</span>
+0056 
+0057 <span class="comment">% &gt;&gt; SWISSTOM CONTRIBUTION &lt;&lt;</span>
+0058 
+0059 <span class="keyword">switch</span> fmdl.type
+0060    <span class="keyword">case</span> <span class="string">'fwd_model'</span>
+0061       <span class="comment">%nothing</span>
+0062    <span class="keyword">case</span> <span class="string">'image'</span>
+0063       fmdl = fmdl.fwd_model;
+0064    <span class="keyword">otherwise</span>
+0065       error(<span class="string">'EIDORS:WrongInput'</span>, <span class="string">'Expected EIDORS image or fwd_model.'</span>)
+0066 <span class="keyword">end</span>
+0067 
+0068 <span class="keyword">if</span> nargin &lt; 2
+0069     opt = struct;
+0070 <span class="keyword">elseif</span> ischar(varargin{1})
+0071     opt = struct(varargin{:});
+0072 <span class="keyword">else</span>
+0073     opt = varargin{1};
+0074 <span class="keyword">end</span>
+0075 
+0076 <span class="keyword">if</span> ~isfield(opt, <span class="string">'imgsz'</span>)
+0077     opt.imgsz = 32;
+0078 <span class="keyword">end</span>
+0079 fields = {<span class="string">'xvec'</span>, <span class="string">'yvec'</span>, <span class="string">'zvec'</span>, <span class="string">'xlim'</span>, <span class="string">'ylim'</span>, <span class="string">'zlim'</span>};
+0080 <span class="keyword">for</span> f = 1: numel(fields)
+0081    <span class="keyword">if</span> ~isfield(opt, fields{f})
+0082       opt.(fields{f}) = [];
+0083    <span class="keyword">end</span>
+0084 <span class="keyword">end</span>
+0085 <span class="keyword">if</span> isempty(opt.xvec) &amp;&amp; isempty(opt.imgsz)
+0086     error(<span class="string">'EIDORS:WrongInput'</span>, <span class="string">'opt.imgsz must not be empty if opt.xvec is empty or absent'</span>);
+0087 <span class="keyword">end</span>
+0088 <span class="keyword">if</span> isscalar(opt.imgsz)
+0089     opt.imgsz(2:3) = opt.imgsz;
+0090     <span class="keyword">if</span> ~isfield(opt, <span class="string">'square_pixels'</span>)
+0091         opt.square_pixels = 1;
+0092     <span class="keyword">end</span>
+0093     <span class="keyword">if</span> ~isfield(opt, <span class="string">'cube_voxels'</span>)
+0094         opt.cube_voxels = 1;
+0095     <span class="keyword">end</span>
+0096 <span class="keyword">end</span>
+0097 <span class="keyword">if</span> isempty(opt.zvec) &amp;&amp; numel(opt.imgsz) == 2
+0098     error(<span class="string">'EIDORS:WrongInput'</span>, <span class="string">'opt.imgsz must have 3 elements if opt.zvec is empty or absent'</span>);
+0099 <span class="keyword">end</span>
+0100 
+0101 <span class="keyword">if</span> ~isfield(opt, <span class="string">'square_pixels'</span>)
+0102     opt.square_pixels = 0;
+0103 <span class="keyword">end</span>
+0104 <span class="keyword">if</span> ~isfield(opt, <span class="string">'cube_voxels'</span>)
+0105     opt.cube_voxels = 0;
+0106 <span class="keyword">end</span>
+0107 
+0108 mingrid = min(fmdl.nodes);
+0109 maxgrid = max(fmdl.nodes);
+0110 fields = {<span class="string">'xlim'</span>, <span class="string">'ylim'</span>, <span class="string">'zlim'</span>};
+0111 <span class="keyword">for</span> f = 1:3
+0112    <span class="keyword">if</span> ~isempty(opt.(fields{f}))
+0113       mingrid(f) = opt.(fields{f})(1);
+0114       maxgrid(f) = opt.(fields{f})(2);
+0115    <span class="keyword">else</span>
+0116       opt.(fields{f})(1) = mingrid(f);
+0117       opt.(fields{f})(2) = maxgrid(f);
+0118    <span class="keyword">end</span>
+0119 <span class="keyword">end</span>
+0120 
+0121 mdl_sz = maxgrid - mingrid;
+0122 
+0123 allempty = isempty(opt.xvec) &amp; isempty(opt.yvec) &amp; isempty(opt.zvec);
+0124 <span class="keyword">if</span> opt.cube_voxels &amp;&amp; ~allempty
+0125     warning(<span class="string">'EIDORS:IncompatibleOptions'</span>,<span class="string">'Option cube_voxels is set to 0 when xvec, yvec or zvec is specifed'</span>);
+0126     opt.cube_voxels = 0;
+0127 <span class="keyword">end</span>
+0128 <span class="keyword">if</span> opt.cube_voxels &amp;&amp; allempty
+0129     side_sz = max(mdl_sz ./ opt.imgsz(1:3));
+0130     n_steps = ceil(mdl_sz / side_sz);
+0131     mdl_ctr = mingrid + mdl_sz/2;
+0132     mingrid = mdl_ctr - n_steps/2 * side_sz;
+0133     maxgrid = mdl_ctr + n_steps/2 * side_sz;
+0134     opt.imgsz = n_steps;
+0135     
+0136 <span class="keyword">elseif</span> opt.square_pixels
+0137     <span class="keyword">if</span> ~isempty(opt.xvec) || ~isempty(opt.yvec)
+0138         warning(<span class="string">'EIDORS:IncompatibleOptions'</span>,<span class="string">'Option square_pixels is set to 0 when xvec or yvec is specifed'</span>);
+0139         opt.square_pixels = 0;
+0140     <span class="keyword">else</span>
+0141         mdl_AR = mdl_sz(1)/mdl_sz(2);
+0142         img_AR = opt.imgsz(1)/opt.imgsz(2);
+0143         <span class="keyword">if</span> mdl_AR &lt; img_AR
+0144             delta = (mdl_sz(2) * img_AR - mdl_sz(1)) /2;
+0145             mingrid(1) = mingrid(1) - delta;
+0146             maxgrid(1) = maxgrid(1) + delta;
+0147         <span class="keyword">elseif</span> mdl_AR &gt; img_AR
+0148             delta = (mdl_sz(1)/img_AR - mdl_sz(2)) / 2;
+0149             mingrid(2) = mingrid(2) - delta;
+0150             maxgrid(2) = maxgrid(2) + delta;
+0151         <span class="keyword">end</span>
+0152     <span class="keyword">end</span>
+0153 <span class="keyword">end</span>
+0154 
+0155 fields = {<span class="string">'xvec'</span>, <span class="string">'yvec'</span>, <span class="string">'zvec'</span>};
+0156 pts_fields = {<span class="string">'x_pts'</span>, <span class="string">'y_pts'</span>, <span class="string">'z_pts'</span>};
+0157 <span class="keyword">for</span> i = 1:3
+0158     <span class="keyword">if</span> isscalar(opt.(fields{i}))
+0159         opt.imgsz(i) = opt.(fields{i}); <span class="comment">% make imgsz consistent</span>
+0160         opt.(fields{i}) = [];
+0161     <span class="keyword">end</span>
+0162     <span class="keyword">if</span> isempty(opt.(fields{i}))
+0163         opt.(fields{i}) = linspace(mingrid(i), maxgrid(i), opt.imgsz(i)+1);
+0164     <span class="keyword">else</span>
+0165         opt.imgsz(i) = numel(opt.(fields{i})) - 1; <span class="comment">% make imgsz consistent</span>
+0166     <span class="keyword">end</span>
+0167     opt.(pts_fields{i}) = opt.(fields{i})(1:end-1) + diff(opt.(fields{i}))/2;
+0168 <span class="keyword">end</span>
+0169 
+0170 
+0171 xvec = opt.xvec;
+0172 yvec = opt.yvec;
+0173 zvec = opt.zvec;
+0174</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

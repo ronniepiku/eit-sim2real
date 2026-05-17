@@ -1,0 +1,437 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mk_c2f_circ_mapping</title>
+  <meta name="keywords" content="mk_c2f_circ_mapping">
+  <meta name="description" content="MK_C2F_CIRC_MAPPING: create a mapping matrix from circles/spheres to FEM">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; mk_c2f_circ_mapping.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mk_c2f_circ_mapping
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MK_C2F_CIRC_MAPPING: create a mapping matrix from circles/spheres to FEM</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr ); </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> MK_C2F_CIRC_MAPPING: create a mapping matrix from circles/spheres to FEM
+ [mapping, failed]= mk_c2f_circ_mapping( mdl, xyzr );
+
+ Mapping approximates elem_data_fine from elem_data_coase
+   elem_data_model = Mapping * elem_data_circles
+ mapping(i,j) == NaN if xyzr(i) is outside j 
+ failed(i) == 1 for any mapping (i) outside j
+ 
+
+ mdl is coarse fwd_model
+ xyzr is the 3xN matrix (2D) or 4xN matrix (3D) of
+      circle centres and radii
+
+ this function approximates using points interpolated into elements
+   use mdl.interp_mesh.n_points to control interpolation density  
+
+ if a 3xN matrix is specified for a 3D model, then cylindrical
+  shapes (circle extruded in z) are selected</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>	EIDORS_MSG eidors progress and status messages</li><li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>	NG_MAKE_CYL_MODELS: create cylindrical models using netgen</li><li><a href="../../eidors/meshing/netgen/ng_mk_ellip_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_ellip_models</a>	NG_MAKE_ELLIP_MODELS: create elliptical models using netgen</li><li><a href="elem_dim.html" class="code" title="function num = elem_dim( mdl );">elem_dim</a>	ELEM_DIM: dimension of elements in space (are elements in 2D or 3D space)</li><li><a href="fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>	FIX_MODEL: Add useful fields to a model</li><li><a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>	GET_ELEM_VOLUME: VOL = get_elem_volume(fwd_model, map_node )</li><li><a href="interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>	INTERP_MESH: calculate interpolation points onto mdl elements</li><li><a href="mdl_dim.html" class="code" title="function num = mdl_dim( mdl );">mdl_dim</a>	MDL_DIM: dimension of model space (are nodes in 2D or 3D space)</li><li><a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>	MK_C2F_CIRC_MAPPING: create a mapping matrix from circles/spheres to FEM</li><li><a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>	NUM_ELEMS: number of elemnts in a (fwd or inv model or image)</li><li><a href="num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>	NUM_NODES: number of elemnts in a (fwd or inv model or image)</li><li><a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>	EIDORS_CACHE Control eidors caching</li><li><a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>	PROGRESS_MSG Progress messages and timing.</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/graphics/matlab/show_pseudosection.html" class="code" title="function fwd_model= show_pseudosection( fwd_model, data, orientation)">show_pseudosection</a>	SHOW_PSEUDOSECTION: show a pseudo-section image of data</li><li><a href="create_inclusion.html" class="code" title="function inhomg_img = create_inclusion( homg_img, center, r, inclusion_mat, order)">create_inclusion</a>	USAGE: inhomg_img = create_inclusion( homg_img, inclusion_xyz, ...</li><li><a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>	MK_C2F_CIRC_MAPPING: create a mapping matrix from circles/spheres to FEM</li><li><a href="simulate_movement.html" class="code" title="function [vh,vi,xyzr,c2f]= simulate_movement( img, xyzr, UNUSED );">simulate_movement</a>	SIMULATE_MOVEMENT simulate small conductivity perturbations</li><li><a href="../../eidors/tools/test_performance.html" class="code" title="function [r, params] =  test_performance( imdls, fmdl );">test_performance</a>	TEST_PERFORMANCE: test of difference reconstruction algorithms</li><li><a href="../../eidors/tools/test_performance_img.html" class="code" title="function [params_img] =  test_performance_img( imdls, fmdl );">test_performance_img</a>	TEST_PERFORMANCE: test of difference reconstruction algorithms</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [mapping, failed] = circ_mapping(mdl,xyzr,copt)</a></li><li><a href="#_sub2" class="code">function c_obj = cache_obj(mdl, xyzr)</a></li><li><a href="#_sub3" class="code">function mapping = contained_elems_2d( mdl, xyr );</a></li><li><a href="#_sub4" class="code">function mapping = contained_elems_2d_new( mdl, xyr );</a></li><li><a href="#_sub5" class="code">function mapping = circ_in_elem_2d( mdl, look, xc, yc, rc);</a></li><li><a href="#_sub6" class="code">function a = pi_slice(p1,p2,c,p,r)</a></li><li><a href="#_sub7" class="code">function mapping = contained_elems_2d_old( mdl, xyr );</a></li><li><a href="#_sub8" class="code">function too_far = elems_too_far( mdl, xyr );</a></li><li><a href="#_sub9" class="code">function [mapping failed] = contained_elems_3d( mdl, xyr );</a></li><li><a href="#_sub10" class="code">function frac= contained_elem_pts(m_pts, xyr);</a></li><li><a href="#_sub11" class="code">function do_outside_test()</a></li><li><a href="#_sub12" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );</a>
+0002 <span class="comment">% MK_C2F_CIRC_MAPPING: create a mapping matrix from circles/spheres to FEM</span>
+0003 <span class="comment">% [mapping, failed]= mk_c2f_circ_mapping( mdl, xyzr );</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Mapping approximates elem_data_fine from elem_data_coase</span>
+0006 <span class="comment">%   elem_data_model = Mapping * elem_data_circles</span>
+0007 <span class="comment">% mapping(i,j) == NaN if xyzr(i) is outside j</span>
+0008 <span class="comment">% failed(i) == 1 for any mapping (i) outside j</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% mdl is coarse fwd_model</span>
+0012 <span class="comment">% xyzr is the 3xN matrix (2D) or 4xN matrix (3D) of</span>
+0013 <span class="comment">%      circle centres and radii</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% this function approximates using points interpolated into elements</span>
+0016 <span class="comment">%   use mdl.interp_mesh.n_points to control interpolation density</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% if a 3xN matrix is specified for a 3D model, then cylindrical</span>
+0019 <span class="comment">%  shapes (circle extruded in z) are selected</span>
+0020 <span class="comment">%</span>
+0021 
+0022 <span class="comment">% (C) 2009 Andy Adler and Bartlomiej Grychtol.</span>
+0023 <span class="comment">% License: GPL version 2 or version 3</span>
+0024 <span class="comment">% $Id: mk_c2f_circ_mapping.m 6727 2024-04-03 00:29:59Z aadler $</span>
+0025 
+0026 <span class="keyword">if</span> ischar(mdl) &amp;&amp; strcmp(mdl,<span class="string">'UNIT_TEST'</span>); <a href="#_sub12" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0027 
+0028 copt.cache_obj = <a href="#_sub2" class="code" title="subfunction c_obj = cache_obj(mdl, xyzr)">cache_obj</a>(mdl, xyzr);
+0029 copt.fstr = <span class="string">'mk_c2f_circ_mapping'</span>;
+0030 [mapping, failed] = <a href="../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(@<a href="#_sub1" class="code" title="subfunction [mapping, failed] = circ_mapping(mdl,xyzr,copt)">circ_mapping</a>,{mdl,xyzr},copt);
+0031 
+0032 <a name="_sub1" href="#_subfunctions" class="code">function [mapping, failed] = circ_mapping(mdl,xyzr,copt)</a>
+0033 
+0034     failed = false;<span class="comment">% not all subfunctions set this</span>
+0035     mdl = <a href="fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>(mdl);
+0036     <span class="keyword">switch</span> size(xyzr,1)
+0037       <span class="keyword">case</span> 3; <span class="comment">% use for 2D or for cylinder mapping in 3D</span>
+0038          mapping = <a href="#_sub3" class="code" title="subfunction mapping = contained_elems_2d( mdl, xyr );">contained_elems_2d</a>( mdl, xyzr );
+0039          <span class="keyword">if</span> <a href="mdl_dim.html" class="code" title="function num = mdl_dim( mdl );">mdl_dim</a>(mdl) == 2;
+0040             correctmap = pi*xyzr(<span class="keyword">end</span>,:).^2;
+0041          <span class="keyword">else</span>
+0042             <span class="comment">% No analytic way to calculate correct value (for non extruded models)</span>
+0043             correctmap = (<a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>(mdl)'*mapping);
+0044          <span class="keyword">end</span>
+0045       <span class="keyword">case</span> 4; <span class="comment">% use for 3D and spherical maps</span>
+0046          [mapping failed] = <a href="#_sub9" class="code" title="subfunction [mapping failed] = contained_elems_3d( mdl, xyr );">contained_elems_3d</a>( mdl, xyzr );
+0047          correctmap = 4/3*pi*xyzr(<span class="keyword">end</span>,:).^3;
+0048       <span class="keyword">otherwise</span>; error(<span class="string">'size of xyzr incorrect'</span>);
+0049     <span class="keyword">end</span>
+0050 
+0051     <span class="comment">% Correct</span>
+0052     vol = <a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>(mdl,-2)'; <span class="comment">%-2 =&gt; don't use c2f</span>
+0053 
+0054     <span class="comment">% Octave doesn't expand for sparse</span>
+0055 <span class="comment">%   mapping = mapping .* (correctmap./(vol*mapping));</span>
+0056     mapping = bsxfun(@times, mapping,  <span class="keyword">...</span>
+0057                           correctmap./(vol*mapping));
+0058     
+0059 <span class="comment">% Mapping depends only on nodes and elems - remove the other stuff</span>
+0060 <a name="_sub2" href="#_subfunctions" class="code">function c_obj = cache_obj(mdl, xyzr)</a>
+0061    c_obj = {mdl.nodes, mdl.elems, xyzr};
+0062 
+0063 <span class="comment">% Redirector during test code dev</span>
+0064 <a name="_sub3" href="#_subfunctions" class="code">function mapping = contained_elems_2d( mdl, xyr );</a>
+0065 <span class="comment">%mapping = contained_elems_2d_new( mdl, xyr );</span>
+0066  mapping = <a href="#_sub7" class="code" title="subfunction mapping = contained_elems_2d_old( mdl, xyr );">contained_elems_2d_old</a>( mdl, xyr );
+0067 
+0068 <a name="_sub4" href="#_subfunctions" class="code">function mapping = contained_elems_2d_new( mdl, xyr );</a>
+0069    <span class="comment">% We fill sparse by columns, (ie adding in CCS storage)</span>
+0070    Nc = size(xyr,      2); <span class="comment">% Num circs</span>
+0071    too_far = <a href="#_sub8" class="code" title="subfunction too_far = elems_too_far( mdl, xyr );">elems_too_far</a>( mdl, xyr );
+0072 
+0073    mapping = <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>( <a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(mdl) , Nc );
+0074    <span class="keyword">for</span> i=1:Nc
+0075      mapping(:,i) = <a href="#_sub5" class="code" title="subfunction mapping = circ_in_elem_2d( mdl, look, xc, yc, rc);">circ_in_elem_2d</a>(mdl, find( ~too_far(:,i)), <span class="keyword">...</span>
+0076                 xyr(1,i), xyr(2,i), xyr(3,i));
+0077    <span class="keyword">end</span>
+0078 
+0079 <span class="comment">% look only at elements 'look'</span>
+0080 <a name="_sub5" href="#_subfunctions" class="code">function mapping = circ_in_elem_2d( mdl, look, xc, yc, rc);</a>
+0081    Nt = <a href="elem_dim.html" class="code" title="function num = elem_dim( mdl );">elem_dim</a>(mdl) + 1; <span class="comment">% nodes per simplex</span>
+0082    pirc2 = pi*rc^2;
+0083 <span class="comment">% start assuming no content</span>
+0084    mapping = <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(<a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(mdl),1);
+0085 <span class="comment">% For each element, find nodes inside</span>
+0086    els = mdl.elems(look,:);
+0087    ndx = reshape(mdl.nodes(els,1) - xc, size(els));
+0088    ndy = reshape(mdl.nodes(els,2) - yc, size(els));
+0089    n_in = (ndx.^2 + ndy.^2) &lt; rc^2; <span class="comment">% node inside</span>
+0090 <span class="comment">% triangles with 3 nodes inside are all in, stop looking at them</span>
+0091    all_n_in = sum(n_in,2) == Nt;
+0092    mapping(look(all_n_in)) = 1;
+0093    look(all_n_in)= []; n_in(all_n_in,:)= [];
+0094 <span class="comment">% find distance inside each face</span>
+0095    f_in = zeros( length(look), Nt); 
+0096    k=1;  <span class="keyword">for</span> i= look(:)';
+0097       faces = mdl.elem2face(i,:);
+0098       out   =~mdl.inner_normal(i,:);
+0099       f_norm= mdl.normals( faces, :);
+0100       f_norm(out,:) = -f_norm(out,:);
+0101 
+0102       f_ctr = mdl.face_centre( faces,:);
+0103       v_ctr = repmat([xc,yc],Nt,1) - f_ctr;
+0104       v_ctr = sum(v_ctr .* f_norm,2)/rc; <span class="comment">% &gt;1 in, &lt;-1 out,</span>
+0105       f_in(k,:) = v_ctr';
+0106    k=k+1;<span class="keyword">end</span>
+0107 
+0108 <span class="comment">% triangles with any sides outside are out</span>
+0109    any_s_out= any(f_in&lt;-1,2);
+0110    look(any_s_out)= [];
+0111    n_in(any_s_out,:) = [];
+0112    f_in(any_s_out,:) = [];
+0113 
+0114 <span class="comment">% triangles with 3 sides inside are all in.</span>
+0115    all_s_in = sum(f_in&gt;1,2) == Nt;
+0116    mapping(look(all_s_in)) = pirc2 / <span class="keyword">...</span>
+0117             mdl.elem_volume(look(all_s_in));
+0118    look(all_s_in)= [];
+0119    n_in(all_s_in) = [];
+0120    f_in(all_s_in) = [];
+0121 
+0122 <span class="comment">% Now, all triangles should be partially in</span>
+0123 <span class="comment">% Calculate area chopped out</span>
+0124    fin1 = f_in&lt;1;
+0125    a_out = zeros(size(fin1));
+0126    a_out(fin1) = acos(f_in(fin1));
+0127    a_out(fin1) = (a_out(fin1) - cos(a_out(fin1)).*sin(a_out(fin1)))/pi;
+0128    
+0129    <span class="comment">% start with the default. This is accurate if there are</span>
+0130    <span class="comment">% no contained nodes, otherwise we need to add back</span>
+0131    <span class="comment">% those fractions</span>
+0132    mapping(look) = pirc2 / mdl.elem_volume(look);
+0133 
+0134    <span class="comment">%TODO: rewrite loop to avoid case 0.</span>
+0135    k=1; <span class="keyword">for</span> i= look(:)';
+0136       vol = pi*rc^2 / mdl.elem_volume(i);
+0137       <span class="keyword">switch</span> sum(n_in(k,:))
+0138          <span class="keyword">case</span> 0; <span class="comment">% already do this</span>
+0139    
+0140          <span class="keyword">case</span> 1; 
+0141             nd = mdl.elems(k, n_in(k,:));
+0142             vol = vol + <a href="#_sub6" class="code" title="subfunction a = pi_slice(p1,p2,c,p,r)">pi_slice</a>(p1,p2,[xc,yc],mdl.nodes(nd,:),rc);
+0143 
+0144          <span class="keyword">case</span> 2; 
+0145             nd = mdl.elems(k, n_in(k,:));
+0146             vol = vol <span class="keyword">...</span>
+0147              + <a href="#_sub6" class="code" title="subfunction a = pi_slice(p1,p2,c,p,r)">pi_slice</a>(p1,p2,[xc,yc],mdl.nodes(nd(1),:),rc) <span class="keyword">...</span>
+0148              + <a href="#_sub6" class="code" title="subfunction a = pi_slice(p1,p2,c,p,r)">pi_slice</a>(p1,p2,[xc,yc],mdl.nodes(nd(2),:),rc);
+0149 
+0150          <span class="keyword">otherwise</span>; error(<span class="string">'cant get here'</span>); 
+0151       <span class="keyword">end</span>
+0152    k=k+1; <span class="keyword">end</span>
+0153    
+0154 
+0155 <span class="comment">% Calculate the area of a slice</span>
+0156 <a name="_sub6" href="#_subfunctions" class="code">function a = pi_slice(p1,p2,c,p,r)</a>
+0157   a_p12 = 0.5*abs(det([1,p1;1,p2;1,p]));
+0158 
+0159   a_c12 = 0.5*abs(det([1,p1;1,p2;1,c]));
+0160   np1c  = p1-c; np1c = np1c / norm(np1c);
+0161   np2c  = p2-c; np2c = np2c / norm(np2c);
+0162   ang   = acos( dot(np1c,np2c) );
+0163   area  = ang*r^2/2 - a_c12 + a_p12;
+0164      
+0165 
+0166 <a name="_sub7" href="#_subfunctions" class="code">function mapping = contained_elems_2d_old( mdl, xyr );</a>
+0167    Ne = size(mdl.elems,1); <span class="comment">% Num elems</span>
+0168    Nc = size(xyr,      2); <span class="comment">% Num circs</span>
+0169    <span class="comment">% We fill sparse by columns, due to CCS storage, this is fairly efficient</span>
+0170    mapping = <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>( Ne, Nc );
+0171 
+0172    <span class="comment">% Interpolate</span>
+0173    n_interp =  7-size(mdl.nodes,2);
+0174    m_pts = <a href="interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>( mdl, n_interp); 
+0175    <span class="keyword">for</span> i=1:Nc
+0176      xc = m_pts(:,1,:) - xyr(1,i);
+0177      yc = m_pts(:,2,:) - xyr(2,i);
+0178      inr= xc.^2 + yc.^2 &lt; xyr(3,i)^2;
+0179      frac= mean(inr,3);
+0180      mapping(:,i) = frac;
+0181    <span class="keyword">end</span>
+0182 
+0183    <span class="comment">% 1. Get furthest node in each element</span>
+0184    <span class="comment">% 2. Get the max edge length of each elem</span>
+0185    <span class="comment">% 3. Find elems that are too far</span>
+0186 <a name="_sub8" href="#_subfunctions" class="code">function too_far = elems_too_far( mdl, xyr );</a>
+0187    Ne = <a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(mdl);
+0188    Nc = size(xyr, 2); <span class="comment">% Num circs</span>
+0189    Nt = <a href="elem_dim.html" class="code" title="function num = elem_dim( mdl );">elem_dim</a>(mdl) + 1; <span class="comment">% Elements per simplex</span>
+0190    <span class="keyword">if</span> 0 <span class="comment">% for biggish Nc, this is insane</span>
+0191        nodes = repmat(mdl.nodes,[1,1,Nc]);
+0192        targets = repmat(xyr(1:<a href="mdl_dim.html" class="code" title="function num = mdl_dim( mdl );">mdl_dim</a>(mdl),:),[1,1,<a href="num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(mdl)]);
+0193        targets = shiftdim(targets,2);
+0194        dist = nodes - targets;
+0195        dist = sqrt(sum(dist.^2,2));
+0196        node_target_dist = squeeze(dist);
+0197        furthest_elem_node_dist = node_target_dist(mdl.elems,:);
+0198        furthest_elem_node_dist = reshape(furthest_elem_node_dist,Ne,Nt,Nc);
+0199        [furthest_elem_node_dist, furthest_elem_node]= max(furthest_elem_node_dist,[],2);
+0200        furthest_elem_node_dist = squeeze(furthest_elem_node_dist);
+0201        furthest_elem_node = squeeze(furthest_elem_node);
+0202        max_edge_len =  repmat(mdl.max_edge_len,1,Nc);
+0203        radius = ones(Ne,1)*xyr(Nt,:);
+0204        too_far = (furthest_elem_node_dist - max_edge_len) &gt; radius;
+0205    <span class="keyword">else</span>
+0206        too_far = false(Ne,Nc);
+0207        <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(<span class="string">'mk_c2f_circ_mapping: prepare models'</span>,0,Nc);
+0208        <span class="keyword">for</span> i = 1:Nc
+0209           <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(i,Nc);
+0210           targets = repmat(xyr(1:<a href="mdl_dim.html" class="code" title="function num = mdl_dim( mdl );">mdl_dim</a>(mdl),i),[1,<a href="num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(mdl)])';
+0211           dist = mdl.nodes - targets;
+0212           dist = sqrt(sum(dist.^2,2));
+0213           furthest_elem_node_dist =max(dist(mdl.elems),[],2);
+0214           too_far(:,i) = (furthest_elem_node_dist - mdl.max_edge_len) &gt; xyr(Nt,i);
+0215        <span class="keyword">end</span>
+0216        <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(Inf);
+0217    <span class="keyword">end</span>
+0218   
+0219    
+0220   
+0221 
+0222 <a name="_sub9" href="#_subfunctions" class="code">function [mapping failed] = contained_elems_3d( mdl, xyr );</a>
+0223    Ne = size(mdl.elems,1); <span class="comment">% Num elems</span>
+0224    Nc = size(xyr,      2); <span class="comment">% Num circs</span>
+0225    failed(1:Nc) = false;
+0226    <span class="comment">% We fill sparse by columns, due to CCS storage, this is fairly efficient</span>
+0227    mapping = <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>( Ne, Nc );
+0228 
+0229        <span class="comment">% 4. Make a tmp model with only the remaining elems</span>
+0230        <span class="comment">% 5. Interpolate</span>
+0231        <span class="comment">% 6. Merge</span>
+0232        
+0233        too_far = <a href="#_sub8" class="code" title="subfunction too_far = elems_too_far( mdl, xyr );">elems_too_far</a>( mdl, xyr );
+0234        
+0235        tmp = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>,<span class="string">'tmp'</span>,<span class="string">'nodes'</span>,mdl.nodes,<span class="string">'elems'</span>,mdl.elems);
+0236        <span class="comment">%mapping = sparse( Ne, Nc );</span>
+0237        <span class="keyword">try</span>   
+0238            n_interp_min = mdl.interp_mesh.n_points;
+0239        <span class="keyword">catch</span>
+0240            n_interp_min = 4;
+0241        <span class="keyword">end</span>
+0242        n_interp_max = 10;
+0243 
+0244    <span class="keyword">if</span> 0
+0245        <span class="comment">% INterpolate</span>
+0246        n_interp = 4; <span class="comment">% 7-df</span>
+0247        m_pts = <a href="interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>( mdl, n_interp); 
+0248        <span class="keyword">for</span> i=1:Nc
+0249          mapping(:,i) = <a href="#_sub10" class="code" title="subfunction frac= contained_elem_pts(m_pts, xyr);">contained_elem_pts</a>(m_pts, xyr(:,i));
+0250        <span class="keyword">end</span>
+0251    <span class="keyword">else</span>
+0252 
+0253        <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(<span class="string">'mk_c2f_circ_mapping: calculate mapping'</span>,0,Nc);
+0254        <span class="keyword">for</span> i=1:Nc
+0255            <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(i,Nc);
+0256            good = ~too_far(:,i);
+0257            <span class="keyword">if</span> ~any(good); <span class="comment">% outside the mesh</span>
+0258                failed(i) = true;
+0259                <span class="keyword">continue</span>
+0260            <span class="keyword">end</span>
+0261            tmp.elems = mdl.elems(good,:);
+0262            n_interp = n_interp_min-1;
+0263            log_level = <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'log_level'</span>,1);
+0264            <span class="keyword">while</span>(sum(mapping(good,i))==0 &amp;&amp; n_interp &lt; n_interp_max-1)
+0265                n_interp = n_interp+1;
+0266                m_pts = <a href="interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>( tmp, n_interp);
+0267                mapping(good,i) = <a href="#_sub10" class="code" title="subfunction frac= contained_elem_pts(m_pts, xyr);">contained_elem_pts</a>(m_pts, xyr(:,i));
+0268            <span class="keyword">end</span>
+0269            <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'log_level'</span>, log_level);
+0270            <span class="keyword">if</span> (sum(mapping(good,i)) == 0)
+0271                failed(i) = true;
+0272                <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>([<span class="string">'mk_c2f_circ_mapping: Interpolation failed for point '</span> num2str(i)],3);
+0273            <span class="keyword">end</span>
+0274        <span class="keyword">end</span>
+0275        <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(sprintf( <span class="keyword">...</span>
+0276         <span class="string">': Outside=%d/%d'</span>, sum(failed),Nc),Inf);
+0277    <span class="keyword">end</span>
+0278    
+0279    
+0280 <a name="_sub10" href="#_subfunctions" class="code">function frac= contained_elem_pts(m_pts, xyr);</a>
+0281 <span class="comment">% This is more clear</span>
+0282 <span class="comment">%    xc = m_pts(:,1,:) - xyr(1);</span>
+0283 <span class="comment">%    yc = m_pts(:,2,:) - xyr(2);</span>
+0284 <span class="comment">%    zc = m_pts(:,3,:) - xyr(3);</span>
+0285 <span class="comment">%    inr= xc.^2 + yc.^2 + zc.^2 &lt; xyr(4)^2;</span>
+0286 
+0287 <span class="comment">% But this is how to stop matlab from wasting memory</span>
+0288      inr = (m_pts(:,1,:) - xyr(1)).^2 + <span class="keyword">...</span><span class="comment">% xc =</span>
+0289            (m_pts(:,2,:) - xyr(2)).^2 + <span class="keyword">...</span><span class="comment">% yc =</span>
+0290            (m_pts(:,3,:) - xyr(3)).^2;     <span class="comment">% zc =</span>
+0291      inpts = inr &lt; xyr(4)^2;
+0292 
+0293      frac= mean( inpts ,3);
+0294      <span class="keyword">if</span> sum(inpts(:))==0
+0295          <span class="comment">% TODO: This message is outdated</span>
+0296          <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>([<span class="string">'mk_c2f_circ_mapping: Interpolation failed: increase '</span>, <span class="keyword">...</span>
+0297                          <span class="string">'fwd_model.interp_mesh.n_interp'</span>]);
+0298      <span class="keyword">end</span>
+0299 
+0300 <a name="_sub11" href="#_subfunctions" class="code">function do_outside_test()</a>
+0301    fmdl= <a href="../../eidors/meshing/netgen/ng_mk_ellip_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_ellip_models(ellip_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_ellip_models</a>([1,1.2,0.8,.1],[16,0.5],0.05);
+0302    maxn = max(fmdl.nodes); minn = min(fmdl.nodes);
+0303    lsx = linspace(minn(1),maxn(1),31);
+0304    lsy = linspace(minn(2),maxn(2),21);
+0305    [x,y] = meshgrid(lsx,lsy); zz = 0*x(:);
+0306    xyzr= [x(:), y(:), zz+0.5, zz+0.1]';
+0307    [map,fail] = <a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>(fmdl,xyzr);
+0308    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Outside#:'</span>,sum(fail),96);
+0309    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Outside Fail:'</span>,fail, any(isnan(map),1));
+0310 
+0311 <a name="_sub12" href="#_subfunctions" class="code">function do_unit_test</a>
+0312    <a href="#_sub11" class="code" title="subfunction do_outside_test()">do_outside_test</a>()
+0313    fmdl = <a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>([0,1,.1],[16,1],.03);
+0314    vol = <a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>(fmdl)';
+0315    xyr = ones(3,1)*linspace(-.5,.5,7);
+0316    rr = .1; VV = pi*rr^2; xyr(3,:) = rr;
+0317    [c2f,fail] = <a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>(fmdl,xyr);
+0318    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D #1.1:'</span>,sum(fail),0);
+0319    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D #1.2(r=.1):'</span>,vol*c2f/VV,1,1e-2);
+0320 
+0321    fmdl = <a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>([2,1,.1],[16,1],.03);
+0322    fmdl.nodes(:,3) = fmdl.nodes(:,3) - 1;
+0323    vol = <a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>(fmdl)';
+0324    xyzr = ones(4,1)*linspace(-.5,.5,7);
+0325 
+0326    rr = .1; VV = pi*4/3*rr^3; xyzr(4,:) = rr;
+0327    [c2f,fail] = <a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>(fmdl,xyzr);
+0328    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D #1.1:'</span>,sum(fail),0);
+0329    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D #1.2(r=.1):'</span>,vol*c2f/VV,1,1e-2);
+0330 
+0331    rr = .01; VV = pi*4/3*rr^3; xyzr(4,:) = rr;
+0332    [c2f,fail] = <a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>(fmdl,xyzr);
+0333    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D #1.1(r=.01):'</span>,sum(fail),0);
+0334    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D #1.2:'</span>,vol*c2f/VV,1,1e-2);
+0335 
+0336    <span class="comment">%2D example</span>
+0337    imdl = <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c2'</span>,16); fmdl=imdl.fwd_model;
+0338    xyc = [0,0.27,0.18;0,-0.1,0.03;0,0.1,0.2;0.1,0.37,0.1]';
+0339    th=linspace(0,2*pi,20)';
+0340    xx=[0*th+1]*xyc(1,:)+sin(th)*xyc(3,:);
+0341    yy=[0*th+1]*xyc(2,:)+cos(th)*xyc(3,:);
+0342    <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(fmdl,[0,0,1]); set(line(xx,yy),<span class="string">'LineWidth'</span>,2);
+0343 
+0344    <span class="comment">% split over four elements</span>
+0345    rr= 0.1;c2f= <a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>( fmdl, [0;0;rr] );
+0346    tt= zeros(size(c2f)); tt(1:4) = pi*rr^2/4; tt= tt./<a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>(fmdl);
+0347    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D ex 1:'</span>,c2f,tt,1e-10);
+0348 
+0349    <span class="comment">% all in element #1</span>
+0350    rr= 0.03;c2f= <a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>( fmdl, [.0;.05;rr]); 
+0351    tt= zeros(size(c2f)); tt(1) = pi*rr^2; tt= tt./<a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>(fmdl);
+0352    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D ex 2:'</span>,c2f,tt,1e-10);
+0353       
+0354    <span class="comment">%3D example - cylinder</span>
+0355    imdl = <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a3cr'</span>,16); fmdl=imdl.fwd_model;
+0356    fmdl.nodes = 1.1*fmdl.nodes;
+0357    rr=0.1;c2f= <a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>( fmdl, [0;0;rr]); 
+0358    V = pi*rr^2*(max(fmdl.nodes(:,3)) - min(fmdl.nodes(:,3)));
+0359    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D ex 1 (cylinder):'</span>,<a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>(fmdl)'*c2f,V,1e-2);
+0360 
+0361    <span class="comment">%3D example - sphere</span>
+0362    imdl = <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a3cr'</span>,16); fmdl=imdl.fwd_model;
+0363    rr=0.05;c2f= <a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>( fmdl, [0;0;0;rr]); 
+0364    tt = 4/3*pi*rr^3/24./<a href="get_elem_volume.html" class="code" title="function VOL = get_elem_volume( fwd_model, map_node )">get_elem_volume</a>(fmdl);
+0365    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D ex 2a:'</span>,c2f(193:196),tt(193:196),1e-10);
+0366    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D ex 2b:'</span>,c2f(1:64),0);
+0367 
+0368    imdl = <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a3cr'</span>,16); fmdl=imdl.fwd_model;
+0369    rr=0.05;c2f= <a href="mk_c2f_circ_mapping.html" class="code" title="function [mapping failed] = mk_c2f_circ_mapping( mdl, xyzr );">mk_c2f_circ_mapping</a>( fmdl, [0 0;0 0;0 0;rr,rr]); 
+0370    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D ex 3a:'</span>,c2f(193:196,:),tt(193:196)*[1,1],1e-10);
+0371    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'3D ex 3b:'</span>,c2f(1:64,:),0);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

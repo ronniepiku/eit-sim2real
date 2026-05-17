@@ -1,0 +1,372 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of update_system_mat_fields</title>
+  <meta name="keywords" content="update_system_mat_fields">
+  <meta name="description" content="UPDATE_SYSTEM_MAT_FIELDS: fields (elem to nodes) fraction of system mat">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">solvers</a> &gt; <a href="index.html">forward</a> &gt; update_system_mat_fields.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/solvers/forward&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>update_system_mat_fields
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>UPDATE_SYSTEM_MAT_FIELDS: fields (elem to nodes) fraction of system mat</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function FC = update_system_mat_fields( fwd_model0, fwd_model1 ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> UPDATE_SYSTEM_MAT_FIELDS: fields (elem to nodes) fraction of system mat
+ Create the fields for a small change (fmdl1) from a base model (fmdl0)
+ If the change is small, this computation is faster
+ FC= system_mat_fields( fmdl0, fmdl1)
+ input: 
+   fmdl0 = base forward model
+   fmdl1 = new (updated) forward model
+ output:
+   FC:        s_mat= C' * S * conduct * C = FC' * conduct * FC;</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../../eidors/models/mk_geophysics_model.html" class="code" title="function imdl = mk_geophysics_model(str, ne, opt);">mk_geophysics_model</a>	imdl = mk_geophysics_model(str, ne, [option])</li><li><a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="find_electrode_bdy.html" class="code" title="function [bdy_idx, bdy_area] = find_electrode_bdy( bdy, vtx, elec_nodes)">find_electrode_bdy</a>	FIND_ELECTRODE_BDY: find the boundary index area for electrode</li><li><a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>	FWD_MODEL_PARAMETERS: data= fwd_solve_1st_order( fwd_model, image)</li><li><a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>	SYSTEM_MAT_FIELDS: fields (elem to nodes) fraction of system mat</li><li><a href="update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>	UPDATE_SYSTEM_MAT_FIELDS: fields (elem to nodes) fraction of system mat</li><li><a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>	EIDORS_CACHE Control eidors caching</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li><li><a href="../../../eidors/tools/vectorize_inverse.html" class="code" title="function [I,D] = vectorize_inverse(M);">vectorize_inverse</a>	vectorize_inverse: fast computation of 3x3 and 4x4 inverses</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>	UPDATE_SYSTEM_MAT_FIELDS: fields (elem to nodes) fraction of system mat</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function cache_obj = mk_cache_obj(fwd_model)</a></li><li><a href="#_sub2" class="code">function dFC= calc_update_system_mat_fields( fwd_model0, fwd_model1 )</a></li><li><a href="#_sub3" class="code">function [FFiidx,FFjidx,FFdata] = assemble_elements(p1,p0,de,approach)</a></li><li><a href="#_sub4" class="code">function FFdata = assemble_vectorize(p,de);</a></li><li><a href="#_sub5" class="code">function [FFdata,FFiidx,FFjidx, CCdata,CCiidx,CCjidx] =</a></li><li><a href="#_sub6" class="code">function do_unit_test</a></li><li><a href="#_sub7" class="code">function time_test_code</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function FC = update_system_mat_fields( fwd_model0, fwd_model1 )</a>
+0002 <span class="comment">% UPDATE_SYSTEM_MAT_FIELDS: fields (elem to nodes) fraction of system mat</span>
+0003 <span class="comment">% Create the fields for a small change (fmdl1) from a base model (fmdl0)</span>
+0004 <span class="comment">% If the change is small, this computation is faster</span>
+0005 <span class="comment">% FC= system_mat_fields( fmdl0, fmdl1)</span>
+0006 <span class="comment">% input:</span>
+0007 <span class="comment">%   fmdl0 = base forward model</span>
+0008 <span class="comment">%   fmdl1 = new (updated) forward model</span>
+0009 <span class="comment">% output:</span>
+0010 <span class="comment">%   FC:        s_mat= C' * S * conduct * C = FC' * conduct * FC;</span>
+0011 
+0012 <span class="comment">% (C) 2008 Andy Adler. License: GPL version 2 or version 3</span>
+0013 <span class="comment">% $Id: update_system_mat_fields.m 6747 2024-04-05 18:29:27Z aadler $</span>
+0014 
+0015 <span class="keyword">if</span> ischar(fwd_model0) &amp;&amp; strcmp(fwd_model0,<span class="string">'UNIT_TEST'</span>); <a href="#_sub6" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0016 
+0017 copt.cache_obj= {<a href="#_sub1" class="code" title="subfunction cache_obj = mk_cache_obj(fwd_model)">mk_cache_obj</a>(fwd_model0), <span class="keyword">...</span>
+0018                  <a href="#_sub1" class="code" title="subfunction cache_obj = mk_cache_obj(fwd_model)">mk_cache_obj</a>(fwd_model1)};
+0019 copt.fstr = <span class="string">'update_system_mat_fields'</span>;
+0020 dFC = <a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(@<a href="#_sub2" class="code" title="subfunction dFC= calc_update_system_mat_fields( fwd_model0, fwd_model1 )">calc_update_system_mat_fields</a>,{fwd_model0, fwd_model1},copt );
+0021 
+0022 <span class="comment">% update system_mat_fields</span>
+0023 FC = <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(fwd_model0); <span class="comment">% this should be a cache hit</span>
+0024 FC = FC + dFC;
+0025 
+0026 <span class="comment">% now we fake out the caching system by telling it that we are doing</span>
+0027 <span class="comment">% system_mat_fields(fwd_model1) with the new model, calls to system_mat_fields</span>
+0028 <span class="comment">% will get the cached value from this function</span>
+0029 fstr = <span class="string">'system_mat_fields'</span>;
+0030 cache_obj = <a href="#_sub1" class="code" title="subfunction cache_obj = mk_cache_obj(fwd_model)">mk_cache_obj</a>(fwd_model1);
+0031 <a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'set-cache'</span>, cache_obj, fstr, {FC});
+0032 
+0033 
+0034 <span class="comment">% only cache stuff which is really relevant here</span>
+0035 <a name="_sub1" href="#_subfunctions" class="code">function cache_obj = mk_cache_obj(fwd_model)</a>
+0036    cache_obj.elems       = fwd_model.elems;
+0037    cache_obj.nodes       = fwd_model.nodes;
+0038    <span class="keyword">try</span>
+0039    cache_obj.electrode   = fwd_model.electrode; <span class="comment">% if we have it</span>
+0040    <span class="keyword">end</span>
+0041    cache_obj.type        = <span class="string">'fwd_model'</span>;
+0042    cache_obj.name        = <span class="string">''</span>; <span class="comment">% it has to have one</span>
+0043 
+0044 <a name="_sub2" href="#_subfunctions" class="code">function dFC= calc_update_system_mat_fields( fwd_model0, fwd_model1 )</a>
+0045    p0= <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>( fwd_model0, <span class="string">'skip_VOLUME'</span> );
+0046    p1= <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>( fwd_model1, <span class="string">'skip_VOLUME'</span> );
+0047    e= p0.n_elem;
+0048    n= p0.n_node;
+0049    d0= p0.n_dims+0;
+0050    d1= p0.n_dims+1;
+0051 
+0052    <span class="comment">% find moved nodes, then the elements affected by those moved nodes</span>
+0053    [dn,~] = find(abs(fwd_model0.nodes - fwd_model1.nodes) &gt; eps);
+0054    dn = unique(dn);
+0055    [de,~] = find(ismember(fwd_model1.elems,dn)); <span class="comment">% our modified nodes touched these elements</span>
+0056    de = unique(de);
+0057    assert(all(all(fwd_model0.elems == fwd_model1.elems)), <span class="string">'expected fmdl0 and fmdl1 to have the same element structure'</span>);
+0058    assert(all(de &lt;= e), <span class="string">'invalid elem# found for delta nodes'</span>);
+0059    [FFiidx,FFjidx,FFdata] = <a href="#_sub3" class="code" title="subfunction [FFiidx,FFjidx,FFdata] = assemble_elements(p1,p0,de,approach)">assemble_elements</a>(p1,p0,de(:),3); <span class="comment">% Use vectorized mode=3</span>
+0060 
+0061    <span class="comment">% TODO this could be better: we could look to see which, if any electrodes</span>
+0062    <span class="comment">% have been modified and only update those ones... currently the</span>
+0063    <span class="comment">% implementation here is pretty brain dead on the assumption this part is</span>
+0064    <span class="comment">% fast</span>
+0065    <span class="comment">% TODO currently can't handle electrode node number changes</span>
+0066    [F2data0,F2iidx0,F2jidx0, C2data0,C2iidx0,C2jidx0] = compl_elec_mdl(fwd_model0,p0,dn);
+0067    [F2data1,F2iidx1,F2jidx1, C2data1,C2iidx1,C2jidx1] = compl_elec_mdl(fwd_model1,p1,dn);
+0068 
+0069 Cmax = max([d0*e; max(FFiidx(:)); max(F2iidx0(:)); F2iidx1(:)]);
+0070 Rmax = max([d1*e; max(FFjidx(:)); max(F2jidx0(:)); F2jidx1(:)]);
+0071 <span class="keyword">if</span> 1
+0072    FF= <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>([FFiidx(:);  F2iidx0(:);  F2iidx1(:)],<span class="keyword">...</span>
+0073               [FFjidx(:);  F2jidx0(:);  F2jidx1(:)],<span class="keyword">...</span>
+0074               [FFdata(:); -F2data0(:); +F2data1(:)],Cmax,Rmax);
+0075 <span class="keyword">else</span>
+0076 <span class="comment">% New sparse assembly. Is it faster?</span>
+0077    F1=<a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(FFiidx, FFjidx,  FFdata,  Cmax, Rmax);
+0078    F2=<a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(F2iidx0,F2jidx0,-F2data0, Cmax, Rmax);
+0079    F3= <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(F2iidx1,F2jidx1,F2data1, Cmax, Rmax);
+0080    FF = F1 + F2 + F3;
+0081 <span class="keyword">end</span>
+0082    
+0083 <span class="keyword">if</span> 0 <span class="comment">% don't assemble whole CC matrix</span>
+0084    CC= <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>([(1:d1*e)';     C2iidx0(:)], <span class="keyword">...</span>
+0085               [p0.ELEM(:);    C2jidx0(:)], <span class="keyword">...</span>
+0086               [ones(d1*e,1);  C2data0(:)]);
+0087 <span class="keyword">else</span> <span class="comment">% only assemble the parts we need</span>
+0088    ded0 = reshape(((de-1)*d1 + [1:d1])', [],1);
+0089    deels= reshape(p0.ELEM(:,de),[],1);
+0090    CC= <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>([ded0;     C2iidx0(:)], <span class="keyword">...</span>
+0091               [deels;    C2jidx0(:)], <span class="keyword">...</span>
+0092               [ded0*0+1; C2data0(:)],Rmax,max([n;max(C2jidx0(:))]));
+0093 <span class="keyword">end</span>
+0094    dFC= FF*CC;
+0095 
+0096 <a name="_sub3" href="#_subfunctions" class="code">function [FFiidx,FFjidx,FFdata] = assemble_elements(p1,p0,de,approach)</a>
+0097    <span class="keyword">if</span> nargin&lt;4; approach=1; <span class="keyword">end</span>
+0098 
+0099    d0= p0.n_dims+0;
+0100    d1= p0.n_dims+1;
+0101    e= p0.n_elem;
+0102    n= p0.n_node;
+0103    <span class="keyword">switch</span> approach
+0104    <span class="keyword">case</span> 3; <span class="comment">% Use vectorize</span>
+0105       ded0 = reshape(((de-1)*d0 + [1:d0])', [],1);
+0106       FFjidx= floor((ded0-1)/d0)*d1 + (1:d1);
+0107       FFiidx= ded0*ones(1,d1);
+0108       FFdata = <a href="#_sub4" class="code" title="subfunction FFdata = assemble_vectorize(p,de);">assemble_vectorize</a>(p1,de) - <a href="#_sub4" class="code" title="subfunction FFdata = assemble_vectorize(p,de);">assemble_vectorize</a>(p0,de);
+0109 
+0110    <span class="keyword">case</span> 1; <span class="comment">%slow way</span>
+0111       FFjidx= floor([0:d0*e-1]'/d0)*d1*ones(1,d1) + ones(d0*e,1)*(1:d1);
+0112       FFiidx= [1:d0*e]'*ones(1,d1);
+0113       dfact = (d0-1)*d0;
+0114       FFdata= zeros(d0*e,d1);
+0115       <span class="keyword">for</span> j=de(:)'
+0116         a0=  inv([ ones(d1,1), p0.NODE( :, p0.ELEM(:,j) )' ]);
+0117         a1=  inv([ ones(d1,1), p1.NODE( :, p0.ELEM(:,j) )' ]);
+0118         idx= d0*(j-1)+1 : d0*j;
+0119         FFdata(idx,1:d1)= a1(2:d1,:)/ sqrt(dfact*abs(det(a1))) -  <span class="keyword">...</span>
+0120                           a0(2:d1,:)/ sqrt(dfact*abs(det(a0)));
+0121       <span class="keyword">end</span> <span class="comment">%for j=1:ELEMs</span>
+0122    
+0123       <span class="comment">% Remove non-zero components</span>
+0124       idx = all(FFdata==0,2);
+0125       FFdata(idx,:) = [];
+0126       FFiidx(idx,:) = [];
+0127       FFjidx(idx,:) = [];
+0128    <span class="keyword">case</span> 2; <span class="comment">%improved</span>
+0129       ded0 = bsxfun(@plus,[de(:)-1]*d0,1:d0)'; 
+0130       ded0 = ded0(:); lded0= length(ded0);
+0131       FFjidx= floor([ded0-1]/d0)*d1*ones(1,d1) + <span class="keyword">...</span>
+0132               ones(lded0,1)*(1:d1);
+0133       FFiidx= ded0*ones(1,d1);
+0134       FFdata= zeros(lded0,d1);
+0135       dfact = (d0-1)*d0;
+0136       <span class="keyword">for</span> i=1:length(de); j=de(i);
+0137         a0=  inv([ ones(d1,1), p0.NODE( :, p0.ELEM(:,j) )' ]);
+0138         a1=  inv([ ones(d1,1), p1.NODE( :, p0.ELEM(:,j) )' ]);
+0139         idx= d0*(i-1)+1 : d0*i;
+0140         FFdata(idx,1:d1)= a1(2:d1,:)/ sqrt(dfact*abs(det(a1))) - a0(2:d1,:)/ sqrt(dfact*abs(det(a0)));
+0141       <span class="keyword">end</span> <span class="comment">%for j=1:ELEMs</span>
+0142    <span class="keyword">otherwise</span> error(<span class="string">'no such path'</span>);
+0143    <span class="keyword">end</span>
+0144 
+0145 <a name="_sub4" href="#_subfunctions" class="code">function FFdata = assemble_vectorize(p,de);</a>
+0146    d0= p.n_dims+0;
+0147    d1= p.n_dims+1;
+0148    M3 = ones(d1,d1,length(de));
+0149    M3(2:<span class="keyword">end</span>,:,:)= reshape(p.NODE(:,p.ELEM(:,de)),d0,d1,[]);
+0150 <span class="comment">% To stabilize inverse, remove average</span>
+0151 <span class="comment">% This is a multiple of row1 = 1</span>
+0152 <span class="comment">% This affects row one only</span>
+0153    M3(2:<span class="keyword">end</span>,:,:) = bsxfun(@minus, M3(2:<span class="keyword">end</span>,:,:), <span class="keyword">...</span>
+0154               mean(M3(2:<span class="keyword">end</span>,:,:),2));
+0155    [I,D] = <a href="../../../eidors/tools/vectorize_inverse.html" class="code" title="function [I,D] = vectorize_inverse(M);">vectorize_inverse</a>(M3);
+0156    dfact = (d0-1)*d0; <span class="comment">% d factorial for 2 or 3d</span>
+0157    Is = bsxfun(@times, I, sqrt(abs(D)/dfact));
+0158    Is = permute(Is(:,2:d1,:),[2,3,1]);
+0159    FFdata= reshape(Is,[],d1);
+0160 
+0161 <span class="comment">% Add parts for complete electrode model</span>
+0162 <a name="_sub5" href="#_subfunctions" class="code">function [FFdata,FFiidx,FFjidx, CCdata,CCiidx,CCjidx] = </a><span class="keyword">...</span>
+0163              compl_elec_mdl(fwd_model,pp,dn)
+0164    d0= pp.n_dims;
+0165    FFdata= zeros(0,d0);
+0166    FFd_block= sqrtm( ( ones(d0) + eye(d0) )/6/(d0-1) ); <span class="comment">% 6 in 2D, 12 in 3D</span>
+0167    FFiidx= zeros(0,d0);
+0168    FFjidx= zeros(0,d0);
+0169    FFi_block= ones(d0,1)*(1:d0);
+0170    CCdata= zeros(0,d0);
+0171    CCiidx= zeros(0,d0);
+0172    CCjidx= zeros(0,d0);
+0173   
+0174    sidx= d0*pp.n_elem;
+0175    cidx= (d0+1)*pp.n_elem;
+0176    <span class="keyword">for</span> i= 1:pp.n_elec
+0177       eleci = fwd_model.electrode(i);
+0178       <span class="comment">% contact impedance zc is in [Ohm.m] for 2D or [Ohm.m^2] for 3D</span>
+0179       zc=  eleci.z_contact;
+0180       <span class="keyword">if</span> any(find(ismember(eleci.nodes,dn)))
+0181          [bdy_idx, bdy_area] = <a href="find_electrode_bdy.html" class="code" title="function [bdy_idx, bdy_area] = find_electrode_bdy( bdy, vtx, elec_nodes)">find_electrode_bdy</a>( <span class="keyword">...</span>
+0182              pp.boundary, fwd_model.nodes, eleci.nodes );
+0183              <span class="comment">% bdy_area is in [m] for 2D or [m^2] for 3D</span>
+0184    
+0185          <span class="keyword">for</span> j= 1:length(bdy_idx);
+0186             bdy_nds= pp.boundary(bdy_idx(j),:);
+0187    
+0188             <span class="comment">% 3D: [m^2]/[Ohm.m^2] = [S]</span>
+0189             <span class="comment">% 2D: [m]  /[Ohm.m]   = [S]</span>
+0190             FFdata= [FFdata; FFd_block * sqrt(bdy_area(j)/zc)];
+0191             FFiidx= [FFiidx; FFi_block' + sidx];
+0192             FFjidx= [FFjidx; FFi_block  + cidx];
+0193    
+0194             CCiidx= [CCiidx; FFi_block(1:2,:) + cidx];
+0195             CCjidx= [CCjidx; bdy_nds ; (pp.n_node+i)*ones(1,d0)];
+0196             CCdata= [CCdata; [1;-1]*ones(1,d0)];
+0197             sidx = sidx + d0;
+0198             cidx = cidx + d0;
+0199          <span class="keyword">end</span>
+0200       <span class="keyword">else</span>
+0201          [bdy_idx] = <a href="find_electrode_bdy.html" class="code" title="function [bdy_idx, bdy_area] = find_electrode_bdy( bdy, vtx, elec_nodes)">find_electrode_bdy</a>( <span class="keyword">...</span>
+0202              pp.boundary, fwd_model.nodes, eleci.nodes );
+0203              <span class="comment">% bdy_area is in [m] for 2D or [m^2] for 3D</span>
+0204    
+0205          <span class="keyword">for</span> j= 1:length(bdy_idx);
+0206             bdy_nds= pp.boundary(bdy_idx(j),:);
+0207    
+0208             <span class="comment">% 3D: [m^2]/[Ohm.m^2] = [S]</span>
+0209             <span class="comment">% 2D: [m]  /[Ohm.m]   = [S]</span>
+0210             FFdata= [FFdata; FFd_block * 0];
+0211             FFiidx= [FFiidx; FFi_block' + sidx];
+0212             FFjidx= [FFjidx; FFi_block  + cidx];
+0213    
+0214             CCiidx= [CCiidx; FFi_block(1:2,:) + cidx];
+0215             CCjidx= [CCjidx; bdy_nds ; (pp.n_node+i)*ones(1,d0)];
+0216             CCdata= [CCdata; [1;-1]*ones(1,d0)];
+0217             sidx = sidx + d0;
+0218             cidx = cidx + d0;
+0219          <span class="keyword">end</span>
+0220       <span class="keyword">end</span>
+0221       
+0222    <span class="keyword">end</span>
+0223 
+0224 <a name="_sub6" href="#_subfunctions" class="code">function do_unit_test</a>
+0225    disp(<span class="string">'running system_mat_fields UNIT_TEST'</span>);
+0226    <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(<span class="string">'UNIT_TEST'</span>); <span class="comment">% we depend explicitly on system_mat_fields... check it works properly!</span>
+0227 
+0228    <a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(<span class="string">'clear_name'</span>, <span class="string">'system_mat_fields'</span>);
+0229    <a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(<span class="string">'clear_name'</span>, <span class="string">'update_system_mat_fields'</span>);
+0230    disp(<span class="string">'running update_system_mat_fields UNIT_TEST'</span>);
+0231 
+0232    fmdl0 = getfield(<a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c2'</span>,4),<span class="string">'fwd_model'</span>);
+0233    fmdl1 = fmdl0; fmdl1.nodes([5,6],2)= fmdl1.nodes([5,6],2) + .01;
+0234    SM0= <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(fmdl0);
+0235    SM1= <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(fmdl1);
+0236    SM1a = <a href="update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>(fmdl0,fmdl1);
+0237    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'simple test'</span>,SM1a,SM1,1e-14)
+0238 
+0239    imdl=  <a href="../../../eidors/models/mk_geophysics_model.html" class="code" title="function imdl = mk_geophysics_model(str, ne, opt);">mk_geophysics_model</a>(<span class="string">'h2e'</span>,32);
+0240    ndim = size(imdl.fwd_model.nodes,2);
+0241    <span class="keyword">for</span> i = 1:10
+0242       fmdl0 = imdl.fwd_model;
+0243       fmdl0.nodes(1,:) = fmdl0.nodes(1,:) + rand(1,ndim)*1e-10; <span class="comment">% defeat cache</span>
+0244       t=tic; FC0 = <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(fmdl0); t0(i)=toc(t);
+0245    
+0246       <span class="comment">% perturb nodes</span>
+0247       fmdl1 = fmdl0;
+0248       nn = fmdl1.electrode(1).nodes;
+0249       nn = [nn(1); nn(end)];
+0250       fmdl1.nodes(nn,:) = fmdl1.nodes(nn,:) + 1e-4+rand(2,ndim)*1e-10; <span class="comment">% perturb</span>
+0251       FC0 = <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(fmdl0);
+0252       <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>(fmdl1,<span class="string">'skip_VOLUME'</span>); <span class="comment">% cache</span>
+0253       t=tic; FC1a = <a href="update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>(fmdl0, fmdl1); t1(i)=toc(t);
+0254       t=tic; FC1b = <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(fmdl1); t2(i)=toc(t);
+0255       <a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(<span class="string">'clear_name'</span>, <span class="string">'system_mat_fields'</span>);
+0256       t=tic; FC1c = <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(fmdl1); t3(i)=toc(t);
+0257    <span class="keyword">end</span>
+0258    fprintf(<span class="string">'system_mat_fields(fmdl0) = %0.2f sec\n'</span>,mean(t0));
+0259    fprintf(<span class="string">'update_system_mat_fields(fmdl0,fmdl1) = %0.3f sec [faster?]\n'</span>,mean(t1));
+0260    fprintf(<span class="string">'system_mat_fields(fmdl1) = %0.3f sec [cache hit?]\n'</span>,mean(t2));
+0261    fprintf(<span class="string">'system_mat_fields(fmdl1+delta) = %0.3f sec [recalculate]\n'</span>,mean(t3));
+0262 <span class="comment">%  disp(mean([t0;t1;t2;t3]'))</span>
+0263    fprintf(<span class="string">'Time ratio: %5.3f / %5.3f\n'</span>, mean(t1), mean(t0));
+0264    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'delta FC is faster                '</span>,mean(t1) &lt; mean(t0),1);
+0265 
+0266    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cache trick is really fast        '</span>,mean(t2./t0) &lt; 0.030,1);
+0267    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cache was cleared before recalc   '</span>,mean(t3) &gt; mean(t2)*5,1); <span class="comment">% did actually clear cache</span>
+0268    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'cache trick returns correct result'</span>,FC1a,FC1b);
+0269    <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'delta FC gives same result        '</span>,FC1a,FC1c,3e2*eps); <span class="comment">% Variation since random</span>
+0270    fprintf(<span class="string">'speed-up: %0.2f\n'</span>,mean(t0./t1));
+0271    <span class="keyword">if</span>(sum(sum((FC1a - FC1c).^2)) &gt; 100*eps)
+0272       err = FC1a - FC1c
+0273    <span class="keyword">end</span>
+0274 
+0275    <span class="keyword">if</span> 0
+0276       disp(<span class="string">'---- profiling ----'</span>);
+0277       fmdl1.nodes(nn,:) = fmdl1.nodes(nn,:) + rand(2,ndim)*1e-3; <span class="comment">% perturb</span>
+0278       t=tic; FC0 = <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(fmdl0); t0=toc(t);
+0279       profile clear;
+0280       profile on;
+0281       t = tic; FC1a = <a href="update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>(fmdl0, fmdl1); t1=toc(t);
+0282       profile off;
+0283       profview;
+0284       profsave(profile(<span class="string">'info'</span>),<span class="string">'profile'</span>);
+0285       fprintf(<span class="string">'update_system_mat_fields(fmdl0,fmdl1) = %0.3f sec [profiled]\n'</span>,t1);
+0286    <span class="keyword">end</span>
+0287 
+0288 <a name="_sub7" href="#_subfunctions" class="code">function time_test_code</a>
+0289     f0= <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'e3cr'</span>,4);
+0290     f0 = f0.fwd_model; f1=f0;
+0291     f1.nodes(1,:)= f1.nodes(1,:) + 1e-6*[1,1,1];
+0292     Fa= <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(f1);
+0293     <span class="keyword">for</span> sp=1:10;<a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a> clear;<span class="keyword">switch</span> sp;
+0294        <span class="keyword">case</span> 1;
+0295     tic; F1= <a href="update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>(f0,f1); toc
+0296        <span class="keyword">case</span> 2;
+0297     tic; F0= <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(f0); toc
+0298     tic; F1= <a href="update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>(f0,f1); toc
+0299        <span class="keyword">case</span> 3;
+0300     sv = <span class="string">'skip_VOLUME'</span>;
+0301     tic; <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>(f0,sv); toc
+0302     tic; <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>(f0,sv); toc
+0303     tic; <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>(f1,sv); toc
+0304     tic; <a href="fwd_model_parameters.html" class="code" title="function param = fwd_model_parameters( fwd_model, opt )">fwd_model_parameters</a>(f1,sv); toc
+0305     disp ----
+0306     tic; F0= <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(f0); toc
+0307     tic; F0= <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(f0); toc
+0308     disp ----
+0309     tic; F1= <a href="update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>(f0,f1); toc
+0310     tic; F1= <a href="update_system_mat_fields.html" class="code" title="function FC = update_system_mat_fields( fwd_model0, fwd_model1 )">update_system_mat_fields</a>(f0,f1); toc
+0311     tic; Fb= <a href="system_mat_fields.html" class="code" title="function FC= system_mat_fields( fwd_model )">system_mat_fields</a>(f1); toc
+0312     <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">''</span>,Fa,F1,1e-10);
+0313        <span class="keyword">otherwise</span>; <span class="keyword">break</span>;
+0314     <span class="keyword">end</span>; <span class="keyword">end</span>
+0315</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

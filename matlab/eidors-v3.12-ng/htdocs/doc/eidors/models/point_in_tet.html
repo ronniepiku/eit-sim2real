@@ -1,0 +1,218 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of point_in_tet</title>
+  <meta name="keywords" content="point_in_tet">
+  <meta name="description" content="POINT_IN_TET test for points contained in elements">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; point_in_tet.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>point_in_tet
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>POINT_IN_TET test for points contained in elements</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">POINT_IN_TET test for points contained in elements
+ point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)
+
+   fmdl: tet mesh to test against
+   points: [x,y,z] of points to test
+   epsilon: typically eps
+   exclude_nodes: nodes to exclude
+
+   fmdl.point_in_tet.algorithm: specify approach
+     e.g. fmdl.point_in_tet.algorithm = 'do_point_in_tet_inequalities'
+   
+ point2tet: sparse matrix Npoints x Ntets 
+
+ (C) 2015 Bartlomiej Grychtol
+ License: GPL version 2 or 3
+ $Id: point_in_tet.m 6943 2024-06-18 16:47:33Z aadler $</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>	NUM_ELEMS: number of elemnts in a (fwd or inv model or image)</li><li><a href="point_in_tet.html" class="code" title="function point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)">point_in_tet</a>	POINT_IN_TET test for points contained in elements</li><li><a href="tet_to_inequal.html" class="code" title="function [A,b]=tet_to_inequal(v,e)">tet_to_inequal</a>	[A,b]=tet_to_inequal(v)</li><li><a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>	EIDORS_CACHE Control eidors caching</li><li><a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>	PROGRESS_MSG Progress messages and timing.</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/graphics/matlab/calc_grid_points.html" class="code" title="function [val, c2f] = calc_grid_points(img, xpts, ypts, zpts)">calc_grid_points</a>	CALC_GRID_POINTS - image values at points in grid</li><li><a href="mk_tet_c2f.html" class="code" title="function [c2f] = mk_tet_c2f(fmdl, rmdl, opt)">mk_tet_c2f</a>	MK_TET_C2F - calculate a coarse2fine mapping for two tet-based models.</li><li><a href="mk_tri2tet_c2f.html" class="code" title="function c2f = mk_tri2tet_c2f(fmdl,rmdl, opt)">mk_tri2tet_c2f</a>	MK_TRI2TET_C2F - coarse2fine mapping between tri-based and tet-based models</li><li><a href="point_in_tet.html" class="code" title="function point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)">point_in_tet</a>	POINT_IN_TET test for points contained in elements</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function point2tet = do_point_in_tet_triangulation(fmdl, points, epsilon, exclude_nodes)</a></li><li><a href="#_sub2" class="code">function point2tet = do_point_in_tet_inequalities(fmdl, points, epsilon, exclude_nodes)</a></li><li><a href="#_sub3" class="code">function do_unit_test</a></li><li><a href="#_sub4" class="code">function do_unit_test_2d</a></li><li><a href="#_sub5" class="code">function do_unit_test_3d</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)</a>
+0002 <span class="comment">%POINT_IN_TET test for points contained in elements</span>
+0003 <span class="comment">% point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%   fmdl: tet mesh to test against</span>
+0006 <span class="comment">%   points: [x,y,z] of points to test</span>
+0007 <span class="comment">%   epsilon: typically eps</span>
+0008 <span class="comment">%   exclude_nodes: nodes to exclude</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%   fmdl.point_in_tet.algorithm: specify approach</span>
+0011 <span class="comment">%     e.g. fmdl.point_in_tet.algorithm = 'do_point_in_tet_inequalities'</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% point2tet: sparse matrix Npoints x Ntets</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% (C) 2015 Bartlomiej Grychtol</span>
+0016 <span class="comment">% License: GPL version 2 or 3</span>
+0017 <span class="comment">% $Id: point_in_tet.m 6943 2024-06-18 16:47:33Z aadler $</span>
+0018 
+0019 <span class="keyword">if</span> nargin&gt;=1 &amp;&amp; ischar(fmdl) &amp;&amp; strcmp(fmdl,<span class="string">'UNIT_TEST'</span>); <a href="#_sub3" class="code" title="subfunction do_unit_test">do_unit_test</a>(); <span class="keyword">return</span>; <span class="keyword">end</span>
+0020 
+0021 <span class="keyword">if</span> nargin &lt; 4
+0022     exclude_nodes = false;
+0023 <span class="keyword">end</span>
+0024 
+0025 ver = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'interpreter_version'</span>);
+0026 <span class="keyword">try</span> 
+0027    calc_fn= str2func(fmdl.point_in_tet.algorithm);
+0028 <span class="keyword">catch</span> <span class="comment">% otherwise use triangulation unless octave</span>
+0029 <span class="keyword">if</span> ver.isoctave 
+0030    calc_fn= @<a href="#_sub2" class="code" title="subfunction point2tet = do_point_in_tet_inequalities(fmdl, points, epsilon, exclude_nodes)">do_point_in_tet_inequalities</a>;
+0031 <span class="keyword">else</span>        
+0032    calc_fn= @<a href="#_sub1" class="code" title="subfunction point2tet = do_point_in_tet_triangulation(fmdl, points, epsilon, exclude_nodes)">do_point_in_tet_triangulation</a>;
+0033 <span class="keyword">end</span>
+0034 <span class="keyword">end</span>
+0035 
+0036 copt.fstr = <span class="string">'point_in_tet'</span>;
+0037 copt.cache_obj = {fmdl.nodes, fmdl.elems, points, epsilon, exclude_nodes, calc_fn};
+0038 point2tet = <a href="../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(calc_fn,{fmdl, points, epsilon, exclude_nodes}, copt);
+0039 
+0040 <span class="keyword">end</span>
+0041 
+0042 <a name="_sub1" href="#_subfunctions" class="code">function point2tet = do_point_in_tet_triangulation(fmdl, points, epsilon, exclude_nodes)</a>
+0043    s = warning(<span class="string">'off'</span>,<span class="string">'MATLAB:triangulation:PtsNotInTriWarnId'</span>);
+0044    <span class="comment">% Triangularization requires doubles!</span>
+0045    <span class="comment">% STUPID MATLAB puts isdouble() in a toolbox</span>
+0046    <span class="keyword">if</span> ~isa(fmdl.elems,<span class="string">'double'</span>); fmdl.elems=double(fmdl.elems); <span class="keyword">end</span>
+0047    TR = triangulation(fmdl.elems, fmdl.nodes);
+0048    warning(s.state,<span class="string">'MATLAB:triangulation:PtsNotInTriWarnId'</span>)
+0049    ID = pointLocation(TR, points);
+0050    idx = ~isnan(ID);
+0051    point2tet = <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(find(idx),ID(idx),true,size(points,1),size(fmdl.elems,1));
+0052 <span class="keyword">end</span>
+0053 
+0054 <a name="_sub2" href="#_subfunctions" class="code">function point2tet = do_point_in_tet_inequalities(fmdl, points, epsilon, exclude_nodes)</a>
+0055    <span class="comment">% use the correct tolerance</span>
+0056    <span class="keyword">if</span> isstruct(epsilon)
+0057       epsilon = epsilon.tol_node2tet;
+0058    <span class="keyword">end</span>
+0059    <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(<span class="string">'Tet inequalities'</span>);
+0060    [A,b] = <a href="tet_to_inequal.html" class="code" title="function [A,b]=tet_to_inequal(v,e)">tet_to_inequal</a>(fmdl.nodes,fmdl.elems);
+0061    <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(Inf);
+0062    
+0063    <span class="comment">%split computation into managable chunks to fit in memory</span>
+0064    mem_req = size(points,1) * size(fmdl.elems,1) * 8; <span class="comment">% in bytes</span>
+0065    mem_use = 2*(1024^3); <span class="comment">% 2 GiB</span>
+0066    n_chunks = ceil(mem_req / mem_use);
+0067    chunk_sz = ceil(size(points,1) / n_chunks);
+0068    point2tet = logical(<a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(0, size(fmdl.elems,1)));
+0069    chunk_end = 0;
+0070    <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(<span class="string">'Point in tet'</span>,0,n_chunks);
+0071    <span class="keyword">for</span> c = 1:n_chunks
+0072        <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(c,n_chunks)
+0073        chunk_start = chunk_end+1;
+0074        chunk_end = min(chunk_start + chunk_sz, size(points,1));
+0075        idx = chunk_start:chunk_end;
+0076        <span class="keyword">if</span> true
+0077            A_= A(1:4:<span class="keyword">end</span>,:)*points(idx,:)';
+0078            b_= b(1:4:end);
+0079            p2t = (bsxfun(@minus, A_,b_) &lt;= epsilon)';
+0080            <span class="comment">%        progress_msg(.21);</span>
+0081            <span class="keyword">for</span> i = 2:4
+0082                <span class="comment">% that was actually slower</span>
+0083                <span class="comment">%good = find(any(p2t,2));</span>
+0084                <span class="comment">%p2t(good,:) = p2t(good,:) &amp; (bsxfun(@minus, A(i:4:end,:)*points(idx(good),:)',b(i:4:end)) &lt;= epsilon)';</span>
+0085                A_= A(i:4:<span class="keyword">end</span>,:)*points(idx,:)';
+0086                b_= b(i:4:end);
+0087                p2t = p2t &amp; (bsxfun(@minus, A_, b_) &lt;= epsilon)';
+0088                <span class="comment">%           progress_msg(.21 + (i-1)*.23);</span>
+0089            <span class="keyword">end</span>
+0090            point2tet = [point2tet; <a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(p2t)];
+0091        <span class="keyword">else</span>
+0092            <span class="comment">% slower...</span>
+0093            p2t = (bsxfun(@minus, A*points(idx,:)',b) &lt;= epsilon)';
+0094            point2tet = [point2tet; builtin(<span class="string">'sparse'</span>,reshape(all(reshape(p2t',4,[])),[],length(idx))')];
+0095        <span class="keyword">end</span>
+0096    <span class="keyword">end</span>
+0097    <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(Inf);
+0098    
+0099    <span class="comment">% exclude coinciding nodes</span>
+0100    <span class="comment">%    ex= bsxfun(@eq,points(:,1),fmdl.nodes(:,1)') &amp; ...</span>
+0101    <span class="comment">%        bsxfun(@eq,points(:,2),fmdl.nodes(:,2)') &amp; ...</span>
+0102    <span class="comment">%        bsxfun(@eq,points(:,3),fmdl.nodes(:,3)');</span>
+0103    <span class="comment">%    progress_msg(.94);</span>
+0104    <span class="comment">%    point2tet(any(ex,2),:) = 0;</span>
+0105        
+0106    <span class="keyword">if</span> exclude_nodes    
+0107        ex = ismember(points, fmdl.nodes, <span class="string">'rows'</span>);
+0108        point2tet(ex,:) = 0;
+0109    <span class="keyword">end</span>
+0110 
+0111 <span class="keyword">end</span>
+0112 
+0113 <a name="_sub3" href="#_subfunctions" class="code">function do_unit_test</a>
+0114    <a href="#_sub5" class="code" title="subfunction do_unit_test_3d">do_unit_test_3d</a>
+0115    <a href="#_sub4" class="code" title="subfunction do_unit_test_2d">do_unit_test_2d</a>
+0116 <span class="keyword">end</span>
+0117 
+0118 <a name="_sub4" href="#_subfunctions" class="code">function do_unit_test_2d</a>
+0119    fmdl = <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c2'</span>,4);
+0120    fmdl = fmdl.fwd_model;
+0121    epsilon = 0.01;
+0122    <span class="comment">% NOTE: Triangularization gives different for this case</span>
+0123 <span class="comment">%  [x,y] = meshgrid(-2:0.5:2,-2:0.5:2);</span>
+0124 <span class="comment">%  vv=[41 42 50 51 49 40 33 32 31 43 59 39];</span>
+0125 <span class="comment">%  hh=[ 4 26 29 30 31 32 34 35 36 51 55 59];</span>
+0126    [x,y] = meshgrid(-2:0.6:2,-2:0.6:2);
+0127    vv=[26 32 25 33 31 19 24 18];
+0128    hh=[ 9 11 16 30 43 46 59 63];
+0129    in=<a href="point_in_tet.html" class="code" title="function point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)">point_in_tet</a>(fmdl,[x(:),y(:)],epsilon);
+0130    in_=<a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(vv,hh,1,length(x(:)),<a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(fmdl));
+0131    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'2D test'</span>,in,in_);
+0132 <span class="comment">% in_ - in</span>
+0133 <span class="keyword">end</span>
+0134 
+0135 <a name="_sub5" href="#_subfunctions" class="code">function do_unit_test_3d</a>
+0136    fmdl = <a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]);
+0137    fmdl = fmdl.fwd_model;
+0138    epsilon = 0;
+0139    ll = linspace(-1,1,8);
+0140    [x,y,z] = ndgrid(ll*1.8,ll*1.8,1.1:2.1);
+0141    <span class="keyword">for</span> ca = 1:2; <span class="keyword">switch</span> ca
+0142       <span class="keyword">case</span> 1; fmdl.point_in_tet.algorithm = <span class="string">'do_point_in_tet_inequalities'</span>; 
+0143       <span class="keyword">case</span> 2; fmdl.point_in_tet.algorithm = <span class="string">'do_point_in_tet_triangulation'</span>; 
+0144       <span class="keyword">end</span>
+0145       str = [<span class="string">'3D test:'</span>, fmdl.point_in_tet.algorithm];
+0146       in=<a href="point_in_tet.html" class="code" title="function point2tet = point_in_tet(fmdl,points, epsilon, exclude_nodes)">point_in_tet</a>(fmdl,[x(:),y(:),z(:)],epsilon);
+0147       vv=[  38  45  44  35  27  20  21];
+0148       hh=[ 280 305 316 341 352 377 388];
+0149       in_=<a href="../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(vv,hh,1,length(x(:)),400);
+0150       <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(str,all(sum(in,2)&lt;=1), true);
+0151       <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(str,in(:,1:400),in_);
+0152 <span class="comment">%     disp( in(:,1:400) )</span>
+0153    <span class="keyword">end</span>
+0154 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

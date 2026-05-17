@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of set_predef_stim</title>
+  <meta name="keywords" content="set_predef_stim">
+  <meta name="description" content="SET_PREDEF_STIM">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">models</a> &gt; <a href="index.html">private</a> &gt; set_predef_stim.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models/private&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>set_predef_stim
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>SET_PREDEF_STIM</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function mdl = set_predef_stim(mdl, stimpat) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> SET_PREDEF_STIM 
+ Common helper function to configure electrodes and stim pattern on thorax
+ models.
+
+ See also: MK_THORAX_MODEL_GRYCHTOL2016a, MK_THORAX_MODEL_BP3D</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../../eidors/models/mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/models/mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>	MK_HEAD_MODEL_ADULT Adult head model</li><li><a href="../../../eidors/models/mk_thorax_model_bp3d.html" class="code" title="function out = mk_thorax_model_bp3d(varargin)">mk_thorax_model_bp3d</a>	MK_THORAX_MODEL_BP3D Torso model based on BodyParts3D</li><li><a href="../../../eidors/models/mk_thorax_model_grychtol2016a.html" class="code" title="function img = mk_thorax_model_grychtol2016a(stimpat)">mk_thorax_model_grychtol2016a</a>	Builds the male thorax models from Grychtol, Müller and Adler (2016)</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function stim = get_stim_pattern(str)</a></li><li><a href="#_sub2" class="code">function ls = pattern_list</a></li><li><a href="#_sub3" class="code">function map = get_elec_map(str)</a></li><li><a href="#_sub4" class="code">function m = square32</a></li><li><a href="#_sub5" class="code">function m = oddeven32</a></li><li><a href="#_sub6" class="code">function m = ring32</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function mdl = set_predef_stim(mdl, stimpat)</a>
+0002 <span class="comment">% SET_PREDEF_STIM</span>
+0003 <span class="comment">% Common helper function to configure electrodes and stim pattern on thorax</span>
+0004 <span class="comment">% models.</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% See also: MK_THORAX_MODEL_GRYCHTOL2016a, MK_THORAX_MODEL_BP3D</span>
+0007 
+0008 <span class="comment">% (C) 2016-2024 Bartlomiej Grychtol. License: GPL version 2 or 3</span>
+0009 <span class="comment">% $Id: set_predef_stim.m 7002 2024-11-24 13:11:35Z aadler $</span>
+0010 
+0011 <span class="keyword">if</span> strcmp(mdl.type, <span class="string">'image'</span>)
+0012    img = mdl;
+0013    mdl = img.fwd_model;
+0014 <span class="keyword">end</span>
+0015 
+0016 emap = <a href="#_sub3" class="code" title="subfunction map = get_elec_map(str)">get_elec_map</a>(stimpat);
+0017 mdl.electrode = mdl.electrode(emap);
+0018 stim = <a href="#_sub1" class="code" title="subfunction stim = get_stim_pattern(str)">get_stim_pattern</a>(stimpat);
+0019 mdl = <a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'set'</span>, mdl, <span class="string">'stimulation'</span>, stim); <span class="comment">% standard field order</span>
+0020 
+0021 <span class="keyword">if</span> exist(<span class="string">'img'</span>,<span class="string">'var'</span>)
+0022    img.fwd_model = mdl;
+0023    mdl = img;
+0024 <span class="keyword">end</span>
+0025 
+0026 
+0027 <span class="keyword">end</span>
+0028 
+0029 <a name="_sub1" href="#_subfunctions" class="code">function stim = get_stim_pattern(str)</a>
+0030    <span class="keyword">switch</span>(str)
+0031       <span class="keyword">case</span> <span class="string">'2x16_planar'</span>
+0032          stim = <a href="../../../eidors/models/mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(32,1,[0 6],[0 6],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},1);
+0033       <span class="keyword">case</span> {<span class="string">'2x16_odd-even'</span>, <span class="string">'2x16_square'</span>, <span class="string">'1x32_ring'</span>}
+0034          stim = <a href="../../../eidors/models/mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(32,1,[0 5],[0 5],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},1);
+0035       <span class="keyword">case</span> <span class="string">'2x16_adjacent'</span>
+0036          stim = <a href="../../../eidors/models/mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(32,1,[0 1],[0 1],{<span class="string">'no_meas_current'</span>,<span class="string">'no_rotate_meas'</span>},1);  
+0037       <span class="keyword">otherwise</span>
+0038          error(<span class="string">'Stim pattern string not understood. Available strings are: \n%s'</span>, <span class="keyword">...</span>
+0039             sprintf(<span class="string">'%s\n'</span>, <a href="#_sub2" class="code" title="subfunction ls = pattern_list">pattern_list</a>));
+0040    <span class="keyword">end</span>
+0041 <span class="keyword">end</span>
+0042 
+0043 
+0044 <a name="_sub2" href="#_subfunctions" class="code">function ls = pattern_list</a>
+0045    ls = {
+0046       <span class="string">'2x16_planar'</span>
+0047       <span class="string">'2x16_odd-even'</span>
+0048       <span class="string">'2x16_square'</span>
+0049       <span class="string">'2x16_adjacent'</span>
+0050       <span class="string">'1x32_ring'</span>
+0051       };
+0052 <span class="keyword">end</span>
+0053 
+0054 <a name="_sub3" href="#_subfunctions" class="code">function map = get_elec_map(str)</a>
+0055 
+0056    <span class="keyword">switch</span> str
+0057       <span class="keyword">case</span> {<span class="string">'2x16_odd-even'</span>, <span class="string">'2x16_planar'</span>}
+0058          map = <a href="#_sub5" class="code" title="subfunction m = oddeven32">oddeven32</a>;
+0059       <span class="keyword">case</span> {<span class="string">'2x16_square'</span>, <span class="string">'2x16_adjacent'</span>}
+0060          map = <a href="#_sub4" class="code" title="subfunction m = square32">square32</a>;
+0061       <span class="keyword">case</span> <span class="string">'1x32_ring'</span>
+0062          map = <a href="#_sub6" class="code" title="subfunction m = ring32">ring32</a>;
+0063       <span class="keyword">otherwise</span>
+0064          error(<span class="string">'No such electrode map'</span>);
+0065    <span class="keyword">end</span>
+0066 <span class="keyword">end</span>
+0067 
+0068 <a name="_sub4" href="#_subfunctions" class="code">function m = square32</a>
+0069    o = [48 1 -48 1];
+0070    o = repmat(o,1,8);
+0071    m = zeros(1,32);
+0072    m(1) = 1;
+0073    <span class="keyword">for</span> i = 2:32
+0074       m(i) = m(i-1) + o(i-1);
+0075    <span class="keyword">end</span>
+0076 <span class="keyword">end</span>
+0077 
+0078 
+0079 <a name="_sub5" href="#_subfunctions" class="code">function m = oddeven32</a>
+0080    odd = 49:64; <span class="comment">% top layer</span>
+0081    even = 1:16; <span class="comment">% bottom layer</span>
+0082    m = [odd; even];
+0083    m = m(:)';
+0084 <span class="keyword">end</span>
+0085 
+0086 <a name="_sub6" href="#_subfunctions" class="code">function m = ring32</a>
+0087    m = 17:48;
+0088 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of num_lights</title>
+  <meta name="keywords" content="num_lights">
+  <meta name="description" content="NUM_LIGHTS return the number of light objects in an axes">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="#">graphics</a> &gt; <a href="index.html">matlab</a> &gt; num_lights.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/graphics/matlab&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>num_lights
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>NUM_LIGHTS return the number of light objects in an axes</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function N = num_lights(ax) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">NUM_LIGHTS return the number of light objects in an axes
+
+ NUM_LIGHTS() uses the current axes
+
+ NUM_LIGHTS(AX) uses specified axes AX
+
+ See also: LIGHT, CAMLIGHT</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="num_lights.html" class="code" title="function N = num_lights(ax)">num_lights</a>	NUM_LIGHTS return the number of light objects in an axes</li><li><a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="num_lights.html" class="code" title="function N = num_lights(ax)">num_lights</a>	NUM_LIGHTS return the number of light objects in an axes</li><li><a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function N = num_lights(ax)</a>
+0002 <span class="comment">%NUM_LIGHTS return the number of light objects in an axes</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% NUM_LIGHTS() uses the current axes</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% NUM_LIGHTS(AX) uses specified axes AX</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% See also: LIGHT, CAMLIGHT</span>
+0009 
+0010 
+0011 
+0012 <span class="comment">% (C) 2024 Bartek Grychtol.</span>
+0013 <span class="comment">% License: GPL version 2 or version 3</span>
+0014 <span class="comment">% $Id: num_lights.m 7124 2024-12-29 15:18:32Z aadler $</span>
+0015 
+0016 <span class="keyword">if</span> nargin == 1 &amp;&amp; ischar(ax) &amp;&amp; strcmp(ax,<span class="string">'UNIT_TEST'</span>), <a href="#_sub1" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>,<span class="keyword">end</span>
+0017 
+0018 <span class="keyword">if</span> nargin &lt; 1
+0019    ax = gca;
+0020 <span class="keyword">end</span>
+0021 ch = get(ax, <span class="string">'Children'</span>);
+0022 
+0023 
+0024 ver= <a href="../../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'interpreter_version'</span>);
+0025 <span class="keyword">if</span> ver.isoctave
+0026    <span class="comment">% children are scalar</span>
+0027    N = sum(strcmp(get(ch, <span class="string">'type'</span>), <span class="string">'light'</span>));
+0028 <span class="keyword">else</span>
+0029    N = 0;
+0030    <span class="keyword">for</span> i = 1:numel(ch)
+0031       N = N + isa(ch(i),<span class="string">'matlab.graphics.primitive.Light'</span>);
+0032    <span class="keyword">end</span>
+0033 <span class="keyword">end</span>
+0034 
+0035 <a name="_sub1" href="#_subfunctions" class="code">function do_unit_test</a>
+0036   clf
+0037   subplot(211)
+0038   plot(rand(5));
+0039   camlight(<span class="string">'left'</span>)
+0040   camlight(<span class="string">'right'</span>)
+0041   ax = gca;
+0042   <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'current axis'</span>, <a href="num_lights.html" class="code" title="function N = num_lights(ax)">num_lights</a>, 2);
+0043   subplot(212)
+0044   <a href="../../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'specific axis'</span>, <a href="num_lights.html" class="code" title="function N = num_lights(ax)">num_lights</a>(ax), 2);
+0045</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of merge_meshes</title>
+  <meta name="keywords" content="merge_meshes">
+  <meta name="description" content="MERGE_MESHES - merges two meshes sharing only boundary nodes">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; merge_meshes.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>merge_meshes
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MERGE_MESHES - merges two meshes sharing only boundary nodes</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function out = merge_meshes(M1, varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">MERGE_MESHES - merges two meshes sharing only boundary nodes
+ MERGE_MESHES(M1,M2,T) merges M2 in M1 using threshold T for 
+     detecting corresponding nodes. The meshes must not overlap.
+ MERGE_MESHES(M1,M2,M3,..., T) merges M2, M3, ... into M1 (sequentially)
+
+ Note that the boundaries of the separate meshes will only be
+ concatenated, as this visualises nicely. To calculate the correct
+ boundary use FIND_BOUNDARY.
+
+ See also FIND_BOUNDARY</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>	NG_MAKE_CYL_MODELS: create cylindrical models using netgen</li><li><a href="merge_meshes.html" class="code" title="function out = merge_meshes(M1, varargin)">merge_meshes</a>	MERGE_MESHES - merges two meshes sharing only boundary nodes</li><li><a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>	[srf, idx] = find_boundary(simp);</li><li><a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>	PROGRESS_MSG Progress messages and timing.</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="merge_meshes.html" class="code" title="function out = merge_meshes(M1, varargin)">merge_meshes</a>	MERGE_MESHES - merges two meshes sharing only boundary nodes</li><li><a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>	MK_HEAD_MODEL_ADULT Adult head model</li><li><a href="mk_thorax_model_bp3d.html" class="code" title="function out = mk_thorax_model_bp3d(varargin)">mk_thorax_model_bp3d</a>	MK_THORAX_MODEL_BP3D Torso model based on BodyParts3D</li><li><a href="place_elec_on_surf.html" class="code" title="function mdl2 = place_elec_on_surf(mdl,elec_pos, elec_spec,ng_opt_file, maxh)">place_elec_on_surf</a>	PLACE_ELEC_ON_SURF Place electrodes on the surface of a model</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function use = nodes_in_bounding_box(LIMnodes,Mnodes,th)</a></li><li><a href="#_sub2" class="code">function run_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = merge_meshes(M1, varargin)</a>
+0002 <span class="comment">%MERGE_MESHES - merges two meshes sharing only boundary nodes</span>
+0003 <span class="comment">% MERGE_MESHES(M1,M2,T) merges M2 in M1 using threshold T for</span>
+0004 <span class="comment">%     detecting corresponding nodes. The meshes must not overlap.</span>
+0005 <span class="comment">% MERGE_MESHES(M1,M2,M3,..., T) merges M2, M3, ... into M1 (sequentially)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Note that the boundaries of the separate meshes will only be</span>
+0008 <span class="comment">% concatenated, as this visualises nicely. To calculate the correct</span>
+0009 <span class="comment">% boundary use FIND_BOUNDARY.</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% See also FIND_BOUNDARY</span>
+0012 
+0013 <span class="comment">% (C) Bartlomiej Grychtol and Andy Adler, 2013-2024. Licence: GPL v2 or v3</span>
+0014 <span class="comment">% $Id: merge_meshes.m 6984 2024-11-14 20:24:35Z bgrychtol $</span>
+0015 
+0016 <span class="keyword">if</span> ischar(M1) &amp;&amp; strcmp(M1,<span class="string">'UNIT_TEST'</span>), <a href="#_sub2" class="code" title="subfunction run_unit_test">run_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0017 
+0018 <span class="keyword">if</span> nargin &lt; 3  || isstruct(varargin{end})
+0019    th = mean(std(M1.nodes))/length(M1.nodes);
+0020    shapes = varargin;
+0021 <span class="keyword">else</span>
+0022    th = varargin{end};
+0023    shapes = varargin(1:end-1);
+0024 <span class="keyword">end</span>
+0025 
+0026 <span class="keyword">if</span> ~isfield(M1, <span class="string">'mat_idx'</span>) || isempty(M1.mat_idx)
+0027    idx = 1:uint32(length(M1.elems));
+0028    M1.mat_idx = {idx(:)};
+0029 <span class="keyword">end</span>
+0030 
+0031 
+0032 out = M1;
+0033 out.elems = uint32(out.elems);
+0034 <span class="keyword">try</span> out.boundary = uint32(out.boundary); <span class="keyword">end</span>
+0035 <span class="keyword">if</span> ~isfield(out, <span class="string">'boundary'</span>) || isempty(out.boundary)
+0036    out.boundary = <a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(out);
+0037 <span class="keyword">end</span>
+0038    
+0039 
+0040 <span class="keyword">for</span> i = 1:length(shapes)
+0041     <span class="keyword">if</span> length(shapes) &gt; 1
+0042        msg = sprintf(<span class="string">'Merging mesh %d/%d ... '</span>,i,length(shapes));
+0043     <span class="keyword">else</span>
+0044        msg = <span class="string">'Merging meshes ... '</span>;
+0045     <span class="keyword">end</span>
+0046     <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(msg);
+0047     
+0048     M2 = shapes{i};
+0049     M2.elems = uint32(M2.elems);
+0050     <span class="keyword">try</span> M2.boundary = uint32(M2.boundary); <span class="keyword">end</span>
+0051 
+0052     <span class="keyword">if</span> ~isfield(M2, <span class="string">'boundary'</span>) || isempty(M2.boundary)
+0053         M2.boundary = <a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(M2);
+0054     <span class="keyword">end</span>
+0055     <span class="keyword">if</span> ~isfield(M2, <span class="string">'mat_idx'</span>) || isempty(M2.mat_idx)
+0056         M2.mat_idx = {1:uint32(length(M2.elems))};
+0057     <span class="keyword">end</span>
+0058     
+0059     <span class="keyword">if</span> size(out.elems,2) == 3 <span class="comment">% surface mesh</span>
+0060         B1 = unique(out.elems);
+0061     <span class="keyword">else</span>
+0062         B1 = unique(<a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(out));
+0063     <span class="keyword">end</span>
+0064     
+0065     <span class="keyword">if</span> size(M2.elems,2) == 3 <span class="comment">%surface mesh</span>
+0066         B2 = unique(M2.elems);
+0067     <span class="keyword">else</span>
+0068         B2 = unique(<a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(M2));
+0069     <span class="keyword">end</span>
+0070     
+0071     M1_num_nodes = uint32(size(out.nodes,1));
+0072     M2_num_nodes = uint32(size(M2.nodes,1));
+0073     
+0074     excl_B1 = ~<a href="#_sub1" class="code" title="subfunction use = nodes_in_bounding_box(LIMnodes,Mnodes,th)">nodes_in_bounding_box</a>(M2.nodes(B2,:), out.nodes(B1,:), th);
+0075     excl_B2 = ~<a href="#_sub1" class="code" title="subfunction use = nodes_in_bounding_box(LIMnodes,Mnodes,th)">nodes_in_bounding_box</a>(out.nodes(B1,:), M2.nodes(B2,:), th);
+0076     
+0077     <span class="keyword">if</span> nnz(excl_B1) == numel(B1) || nnz(excl_B2) == numel(B2)
+0078         out.nodes = [out.nodes; M2.nodes];
+0079         nodemap = M1_num_nodes + (1:M2_num_nodes);
+0080     <span class="keyword">else</span>
+0081         B1(excl_B1) = [];
+0082         B2(excl_B2) = [];
+0083         
+0084         bnd_nodes = false(size(M2.nodes,1),1);
+0085         bnd_nodes(B2) = true;
+0086         
+0087         <span class="comment">% add not-B2 to M1</span>
+0088         out.nodes = [out.nodes; M2.nodes(~bnd_nodes,:)];
+0089         <span class="comment">% build nodemap for B2</span>
+0090         nodemap = zeros(M2_num_nodes,1,<span class="string">'uint32'</span>);
+0091         nodemap(~bnd_nodes) = M1_num_nodes + (1:uint32(M2_num_nodes - length(B2)));
+0092         <span class="comment">% find closest points in B1</span>
+0093         
+0094         mem_use = 256 * 1024^2; <span class="comment">%MiB</span>
+0095         <span class="keyword">if</span> ispc || exist(<span class="string">'OCTAVE_VERSION'</span>,<span class="string">'builtin'</span>) &amp;&amp;  isunix
+0096            meminfo = memory;
+0097            mem_use = meminfo.MaxPossibleArrayBytes / 4;
+0098         <span class="keyword">end</span>
+0099         <span class="comment">% compute distance matrix in chunks to prevent exhausting memory</span>
+0100         chunk_sz = floor(mem_use / 8 / numel(B1)); <span class="comment">% mem_use / 8 bytes(double)</span>
+0101         n_chunks = ceil(numel(B2)/chunk_sz);
+0102         m = zeros(1,numel(B2));
+0103         p = zeros(1,numel(B2));
+0104         
+0105         <span class="keyword">for</span> c = 1:n_chunks
+0106             <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(c/n_chunks);
+0107             idx = ((c-1)*chunk_sz + 1) : min(c*chunk_sz, numel(B2));
+0108             D = (out.nodes(B1,1) - M2.nodes(B2(idx),1)').^2;
+0109             <span class="keyword">for</span> dim = 2:size(out.nodes,2)
+0110                 D = D + (out.nodes(B1,dim) - M2.nodes(B2(idx),dim)').^2;
+0111             <span class="keyword">end</span>
+0112             [m(idx), p(idx)] = min(D,[],1);
+0113         <span class="keyword">end</span>
+0114         
+0115         new_bnd_nodes = m &gt; th^2;
+0116         out.nodes = [out.nodes; M2.nodes(B2(new_bnd_nodes),:)];
+0117         nodemap(B2(new_bnd_nodes)) = max(M1_num_nodes, max(nodemap)) + (1:uint32(nnz(new_bnd_nodes)));
+0118         
+0119         B2(new_bnd_nodes) = [];
+0120         p(new_bnd_nodes) = [];
+0121         
+0122         nodemap(B2) = B1(p); 
+0123     <span class="keyword">end</span>
+0124     
+0125     M2.elems    = nodemap(M2.elems);
+0126     M2.boundary = nodemap(M2.boundary);
+0127     <span class="keyword">if</span> isfield(M2, <span class="string">'electrode'</span>)
+0128         <span class="keyword">for</span> e = 1:numel(M2.electrode)
+0129             <span class="keyword">try</span>
+0130             M2.electrode(e).nodes = nodemap(M2.electrode(e).nodes);
+0131             <span class="keyword">end</span>
+0132             <span class="keyword">try</span>
+0133             M2.electrode(e).faces = nodemap(M2.electrode(e).faces);
+0134             <span class="keyword">end</span>
+0135         <span class="keyword">end</span>
+0136     <span class="keyword">end</span>
+0137     LE = length(out.elems);
+0138     out.elems = [out.elems; M2.elems];
+0139     d1 = size(out.boundary, 2);
+0140     d2 = size(M2.boundary, 2);
+0141     <span class="keyword">if</span> d1 &lt; d2 <span class="comment">% out is 2D or surface mesh</span>
+0142        out.boundary = out.elems;
+0143     <span class="keyword">end</span>
+0144     <span class="keyword">if</span> d2 &lt; d1
+0145        M2.boundary = M2.elems;
+0146     <span class="keyword">end</span>
+0147     out.boundary = unique([out.boundary; M2.boundary], <span class="string">'rows'</span>);
+0148     <span class="keyword">if</span> isfield(M2, <span class="string">'electrode'</span>) &amp;&amp; isstruct(M2.electrode)
+0149         <span class="keyword">if</span> ~isfield(out, <span class="string">'electrode'</span>), out.electrode = []; <span class="keyword">end</span>
+0150         n = numel(out.electrode);
+0151         <span class="comment">% is there a better way to do this?</span>
+0152         fn = fieldnames(M2.electrode);
+0153         <span class="keyword">for</span> j = 1:numel(M2.electrode)
+0154             <span class="keyword">for</span> f = 1:numel(fn)
+0155                 out.electrode(n+j).(fn{f}) =  M2.electrode(j).(fn{f});
+0156             <span class="keyword">end</span>
+0157         <span class="keyword">end</span>
+0158     <span class="keyword">end</span>
+0159     <span class="keyword">for</span> j = 1:numel(M2.mat_idx)
+0160         out.mat_idx{end+1} = LE+M2.mat_idx{j};
+0161     <span class="keyword">end</span>
+0162     <a href="../../eidors/tools/progress_msg.html" class="code" title="function progress_msg(varargin)">progress_msg</a>(Inf);
+0163 <span class="keyword">end</span>
+0164 
+0165 <span class="comment">% standard field order</span>
+0166 out = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'fwd_model'</span>, out);
+0167 
+0168 <a name="_sub1" href="#_subfunctions" class="code">function use = nodes_in_bounding_box(LIMnodes,Mnodes,th)</a>
+0169    <span class="comment">% limit to nodes in M1 that are within the bounding box of M2</span>
+0170    maxLIM = max(LIMnodes)+th;
+0171    minLIM = min(LIMnodes)-th;
+0172    use = true(length(Mnodes),1);
+0173    <span class="keyword">for</span> i = 1:size(Mnodes,2)
+0174       use = use &amp; Mnodes(:,i) &lt; maxLIM(i) &amp; Mnodes(:,i) &gt; minLIM(i);
+0175    <span class="keyword">end</span>
+0176 
+0177 <a name="_sub2" href="#_subfunctions" class="code">function run_unit_test</a>
+0178 subplot(221)
+0179 cyl = <a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>(3,[0],[]);
+0180 <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(cyl)
+0181 
+0182 subplot(222)
+0183 top_nodes = cyl.nodes(:,3)&gt;=1.5;
+0184 top_elems = sum(top_nodes(cyl.elems),2)==4;
+0185 top.elems = cyl.elems(top_elems,:);
+0186 nds = unique(top.elems);
+0187 map = zeros(1,length(cyl.nodes));
+0188 map(nds) = 1:length(nds);
+0189 top.elems = map(top.elems);
+0190 top.nodes = cyl.nodes(nds,:);
+0191 top.type = <span class="string">'fwd_model'</span>;
+0192 top.boundary = <a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(top);
+0193 <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(top)
+0194 zlim([0 3]);
+0195 
+0196 subplot(223)
+0197 bot_elems = ~top_elems;
+0198 bot.elems = cyl.elems(bot_elems,:);
+0199 nds = unique(bot.elems);
+0200 map = zeros(1,length(cyl.nodes));
+0201 map(nds) = 1:length(nds);
+0202 bot.elems = map(bot.elems);
+0203 bot.nodes = cyl.nodes(nds,:);
+0204 bot.type = <span class="string">'fwd_model'</span>;
+0205 bot.boundary = <a href="../../eidors/solvers/forward/find_boundary.html" class="code" title="function [srf, idx] = find_boundary(simp);">find_boundary</a>(bot);
+0206 <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(bot)
+0207 zlim([0 3]);
+0208 
+0209 
+0210 subplot(224)
+0211 M = <a href="merge_meshes.html" class="code" title="function out = merge_meshes(M1, varargin)">merge_meshes</a>(bot, top);
+0212 <a href="../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(M);
+0213 
+0214 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Number of nodes'</span>,length(cyl.nodes), length(M.nodes),0);
+0215 <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Number of elems'</span>,length(cyl.elems), length(M.elems),0);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

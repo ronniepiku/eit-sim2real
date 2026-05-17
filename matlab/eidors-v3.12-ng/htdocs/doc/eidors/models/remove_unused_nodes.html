@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of remove_unused_nodes</title>
+  <meta name="keywords" content="remove_unused_nodes">
+  <meta name="description" content="REMOVE_UNUSED_NODES: identify and remove unused nodes in model">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; remove_unused_nodes.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>remove_unused_nodes
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>REMOVE_UNUSED_NODES: identify and remove unused nodes in model</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function fmdl = remove_unused_nodes( fmdl, elec_opt ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> REMOVE_UNUSED_NODES: identify and remove unused nodes in model
+ Usage: 
+ fmdl = REMOVE_UNUSED_NODES( fmdl );
+ fmdl = REMOVE_UNUSED_NODES( fmdl, elec_opt) specifies behavior for empty
+ electrodes: 
+   'warn'      - (default) warns about empty electrodes, but keeps them
+   'keep'      - quietly keeps empty electrodes
+   'remove'    - quetly removes empty electrodes
+   'quiet'     - don't warn about changes to electrodes
+ 
+ See also REMOVE_NODES, REMOVE_ELEMS, CROP_MODEL</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>	EIDORS_MSG eidors progress and status messages</li><li><a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>	NUM_ELECS: number of electrodes attached to model</li><li><a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>	NUM_ELEMS: number of elemnts in a (fwd or inv model or image)</li><li><a href="num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>	NUM_NODES: number of elemnts in a (fwd or inv model or image)</li><li><a href="remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>	REMOVE_UNUSED_NODES: identify and remove unused nodes in model</li><li><a href="../../eidors/tools/eidors_debug.html" class="code" title="function out = eidors_debug(command, fstr)">eidors_debug</a>	EIDORS_DEBUG Global managment of debug flags</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/meshing/mat_idx_to_electrode.html" class="code" title="function [fmdl,rm_elems] = mat_idx_to_electrode(fmdl, mat_idxes)">mat_idx_to_electrode</a>	MAT_IDX_TO_ELECTRODE: create electrodes from mat_idx values</li><li><a href="../../eidors/meshing/remove_elems.html" class="code" title="function [fmdl, c2f_idx] = remove_elems(fmdl, idx, elec_opt)">remove_elems</a>	REMOVE_ELEMS   Remove nodes from a fwd_model.</li><li><a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>	MK_HEAD_MODEL_ADULT Adult head model</li><li><a href="remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>	REMOVE_UNUSED_NODES: identify and remove unused nodes in model</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function mat = remap(nidx,mat)</a></li><li><a href="#_sub2" class="code">function fmdl = assign_new_gnd_node( fmdl );</a></li><li><a href="#_sub3" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function fmdl = remove_unused_nodes( fmdl, elec_opt )</a>
+0002 <span class="comment">% REMOVE_UNUSED_NODES: identify and remove unused nodes in model</span>
+0003 <span class="comment">% Usage:</span>
+0004 <span class="comment">% fmdl = REMOVE_UNUSED_NODES( fmdl );</span>
+0005 <span class="comment">% fmdl = REMOVE_UNUSED_NODES( fmdl, elec_opt) specifies behavior for empty</span>
+0006 <span class="comment">% electrodes:</span>
+0007 <span class="comment">%   'warn'      - (default) warns about empty electrodes, but keeps them</span>
+0008 <span class="comment">%   'keep'      - quietly keeps empty electrodes</span>
+0009 <span class="comment">%   'remove'    - quetly removes empty electrodes</span>
+0010 <span class="comment">%   'quiet'     - don't warn about changes to electrodes</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% See also REMOVE_NODES, REMOVE_ELEMS, CROP_MODEL</span>
+0013 
+0014 <span class="comment">% (C) 2019 Andy Adler. License: GPL v2 or v3. $Id: remove_unused_nodes.m 7014 2024-11-27 09:07:51Z bgrychtol $</span>
+0015 
+0016    <span class="keyword">if</span> ischar(fmdl) &amp;&amp; strcmp(fmdl,<span class="string">'UNIT_TEST'</span>); <a href="#_sub3" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0017 
+0018    <span class="keyword">if</span> nargin &lt; 2 || isempty(elec_opt), elec_opt = <span class="string">'warn'</span>; <span class="keyword">end</span>
+0019    quiet = strcmp(elec_opt, <span class="string">'quiet'</span>);
+0020    rm_elec = strcmp(elec_opt, <span class="string">'remove'</span>);
+0021    keep = strcmp(elec_opt, <span class="string">'keep'</span>);
+0022 
+0023    <span class="keyword">if</span> <a href="num_elems.html" class="code" title="function num = num_elems( mdl );">num_elems</a>(fmdl)==0; <span class="keyword">return</span>; <span class="keyword">end</span>; <span class="comment">% don't operate on pathalogical models</span>
+0024 
+0025    usednodes = unique(fmdl.elems(:));
+0026    <span class="keyword">if</span> max(usednodes) &gt; <a href="num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(fmdl)
+0027       error(<span class="string">'remove_unused_nodes: more nodes are used than exist'</span>);
+0028    <span class="keyword">end</span>
+0029    fmdl0 = fmdl;
+0030    nidx = zeros(<a href="num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(fmdl),1);
+0031    nidx(usednodes) = 1:length(usednodes);
+0032    fmdl.nodes(nidx==0,:) = [];
+0033    fmdl.elems = <a href="#_sub1" class="code" title="subfunction mat = remap(nidx,mat)">remap</a>(nidx, fmdl.elems);
+0034 
+0035    elecs_changed = false([1 <a href="num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmdl)]);
+0036    elecs_removed = false([1 <a href="num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmdl)]); <span class="comment">% all nodes/faces removed</span>
+0037    <span class="keyword">for</span> i=1:<a href="num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmdl)
+0038       fmdl.electrode(i).nodes =  <a href="#_sub1" class="code" title="subfunction mat = remap(nidx,mat)">remap</a>(nidx, fmdl.electrode(i).nodes);
+0039       removed = fmdl.electrode(i).nodes == 0;
+0040       elecs_changed(i) = any(removed);
+0041       fmdl.electrode(i).nodes( removed ) = [];
+0042       <span class="comment">% if we had many nodes and less than 3 are left, delete them</span>
+0043       <span class="keyword">if</span> numel(fmdl.electrode(i).nodes) &lt; 3 &amp;&amp; any(removed)
+0044          fmdl.electrode(i).nodes = [];
+0045       <span class="keyword">end</span>
+0046       elec_empty = isempty(fmdl.electrode(i).nodes);
+0047       <span class="keyword">if</span> isfield(fmdl.electrode(i),<span class="string">'faces'</span>)
+0048           fmdl.electrode(i).faces =  <a href="#_sub1" class="code" title="subfunction mat = remap(nidx,mat)">remap</a>(nidx, fmdl.electrode(i).faces);
+0049           removed = any(fmdl.electrode(i).faces== 0,2);
+0050           fmdl.electrode(i).faces(removed,:) = [];
+0051           elec_empty= elec_empty &amp;&amp; isempty(fmdl.electrode(i).faces);
+0052       <span class="keyword">end</span>
+0053       <span class="keyword">if</span> elec_empty
+0054          elecs_removed(i) = true;
+0055          <span class="keyword">if</span> <a href="../../eidors/tools/eidors_debug.html" class="code" title="function out = eidors_debug(command, fstr)">eidors_debug</a>(<span class="string">'query'</span>, <span class="string">'remove_unused_nodes'</span>)
+0056             <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'Zeros in electrode #%d nodes and faces. Often this means parts of the model are disconnected.'</span>,i,1);
+0057             keyboard
+0058          <span class="keyword">end</span>
+0059       <span class="keyword">end</span>
+0060 
+0061    <span class="keyword">end</span>
+0062    <span class="keyword">if</span> any(elecs_removed)
+0063       <span class="keyword">if</span> rm_elec
+0064          fmdl.electrode(elecs_removed) = [];
+0065          <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'@@ removed electrode(s) # %s'</span>, num2str(find(elecs_removed)),1);
+0066       <span class="keyword">else</span>
+0067          <span class="keyword">if</span> ~keep &amp;&amp; ~quiet
+0068             warning(<span class="string">'EIDORS:ElecEmpty'</span>, [<span class="string">'Empty electrodes(s) # %s.\n'</span> <span class="keyword">...</span>
+0069                <span class="string">'Set eidors_debug(''on'', ''remove_unused_electrodes'') to debug or\n'</span> <span class="keyword">...</span>
+0070                <span class="string">'set elec_opt to ''keep'' or ''quiet'' to suppress.'</span>], <span class="keyword">...</span>
+0071                num2str(find(elecs_removed)))
+0072          <span class="keyword">end</span>
+0073          <span class="keyword">if</span> keep
+0074             <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'@@ created empty electrode(s) # %s'</span>, num2str(find(elecs_removed)),1);
+0075          <span class="keyword">end</span>
+0076       <span class="keyword">end</span>
+0077       elecs_changed(elecs_removed) = false; <span class="comment">% don't warn twice</span>
+0078    <span class="keyword">end</span>
+0079    <span class="keyword">if</span> ~quiet &amp;&amp; ~keep &amp;&amp; any(elecs_changed)
+0080       warning(<span class="string">'EIDORS:ElecChange'</span>, <span class="keyword">...</span>
+0081          <span class="string">'Removed parts of electrode(s) # %s.'</span>, num2str(find(elecs_changed)));
+0082    <span class="keyword">end</span>
+0083 <span class="comment">%  fmdl.boundary = find_boundary(fmdl);</span>
+0084    <span class="keyword">if</span> isfield(fmdl, <span class="string">'boundary'</span>)
+0085       fmdl.boundary = <a href="#_sub1" class="code" title="subfunction mat = remap(nidx,mat)">remap</a>(nidx, fmdl.boundary);
+0086       fmdl.boundary(any(fmdl.boundary==0,2),:) = [];
+0087    <span class="keyword">end</span>
+0088    <span class="keyword">if</span> isfield(fmdl, <span class="string">'gnd_node'</span>)
+0089       fmdl.gnd_node = nidx(fmdl.gnd_node);
+0090       <span class="keyword">if</span> fmdl.gnd_node == 0 <span class="comment">%% New gnd node if missing</span>
+0091          fmdl = <a href="#_sub2" class="code" title="subfunction fmdl = assign_new_gnd_node( fmdl );">assign_new_gnd_node</a>( fmdl );
+0092       <span class="keyword">end</span>
+0093    <span class="keyword">end</span>
+0094 
+0095 <span class="comment">%  fmdl.elems = reshape(nidx(fmdl.elems),[],size(fmdl.elems,2));</span>
+0096 <a name="_sub1" href="#_subfunctions" class="code">function mat = remap(nidx,mat)</a>
+0097    mat = reshape(nidx(mat),size(mat));
+0098 
+0099 <a name="_sub2" href="#_subfunctions" class="code">function fmdl = assign_new_gnd_node( fmdl );</a>
+0100    <a href="../../eidors/eidors_msg.html" class="code" title="function log_level = eidors_msg( message, varargin )">eidors_msg</a>(<span class="string">'FEM_ELECTRODE: Lost ground node =&gt; replacing'</span>,1);
+0101    d2 = sum((fmdl.nodes - repmat(mean(fmdl.nodes, 1), size(fmdl.nodes, 1), 1)).^2,2);
+0102    [~,fmdl.gnd_node] = min(d2);
+0103 
+0104 <a name="_sub3" href="#_subfunctions" class="code">function do_unit_test</a>
+0105    fmdl = getfield(<a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'a2c2'</span>,4),<span class="string">'fwd_model'</span>);
+0106    fmdl.elems(1:4,:) = [];
+0107    fmdl = <a href="remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>(fmdl);
+0108 
+0109    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'nodes'</span>,size(fmdl.nodes),[40,2]);
+0110    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'elems'</span>,size(fmdl.elems),[60,3]);
+0111    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'ground'</span>,fmdl.gnd_node,3);
+0112    
+0113    idx = any(fmdl.elems == fmdl.electrode(1).nodes,2);
+0114    fmdl.elems(idx,:) = []; <span class="comment">% remove all elements using that node</span>
+0115    warning(<span class="string">'off'</span>,<span class="string">'EIDORS:ElecEmpty'</span>)
+0116    fmdl = <a href="remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>(fmdl);
+0117    [~, id] = lastwarn;
+0118    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'empty warn'</span>, id, <span class="string">'EIDORS:ElecEmpty'</span>)
+0119    warning(<span class="string">'on'</span>, <span class="string">'EIDORS:ElecEmpty'</span>)
+0120    
+0121    fmdl = getfield(<a href="mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]), <span class="string">'fwd_model'</span>);
+0122    idx = any(fmdl.elems == fmdl.electrode(1).nodes(1),2);
+0123    fmdl.elems(idx,:) = []; <span class="comment">% remove all elements using that node</span>
+0124    warning(<span class="string">'off'</span>,<span class="string">'EIDORS:ElecChange'</span>)
+0125    fmdl = <a href="remove_unused_nodes.html" class="code" title="function fmdl = remove_unused_nodes( fmdl, elec_opt )">remove_unused_nodes</a>(fmdl);
+0126    [~, id] = lastwarn;
+0127    <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'change warn'</span>, id, <span class="string">'EIDORS:ElecChange'</span>)
+0128    warning(<span class="string">'on'</span>, <span class="string">'EIDORS:ElecChange'</span>)</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

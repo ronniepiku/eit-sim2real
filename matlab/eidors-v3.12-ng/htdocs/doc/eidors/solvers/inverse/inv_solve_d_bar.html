@@ -1,0 +1,333 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of inv_solve_d_bar</title>
+  <meta name="keywords" content="inv_solve_d_bar">
+  <meta name="description" content="D-Bar reconstruction">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">solvers</a> &gt; <a href="index.html">inverse</a> &gt; inv_solve_d_bar.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/solvers/inverse&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>inv_solve_d_bar
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>D-Bar reconstruction</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function img = inv_solve_d_bar(inv_model, data1, data2) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">D-Bar reconstruction
+inv_model is an inverse model
+ data1 is the inhomogene data
+ data2 is backgounrd of 1 S/m</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="../../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>	NG_MAKE_CYL_MODELS: create cylindrical models using netgen</li><li><a href="../../../eidors/models/interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>	INTERP_MESH: calculate interpolation points onto mdl elements</li><li><a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="../../../eidors/models/mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li><li><a href="../../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>	NUM_ELECS: number of electrodes attached to model</li><li><a href="../../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>	FWD_SOLVE: calculate data from a fwd_model object and an image</li><li><a href="../../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>	INV_SOLVE: calculate imag from an inv_model and data</li><li><a href="dirichlet_neumann_difference.html" class="code" title="function del_L = dirichlet_neumann_difference(fmdl,data1,data2);">dirichlet_neumann_difference</a>	TODO:</li><li><a href="../../../eidors/tools/citeme.html" class="code" title="function citeme(fname)">citeme</a>	CITEME Display citation requests</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function stim_pattern_mat = create_stim_pattern_matrix(fmdl)</a></li><li><a href="#_sub2" class="code">function elec_pos_angle = get_elec_pos_angle(fmdl)</a></li><li><a href="#_sub3" class="code">function B = padarray_EIDORS(A,padsize,padval,direction)</a></li><li><a href="#_sub4" class="code">function [conductivity] = get_conductivity(mu)</a></li><li><a href="#_sub5" class="code">function [fmdl, inv_model] = mk_dbar_model(num_electrs)</a></li><li><a href="#_sub6" class="code">function result = DB_oper_demyst(sol, M, rad_idx_dbar, num_pts_in_R, h, G_bar_fft, TR)</a></li><li><a href="#_sub7" class="code">function test_d_bar</a></li><li><a href="#_sub8" class="code">function img_out = set_test_target(img)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function img = inv_solve_d_bar(inv_model, data1, data2)</a>
+0002 <span class="comment">%D-Bar reconstruction</span>
+0003 <span class="comment">%inv_model is an inverse model</span>
+0004 <span class="comment">% data1 is the inhomogene data</span>
+0005 <span class="comment">% data2 is backgounrd of 1 S/m</span>
+0006 
+0007 <span class="comment">% (C) 2023 Joeran Rixen. Licensed under GPL version 2 or 3</span>
+0008 
+0009 <span class="comment">%</span>
+0010 <span class="comment">% CITATION_REQUEST:</span>
+0011 <span class="comment">% AUTHOR: Rixen et al.</span>
+0012 <span class="comment">% TITLE: The D-Bar Algorithm Fusing Electrical Impedance Tomography</span>
+0013 <span class="comment">% with A Priori Radar Data: A Hands-On Analysis</span>
+0014 <span class="comment">% JOURNAL: Algorithms</span>
+0015 <span class="comment">% VOL: 16</span>
+0016 <span class="comment">% NUM: 1</span>
+0017 <span class="comment">% YEAR: 2023</span>
+0018 <span class="comment">% LINK: https://doi.org/10.3390/a16010043</span>
+0019 <span class="comment">% DOI: 10.3390/a16010043</span>
+0020 
+0021 <span class="comment">% TODO:</span>
+0022 <span class="comment">% - remove elec_area hardcode</span>
+0023 <span class="comment">% - tests for different stimulation patterns</span>
+0024 <span class="comment">% - see how to remove stim_pattern_mat</span>
+0025 
+0026 
+0027     <span class="keyword">if</span> ischar(inv_model) &amp;&amp; strcmp(inv_model,<span class="string">'UNIT_TEST'</span>); <a href="#_sub7" class="code" title="subfunction test_d_bar">test_d_bar</a>; <span class="keyword">return</span>; <span class="keyword">end</span>
+0028 
+0029     <a href="../../../eidors/tools/citeme.html" class="code" title="function citeme(fname)">citeme</a>(mfilename);
+0030 
+0031     fmdl = inv_model.fwd_model;
+0032     n_elec = <a href="../../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmdl);
+0033     
+0034     <span class="keyword">try</span>
+0035         trunc_rad = inv_model.hyperparameter.truncation_radius;
+0036         grid_size = inv_model.hyperparameter.grid_size;
+0037     <span class="keyword">catch</span>
+0038         error(<span class="string">'This does not look like a valid d-bar model!'</span>)
+0039     <span class="keyword">end</span>
+0040 
+0041     <span class="comment">%% Calculations regarding the Dirichlet to Neumann map</span>
+0042     stim_pattern_mat = <a href="#_sub1" class="code" title="subfunction stim_pattern_mat = create_stim_pattern_matrix(fmdl)">create_stim_pattern_matrix</a>(fmdl);
+0043     stim_pattern_mat = stim_pattern_mat./sqrt(sum(stim_pattern_mat.^2,1));
+0044 
+0045     <span class="comment">%% Calculations regarding the scattering transformation</span>
+0046     elec_pos_angle = <a href="#_sub2" class="code" title="subfunction elec_pos_angle = get_elec_pos_angle(fmdl)">get_elec_pos_angle</a>(fmdl);
+0047     
+0048     <span class="comment">%compute the grid size</span>
+0049     M = 2^grid_size;
+0050     <span class="comment">%step size between each point in K</span>
+0051     stepsize_grid = 2*trunc_rad/(M - 1);
+0052     grid_base_vec = [-trunc_rad:stepsize_grid:trunc_rad];
+0053     [K_x, K_y] = meshgrid(grid_base_vec);
+0054     <span class="comment">%creation of K</span>
+0055     K = K_x + 1i*K_y;
+0056     <span class="comment">%boolean mask of which points are actually inside the truncation radius</span>
+0057     K_inside_R = K( abs(K) &lt; trunc_rad);
+0058     
+0059     del_L = <a href="dirichlet_neumann_difference.html" class="code" title="function del_L = dirichlet_neumann_difference(fmdl,data1,data2);">dirichlet_neumann_difference</a>(fmdl,data1,data2);
+0060     
+0061     <span class="comment">%computation of the scattering transform</span>
+0062     t_aporx = zeros(length(K_inside_R),1);
+0063     <span class="keyword">for</span> i = 1:length(K_inside_R)
+0064         k = K_inside_R(i);
+0065         c_k = (full(stim_pattern_mat))'*exp(1i*k*exp(1i*elec_pos_angle));<span class="comment">%%electrode_pos</span>
+0066         d_k = (full(stim_pattern_mat))'*exp(1i*conj(k)*conj(exp(1i*elec_pos_angle)));
+0067     
+0068         t_aporx(i) = conj(d_k)'*(del_L*c_k);
+0069     <span class="keyword">end</span>
+0070     
+0071     <span class="comment">%% Setting up of the calculations for solving the D-Bar equation</span>
+0072     <span class="comment">%calculation of the slightly larger Grid Q (comapred to K) for the Greens function</span>
+0073     begin_Q = trunc_rad*((2*M - 1)/(M - 1));
+0074     grid_vec_Q = [-begin_Q:2*trunc_rad/(M-1):begin_Q];
+0075     [Q_x, Q_y] = meshgrid(grid_vec_Q);
+0076     Q = Q_x + 1i*Q_y;
+0077     
+0078     <span class="comment">% factor that decides how big the smoothing zone outside of R is</span>
+0079     smooth_zone_factor = 1/4;
+0080     <span class="comment">% calcualte G bar</span>
+0081     G_bar = 1./(pi*Q);
+0082     <span class="comment">% set everything to 0 outisde the smoothing zone</span>
+0083     G_bar(abs(Q) &gt; trunc_rad*(2 + smooth_zone_factor)) = 0;
+0084     <span class="comment">% get index of the smoothing zone</span>
+0085     smooth_zone = abs(Q) &gt; trunc_rad*(2) &amp; abs(Q) &lt; trunc_rad*(2 + smooth_zone_factor);
+0086     <span class="comment">% apply the smoothing (in this case linear) to G_bar</span>
+0087     G_bar(smooth_zone) = G_bar(smooth_zone).*((trunc_rad*(2 + smooth_zone_factor) - abs(Q(smooth_zone)))/(trunc_rad*smooth_zone_factor));
+0088     
+0089     <span class="comment">% make the scattering transform compatible to the larger grid Q</span>
+0090     scat = zeros(size(K));
+0091     rad_idx = abs(K) &lt; trunc_rad;
+0092     scat(rad_idx) = t_aporx;
+0093     scat = <a href="#_sub3" class="code" title="subfunction B = padarray_EIDORS(A,padsize,padval,direction)">padarray_EIDORS</a>(scat, [M/2 M/2], 0, <span class="string">'both'</span>);
+0094     
+0095     <span class="comment">% use the FFT trick by Mueller and Siltanen</span>
+0096     <span class="comment">%(due to Matlabs indexing fftshift is needed before apllying fft2)</span>
+0097     G_bar_fft = fft2(fftshift(G_bar));
+0098     
+0099     <span class="comment">% calcualte the first part of T (this is independnt of the location z)</span>
+0100     T_R_first = scat./(4*pi*conj(Q));
+0101     
+0102     
+0103     <span class="comment">% Stuff needed for the computation, this is not directly related to the D-Bar algorithm</span>
+0104     <span class="comment">% index of which vlaues are inside R</span>
+0105     rad_idx_dbar = abs(Q) &lt; trunc_rad;
+0106     <span class="comment">% number of points inside R</span>
+0107     num_pts_in_R = sum(rad_idx_dbar(:));
+0108     
+0109     <span class="comment">% Construct right hand side of the Dbar equation as the initial guess</span>
+0110     right_side_eq = [ones(num_pts_in_R,1);zeros(num_pts_in_R,1)];
+0111     
+0112     recon_cords = <a href="../../../eidors/models/interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>(fmdl);
+0113     <span class="comment">% transform the reconstruction points into complex coordiantes</span>
+0114     recon_pts = recon_cords(:, 1) + 1i*recon_cords(:, 2);
+0115     num_rec_pts  = length(recon_pts);
+0116     
+0117     mu_final = ones(num_rec_pts,1);
+0118     iniguess = [ones(num_pts_in_R,1);zeros(num_pts_in_R,1)];
+0119     
+0120     
+0121     middle_val = size(T_R_first, 1)/2;
+0122     <span class="comment">% When you have the parralel computation toolkit feel free to use parfor instead of for</span>
+0123     <span class="keyword">for</span> iii = 1:num_rec_pts
+0124         <span class="comment">% get positions for recosntruction</span>
+0125         z = recon_pts(iii);
+0126     
+0127         <span class="comment">% multiplicator for the D-Bar function</span>
+0128         T_R = T_R_first.*(exp(-1i*(Q*z+conj(Q*z))));
+0129     
+0130         <span class="comment">% Solve D-Bar equation; Note that instead of a matrix a function is</span>
+0131         <span class="comment">% given, the input aargument for that function follow after the</span>
+0132         <span class="comment">% second []</span>
+0133         [sol, ~] = gmres(@<a href="#_sub6" class="code" title="subfunction result = DB_oper_demyst(sol, M, rad_idx_dbar, num_pts_in_R, h, G_bar_fft, TR)">DB_oper_demyst</a>, right_side_eq, 40, 1e-4, 450, [], [], iniguess, M*2, rad_idx_dbar, num_pts_in_R, 2*trunc_rad/(M - 1), G_bar_fft, T_R);
+0134     
+0135         <span class="comment">%use sol to get mu for the recosntruction</span>
+0136         mu = zeros(size(Q));
+0137         mu(rad_idx_dbar) = sol(1:num_pts_in_R) + 1i*sol((num_pts_in_R+1):end);
+0138     
+0139         <span class="comment">% get mu from interpolation of the center</span>
+0140         mu_final(iii) = mean([mu(middle_val,middle_val), mu(middle_val+1,middle_val), mu(middle_val, middle_val+1), mu(middle_val+1, middle_val+1)]);
+0141     
+0142     <span class="keyword">end</span>
+0143     img = struct;
+0144     img.name= [<span class="string">'solved by D-Bar'</span>];
+0145     img.elem_data = <a href="#_sub4" class="code" title="subfunction [conductivity] = get_conductivity(mu)">get_conductivity</a>(mu_final);
+0146     img.fwd_model= fmdl;
+0147 <span class="keyword">end</span>
+0148 
+0149 
+0150 <a name="_sub1" href="#_subfunctions" class="code">function stim_pattern_mat = create_stim_pattern_matrix(fmdl)</a>
+0151     <span class="comment">% converts the stimpattern in the model into matrix form for ease of</span>
+0152     <span class="comment">% computation</span>
+0153     n_elec = length(fmdl.electrode);
+0154     stim_pattern_mat = zeros(n_elec, n_elec-1);
+0155     
+0156     <span class="keyword">for</span> i = 1:n_elec-1
+0157         stim_pattern_mat(:, i) = full(fmdl.stimulation(i).stim_pattern);
+0158     <span class="keyword">end</span>
+0159 <span class="keyword">end</span>
+0160 
+0161 <a name="_sub2" href="#_subfunctions" class="code">function elec_pos_angle = get_elec_pos_angle(fmdl)</a>
+0162     <span class="comment">% calculates the position of the electrodes with respect to it's angle</span>
+0163     n_elec = length(fmdl.electrode);
+0164     elec_pos_cart = zeros(n_elec, 2);
+0165     
+0166     <span class="keyword">for</span> i = 1:n_elec
+0167         elec_pos_cart(i, :) = [mean(fmdl.nodes(fmdl.electrode(i).nodes, 1)), mean(fmdl.nodes(fmdl.electrode(i).nodes, 2))];
+0168     <span class="keyword">end</span>
+0169     
+0170     elec_pos_cart = [elec_pos_cart(:, 1) - mean(elec_pos_cart(:, 1)), elec_pos_cart(:, 2) - mean(elec_pos_cart(:, 2))];
+0171     
+0172     elec_pos_angle = atan2(elec_pos_cart(:, 2), elec_pos_cart(:, 1));
+0173     
+0174     elec_pos_angle(elec_pos_angle &lt; 0) = elec_pos_angle(elec_pos_angle &lt; 0) + 2*pi;
+0175 <span class="keyword">end</span>
+0176 
+0177 <a name="_sub3" href="#_subfunctions" class="code">function B = padarray_EIDORS(A,padsize,padval,direction)</a>
+0178 <span class="comment">% padarray function is not availabe in standard matlan.</span>
+0179     <span class="keyword">if</span> nargin &lt; 4
+0180         direction = <span class="string">'both'</span>;
+0181     <span class="keyword">end</span>
+0182     <span class="keyword">if</span> nargin &lt; 3
+0183         padval = 0;
+0184     <span class="keyword">end</span>
+0185     <span class="keyword">if</span> strcmp(direction,<span class="string">'both'</span>)
+0186         B = padval*ones(size(A)+2*padsize);
+0187         B(padsize(1)+1:end-padsize(1),padsize(2)+1:end-padsize(2)) = A;
+0188     <span class="keyword">elseif</span> strcmp(direction,<span class="string">'pre'</span>)
+0189         B = padval*ones(size(A)+padsize);
+0190         B(padsize(1)+1:<span class="keyword">end</span>,padsize(2)+1:end) = A;
+0191     <span class="keyword">elseif</span> strcmp(direction,<span class="string">'post'</span>)
+0192         B = padval*ones(size(A)+padsize);
+0193         B(1:size(A,1),1:size(A,2)) = A;
+0194     <span class="keyword">end</span>
+0195 <span class="keyword">end</span>
+0196 
+0197 <a name="_sub4" href="#_subfunctions" class="code">function [conductivity] = get_conductivity(mu)</a>
+0198     <span class="comment">%computes the conductivty from the solution of the D-Bar equation:</span>
+0199     
+0200     <span class="comment">%mu &lt;number of points to reconstruct&gt;:</span>
+0201     <span class="comment">%solution of the D-Bar equation</span>
+0202     
+0203     conductivity = real(mu.^2);
+0204 <span class="keyword">end</span>
+0205 
+0206 <a name="_sub5" href="#_subfunctions" class="code">function [fmdl, inv_model] = mk_dbar_model(num_electrs)</a>
+0207     <span class="comment">% creates a forward model compatible to the d-bar algorithm</span>
+0208     <span class="comment">% and creates a backwards model for the d-bar algorithm</span>
+0209     fmdl = <a href="../../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>(.5,[num_electrs,0.25],[0.075]);
+0210     [stim, ~]= <a href="../../../eidors/models/mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(num_electrs, 1, <span class="string">'{trig}'</span>, <span class="string">'{mono}'</span>, {<span class="string">'meas_current'</span>}, 0.1);
+0211     fmdl.stimulation = stim;
+0212     
+0213     fmdl_2d = <a href="../../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>([0,1,0.05],[num_electrs,0],[0.075]);
+0214     fmdl_2d.stimulation = stim;
+0215 
+0216     inv_model = struct;
+0217     inv_model.name = <span class="string">'EIDORS D-Bar model'</span>;
+0218     inv_model.solve = <span class="string">'inv_solve_d_bar'</span>;
+0219     inv_model.RtR_prior = <span class="string">'eidors_default'</span>;
+0220 
+0221     <span class="comment">% set multiple hyperparameters</span>
+0222     inv_model.hyperparameter.truncation_radius = 3.0;
+0223     inv_model.hyperparameter.grid_size = 5;
+0224    
+0225     inv_model.jacobian_bkgnd = 1;
+0226     inv_model.type = <span class="string">'inv_model'</span>;
+0227     inv_model.fwd_model = fmdl_2d;
+0228 <span class="keyword">end</span>
+0229 
+0230 <a name="_sub6" href="#_subfunctions" class="code">function result = DB_oper_demyst(sol, M, rad_idx_dbar, num_pts_in_R, h, G_bar_fft, TR)</a>
+0231     <span class="comment">%rearranges the solution of the D-Bar algorithm to fit the square, perform</span>
+0232     <span class="comment">%the D-Bar operation and transform it back:</span>
+0233 
+0234     <span class="comment">%sol &lt;(total number of gridpoints)*2&gt;: solution of the D-Bar equation so</span>
+0235     <span class="comment">%far</span>
+0236     
+0237     <span class="comment">%M &lt;(size of Q)*2&gt;: size of Q</span>
+0238     
+0239     <span class="comment">%rad_idx_dbar &lt;size of Q&gt;*&lt;size of Q&gt;: indices whether grid points are</span>
+0240     <span class="comment">%inside R or not</span>
+0241     
+0242     <span class="comment">%num_pts_in_R &lt;1&gt;: number of points inside R</span>
+0243     
+0244     <span class="comment">%h &lt;1&gt;: spacing of the grid</span>
+0245     
+0246     <span class="comment">%G_bar_fft &lt;size of Q&gt;*&lt;size of Q&gt;:  FFT trick operator</span>
+0247     
+0248     
+0249     sol_square = zeros(M, M);
+0250     sol_square(rad_idx_dbar) = sol(1:num_pts_in_R) + 1i*sol((num_pts_in_R+1):end);
+0251     
+0252     <span class="comment">% Apply real-linear operator %%eqn. 15.65 from &quot;Linear- and non_liner</span>
+0253     <span class="comment">% inverse problems&quot;</span>
+0254     result = sol_square - h^2*ifft2(G_bar_fft .* fft2( TR.*conj(sol_square) ));
+0255     
+0256     <span class="comment">% Construct result as a vector with real and imaginary parts separate</span>
+0257     <span class="comment">% %%matrl</span>
+0258     result = [real(result(rad_idx_dbar)); imag(result(rad_idx_dbar))];
+0259 <span class="keyword">end</span>
+0260 
+0261 <a name="_sub7" href="#_subfunctions" class="code">function test_d_bar</a>
+0262     [fmdl, inv_model] = <a href="#_sub5" class="code" title="subfunction [fmdl, inv_model] = mk_dbar_model(num_electrs)">mk_dbar_model</a>(16);
+0263     
+0264     img = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl, 1);
+0265     vh = <a href="../../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img);
+0266     img_inh = <a href="#_sub8" class="code" title="subfunction img_out = set_test_target(img)">set_test_target</a>(img);
+0267     vi = <a href="../../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img_inh);
+0268     
+0269     img_solved = <a href="../../../eidors/solvers/inv_solve.html" class="code" title="function img = inv_solve( inv_model, data1, data2)">inv_solve</a>(inv_model, vi, vh);
+0270     <a href="../../../eidors/graphics/matlab/show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(img_solved);
+0271 <span class="keyword">end</span>
+0272 
+0273 <a name="_sub8" href="#_subfunctions" class="code">function img_out = set_test_target(img)</a>
+0274     cog = <a href="../../../eidors/models/interp_mesh.html" class="code" title="function mdl_pts = interp_mesh( mdl, n_interp)">interp_mesh</a>(img.fwd_model, 0);
+0275     tar_offset = 0.6;
+0276     cog(:,1,:) = cog(:,1,:) - tar_offset;
+0277     tar_rad = 0.3;
+0278     idx_tar = cog(:,1,:).^2 + cog(:,2,:).^2 &lt; tar_rad.^2;
+0279     img.elem_data(idx_tar) = img.elem_data(1)*1.2;
+0280     img_out = img;
+0281 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

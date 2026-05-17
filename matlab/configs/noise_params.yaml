@@ -1,0 +1,55 @@
+# Noise Model Parameters
+# =====================
+# All parameters are justified from published EIT hardware characterisations.
+# Each component can be independently toggled for ablation studies.
+#
+# References:
+#   [1] Adler, A. & Lionheart, W.R.B. (2006). Uses and abuses of EIDORS.
+#   [2] Boone, K. & Holder, D. (1996). Effect of skin impedance on image quality.
+#   [3] Vilhunen, T. et al. (2002). Simultaneous reconstruction of electrode
+#       contact impedances and internal electrical properties.
+#   [4] Kolehmainen, V. et al. (1997). Assessment of errors in static EIT.
+
+# Master toggle: set to false to disable all noise (clean data generation)
+enabled: true
+
+# Additive Gaussian measurement noise
+# Typical EIT systems: 40-60 dB (lab), 20-30 dB (portable/wearable)
+# Ref: [1] reports SNR of 40-80 dB depending on hardware quality
+gaussian:
+  enabled: true
+  snr_db: 40.0            # Signal-to-noise ratio in decibels
+  snr_range: [30.0, 60.0] # Range for random sampling during augmentation
+
+# Electrode contact impedance variation
+# Models imperfect electrode-skin contact: per-electrode multiplicative factor
+# Ref: [3] reports contact impedance variations of 5-20% in practice
+contact_impedance:
+  enabled: true
+  std_percent: 10.0       # Standard deviation as percentage of signal
+  distribution: lognormal # lognormal or gaussian
+
+# Systematic temporal drift
+# Models slow baseline shift due to temperature, gel drying, skin changes
+# Ref: [2] reports drift of 0.1-1% per minute in skin-electrode systems
+drift:
+  enabled: true
+  rate_per_sample: 0.001  # Drift increment standard deviation per sample
+  max_magnitude: 0.05     # Maximum drift magnitude (clipped)
+  type: random_walk       # random_walk or linear
+
+# Electrode positioning error / geometric mismatch
+# Models imprecision in electrode placement on physical arm
+# Ref: [4] reports 1-2 mm positioning errors significantly affect measurements
+electrode_bias:
+  enabled: true
+  max_bias: 0.02          # Maximum systematic bias per electrode
+  type: linear            # linear gradient across electrode array
+
+# Quantisation noise from ADC
+# Models finite resolution of analog-to-digital conversion
+# Typical EIT hardware uses 16-24 bit ADCs
+quantisation:
+  enabled: true
+  adc_bits: 16            # ADC resolution in bits
+  voltage_range: 1.0      # Full-scale voltage range (V)

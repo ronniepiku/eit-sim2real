@@ -1,0 +1,480 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mdl_slice_mesher</title>
+  <meta name="keywords" content="mdl_slice_mesher">
+  <meta name="description" content="MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="#">graphics</a> &gt; <a href="index.html">matlab</a> &gt; mdl_slice_mesher.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/graphics/matlab&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>mdl_slice_mesher
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [nimg out] = mdl_slice_mesher(fmdl,level,varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM 
+ img2d = mdl_slice_mesher(mdl3d,level) returns a 2D FEM model MDL2D 
+ suitable for viewing with SHOW_FEM representing a cut through MDL3D at
+ LEVEL. 
+ Note that where the intersection of an element of MDL3D and the LEVEL is
+ a quadrangle, this will be represented as two triangles in IMG2D. 
+ Faces of MDL3D co-planar with LEVEL will be assigned an avarage of the
+ values of the two elements that share them. 
+
+ [img2d ptch] = mdl_slice_mesher(...) also returns a struct PTCH suitable
+ for use with the PATCH function. It offers the advantage of displaying
+ both quad and tri elements. Colors can be controlled by adding
+ additional arguments passed to calc_colours:
+ [img2d ptch] = mdl_slice_mesher(mdl3d,level, ... )
+ 
+ Inputs:
+   MDL3D  - an EIDORS fwd_model or img struct with elem_data
+   LEVEL  - any single-slice specification accepted by LEVEL_MODEL_SLICE
+
+ Additional options can be specified as fields of MDL3D.mdl_slice_mesher
+ or MDL3D.fwd_model.mdl_slice_mesher:
+       .interp_elems (defualt: true) : average element values for faces
+                                       co-planar with LEVEL
+
+ To control the transparency use transparency_tresh (see CALC_COLOURS for
+ details), e.g.:
+    img2d.calc_colours.transparency_thresh = -1; (no transperency)
+    calc_colours('transparency_thresh', 0.25); (some transparency)
+
+ See also: <a href="level_model_slice.html" class="code" title="function [out, out2, out3, out4] = level_model_slice(varargin)">LEVEL_MODEL_SLICE</a>, <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">SHOW_FEM</a>, <a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">MDL_SLICE_MAPPER</a>, <a href="show_3d_slices.html" class="code" title="function h = show_3d_slices(img, varargin);">SHOW_3D_SLICES</a>,
+           CROP_MODEL, <a href="calc_colours.html" class="code" title="function [colours,scl_data]= calc_colours(img, set_value, do_colourbar)">CALC_COLOURS</a>, PATCH</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="calc_colours.html" class="code" title="function [colours,scl_data]= calc_colours(img, set_value, do_colourbar)">calc_colours</a>	[colours,scl_data]= calc_colours(img, set_value, do_colourbar)</li><li><a href="level_model_slice.html" class="code" title="function [out, out2, out3, out4] = level_model_slice(varargin)">level_model_slice</a>	LEVEL_MODEL_SLICE - level 3D points for slicing at z=0</li><li><a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>	MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM</li><li><a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>	SHOW_FEM: show the EIDORS3D finite element model</li><li><a href="../../../eidors/models/fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>	FIX_MODEL: Add useful fields to a model</li><li><a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>	MK_COMMON_MODEL: make common EIT models</li><li><a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>	NUM_NODES: number of elemnts in a (fwd or inv model or image)</li><li><a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>	SPARSE Create sparse matrix (EIDORS overload for Matlab < R2020a / 9.8).</li><li><a href="../../../eidors/solvers/get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>	GET_IMG_DATA: get parameter data from eidors image object</li><li><a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>	EIDORS_CACHE Control eidors caching</li><li><a href="../../../eidors/tools/spdiag.html" class="code" title="function S = spdiag(V,K)">spdiag</a>	SPDIAG Sparse diagonal matrices and diagonals of a matrix.</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="mdl_slice_mapper.html" class="code" title="function map = mdl_slice_mapper( fmdl, maptype )">mdl_slice_mapper</a>	MDL_SLICE_MAPPER: map pixels to FEM elements or nodes</li><li><a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>	MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM</li><li><a href="show_3d_slices.html" class="code" title="function h = show_3d_slices(img, varargin);">show_3d_slices</a>	show_3d_slices(img, z_cuts, x_cuts, y_cuts, any_cuts)</li><li><a href="../../../eidors/models/mk_GREIT_model.html" class="code" title="function [imdl, weight]= mk_GREIT_model( fmdl, radius, weight, options )">mk_GREIT_model</a>	MK_GREIT_MODEL: make EIDORS inverse models using the GREIT approach</li><li><a href="../../../eidors/models/mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>	MK_HEAD_MODEL_ADULT Adult head model</li><li><a href="../../../eidors/models/mk_pixel_slice.html" class="code" title="function [imdl fmdl] = mk_pixel_slice(imdl,level,opt)">mk_pixel_slice</a>	MK_PIXEL_SLICE create a pixel model to reconstruct on</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function opt = parse_opt(fmdl)</a></li><li><a href="#_sub2" class="code">function fmdl = extrude_3d_if_reqd( fmdl );</a></li><li><a href="#_sub3" class="code">function [nmdl, f2c, n2n, out] = do_mdl_slice_mesher(fmdl,level)</a></li><li><a href="#_sub4" class="code">function nimg = build_image(nmdl, f2c, n2n, img)</a></li><li><a href="#_sub5" class="code">function out = draw_patch(in, nmdl, img_data, varargin)</a></li><li><a href="#_sub6" class="code">function res = intersection_test(A,B,C,D)</a></li><li><a href="#_sub7" class="code">function a = signed_area(A,B,C)</a></li><li><a href="#_sub8" class="code">function [nodeval dist] = nodes_above_or_below(mdl,level)</a></li><li><a href="#_sub9" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)</a>
+0002 <span class="comment">%MDL_SLICE_MESHER A slice of a 3D FEM as a 2D FEM</span>
+0003 <span class="comment">% img2d = mdl_slice_mesher(mdl3d,level) returns a 2D FEM model MDL2D</span>
+0004 <span class="comment">% suitable for viewing with SHOW_FEM representing a cut through MDL3D at</span>
+0005 <span class="comment">% LEVEL.</span>
+0006 <span class="comment">% Note that where the intersection of an element of MDL3D and the LEVEL is</span>
+0007 <span class="comment">% a quadrangle, this will be represented as two triangles in IMG2D.</span>
+0008 <span class="comment">% Faces of MDL3D co-planar with LEVEL will be assigned an avarage of the</span>
+0009 <span class="comment">% values of the two elements that share them.</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% [img2d ptch] = mdl_slice_mesher(...) also returns a struct PTCH suitable</span>
+0012 <span class="comment">% for use with the PATCH function. It offers the advantage of displaying</span>
+0013 <span class="comment">% both quad and tri elements. Colors can be controlled by adding</span>
+0014 <span class="comment">% additional arguments passed to calc_colours:</span>
+0015 <span class="comment">% [img2d ptch] = mdl_slice_mesher(mdl3d,level, ... )</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Inputs:</span>
+0018 <span class="comment">%   MDL3D  - an EIDORS fwd_model or img struct with elem_data</span>
+0019 <span class="comment">%   LEVEL  - any single-slice specification accepted by LEVEL_MODEL_SLICE</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% Additional options can be specified as fields of MDL3D.mdl_slice_mesher</span>
+0022 <span class="comment">% or MDL3D.fwd_model.mdl_slice_mesher:</span>
+0023 <span class="comment">%       .interp_elems (defualt: true) : average element values for faces</span>
+0024 <span class="comment">%                                       co-planar with LEVEL</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% To control the transparency use transparency_tresh (see CALC_COLOURS for</span>
+0027 <span class="comment">% details), e.g.:</span>
+0028 <span class="comment">%    img2d.calc_colours.transparency_thresh = -1; (no transperency)</span>
+0029 <span class="comment">%    calc_colours('transparency_thresh', 0.25); (some transparency)</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% See also: LEVEL_MODEL_SLICE, SHOW_FEM, MDL_SLICE_MAPPER, SHOW_3D_SLICES,</span>
+0032 <span class="comment">%           CROP_MODEL, CALC_COLOURS, PATCH</span>
+0033 
+0034 <span class="comment">% (C) 2012-2021 Bartlomiej Grychtol.</span>
+0035 <span class="comment">% License: GPL version 2 or version 3</span>
+0036 <span class="comment">% $Id: mdl_slice_mesher.m 6372 2022-05-09 13:37:47Z bgrychtol $</span>
+0037 
+0038 
+0039 <span class="keyword">if</span> ischar(fmdl) &amp;&amp; strcmp(fmdl,<span class="string">'UNIT_TEST'</span>); <a href="#_sub9" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>, <span class="keyword">end</span>;
+0040 
+0041 <span class="keyword">if</span> isempty(varargin)
+0042    <span class="keyword">try</span>
+0043       varargin{1}.calc_colours = fmdl.calc_colours;
+0044    <span class="keyword">end</span>
+0045 <span class="keyword">end</span>
+0046 
+0047 <span class="keyword">switch</span> fmdl.type
+0048     <span class="keyword">case</span> <span class="string">'image'</span>  
+0049        img = fmdl;
+0050        fmdl = fmdl.fwd_model;
+0051     <span class="keyword">case</span> <span class="string">'fwd_model'</span>
+0052        img = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,1);
+0053     <span class="keyword">otherwise</span>; error(<span class="string">'Unknown object type'</span>);
+0054 <span class="keyword">end</span>
+0055 
+0056 fmdl.mdl_slice_mesher = <a href="#_sub1" class="code" title="subfunction opt = parse_opt(fmdl)">parse_opt</a>(fmdl);
+0057 
+0058 opt.cache_obj = {fmdl.nodes, fmdl.elems, fmdl.mdl_slice_mesher, level};
+0059 <span class="keyword">if</span> isfield(fmdl,<span class="string">'electrode'</span>);
+0060     opt.cache_obj(end+1) = {fmdl.electrode};
+0061 <span class="keyword">end</span>
+0062 opt.fstr      = <span class="string">'mdl_slice_mesher'</span>;
+0063 opt.log_level = 4;
+0064 
+0065 [nmdl, f2c, n2n, p_struct] = <a href="../../../eidors/tools/eidors_cache.html" class="code" title="function varargout=eidors_cache( command, varargin )">eidors_cache</a>(@<a href="#_sub3" class="code" title="subfunction [nmdl, f2c, n2n, out] = do_mdl_slice_mesher(fmdl,level)">do_mdl_slice_mesher</a>,{fmdl, level},opt);
+0066 nimg = <a href="#_sub4" class="code" title="subfunction nimg = build_image(nmdl, f2c, n2n, img)">build_image</a>(nmdl, f2c, n2n, img);
+0067 
+0068 <span class="keyword">switch</span> nargout
+0069    <span class="keyword">case</span> 2
+0070       out = <a href="#_sub5" class="code" title="subfunction out = draw_patch(in, nmdl, img_data, varargin)">draw_patch</a>(p_struct, nimg.fwd_model, <a href="../../../eidors/solvers/get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(img), varargin{:});
+0071    <span class="keyword">case</span> 0
+0072       out = <a href="#_sub5" class="code" title="subfunction out = draw_patch(in, nmdl, img_data, varargin)">draw_patch</a>(p_struct, nimg.fwd_model, <a href="../../../eidors/solvers/get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(img), varargin{:});
+0073       cmap_type = <a href="calc_colours.html" class="code" title="function [colours,scl_data]= calc_colours(img, set_value, do_colourbar)">calc_colours</a>(<span class="string">'cmap_type'</span>);
+0074       <span class="keyword">try</span> 
+0075          <a href="calc_colours.html" class="code" title="function [colours,scl_data]= calc_colours(img, set_value, do_colourbar)">calc_colours</a>(<span class="string">'cmap_type'</span>,varargin{1}.calc_colours.cmap_type);
+0076       <span class="keyword">end</span>
+0077       colormap(<a href="calc_colours.html" class="code" title="function [colours,scl_data]= calc_colours(img, set_value, do_colourbar)">calc_colours</a>(<span class="string">'colourmap'</span>));
+0078       patch(out);
+0079       <a href="calc_colours.html" class="code" title="function [colours,scl_data]= calc_colours(img, set_value, do_colourbar)">calc_colours</a>(<span class="string">'cmap_type'</span>,cmap_type);
+0080       clear nimg;
+0081 <span class="keyword">end</span>
+0082 
+0083 
+0084 <a name="_sub1" href="#_subfunctions" class="code">function opt = parse_opt(fmdl)</a>
+0085 opt.interp_elems = true;
+0086 
+0087 <span class="keyword">if</span> isfield(fmdl,<span class="string">'mdl_slice_mesher'</span>)
+0088     flds = fieldnames(fmdl.mdl_slice_mesher);
+0089     <span class="keyword">for</span> i = 1:numel(flds)
+0090         opt.(flds{i}) = fmdl.mdl_slice_mesher.(flds{i});
+0091     <span class="keyword">end</span>
+0092 <span class="keyword">end</span>
+0093 
+0094 
+0095 <span class="comment">% This is a start  of a function to extrude_3d_if_reqd, so that</span>
+0096 <span class="comment">%   we can show 3d shapes. Currently not working</span>
+0097 <span class="comment">% fmdl = extrude_3d_if_reqd( fmdl );</span>
+0098 <a name="_sub2" href="#_subfunctions" class="code">function fmdl = extrude_3d_if_reqd( fmdl );</a>
+0099    <span class="keyword">if</span> size(fmdl.nodes,2)==3; <span class="keyword">return</span>; <span class="keyword">end</span>
+0100    nn = fmdl.nodes; N= size(nn,1);
+0101    ee = fmdl.elems; E= size(ee,1);
+0102    oN= ones(N,1);
+0103    oE= ones(E,1) + N;
+0104    fmdl.nodes = [nn,-10*oN; <span class="comment">%10 is arbitrary == a guess</span>
+0105                  nn,+10*oN]; 
+0106    fmdl.elems = [ee(:,[1,2,3,1]) + oE*[0,0,0,1];
+0107                  ee(:,[1,2,3,2]) + oE*[1,0,0,1];
+0108                  ee(:,[1,2,3,3]) + oE*[1,1,0,1]];
+0109 
+0110 <a name="_sub3" href="#_subfunctions" class="code">function [nmdl, f2c, n2n, out] = do_mdl_slice_mesher(fmdl,level)</a>
+0111 
+0112 mdl = fmdl;
+0113 opt.edge2elem = true;
+0114 opt.node2elem = true;
+0115 mdl = <a href="../../../eidors/models/fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>(mdl,opt);
+0116 edges = mdl.edges;
+0117 edge2elem = mdl.edge2elem;
+0118 tmp = mdl; 
+0119 tmp = <a href="level_model_slice.html" class="code" title="function [out, out2, out3, out4] = level_model_slice(varargin)">level_model_slice</a>( tmp, level, 1 );
+0120 [nodeval nodedist] = <a href="#_sub8" class="code" title="subfunction [nodeval dist] = nodes_above_or_below(mdl,level)">nodes_above_or_below</a>(tmp,0);
+0121 <span class="comment">% find which edges are on electrodes</span>
+0122 e_nodes = zeros(length(mdl.nodes),1);
+0123 <span class="keyword">try</span>
+0124    <span class="keyword">for</span> i = 1:length(mdl.electrode)
+0125       e_nodes(mdl.electrode(i).nodes) = i;
+0126       <span class="keyword">if</span> isfield(mdl.electrode(i),<span class="string">'faces'</span>)
+0127          e_nodes(unique(mdl.electrode(i).faces)) = i;
+0128       <span class="keyword">end</span>
+0129    <span class="keyword">end</span>
+0130 <span class="keyword">end</span>
+0131 e_edges = (sum(e_nodes(edges),2)/ 2)  .* (e_nodes(edges(:,1)) == e_nodes(edges(:,2)));
+0132 <span class="comment">%% crossed edges</span>
+0133 <span class="comment">% exclude edges on plane (dealt with later)</span>
+0134 idx = (sum(nodeval(edges),2) == 0) &amp; (nodeval(edges(:,1)) ~= 0) ; 
+0135 dist = (nodedist(edges(idx,2)) - nodedist(edges(idx,1)));
+0136 t = -nodedist(edges(idx,1))./dist;
+0137 <span class="comment">% new nodes along the edges</span>
+0138 nodes = mdl.nodes(edges(idx,1),:) + <span class="keyword">...</span>
+0139     repmat(t,1,3).*(mdl.nodes(edges(idx,2),:) - mdl.nodes(edges(idx,1),:));
+0140 
+0141 n2n = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(edges(idx,:),uint32((1:length(t))' * ones(1,2)),[1-t,t],size(mdl.nodes,1),size(nodes,1));
+0142 
+0143 <span class="comment">% nn indexes the just-created nodes, els indexes elements</span>
+0144 <span class="keyword">if</span> any(idx)
+0145     [nn els] = find(edge2elem(idx,:));
+0146 <span class="keyword">else</span>
+0147     nn = []; els = [];
+0148 <span class="keyword">end</span>
+0149 els_edge = els;
+0150 
+0151 electrode_node = e_edges(idx);
+0152 <span class="comment">%% crossed nodes</span>
+0153 idx = find(nodeval == 0);
+0154 ln = length(nodes); <span class="comment">%store the size</span>
+0155 nodes = [nodes; mdl.nodes(idx,:)]; <span class="comment">% add the crossed nodes to the new model</span>
+0156 n2n = [n2n, <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(idx,(1:length(idx)),1,size(mdl.nodes,1),length(idx))];
+0157 electrode_node = [electrode_node; e_nodes(idx)];
+0158 <span class="comment">% nnn indexes mdl.nodes(idx), eee indexes mdl.elems</span>
+0159 [nnn eee] = find(mdl.node2elem(idx,:));
+0160 nnn = nnn + ln; <span class="comment">%make a proper index into nodes</span>
+0161 <span class="comment">% n1: eee = ueee(n1)</span>
+0162 [ueee jnk n1] = unique(eee,<span class="string">'last'</span>);
+0163 nodes_per_elem = jnk;
+0164 nodes_per_elem(2:end) = diff(jnk);
+0165 <span class="comment">% if an elem has 3 crossed nodes, there must be 2 of them, add both for now</span>
+0166 add = find(nodes_per_elem == 3);
+0167 <span class="keyword">if</span> ~isempty(add)
+0168     <span class="comment">% what to do with faces shared between elements?</span>
+0169     addel = ueee(add*[1 1 1])';
+0170     els = [els; addel(:)];
+0171     <span class="keyword">for</span> i = 1:length(add)
+0172        addnd = nnn(n1 == add(i));
+0173        nn = [nn; addnd(:)];
+0174     <span class="keyword">end</span>
+0175     [els idx] = sort(els);
+0176     nn = nn(idx);
+0177 <span class="keyword">end</span>
+0178 <span class="comment">% for elems with less than 4 crossed edges -&gt; add crossed nodes if needed</span>
+0179 [uels jnk n] = unique(els_edge,<span class="string">'last'</span>);
+0180 
+0181 <span class="comment">% only consider elements who have both a crossed node and edge</span>
+0182 [idx ia ib] = intersect(ueee, uels);
+0183 <span class="keyword">for</span> i = 1:length(ia)
+0184     newnodes = nnn(n1==ia(i));
+0185     nn = [nn; newnodes];
+0186     els = [els; repmat(uels(ib(i)),length(newnodes),1)];
+0187 <span class="keyword">end</span>
+0188 [els idx] = sort(els);
+0189 nn = nn(idx);
+0190 [uels jnk n] = unique(els,<span class="string">'last'</span>);
+0191 nodes_per_elem = jnk;
+0192 nodes_per_elem(2:end) = diff(jnk);
+0193 
+0194 n_tri = length(uels) + sum(nodes_per_elem==4);
+0195 
+0196 nmdl.type = <span class="string">'fwd_model'</span>;
+0197 nmdl.nodes = nodes;
+0198 nmdl.elems = zeros(n_tri,3);
+0199 
+0200 <span class="keyword">if</span> n_tri == 0 
+0201     error(<span class="string">'EIDORS:NoIntersection'</span>,<span class="keyword">...</span><span class="comment"> </span>
+0202         <span class="string">'No intersection found between the cut plane [%.2f %.2f %.2f] and the model.'</span>, <span class="keyword">...</span>
+0203         level(1),level(2),level(3));
+0204 <span class="keyword">end</span>
+0205 n_el_data = size(fmdl.elems,1);
+0206 f2c = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(n_el_data,length(uels));
+0207 c = 1;
+0208 <span class="comment">% TODO: Speed this up</span>
+0209 <span class="keyword">for</span> i = 1:length(uels)
+0210     <span class="keyword">switch</span> nodes_per_elem(i)
+0211         <span class="keyword">case</span> 3
+0212             nmdl.elems(c,:) = nn(n==i);
+0213             f2c(uels(i),c) = 1;
+0214             c = c + 1;
+0215         <span class="keyword">case</span> 4
+0216             nds = nn(n==i);
+0217             nmdl.elems(c,:) = nds(1:3);
+0218             f2c(uels(i),c) = 1;
+0219             nmdl.elems(c+1,:) = nds(2:4);
+0220             f2c(uels(i),c+1) = 1;
+0221             c = c + 2;
+0222     <span class="keyword">end</span>
+0223 <span class="keyword">end</span>
+0224 <span class="comment">% deal with double elements (from shared faces)</span>
+0225 nmdl.elems = sort(nmdl.elems,2);
+0226 [nmdl.elems, idx] = sortrows(nmdl.elems);
+0227 f2c = f2c(:,idx);
+0228 [nmdl.elems, n, idx] = unique(nmdl.elems, <span class="string">'rows'</span>);
+0229 <span class="keyword">if</span> ~fmdl.mdl_slice_mesher.interp_elems
+0230     f2c = f2c(:,n);
+0231 <span class="keyword">else</span>
+0232     [x y] = find(f2c);
+0233     <span class="comment">% put all source elements that contribute to destination element on one</span>
+0234     <span class="comment">% column</span>
+0235     f2c = <a href="../../../eidors/overloads/sparse/sparse.html" class="code" title="function S = sparse(varargin)">sparse</a>(x,idx,1);
+0236     <span class="comment">% ensure correct number of columns (happens when the last source element</span>
+0237     <span class="comment">% doesn't contribute</span>
+0238     <span class="keyword">if</span> size(f2c,1) &lt; n_el_data
+0239        f2c(n_el_data,end) = 0;
+0240     <span class="keyword">end</span>
+0241     n_src_els = sum(f2c,1);
+0242     f2c = f2c * <a href="../../../eidors/tools/spdiag.html" class="code" title="function S = spdiag(V,K)">spdiag</a>(1./n_src_els);
+0243 <span class="keyword">end</span>
+0244 
+0245 <span class="comment">% add electrodes</span>
+0246 <span class="keyword">try</span>
+0247    <span class="keyword">for</span> i = 1:length(mdl.electrode)
+0248       nmdl.electrode(i) = mdl.electrode(i);
+0249       nmdl.electrode(i).nodes = find(electrode_node == i);
+0250    <span class="keyword">end</span>
+0251 <span class="keyword">end</span>
+0252 out.elem_map = false(size(mdl.elems,1),1);
+0253 out.elem_map(uels) = true;
+0254 out.node_map = n2n;
+0255 out.els  = els;
+0256 out.nn   = nn;
+0257 
+0258 
+0259 <a name="_sub4" href="#_subfunctions" class="code">function nimg = build_image(nmdl, f2c, n2n, img)</a>
+0260 nimg = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(nmdl,1);
+0261 <span class="keyword">if</span> isempty(nimg.elem_data) <span class="comment">% plane doesn't cut model</span>
+0262     <span class="keyword">return</span>
+0263 <span class="keyword">end</span>
+0264 
+0265 img_data = <a href="../../../eidors/solvers/get_img_data.html" class="code" title="function [img_data, n_images]= get_img_data(img)">get_img_data</a>(img);
+0266 <span class="keyword">if</span> size(img_data,1) == <a href="../../../eidors/models/num_nodes.html" class="code" title="function num = num_nodes( mdl );">num_nodes</a>(img.fwd_model)
+0267     nimg.node_data = n2n' * img_data;
+0268     nimg = rmfield(nimg, <span class="string">'elem_data'</span>);
+0269 <span class="keyword">else</span>
+0270     nimg.elem_data = f2c' * img_data;
+0271 <span class="keyword">end</span>
+0272 <span class="keyword">try</span>
+0273    nimg.calc_colours = img.calc_colours;
+0274 <span class="keyword">end</span>
+0275 
+0276 
+0277 <a name="_sub5" href="#_subfunctions" class="code">function out = draw_patch(in, nmdl, img_data, varargin)</a>
+0278 
+0279 
+0280 els  = in.els;
+0281 nn   = in.nn;
+0282 nodes = nmdl.nodes;
+0283 uels = find(in.elem_map);
+0284 
+0285 out.Vertices = nodes;
+0286 out.Faces    = NaN(length(uels),4);
+0287 
+0288 <span class="keyword">for</span> i = 1:length(uels)
+0289     idx = els == uels(i);
+0290     id = find(idx);
+0291     nnn = nodes(nn(idx),:);
+0292     <span class="keyword">if</span> nnz(idx)==4
+0293         <span class="keyword">if</span> <a href="#_sub6" class="code" title="subfunction res = intersection_test(A,B,C,D)">intersection_test</a>(nnn(1,:),nnn(4,:),nnn(2,:),nnn(3,:))
+0294             id(3:4) = id([4 3]);
+0295         <span class="keyword">elseif</span> <a href="#_sub6" class="code" title="subfunction res = intersection_test(A,B,C,D)">intersection_test</a>(nnn(1,:),nnn(2,:),nnn(3,:),nnn(4,:))
+0296             id(2:3) = id([3 2]);
+0297         <span class="keyword">end</span>
+0298     <span class="keyword">end</span>
+0299     out.Faces(i,1:length(id)) = nn(id);   
+0300 <span class="keyword">end</span>
+0301 <span class="keyword">switch</span> length(img_data)
+0302     <span class="keyword">case</span> size(in.elem_map,1)
+0303         data = img_data(uels);
+0304         out.FaceColor = <span class="string">'flat'</span>;
+0305     <span class="keyword">case</span> size(in.node_map,1)
+0306         data = in.node_map' * img_data ;
+0307         out.FaceColor = <span class="string">'interp'</span>;
+0308     <span class="keyword">otherwise</span>
+0309         error(<span class="string">'wrong size of data'</span>);
+0310 <span class="keyword">end</span>
+0311 [out.FaceVertexCData, scl_data] = <a href="calc_colours.html" class="code" title="function [colours,scl_data]= calc_colours(img, set_value, do_colourbar)">calc_colours</a>(data,varargin{:});
+0312 <span class="keyword">try</span>
+0313    out.FaceVertexAlphaData = double(abs(scl_data) &gt; varargin{1}.calc_colours.transparency_thresh);
+0314    out.FaceAlpha = <span class="string">'flat'</span>;
+0315 <span class="keyword">end</span>
+0316 
+0317 out.CDataMapping = <span class="string">'direct'</span>;
+0318 <span class="comment">% colormap(calc_colours('colourmap'));</span>
+0319 
+0320 
+0321 
+0322 <a name="_sub6" href="#_subfunctions" class="code">function res = intersection_test(A,B,C,D)</a>
+0323 <span class="comment">% checks for intersection of segments AB and CD</span>
+0324 <span class="comment">% if AB and CD intersect in 3D, then their projections on a 2D plane also</span>
+0325 <span class="comment">% intersect (or are colliniar).</span>
+0326 
+0327 <span class="comment">% assume they don't</span>
+0328 res = false;
+0329 
+0330 <span class="comment">% check for interesection on the 3 cartesian planes</span>
+0331 idx = 1:3;
+0332 <span class="keyword">for</span> i = 0:2
+0333     id = circshift(idx',i)';
+0334     id = id(1:2);
+0335     res = res || ( sign(<a href="#_sub7" class="code" title="subfunction a = signed_area(A,B,C)">signed_area</a>(A(id), B(id), C(id))) ~= <span class="keyword">...</span>
+0336                    sign(<a href="#_sub7" class="code" title="subfunction a = signed_area(A,B,C)">signed_area</a>(A(id), B(id), D(id)))        );
+0337 <span class="keyword">end</span>
+0338 
+0339 <a name="_sub7" href="#_subfunctions" class="code">function a = signed_area(A,B,C)</a>
+0340     a = ( B(1) - A(1) ) * ( C(2) - A(2) ) - <span class="keyword">...</span>
+0341         ( C(1) - A(1) ) * ( B(2) - A(2) );
+0342 
+0343 
+0344 <a name="_sub8" href="#_subfunctions" class="code">function [nodeval dist] = nodes_above_or_below(mdl,level)</a>
+0345 
+0346 <span class="comment">% Set a model-dependent tolerance</span>
+0347 tol = min(max(mdl.nodes) - min(mdl.nodes)) * 1e-5;
+0348 tol = max(tol, eps);
+0349 dist = mdl.nodes(:,3) - level;
+0350 dist(abs(dist) &lt; tol) = 0;
+0351 nodeval = sign(dist);
+0352 
+0353 
+0354 <a name="_sub9" href="#_subfunctions" class="code">function do_unit_test</a>
+0355     imdl = <a href="../../../eidors/models/mk_common_model.html" class="code" title="function inv_mdl= mk_common_model( str, n_elec, varargin )">mk_common_model</a>(<span class="string">'n3r2'</span>,[16,2]);
+0356     img = <a href="../../../eidors/models/mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(imdl.fwd_model,1);
+0357     load datacom.mat A B;
+0358     img.elem_data(A) = 1.2;
+0359     img.elem_data(B) = 0.8;
+0360     subplot(131)
+0361     <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(img);
+0362     subplot(132)
+0363     cla
+0364 <span class="comment">%     show_fem(img.fwd_model);</span>
+0365     hold on
+0366 <span class="comment">%     slc = mdl_slice_mesher(img, [3 -3 2]);</span>
+0367 <span class="comment">%     slc.calc_colours.transparency_thresh = -1;</span>
+0368 <span class="comment">%     show_fem(slc);</span>
+0369     slc = <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, [0 inf inf]);
+0370     slc.calc_colours.transparency_thresh = -1;
+0371     slc.fwd_model.boundary = slc.fwd_model.elems;
+0372     <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc);
+0373     slc = <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, [inf inf 2]);
+0374     slc.calc_colours.transparency_thresh = -1;
+0375     slc.fwd_model.boundary = slc.fwd_model.elems;
+0376     <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc,[0 1 0]);
+0377     slc = <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, [inf inf 2.5]);
+0378     slc.calc_colours.transparency_thresh = -1;
+0379     slc.fwd_model.boundary = slc.fwd_model.elems;
+0380     <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc);
+0381     slc = <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, [inf inf 1.3]);
+0382     slc.calc_colours.transparency_thresh = -1;
+0383     slc.fwd_model.boundary = slc.fwd_model.elems;
+0384     <a href="show_fem.html" class="code" title="function hh=show_fem( mdl, options)">show_fem</a>(slc);
+0385     zlim([0 3]);
+0386     view(3)
+0387     hold off
+0388     subplot(133)
+0389     hold on
+0390     <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, [0 inf inf]);
+0391     <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, [inf inf 2]);
+0392     <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, [inf inf 2.5]);
+0393     <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, [inf inf 1.3]);
+0394     <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, struct(<span class="string">'centre'</span>,[-.5,-.5,2],<span class="string">'normal_angle'</span>,[1 1 .2]))
+0395     axis equal
+0396     axis tight
+0397     view(3)
+0398     
+0399     <span class="comment">% test multi-column image</span>
+0400     img.elem_data(:,2) = img.elem_data;
+0401     slc = <a href="mdl_slice_mesher.html" class="code" title="function [nimg out] = mdl_slice_mesher(fmdl,level,varargin)">mdl_slice_mesher</a>(img, [0 inf inf]);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,48 @@
+# EIT Touch Classification - Training Configuration
+# ==================================================
+
+# Dataset
+data:
+  path: "data/eit_dataset.mat"
+  use_noisy: true
+  test_size: 0.15
+  val_size: 0.15
+  normalize: true
+
+# Model: cnn1d
+cnn:
+  channels: [32, 64, 128]
+  fc_dim: 128
+  dropout: 0.3
+
+# Training
+training:
+  epochs: 100
+  batch_size: 64
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  scheduler_patience: 10
+  scheduler_factor: 0.5
+  early_stopping_patience: 20
+
+# Baselines
+baselines:
+  svm:
+    kernel: "rbf"
+    C: 10.0
+    gamma: "scale"
+  random_forest:
+    n_estimators: 500
+    max_depth: null
+    min_samples_split: 5
+  mlp:
+    hidden_layers: [128, 128]
+    max_iter: 500
+
+# Evaluation
+evaluation:
+  n_folds: 5
+  robustness_noise_levels: [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0]
+
+# Reproducibility
+seed: 42

@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of dirichlet_neumann_difference</title>
+  <meta name="keywords" content="dirichlet_neumann_difference">
+  <meta name="description" content="TODO:">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">eidors</a> &gt; <a href="../index.html">solvers</a> &gt; <a href="index.html">inverse</a> &gt; dirichlet_neumann_difference.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/solvers/inverse&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>dirichlet_neumann_difference
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>TODO:</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function del_L = dirichlet_neumann_difference(fmdl,data1,data2); </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> TODO:
+  - consider to implement Harach https://iopscience.iop.org/article/10.1088/0266-5611/31/11/115008/pdf
+  - maybe other approaches 
+
+ (C) 2023 Joeran Rixen. Licensed under GPL version 2 or 3</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>	NUM_ELECS: number of electrodes attached to model</li><li><a href="../../../eidors/solvers/calc_difference_data.html" class="code" title="function dva = calc_difference_data( data1, data2, fwd_model)">calc_difference_data</a>	CALC_DIFFERENCE_DATA: calculate difference data between</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="inv_solve_d_bar.html" class="code" title="function img = inv_solve_d_bar(inv_model, data1, data2)">inv_solve_d_bar</a>	D-Bar reconstruction</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function del_L = d2n_from_full_data(fmdl,data1,data2);</a></li><li><a href="#_sub2" class="code">function stim_pattern_mat = create_stim_pattern_matrix(fmdl)</a></li><li><a href="#_sub3" class="code">function data_mat_free = make_voltage_mean_free(data_mat)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function del_L = dirichlet_neumann_difference(fmdl,data1,data2);</a>
+0002 <span class="comment">% TODO:</span>
+0003 <span class="comment">%  - consider to implement Harach https://iopscience.iop.org/article/10.1088/0266-5611/31/11/115008/pdf</span>
+0004 <span class="comment">%  - maybe other approaches</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% (C) 2023 Joeran Rixen. Licensed under GPL version 2 or 3</span>
+0007 
+0008 <span class="comment">% TODO: allow choosing the approach, only have one for now</span>
+0009 del_L =  <a href="#_sub1" class="code" title="subfunction del_L = d2n_from_full_data(fmdl,data1,data2);">d2n_from_full_data</a>(fmdl,data1,data2);
+0010 
+0011 <span class="keyword">end</span>
+0012 
+0013 <a name="_sub1" href="#_subfunctions" class="code">function del_L = d2n_from_full_data(fmdl,data1,data2);</a>
+0014     <span class="comment">%% Calculations regarding the Dirichlet to Neumann map</span>
+0015     stim_pattern_mat = <a href="#_sub2" class="code" title="subfunction stim_pattern_mat = create_stim_pattern_matrix(fmdl)">create_stim_pattern_matrix</a>(fmdl);
+0016     stim_pattern_mat = stim_pattern_mat./sqrt(sum(stim_pattern_mat.^2,1));
+0017 
+0018     n_elec = <a href="../../../eidors/models/num_elecs.html" class="code" title="function num = num_elecs( mdl );">num_elecs</a>(fmdl);
+0019 
+0020     data1 = <a href="../../../eidors/solvers/calc_difference_data.html" class="code" title="function dva = calc_difference_data( data1, data2, fwd_model)">calc_difference_data</a>(0,data1,fmdl);
+0021     data2 = <a href="../../../eidors/solvers/calc_difference_data.html" class="code" title="function dva = calc_difference_data( data1, data2, fwd_model)">calc_difference_data</a>(0,data2,fmdl);
+0022 
+0023     <span class="comment">% reshaping voltages for easy BN matrix assembly</span>
+0024     data1 = reshape(data1, [n_elec, n_elec-1]);
+0025     data2 = reshape(data2, [n_elec, n_elec-1]);
+0026     
+0027     data1 = <a href="#_sub3" class="code" title="subfunction data_mat_free = make_voltage_mean_free(data_mat)">make_voltage_mean_free</a>(data1);
+0028     data2 = <a href="#_sub3" class="code" title="subfunction data_mat_free = make_voltage_mean_free(data_mat)">make_voltage_mean_free</a>(data2);
+0029     
+0030     data1 = data1./sqrt(sum(stim_pattern_mat.^2,1));
+0031     data2 = data2./sqrt(sum(stim_pattern_mat.^2,1));
+0032     
+0033     <span class="comment">%either calcualte or give, as this is rather imporant for scaling of</span>
+0034     <span class="comment">%the output of the d-bar algorithm.</span>
+0035     elec_area = pi*0.25^2;
+0036 
+0037     NtoD1 = (1/elec_area)*(full(stim_pattern_mat)'*data1);
+0038     NtoD2 = (1/elec_area)*(full(stim_pattern_mat)'*data2);
+0039     
+0040     DN1 = inv(NtoD1);
+0041     DN2 = inv(NtoD2);
+0042 
+0043     del_L = (DN1 - DN2);
+0044 <span class="keyword">end</span>
+0045     
+0046 
+0047 <a name="_sub2" href="#_subfunctions" class="code">function stim_pattern_mat = create_stim_pattern_matrix(fmdl)</a>
+0048     <span class="comment">% converts the stimpattern in the model into matrix form for ease of</span>
+0049     <span class="comment">% computation</span>
+0050     n_elec = length(fmdl.electrode);
+0051     stim_pattern_mat = zeros(n_elec, n_elec-1);
+0052     
+0053     <span class="keyword">for</span> i = 1:n_elec-1
+0054         stim_pattern_mat(:, i) = full(fmdl.stimulation(i).stim_pattern);
+0055     <span class="keyword">end</span>
+0056 <span class="keyword">end</span>
+0057 
+0058 <a name="_sub3" href="#_subfunctions" class="code">function data_mat_free = make_voltage_mean_free(data_mat)</a>
+0059     <span class="comment">% makes each stimulation voltage vector mean free</span>
+0060     U_mean = mean(data_mat, 1);
+0061     data_mat_free = data_mat - U_mean;
+0062 <span class="keyword">end</span>
+0063</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

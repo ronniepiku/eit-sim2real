@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mono2stim</title>
+  <meta name="keywords" content="mono2stim">
+  <meta name="description" content="MONO2SIM transform monopolar stimulation into another stim pattern">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; mono2stim.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mono2stim
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MONO2SIM transform monopolar stimulation into another stim pattern</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function out = mono2stim(mat, stim) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> MONO2SIM transform monopolar stimulation into another stim pattern
+   S = MONO2STIM(M, STIM) is the measurement corresponding to a
+   stimulation and measurement pattern STIM, as created with e.g.
+   MK_STIM_PATTERNS, obtained from a transformation of the monopolar
+   measurments M. The monopolar stimulation pattern with which M was
+   calculated must be
+       MSP = mk_stim_patterns(E,R,'{mono}','{mono}', {'meas_current'},1);
+   where E is the number of electrodes per ring and R is the number of
+   rings. 
+   
+   STIM must use the same set of electrodes as MSP.
+   
+   M can be an EIDORS data struct with a 'meas' field, a Jacobian matrix, 
+   or a matrix of voltages.
+
+ See also <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">MK_STIM_PATTERNS</a>, <a href="stim_meas_list.html" class="code" title="function [stim, meas_sel]= stim_meas_list( sp_mp , Nelec, current, gain);">STIM_MEAS_LIST</a>, FWD_SOLVE, CALC_JACOBIAN</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>	NG_MAKE_CYL_MODELS: create cylindrical models using netgen</li><li><a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>	MK_IMAGE: create eidors image object</li><li><a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>	MK_STIM_PATTERNS: create an EIDORS stimulation pattern structure</li><li><a href="mono2stim.html" class="code" title="function out = mono2stim(mat, stim)">mono2stim</a>	MONO2SIM transform monopolar stimulation into another stim pattern</li><li><a href="../../eidors/solvers/calc_jacobian.html" class="code" title="function J = calc_jacobian( fwd_model, img)">calc_jacobian</a>	CALC_JACOBIAN: calculate jacobian from an inv_model</li><li><a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>	FWD_SOLVE: calculate data from a fwd_model object and an image</li><li><a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>	UNIT_TEST_CMP: compare matrices in eidors output</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="mono2stim.html" class="code" title="function out = mono2stim(mat, stim)">mono2stim</a>	MONO2SIM transform monopolar stimulation into another stim pattern</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function do_unit_test</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = mono2stim(mat, stim)</a>
+0002 <span class="comment">% MONO2SIM transform monopolar stimulation into another stim pattern</span>
+0003 <span class="comment">%   S = MONO2STIM(M, STIM) is the measurement corresponding to a</span>
+0004 <span class="comment">%   stimulation and measurement pattern STIM, as created with e.g.</span>
+0005 <span class="comment">%   MK_STIM_PATTERNS, obtained from a transformation of the monopolar</span>
+0006 <span class="comment">%   measurments M. The monopolar stimulation pattern with which M was</span>
+0007 <span class="comment">%   calculated must be</span>
+0008 <span class="comment">%       MSP = mk_stim_patterns(E,R,'{mono}','{mono}', {'meas_current'},1);</span>
+0009 <span class="comment">%   where E is the number of electrodes per ring and R is the number of</span>
+0010 <span class="comment">%   rings.</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">%   STIM must use the same set of electrodes as MSP.</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">%   M can be an EIDORS data struct with a 'meas' field, a Jacobian matrix,</span>
+0015 <span class="comment">%   or a matrix of voltages.</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% See also MK_STIM_PATTERNS, STIM_MEAS_LIST, FWD_SOLVE, CALC_JACOBIAN</span>
+0018 
+0019 <span class="comment">% (C) 2022 Bartek Grychtol. License: GPL version 2 or 3</span>
+0020 <span class="comment">% $Id: mono2stim.m 6316 2022-04-21 11:14:35Z aadler $</span>
+0021     
+0022     <span class="keyword">if</span> nargin==1 &amp;&amp; ischar(mat) &amp;&amp; strcmp(mat, <span class="string">'UNIT_TEST'</span>)
+0023         <a href="#_sub1" class="code" title="subfunction do_unit_test">do_unit_test</a>; <span class="keyword">return</span>
+0024     <span class="keyword">end</span>
+0025     
+0026     m2s = [];
+0027     <span class="keyword">for</span> i = 1:numel(stim)
+0028         m2s = [m2s ; kron(stim(i).stim_pattern', stim(i).meas_pattern)];
+0029     <span class="keyword">end</span>
+0030     <span class="keyword">if</span> isstruct(mat) &amp;&amp; isfield(mat, <span class="string">'meas'</span>)
+0031         out = mat;
+0032         out.meas = m2s * mat.meas;
+0033     <span class="keyword">else</span>
+0034         out = m2s * mat;
+0035     <span class="keyword">end</span>
+0036 <span class="keyword">end</span>
+0037 
+0038 <a name="_sub1" href="#_subfunctions" class="code">function do_unit_test</a>
+0039 th= linspace(0,360,8+1); th(end)=[]; zz=0*th;
+0040 epos = [th; zz+0.5]';
+0041 fmdl = <a href="../../eidors/meshing/netgen/ng_mk_cyl_models.html" class="code" title="function [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos,elec_shape, extra_ng_code);">ng_mk_cyl_models</a>(1,epos,0.1);
+0042 fmdl.stimulation = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(8,1,<span class="string">'{mono}'</span>,<span class="string">'{mono}'</span>, {<span class="string">'meas_current'</span>},1);
+0043 Jm= <a href="../../eidors/solvers/calc_jacobian.html" class="code" title="function J = calc_jacobian( fwd_model, img)">calc_jacobian</a>(<a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,1));
+0044 vm = <a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(<a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,1));
+0045 <span class="keyword">for</span> SP=1:3
+0046     <span class="keyword">for</span> MP=1:3
+0047         fprintf(<span class="string">'SP=%d MP=%d\n'</span>,SP,MP);
+0048         fmdl.stimulation = <a href="mk_stim_patterns.html" class="code" title="function [stim, meas_sel]= mk_stim_patterns(n_elec, n_rings, inj, meas, options, amplitude)">mk_stim_patterns</a>(8,1,[0,SP],[0,MP],{<span class="string">'no_meas_current'</span>,<span class="string">'rotate_meas'</span>},1);
+0049         Jo= <a href="../../eidors/solvers/calc_jacobian.html" class="code" title="function J = calc_jacobian( fwd_model, img)">calc_jacobian</a>(<a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,1));
+0050         Jx = <a href="mono2stim.html" class="code" title="function out = mono2stim(mat, stim)">mono2stim</a>(Jm, fmdl.stimulation);
+0051         <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Equal'</span>,Jo,Jx, 10*eps);
+0052         img = <a href="mk_image.html" class="code" title="function img= mk_image(mdl, elem_data, params, name)">mk_image</a>(fmdl,1);
+0053         vo = <a href="../../eidors/solvers/fwd_solve.html" class="code" title="function data = fwd_solve(fwd_model, img)">fwd_solve</a>(img);
+0054         vx = <a href="mono2stim.html" class="code" title="function out = mono2stim(mat, stim)">mono2stim</a>(vm, fmdl.stimulation);
+0055         <a href="../../eidors/tools/unit_test_cmp.html" class="code" title="function res = unit_test_cmp(txt,a,b,tol)">unit_test_cmp</a>(<span class="string">'Equal'</span>,vo.meas,vx.meas, 50*eps);
+0056     <span class="keyword">end</span>
+0057 <span class="keyword">end</span>
+0058 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

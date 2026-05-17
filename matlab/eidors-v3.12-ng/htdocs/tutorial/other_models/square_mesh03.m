@@ -1,0 +1,22 @@
+% simulate targets $Id: square_mesh03.m 3273 2012-06-30 18:00:35Z aadler $
+
+fmdl.stimulation= mk_stim_patterns(length(elec_nodes), 1, '{ad}','{ad}', {}, 1);
+
+img= mk_image(fmdl, 1);
+vh= fwd_solve(img);
+
+% interpolate onto mesh
+xym= interp_mesh( fmdl, 3);
+x_xym= xym(:,1,:); y_xym= xym(:,2,:);
+% non-conductive target
+ff  = (x_xym>-3) & (x_xym<-2) & (y_xym<-4) & (y_xym>-7);
+img.elem_data= img.elem_data - 0.1*mean(ff,3);
+% conductive target
+ff  = (x_xym> 2) & (x_xym< 4) & (y_xym<-5) & (y_xym>-7);
+img.elem_data= img.elem_data + 0.1*mean(ff,3);
+
+% inhomogeneous image
+vi= fwd_solve(img);
+
+show_fem(img); axis image;
+print_convert square_mesh03a.png

@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of fix_boundary</title>
+  <meta name="keywords" content="fix_boundary">
+  <meta name="description" content="FIX_BOUNDARY Orient boundary triangles consistently">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">eidors</a> &gt; <a href="index.html">models</a> &gt; fix_boundary.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for eidors/models&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>fix_boundary
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>FIX_BOUNDARY Orient boundary triangles consistently</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function mdl = fix_boundary(mdl) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">FIX_BOUNDARY Orient boundary triangles consistently
+ mdl = FIX_BOUNDARY(mdl) changes or adds mdl.boundary to an eidors
+  fwd_model
+ 
+ See also <a href="fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">FIX_MODEL</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>	EIDORS_OBJ: maintains EIDORS internals</li><li><a href="fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>	FIX_MODEL: Add useful fields to a model</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../eidors/meshing/netgen/ng_stl2tet.html" class="code" title="function mdl = ng_stl2tet(stlfile, varargin)">ng_stl2tet</a>	NG_STL2TET creates a tetrahedral mesh from an stl file</li><li><a href="mk_head_model.html" class="code" title="function out = mk_head_model(str, varargin)">mk_head_model</a>	MK_HEAD_MODEL FEM models of the head</li><li><a href="mk_head_model_adult.html" class="code" title="function out = mk_head_model_adult(varargin)">mk_head_model_adult</a>	MK_HEAD_MODEL_ADULT Adult head model</li><li><a href="mk_thorax_model.html" class="code" title="function out = mk_thorax_model(str, varargin)">mk_thorax_model</a>	MK_THORAX_MODEL FEM models of the thorax</li><li><a href="mk_thorax_model_bp3d.html" class="code" title="function out = mk_thorax_model_bp3d(varargin)">mk_thorax_model_bp3d</a>	MK_THORAX_MODEL_BP3D Torso model based on BodyParts3D</li><li><a href="place_elec_on_surf.html" class="code" title="function mdl2 = place_elec_on_surf(mdl,elec_pos, elec_spec,ng_opt_file, maxh)">place_elec_on_surf</a>	PLACE_ELEC_ON_SURF Place electrodes on the surface of a model</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function mdl = fix_boundary(mdl)</a>
+0002 <span class="comment">%FIX_BOUNDARY Orient boundary triangles consistently</span>
+0003 <span class="comment">% mdl = FIX_BOUNDARY(mdl) changes or adds mdl.boundary to an eidors</span>
+0004 <span class="comment">%  fwd_model</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% See also FIX_MODEL</span>
+0007 
+0008 <span class="comment">% (C) 2015-2016 Bartlomiej Grychtol. License: GPL version 2 or 3</span>
+0009 <span class="comment">% $Id: fix_boundary.m 6926 2024-05-31 15:34:13Z bgrychtol $</span>
+0010 
+0011 opt.elem2face  = 1;
+0012 opt.boundary_face = 1;
+0013 opt.inner_normal = 1;
+0014 tmp = <a href="fix_model.html" class="code" title="function [mdl] = fix_model(mdl,opt)">fix_model</a>(mdl,opt);
+0015 flip = tmp.elem2face(logical(tmp.boundary_face(tmp.elem2face).*tmp.inner_normal));
+0016 tmp.faces(flip,:) = tmp.faces(flip,[1 3 2]);
+0017 tmp.normals(flip,:) = -tmp.normals(flip,:);
+0018 
+0019 <span class="comment">% don't pollute the model, but make existing relevant fields consistent</span>
+0020 fields = {<span class="string">'faces'</span>, <span class="string">'normals'</span>, <span class="string">'inner_normal'</span>, <span class="string">'boundary_face'</span>};
+0021 <span class="keyword">for</span> i = 1:numel(fields)
+0022    <span class="keyword">if</span> isfield(mdl, fields{i})
+0023       mdl.(fields{i}) = tmp.(fields{i}); 
+0024    <span class="keyword">end</span>
+0025 <span class="keyword">end</span>
+0026 mdl.boundary = tmp.faces(tmp.boundary_face,:);
+0027 
+0028 mdl = <a href="../../eidors/eidors_obj.html" class="code" title="function [obj_id, extra_out] = eidors_obj(type,name, varargin )">eidors_obj</a>(<span class="string">'set'</span>, mdl);</pre></div>
+<hr><address>Generated on Sun 29-Dec-2024 19:54:43 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>
