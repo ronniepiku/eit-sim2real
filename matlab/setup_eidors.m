@@ -3,14 +3,14 @@
 %
 % Prerequisites:
 %   1. Download EIDORS from: http://eidors3d.sourceforge.net/
-%   2. Extract to: matlab/eidors/ (or update path below)
+%   2. Extract to: matlab/eidors-v3.12-ng/eidors/ (or update path below)
 %   3. Ensure Netgen is installed for 3D mesh generation
 
 function setup_eidors()
     project_root = fileparts(mfilename('fullpath'));
 
     % EIDORS path (adjust if installed elsewhere)
-    eidors_dir = fullfile(project_root, 'eidors');
+    eidors_dir = fullfile(project_root, 'eidors-v3.12-ng\eidors');
 
     if ~exist(eidors_dir, 'dir')
         error('setup_eidors:notFound', [...

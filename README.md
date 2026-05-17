@@ -78,8 +78,8 @@ This project:
 
 ```bash
 # Clone repository
-git clone https://github.com/<username>/eit-touch-classification.git
-cd eit-touch-classification
+git clone https://github.com/ronniepiku/eit-sim2real.git
+cd eit-sim2real
 
 # Install Python dependencies
 uv sync

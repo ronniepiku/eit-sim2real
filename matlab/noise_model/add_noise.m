@@ -34,6 +34,7 @@ function dv_noisy = add_noise(dv, params)
         params struct
     end
 
+    dv = double(dv);
     dv_noisy = dv;
     n_meas = length(dv);
 

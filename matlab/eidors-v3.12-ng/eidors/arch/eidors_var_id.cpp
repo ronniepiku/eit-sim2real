@@ -56,8 +56,7 @@ https://raw.githubusercontent.com/Cyan4973/xxHash/dev/xxhash.h
 //  mexErrMsgTxt(__FILE__  __LINE__  "syscall returned bad status",
 
 #ifdef _MSC_VER
-typedef unsigned short uint16_t; //sizeof(unsigned short)=2 
-typedef unsigned long  uint32_t; //sizeof(unsigned short)=2 
+#include <stdint.h>
 #else
 #include <stdint.h>
 #endif

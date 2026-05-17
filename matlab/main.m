@@ -28,12 +28,8 @@ config.mesh.refinement = 'c';
 % Set random seed for reproducibility
 rng(config.seed);
 
-% Add paths
-addpath(fullfile(fileparts(mfilename('fullpath')), 'utils'));
-addpath(fullfile(fileparts(mfilename('fullpath')), 'noise_model'));
-
 % Initialise EIDORS (adjust path as needed)
-eidors_path = fullfile(fileparts(mfilename('fullpath')), 'eidors', 'startup.m');
+eidors_path = fullfile(fileparts(mfilename('fullpath')), 'eidors-v3.12-ng\eidors', 'startup.m');
 if exist(eidors_path, 'file')
     run(eidors_path);
 else
@@ -41,6 +37,10 @@ else
         'EIDORS not found at: %s\nDownload from http://eidors3d.sourceforge.net/', ...
         eidors_path);
 end
+
+% Add project paths after EIDORS startup so local implementations override EIDORS functions
+addpath(fullfile(fileparts(mfilename('fullpath')), 'utils'));
+addpath(fullfile(fileparts(mfilename('fullpath')), 'noise_model'));
 
 %% Create Mesh
 fprintf('Creating mesh (geometry: %s, electrodes: %d)...\n', ...

@@ -56,7 +56,7 @@ function [dv_noisy, dv_clean, class_id, metadata] = generate_sample(fmdl, vh, no
     vi = fwd_solve(img);
 
     % Voltage difference from baseline
-    dv_clean = vi.meas - vh.meas;
+    dv_clean = double(vi.meas - vh.meas);
 
     % Apply noise model
     dv_noisy = add_noise(dv_clean, noise_params);
