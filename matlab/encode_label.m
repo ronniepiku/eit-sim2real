@@ -20,7 +20,7 @@ function [class_id, class_name, metadata] = encode_label(touch_type, params)
 %     metadata   - Struct with all physical parameters for traceability
 %
 %   Example:
-%     p = struct('radius', 0.05, 'conductivity', 1.2, 'x', 0.1, 'y', -0.2);
+%     p = struct('radius', 0.08, 'conductivity', 0.90, 'x', 0.1, 'y', -0.2);
 %     [id, name, meta] = encode_label('light', p);
 
     arguments

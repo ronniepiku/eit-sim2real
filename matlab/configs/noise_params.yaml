@@ -16,35 +16,34 @@ enabled: true
 # Additive Gaussian measurement noise
 # Typical EIT systems: 40-60 dB (lab), 20-30 dB (portable/wearable)
 # Ref: [1] reports SNR of 40-80 dB depending on hardware quality
+# noise_floor: baseline RMS noise amplitude for zero-signal measurements
+# (ensures "no contact" class gets realistic noise rather than zeros)
 gaussian:
   enabled: true
   snr_db: 40.0            # Signal-to-noise ratio in decibels
   snr_range: [30.0, 60.0] # Range for random sampling during augmentation
+  noise_floor: 1.0e-4     # Baseline noise RMS (V) for zero-signal case
 
 # Electrode contact impedance variation
 # Models imperfect electrode-skin contact: per-electrode multiplicative factor
+# Applied per-electrode (not per-measurement) as contact impedance is a
+# property of the electrode-skin interface
 # Ref: [3] reports contact impedance variations of 5-20% in practice
 contact_impedance:
   enabled: true
   std_percent: 10.0       # Standard deviation as percentage of signal
   distribution: lognormal # lognormal or gaussian
-
-# Systematic temporal drift
-# Models slow baseline shift due to temperature, gel drying, skin changes
-# Ref: [2] reports drift of 0.1-1% per minute in skin-electrode systems
-drift:
-  enabled: true
-  rate_per_sample: 0.001  # Drift increment standard deviation per sample
-  max_magnitude: 0.05     # Maximum drift magnitude (clipped)
-  type: random_walk       # random_walk or linear
+  n_electrodes: 16        # Number of electrodes (for per-electrode mapping)
 
 # Electrode positioning error / geometric mismatch
-# Models imprecision in electrode placement on physical arm
+# Models imprecision in electrode placement as a per-electrode random offset.
+# Each electrode has a fixed bias that affects all measurements it
+# participates in, reflecting real-world placement uncertainty.
 # Ref: [4] reports 1-2 mm positioning errors significantly affect measurements
 electrode_bias:
   enabled: true
   max_bias: 0.02          # Maximum systematic bias per electrode
-  type: linear            # linear gradient across electrode array
+  n_electrodes: 16        # Number of electrodes (for per-electrode mapping)
 
 # Quantisation noise from ADC
 # Models finite resolution of analog-to-digital conversion

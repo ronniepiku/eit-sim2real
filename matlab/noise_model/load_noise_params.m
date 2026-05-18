@@ -24,19 +24,17 @@ function params = load_noise_params(config_path)
     % Gaussian
     params.gaussian.enabled = raw.gaussian.enabled;
     params.gaussian.snr_db = raw.gaussian.snr_db;
+    params.gaussian.noise_floor = raw.gaussian.noise_floor;
 
     % Contact impedance
     params.contact_impedance.enabled = raw.contact_impedance.enabled;
     params.contact_impedance.std_percent = raw.contact_impedance.std_percent;
-
-    % Drift
-    params.drift.enabled = raw.drift.enabled;
-    params.drift.rate_per_sample = raw.drift.rate_per_sample;
-    params.drift.max_magnitude = raw.drift.max_magnitude;
+    params.contact_impedance.n_electrodes = raw.contact_impedance.n_electrodes;
 
     % Electrode bias
     params.electrode_bias.enabled = raw.electrode_bias.enabled;
     params.electrode_bias.max_bias = raw.electrode_bias.max_bias;
+    params.electrode_bias.n_electrodes = raw.electrode_bias.n_electrodes;
 
     % Quantisation
     params.quantisation.enabled = raw.quantisation.enabled;

@@ -6,19 +6,18 @@ function dv_noisy = add_noise(dv, params)
 %   via the params struct, enabling systematic ablation studies.
 %
 %   Noise Components:
-%     1. Gaussian measurement noise (SNR-parameterised)
-%     2. Electrode contact impedance variation (multiplicative)
-%     3. Systematic drift (random walk or linear)
-%     4. Electrode bias (linear gradient)
-%     5. Quantisation noise (ADC bit-depth)
+%     1. Gaussian measurement noise (SNR-parameterised, with baseline floor)
+%     2. Electrode contact impedance variation (per-electrode, multiplicative)
+%     3. Electrode bias (per-electrode random offset mapped to measurements)
+%     4. Quantisation noise (ADC bit-depth)
 %
 %   Parameters:
 %     dv     - (n_meas x 1) clean voltage difference vector
 %     params - struct with fields:
-%       .gaussian.enabled, .gaussian.snr_db
+%       .gaussian.enabled, .gaussian.snr_db, .gaussian.noise_floor
 %       .contact_impedance.enabled, .contact_impedance.std_percent
-%       .drift.enabled, .drift.rate_per_sample, .drift.max_magnitude
 %       .electrode_bias.enabled, .electrode_bias.max_bias
+%       .electrode_bias.n_electrodes
 %       .quantisation.enabled, .quantisation.adc_bits, .quantisation.voltage_range
 %
 %   Returns:
@@ -39,43 +38,76 @@ function dv_noisy = add_noise(dv, params)
     n_meas = length(dv);
 
     % --- 1. Gaussian measurement noise ---
+    % Uses SNR-based scaling when signal is present; falls back to a fixed
+    % noise floor for zero-signal cases (e.g., "no contact" class) so that
+    % the class still has realistic measurement noise.
     if params.gaussian.enabled
         snr_db = params.gaussian.snr_db;
         signal_power = norm(dv);
+        noise = randn(n_meas, 1);
         if signal_power > 0
-            noise = randn(n_meas, 1);
             scale = signal_power / norm(noise) * 10^(-snr_db / 20);
-            dv_noisy = dv_noisy + scale * noise;
+        else
+            % Baseline noise floor for zero-signal measurements
+            % Typical EIT systems have ~1e-4 V RMS baseline noise
+            scale = params.gaussian.noise_floor / norm(noise) * n_meas;
         end
+        dv_noisy = dv_noisy + scale * noise;
     end
 
     % --- 2. Electrode contact impedance variation ---
+    % Applied per-electrode: each electrode has a random impedance factor
+    % that affects all measurements involving that electrode. This is
+    % physically correct as contact impedance is a property of the
+    % electrode-skin interface, not of individual measurements.
     if params.contact_impedance.enabled
         std_frac = params.contact_impedance.std_percent / 100;
-        % Multiplicative per-measurement factor (log-normal)
-        impedance_factor = exp(std_frac * randn(n_meas, 1));
+        n_elec = params.contact_impedance.n_electrodes;
+        meas_per_elec = n_meas / n_elec;
+
+        % Generate per-electrode impedance factors (log-normal)
+        elec_factors = exp(std_frac * randn(n_elec, 1));
+
+        % Map to measurements: each block of (n_meas/n_elec) measurements
+        % is associated with a drive electrode pair. Apply the mean of the
+        % two electrodes involved in each drive pattern.
+        impedance_factor = repelem(elec_factors, round(meas_per_elec));
+        % Trim or pad to match n_meas exactly
+        if length(impedance_factor) > n_meas
+            impedance_factor = impedance_factor(1:n_meas);
+        elseif length(impedance_factor) < n_meas
+            impedance_factor(end+1:n_meas) = 1.0;
+        end
+
         dv_noisy = dv_noisy .* impedance_factor;
     end
 
-    % --- 3. Systematic drift ---
-    if params.drift.enabled
-        rate = params.drift.rate_per_sample;
-        max_mag = params.drift.max_magnitude;
-        % Random walk drift (independent per call, no persistent state)
-        drift_vec = cumsum(rate * randn(n_meas, 1));
-        % Clip to maximum magnitude
-        drift_vec = max(min(drift_vec, max_mag), -max_mag);
-        dv_noisy = dv_noisy + drift_vec;
-    end
-
-    % --- 4. Electrode bias ---
+    % --- 3. Electrode bias ---
+    % Per-electrode random offset mapped to the measurement vector.
+    % Models systematic positioning errors or gel thickness variation at
+    % each electrode site. Each electrode contributes a fixed bias to all
+    % measurements it participates in.
+    % Ref: [4] Kolehmainen et al. (1997) - 1-2 mm positioning errors
     if params.electrode_bias.enabled
         max_bias = params.electrode_bias.max_bias;
-        bias = linspace(-max_bias, max_bias, n_meas)';
-        dv_noisy = dv_noisy + bias;
+        n_elec = params.electrode_bias.n_electrodes;
+        meas_per_elec = n_meas / n_elec;
+
+        % Random per-electrode bias (uniform)
+        elec_bias = max_bias * (2 * rand(n_elec, 1) - 1);
+
+        % Map to measurement vector
+        bias_vec = repelem(elec_bias, round(meas_per_elec));
+        if length(bias_vec) > n_meas
+            bias_vec = bias_vec(1:n_meas);
+        elseif length(bias_vec) < n_meas
+            bias_vec(end+1:n_meas) = 0;
+        end
+
+        dv_noisy = dv_noisy + bias_vec;
     end
 
-    % --- 5. Quantisation noise ---
+    % --- 4. Quantisation noise ---
     if params.quantisation.enabled
         n_bits = params.quantisation.adc_bits;
         v_range = params.quantisation.voltage_range;

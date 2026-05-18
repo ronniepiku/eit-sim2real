@@ -132,6 +132,75 @@ def evaluate_robustness(
     }
 
 
+def evaluate_severity_sweep(
+    model: EITConv1D | object,
+    X_clean: np.ndarray,
+    X_noisy: np.ndarray,
+    y_test: np.ndarray,
+    severity_multipliers: list[float] | None = None,
+    device: str = "cpu",
+) -> dict[str, list[float]]:
+    """Evaluate model robustness under severity-scaled noise.
+
+    Applies noise at varying severity multipliers following Hendrycks & Dietterich
+    (2019). The noise perturbation is computed as the difference between noisy and
+    clean data, then scaled by the severity multiplier.
+
+    Args:
+        model: Trained CNN or sklearn model.
+        X_clean: Clean test features.
+        X_noisy: Noisy test features (at 1.0x severity).
+        y_test: Test labels.
+        severity_multipliers: List of multipliers (e.g., [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]).
+        device: Device for CNN inference.
+
+    Returns:
+        Dictionary with multipliers, accuracies, F1 scores, and degradation metrics.
+    """
+    if severity_multipliers is None:
+        severity_multipliers = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+
+    # Compute the noise perturbation at 1x
+    noise_delta = X_noisy - X_clean
+
+    accuracies: list[float] = []
+    f1_scores: list[float] = []
+
+    for mult in severity_multipliers:
+        X_test_scaled = X_clean + mult * noise_delta
+        results = evaluate_model(model, X_test_scaled, y_test, device=device)
+        accuracies.append(results["accuracy"])
+        f1_scores.append(results["f1_macro"])
+
+        logger.info(
+            f"  Severity {mult:.1f}x | "
+            f"Acc: {results['accuracy']:.4f} | "
+            f"F1: {results['f1_macro']:.4f}"
+        )
+
+    # Compute robustness metrics
+    metrics: dict[str, float | None] = {}
+    if len(accuracies) >= 2:
+        # Graceful degradation rate (slope of accuracy vs severity)
+        from numpy.polynomial.polynomial import polyfit
+        coeffs = polyfit(severity_multipliers, accuracies, 1)
+        metrics["degradation_slope"] = float(coeffs[1])
+
+    # Robustness at 2x and 3x (if available)
+    for target in [2.0, 3.0]:
+        if target in severity_multipliers:
+            idx = severity_multipliers.index(target)
+            metrics[f"accuracy_at_{target:.0f}x"] = accuracies[idx]
+            metrics[f"f1_at_{target:.0f}x"] = f1_scores[idx]
+
+    return {
+        "severity_multipliers": severity_multipliers,
+        "accuracies": accuracies,
+        "f1_scores": f1_scores,
+        "metrics": metrics,
+    }
+
+
 def _save_results(
     results: dict,
     output_dir: Path,
@@ -247,9 +316,12 @@ def main() -> None:
     # Robustness evaluation
     if args.robustness:
         logger.info("\nRobustness evaluation (varying noise levels):")
+        # Always use clean test features as base for noise injection
+        X_clean_test, _ = load_mat_dataset(data_path, use_noisy=False)
+        dataset_clean = prepare_splits(X_clean_test, y, random_state=args.seed)
         rob = evaluate_robustness(
             model,
-            dataset.X_test,
+            dataset_clean.X_test,
             dataset.y_test,
             noise_levels=cfg["evaluation"]["robustness_noise_levels"],
             seed=args.seed,
@@ -259,6 +331,25 @@ def main() -> None:
         with open(rob_path, "w", encoding="utf-8") as fh:
             json.dump(rob, fh, indent=2)
         logger.info(f"Robustness results saved to {rob_path}")
+
+        # Severity sweep (Hendrycks-style with noise multipliers)
+        logger.info("\nSeverity sweep evaluation:")
+        X_noisy_all, _ = load_mat_dataset(data_path, use_noisy=True)
+        dataset_noisy = prepare_splits(X_noisy_all, y, random_state=args.seed)
+        severity_mults = cfg["evaluation"].get(
+            "severity_multipliers", [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+        )
+        sev = evaluate_severity_sweep(
+            model,
+            dataset_clean.X_test,
+            dataset_noisy.X_test,
+            dataset.y_test,
+            severity_multipliers=severity_mults,
+        )
+        sev_path = args.output_dir / f"{model_name}_severity_sweep.json"
+        with open(sev_path, "w", encoding="utf-8") as fh:
+            json.dump(sev, fh, indent=2)
+        logger.info(f"Severity sweep results saved to {sev_path}")
 
 
 if __name__ == "__main__":

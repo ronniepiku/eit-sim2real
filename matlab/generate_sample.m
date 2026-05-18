@@ -69,13 +69,37 @@ end
 function params = get_touch_params(touch_type, fmdl)
 %GET_TOUCH_PARAMS Generate physical parameters for a given touch class.
 %
-%   Parameters are sampled from defined ranges to create variability
-%   within each class while maintaining class-defining characteristics.
+%   Physics-informed parameterisation for an ionic hydrogel EIT e-skin.
+%
+%   Material model:
+%     Ionic hydrogel exhibits POSITIVE piezoresistive response — local
+%     resistance increases (conductivity DECREASES) under mechanical load.
+%     This arises from compression disrupting ion-transport pathways in
+%     the hydrated polymer matrix.
+%
+%   Evidence basis (see defensibility table in methodology chapter):
+%     - Sign (sigma < sigma_0): [19] Lee et al. — ionic hydrogel layer
+%       shows "positive piezoresistive response (resistance up with strain)"
+%     - Force envelope 0.01-10 N: [55] prosthetic tactile design constraint
+%     - Demonstrated hydrogel EIT range 0.5-2 N: [20] FISTA paper (50-200 g)
+%     - Detection threshold >= 2% change: [38] Boone & Holder
+%     - Contact radii from Hertzian model with E* ~ 150 kPa: [18] Kim et al.
+%
+%   Calibration rules:
+%     - Magnitudes are physics-informed priors, not directly measured constants
+%     - Class separability validated via forward-solve signal norms
+%     - Conductivity change proportional to local pressure: Δσ/σ₀ ∝ F/(πr²)
+%     - Ranges ensure: point > firm > distributed ≈ light in |Δσ| per element
+%     - Position constrained to 40% of boundary to limit sensitivity-gradient
+%       induced variance that would otherwise dominate class differences
 
     % Determine valid position range from mesh bounds
+    % Constrain to 40% of boundary radius to reduce the EIT sensitivity
+    % gradient's impact on within-class variance (sensitivity is highest
+    % near electrodes and lowest in centre; 70% allowed too much spread)
     nodes = fmdl.nodes;
-    x_range = [min(nodes(:,1)), max(nodes(:,1))] * 0.7;  % Stay within 70% of boundary
-    y_range = [min(nodes(:,2)), max(nodes(:,2))] * 0.7;
+    x_range = [min(nodes(:,1)), max(nodes(:,1))] * 0.4;
+    y_range = [min(nodes(:,2)), max(nodes(:,2))] * 0.4;
 
     % Random position (shared across classes that have contact)
     x = x_range(1) + rand() * (x_range(2) - x_range(1));
@@ -83,34 +107,49 @@ function params = get_touch_params(touch_type, fmdl)
 
     switch touch_type
         case 'none'
-            % No contact: baseline measurement
+            % No contact: baseline measurement (homogeneous hydrogel)
             params = struct('radius', 0, 'conductivity', 1.0, 'x', 0, 'y', 0);
 
         case 'light'
-            % Light touch: small conductivity change, medium area
-            radius = 0.08 + 0.04 * rand();         % [0.08, 0.12]
-            conductivity = 1.1 + 0.15 * rand();    % [1.1, 1.25]
+            % Light touch (~0.1–0.5 N): mild conductivity decrease, medium area
+            % Local pressure P ≈ F/(πr²) ≈ 0.3/(π×0.08²) ≈ 15 kPa
+            % Evidence: [3] hydrogel recovery under 2 kPa; [55] low-end force
+            % Conductivity drop 5–15% above detection threshold ([38]: 2%)
+            radius = 0.06 + 0.04 * rand();         % [0.06, 0.10]
+            conductivity = 0.85 + 0.10 * rand();   % [0.85, 0.95]
             params = struct('radius', radius, 'conductivity', conductivity, ...
                 'x', x, 'y', y);
 
         case 'firm'
-            % Firm press: large conductivity change, medium area
+            % Firm press (~1.0–3.0 N): strong conductivity decrease, medium area
+            % Local pressure P ≈ 2.0/(π×0.10²) ≈ 64 kPa
+            % Evidence: [20] 50–200 g on hydrogel; [10] tested to 2.5 N
+            % Conductivity drop 25–45%, within linear EIT regime ([17])
             radius = 0.08 + 0.04 * rand();         % [0.08, 0.12]
-            conductivity = 1.8 + 0.4 * rand();     % [1.8, 2.2]
+            conductivity = 0.55 + 0.20 * rand();   % [0.55, 0.75]
             params = struct('radius', radius, 'conductivity', conductivity, ...
                 'x', x, 'y', y);
 
         case 'point'
-            % Point contact: medium force, very small area
-            radius = 0.02 + 0.02 * rand();         % [0.02, 0.04]
-            conductivity = 1.4 + 0.3 * rand();     % [1.4, 1.7]
+            % Point contact (~0.3–1.5 N): moderate force, very small area
+            % Local pressure P ≈ 0.8/(π×0.03²) ≈ 280 kPa (very high)
+            % Evidence: [64] poke modality; high local pressure on small patch
+            % Physics: F/A very large → strongest local Δσ of all classes
+            % Conductivity drop 45–65% justified by extreme local pressure
+            radius = 0.02 + 0.03 * rand();         % [0.02, 0.05]
+            conductivity = 0.35 + 0.20 * rand();   % [0.35, 0.55]
             params = struct('radius', radius, 'conductivity', conductivity, ...
                 'x', x, 'y', y);
 
         case 'distributed'
-            % Distributed contact: medium force, large area
-            radius = 0.15 + 0.08 * rand();         % [0.15, 0.23]
-            conductivity = 1.3 + 0.2 * rand();     % [1.3, 1.5]
+            % Distributed contact (~1.0–4.0 N): moderate force, large area
+            % Local pressure P ≈ 2.0/(π×0.20²) ≈ 16 kPa (low per element)
+            % Evidence: [14] distributed pressure; [55] grasping forces
+            % Physics: F spread over large area → small per-element Δσ but
+            % distinct spatial signature (broad, shallow perturbation)
+            % Conductivity drop 8–20% per element over wide region
+            radius = 0.15 + 0.10 * rand();         % [0.15, 0.25]
+            conductivity = 0.80 + 0.12 * rand();   % [0.80, 0.92]
             params = struct('radius', radius, 'conductivity', conductivity, ...
                 'x', x, 'y', y);
     end

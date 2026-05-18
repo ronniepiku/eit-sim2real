@@ -12,7 +12,7 @@ clear; clc; close all;
 
 %% Configuration
 % --- Dataset parameters ---
-config.samples_per_class = 1000;    % Samples per class (total = 5 * this)
+config.samples_per_class = 5000;    % Samples per class (total = 5 * this = 25,000)
 config.n_classes = 5;
 config.class_names = {'none', 'light', 'firm', 'point', 'distributed'};
 config.output_dir = fullfile(fileparts(mfilename('fullpath')), '..', 'data');
@@ -22,7 +22,7 @@ config.seed = 42;                    % For reproducibility
 config.mesh.geometry = '2d_circle';  % '2d_circle' or '3d_cylinder'
 config.mesh.n_elec = 16;
 config.mesh.n_rings = 2;
-config.mesh.refinement = 'c';
+config.mesh.refinement = 'd';  % Finer mesh (~1024 elements) ensures point contacts resolve
 
 %% Initialise
 % Set random seed for reproducibility
@@ -52,10 +52,9 @@ fprintf('  Mesh created: %d elements, %d measurements\n', ...
 
 %% Load Noise Parameters
 noise_params = load_noise_params();
-fprintf('Noise model loaded (components: gaussian=%d, impedance=%d, drift=%d, bias=%d, quant=%d)\n', ...
+fprintf('Noise model loaded (components: gaussian=%d, impedance=%d, bias=%d, quant=%d)\n', ...
     noise_params.gaussian.enabled, ...
     noise_params.contact_impedance.enabled, ...
-    noise_params.drift.enabled, ...
     noise_params.electrode_bias.enabled, ...
     noise_params.quantisation.enabled);
 

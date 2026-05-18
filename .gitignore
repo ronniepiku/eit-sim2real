@@ -27,11 +27,6 @@ uv.lock
 data/raw/
 data/processed/
 
-# Results (regenerable)
-results/figures/*.png
-results/figures/*.pdf
-results/tables/*.csv
-
 # IDE
 .vscode/
 .idea/
@@ -42,3 +37,6 @@ Thumbs.db
 
 # EIDORS (external dependency - too large for repo)
 matlab/eidors/
+
+# Results (regenerable)
+results/

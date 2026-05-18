@@ -48,7 +48,7 @@
 
 ---
 
-### WEEK 2 (May 20–26): Fix Code + Get Material Properties
+### WEEK 2 (May 20–26): Fix Code
 
 **Goal**: Repair known bugs and ground parameters in physics.
 
@@ -87,43 +87,6 @@
    with open('python/configs/config.yaml') as f:
        cfg = yaml.safe_load(f)
    ```
-
-2. **Obtain material properties** (ongoing this week)
-   
-   What you need from the e-skin material:
-   - **Young's modulus** (E, in kPa) — how stiff is it?
-   - **Piezoresistive gauge factor** (k or GF) — how much does conductivity change per unit strain?
-   - **Baseline conductivity** (σ₀, in S/m) — what is the resting conductivity?
-   - **Poisson's ratio** (ν) — for stress/strain conversion
-   
-   Where to get these:
-   - Option A: Ask whoever is providing the material (Bath lab contact)
-   - Option B: Find a published paper with full material characterisation of the same or similar material. Good candidates:
-     - Paper [19] (variable sensitivity hydrogel + carbon-black elastomer)
-     - Paper [3]/[5] (multifunctional hydrogel)
-     - Paper [4] (ultra-stretchable hydrogel)
-   - Option C: Use datasheet values from commercial piezoresistive elastomers (e.g., Wacker Elastosil, Zoflex)
-
-3. **Build the force-to-conductivity mapping**
-   
-   Once you have the material properties, the conversion is:
-   
-   ```
-   Strain (ε) = Force / (Area × E)
-   Δσ = σ₀ × GF × ε
-   ```
-   
-   For each class, use CoST force data to define F and A, then compute Δσ:
-   
-   | Class | Force (N) | Area (cm²) | ε (using your E) | Δσ (using your GF) |
-   |---|---|---|---|---|
-   | No contact | 0 | 0 | 0 | 0 |
-   | Light touch | 0.5–3 | 1–3 | calculate | calculate |
-   | Firm press | 5–15 | 2–4 | calculate | calculate |
-   | Point contact | 2–5 | 0.5–1 | calculate | calculate |
-   | Distributed | 1–5 | 8–15 | calculate | calculate |
-   
-   Update `generate_sample.m` with the calculated σ and radius ranges.
 
 **Deliverable**: All 4 code fixes committed. Material properties documented. Updated class parameters.
 
@@ -562,61 +525,6 @@
    - "What would you do with another 3 months?" → Real data, 3D mesh, temporal modelling
    - "Why not a more complex model?" → Scientific clarity, deployment constraints, data size
 
----
-
-## Material Properties: What to Do When You Get Them
-
-When you receive the e-skin material properties, do the following:
-
-### 1. Record these values
-
-| Property | Symbol | Unit | Value |
-|---|---|---|---|
-| Young's modulus | E | kPa | ? |
-| Gauge factor | GF | dimensionless | ? |
-| Baseline conductivity | σ₀ | S/m | ? |
-| Poisson's ratio | ν | dimensionless | ? |
-| Thickness | t | mm | ? |
-
-### 2. Compute force-to-conductivity mapping
-
-```matlab
-% For each class, given Force (N) and Area (m²):
-strain = Force / (Area * E * 1000);  % E in kPa → Pa
-delta_sigma = sigma_0 * GF * strain;
-conductivity = sigma_0 + delta_sigma;
-```
-
-### 3. Update generate_sample.m
-
-Replace the current hardcoded ranges with computed values:
-
-```matlab
-case 'light'
-    % Force: 0.5–3 N, Area: 1–3 cm² (from CoST)
-    % Using E = [your value] kPa, GF = [your value]
-    radius = [computed from area range];
-    conductivity = [computed from force/area/material];
-```
-
-### 4. Document the chain
-
-In your Methodology chapter, write:
-> "Contact force ranges were derived from empirical measurements in the Corpus of Social Touch (Jung et al., 2015). These forces were converted to conductivity changes using the piezoresistive model of [material source], with Young's modulus E = X kPa and gauge factor GF = Y, yielding Δσ ranges of [values] for each class."
-
-### 5. If properties arrive AFTER you've already generated data
-
-That's fine. Regenerate the dataset with updated parameters (takes a few hours). Update all results. The methodology is stronger with material-grounded parameters, so it's worth regenerating even late in the process.
-
----
-
-## Daily Habits That Will Keep You On Track
-
-1. **Start each day** by opening `results/` and checking what's there vs what's needed.
-2. **End each day** by committing code changes to git with a message describing what was done.
-3. **Weekly checkpoint** (every Sunday): update a one-line status per week in this document.
-4. **If stuck for >2 hours** on a technical problem: write down what you've tried, then move to a different task. Return with fresh eyes the next day.
-5. **Write as you go** — don't leave all writing to the end. Even 200 words per day = 2,800 words per fortnight.
 
 ---
 

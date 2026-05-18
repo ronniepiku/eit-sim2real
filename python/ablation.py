@@ -37,7 +37,6 @@ logger = logging.getLogger(__name__)
 NOISE_COMPONENTS = [
     "gaussian",
     "contact_impedance",
-    "drift",
     "electrode_bias",
     "quantisation",
 ]
@@ -93,8 +92,8 @@ def generate_ablation_configs() -> list[tuple[str, dict[str, bool]]]:
     Returns:
         List of (description, config) tuples.  Includes:
         - All off (clean baseline)
-        - Each component individually
-        - All pairwise combinations
+        - Each component individually (single-component)
+        - Leave-one-out (all except one)
         - All on (full noise)
     """
     configs: list[tuple[str, dict[str, bool]]] = []
@@ -102,19 +101,17 @@ def generate_ablation_configs() -> list[tuple[str, dict[str, bool]]]:
     # Clean baseline (no noise)
     configs.append(("clean", {c: False for c in NOISE_COMPONENTS}))
 
-    # Individual components
+    # Individual components (single-component training)
     for comp in NOISE_COMPONENTS:
         config = {c: False for c in NOISE_COMPONENTS}
         config[comp] = True
         configs.append((f"only_{comp}", config))
 
-    # All combinations of 2 components
-    for combo in itertools.combinations(NOISE_COMPONENTS, 2):
-        config = {c: False for c in NOISE_COMPONENTS}
-        for comp in combo:
-            config[comp] = True
-        name = "+".join(combo)
-        configs.append((name, config))
+    # Leave-one-out (all except one component)
+    for comp in NOISE_COMPONENTS:
+        config = {c: True for c in NOISE_COMPONENTS}
+        config[comp] = False
+        configs.append((f"without_{comp}", config))
 
     # All on (full noise model)
     configs.append(("all_noise", {c: True for c in NOISE_COMPONENTS}))

@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import NamedTuple
 
+import h5py
 import numpy as np
 import scipy.io as sio
 from sklearn.model_selection import StratifiedKFold, train_test_split
@@ -38,18 +39,33 @@ def load_mat_dataset(
     if not data_path.exists():
         raise FileNotFoundError(f"Dataset not found: {data_path}")
 
-    mat = sio.loadmat(str(data_path))
-
-    key = "dataset_X_noisy" if use_noisy else "dataset_X_clean"
-    if key not in mat:
-        # Fallback for legacy format
-        key = "dataset_X"
-
-    X = np.array(mat[key], dtype=np.float32)
-    y = np.array(mat["dataset_y"], dtype=np.int64).ravel()
+    try:
+        mat = sio.loadmat(str(data_path))
+    except NotImplementedError:
+        with h5py.File(data_path, 'r') as f:
+            key = "dataset_X_noisy" if use_noisy else "dataset_X_clean"
+            X = np.array(f[key], dtype=np.float32)
+            y = np.array(f["dataset_y"], dtype=np.int64).ravel()
+    else:
+        key = "dataset_X_noisy" if use_noisy else "dataset_X_clean"
+        if key not in mat:
+            key = "dataset_X"
+        X = np.array(mat[key], dtype=np.float32)
+        y = np.array(mat["dataset_y"], dtype=np.int64).ravel()
 
     # Convert from 1-indexed (MATLAB) to 0-indexed (PyTorch) labels
     y = y - 1
+
+    # Ensure X rows match y length
+    if X.shape[0] != y.shape[0]:
+        if X.shape[1] == y.shape[0]:
+            X = X.T
+        else:
+            raise ValueError(
+                f"Unexpected dataset shape: X={X.shape}, y={y.shape}. "
+                "Expected n_samples rows in X."
+            )
+    
     if y.min() < 0:
         raise ValueError(
             f"Labels contain values < 1 before conversion (min={y.min() + 1}). "
