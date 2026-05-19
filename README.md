@@ -70,7 +70,11 @@ All contact classes satisfy σ < σ₀, consistent with the positive piezoresist
 │   ├── test_cnn1d.py
 │   └── test_data.py
 ├── data/                            # Generated datasets (.mat)
-├── results/                         # Outputs (figures, tables, models)
+├── results/                         # Outputs (models, figures, tables)
+│   ├── models/                      # Trained checkpoints (.pt/.joblib)
+│   ├── figures/                     # Plots grouped by model and data condition
+│   │   └── <model>/<noisy|clean>/
+│   └── tables/                      # Evaluation JSON/TXT/NPY outputs
 ├── docs/                            # Additional documentation
 │   ├── NOISE_MODEL.md               # Noise model full specification
 │   └── SETUP.md                     # Detailed setup guide
@@ -115,6 +119,14 @@ uv run python python/train.py --model cnn1d
 
 # Train on clean data (for comparison)
 uv run python python/train.py --model cnn1d --no-noise
+
+# Optional: choose custom output roots
+# - model files  -> --output-dir
+# - figures      -> --figures-dir/<model>/<noisy|clean>/
+uv run python python/train.py \
+  --model cnn1d \
+  --output-dir results/models \
+  --figures-dir results/figures
 
 # Train all baselines under all 4 conditions
 uv run python python/run_baselines.py
@@ -195,6 +207,19 @@ See [`docs/NOISE_MODEL.md`](docs/NOISE_MODEL.md) for detailed derivations.
 | `validate_dataset.py` | Dataset integrity report | `uv run python python/validate_dataset.py` |
 | `log_environment.py` | Reproducibility logging | `uv run python python/log_environment.py` |
 | `visualisation.py` | Plotting utilities (library) | `from python.visualisation import plot_confusion_matrix` |
+
+## Output Layout
+
+Training now separates model artifacts from figures:
+
+- Models are saved to `results/models/` (or `--output-dir`).
+- Figures are saved to `results/figures/<model>/<noisy|clean>/` (or under `--figures-dir`).
+
+Examples:
+
+- `results/models/cnn1d_noisy_best.pt`
+- `results/figures/cnn1d/noisy/cnn1d_noisy_cm_test.png`
+- `results/figures/random_forest/clean/random_forest_clean_per_class_metrics_val.png`
 
 ## Reproducibility
 

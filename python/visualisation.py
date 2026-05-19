@@ -12,6 +12,7 @@ All functions return ``matplotlib.figure.Figure`` objects so that callers
 can either save or display them as needed.
 """
 
+import logging
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -20,7 +21,23 @@ import pandas as pd
 import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-from sklearn.metrics import classification_report
+from sklearn.metrics import (
+    auc,
+    classification_report,
+    precision_recall_curve,
+    roc_curve,
+)
+from sklearn.metrics import (
+    confusion_matrix as cm_sklearn,
+)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 # Consistent style across all plots
 plt.style.use("seaborn-v0_8-whitegrid")
@@ -397,3 +414,260 @@ def save_figure(
     path.parent.mkdir(parents=True, exist_ok=True)
     for fmt in formats:
         fig.savefig(path.with_suffix(f".{fmt}"), dpi=dpi, bbox_inches="tight")
+
+
+# ── Direct plotting with file saving ──────────────────────────────────
+
+
+def plot_training_curves(
+    history: dict[str, list[float]], output_dir: Path, noise_tag: str
+) -> None:
+    """Plot training and validation loss/accuracy curves and save to file.
+
+    Args:
+        history: Training history dictionary.
+        output_dir: Directory to save plots.
+        noise_tag: Noise tag for file naming.
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    # Loss curves
+    axes[0].plot(history["train_loss"], label="Train Loss", linewidth=2)
+    axes[0].plot(history["val_loss"], label="Val Loss", linewidth=2)
+    axes[0].set_xlabel("Epoch", fontsize=12)
+    axes[0].set_ylabel("Loss", fontsize=12)
+    axes[0].set_title("Training and Validation Loss", fontsize=14, fontweight="bold")
+    axes[0].legend(fontsize=11)
+    axes[0].grid(True, alpha=0.3)
+
+    # Accuracy curves
+    axes[1].plot(history["train_acc"], label="Train Accuracy", linewidth=2)
+    axes[1].plot(history["val_acc"], label="Val Accuracy", linewidth=2)
+    axes[1].set_xlabel("Epoch", fontsize=12)
+    axes[1].set_ylabel("Accuracy", fontsize=12)
+    axes[1].set_title(
+        "Training and Validation Accuracy", fontsize=14, fontweight="bold"
+    )
+    axes[1].legend(fontsize=11)
+    axes[1].grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    output_path = output_dir / f"cnn1d_{noise_tag}_training_curves.png"
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    logger.info(f"Training curves saved to {output_path}")
+    plt.close()
+
+
+def plot_confusion_matrix_and_save(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    output_dir: Path,
+    model_name: str,
+    noise_tag: str,
+    split_name: str = "test",
+) -> None:
+    """Plot confusion matrix and save to file.
+
+    Args:
+        y_true: Ground truth labels.
+        y_pred: Predicted labels.
+        output_dir: Directory to save plots.
+        model_name: Name of the model.
+        noise_tag: Noise tag for file naming.
+        split_name: Name of the data split (e.g., 'val', 'test').
+    """
+    cm = cm_sklearn(y_true, y_pred)
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    sns.heatmap(
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        cbar_kws={"label": "Count"},
+        ax=ax,
+        square=True,
+    )
+
+    ax.set_xlabel("Predicted Label", fontsize=12, fontweight="bold")
+    ax.set_ylabel("True Label", fontsize=12, fontweight="bold")
+    ax.set_title(
+        f"Confusion Matrix - {model_name} ({split_name})",
+        fontsize=14,
+        fontweight="bold",
+    )
+
+    plt.tight_layout()
+    output_path = output_dir / f"{model_name}_{noise_tag}_cm_{split_name}.png"
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    logger.info(f"Confusion matrix saved to {output_path}")
+    plt.close()
+
+
+def plot_roc_curves_and_save(
+    y_true: np.ndarray,
+    y_probs: np.ndarray,
+    output_dir: Path,
+    model_name: str,
+    noise_tag: str,
+    split_name: str = "test",
+    n_classes: int = 5,
+) -> None:
+    """Plot ROC curves for multiclass classification (One-vs-Rest) and save.
+
+    Args:
+        y_true: Ground truth labels.
+        y_probs: Predicted probabilities for each class.
+        output_dir: Directory to save plots.
+        model_name: Name of the model.
+        noise_tag: Noise tag for file naming.
+        split_name: Name of the data split.
+        n_classes: Number of classes.
+    """
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    cmap = plt.get_cmap("tab10")
+    colors = [cmap(i / n_classes) for i in range(n_classes)]
+
+    for i in range(n_classes):
+        y_true_binary = (y_true == i).astype(int)
+        fpr, tpr, _ = roc_curve(y_true_binary, y_probs[:, i])
+        roc_auc = auc(fpr, tpr)
+
+        ax.plot(
+            fpr,
+            tpr,
+            color=colors[i],
+            lw=2,
+            label=f"Class {i} (AUC = {roc_auc:.3f})",
+        )
+
+    ax.plot([0, 1], [0, 1], "k--", lw=2, label="Random Classifier")
+    ax.set_xlim((0.0, 1.0))
+    ax.set_ylim((0.0, 1.05))
+    ax.set_xlabel("False Positive Rate", fontsize=12, fontweight="bold")
+    ax.set_ylabel("True Positive Rate", fontsize=12, fontweight="bold")
+    ax.set_title(
+        f"ROC Curves - {model_name} ({split_name})",
+        fontsize=14,
+        fontweight="bold",
+    )
+    ax.legend(loc="lower right", fontsize=10)
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    output_path = output_dir / f"{model_name}_{noise_tag}_roc_{split_name}.png"
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    logger.info(f"ROC curves saved to {output_path}")
+    plt.close()
+
+
+def plot_precision_recall_curves_and_save(
+    y_true: np.ndarray,
+    y_probs: np.ndarray,
+    output_dir: Path,
+    model_name: str,
+    noise_tag: str,
+    split_name: str = "test",
+    n_classes: int = 5,
+) -> None:
+    """Plot Precision-Recall curves for multiclass classification and save.
+
+    Args:
+        y_true: Ground truth labels.
+        y_probs: Predicted probabilities for each class.
+        output_dir: Directory to save plots.
+        model_name: Name of the model.
+        noise_tag: Noise tag for file naming.
+        split_name: Name of the data split.
+        n_classes: Number of classes.
+    """
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    cmap = plt.get_cmap("tab10")
+    colors = [cmap(i / n_classes) for i in range(n_classes)]
+
+    for i in range(n_classes):
+        y_true_binary = (y_true == i).astype(int)
+        precision, recall, _ = precision_recall_curve(y_true_binary, y_probs[:, i])
+
+        ax.plot(
+            recall,
+            precision,
+            color=colors[i],
+            lw=2,
+            label=f"Class {i}",
+        )
+
+    ax.set_xlim((0.0, 1.0))
+    ax.set_ylim((0.0, 1.05))
+    ax.set_xlabel("Recall", fontsize=12, fontweight="bold")
+    ax.set_ylabel("Precision", fontsize=12, fontweight="bold")
+    ax.set_title(
+        f"Precision-Recall Curves - {model_name} ({split_name})",
+        fontsize=14,
+        fontweight="bold",
+    )
+    ax.legend(loc="best", fontsize=10)
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    output_path = output_dir / f"{model_name}_{noise_tag}_pr_curves_{split_name}.png"
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    logger.info(f"Precision-Recall curves saved to {output_path}")
+    plt.close()
+
+
+def plot_per_class_metrics_and_save(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    output_dir: Path,
+    model_name: str,
+    noise_tag: str,
+    split_name: str = "test",
+) -> None:
+    """Plot per-class precision, recall, and F1-score and save.
+
+    Args:
+        y_true: Ground truth labels.
+        y_pred: Predicted labels.
+        output_dir: Directory to save plots.
+        model_name: Name of the model.
+        noise_tag: Noise tag for file naming.
+        split_name: Name of the data split.
+    """
+    from sklearn.metrics import f1_score, precision_score, recall_score
+
+    n_classes = len(np.unique(y_true))
+    precision = precision_score(y_true, y_pred, average=None, zero_division=0)
+    recall = recall_score(y_true, y_pred, average=None, zero_division=0)
+    f1 = f1_score(y_true, y_pred, average=None, zero_division=0)
+
+    x = np.arange(n_classes)
+    width = 0.25
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.bar(x - width, precision, width, label="Precision", alpha=0.8)
+    ax.bar(x, recall, width, label="Recall", alpha=0.8)
+    ax.bar(x + width, f1, width, label="F1-Score", alpha=0.8)
+
+    ax.set_xlabel("Class", fontsize=12, fontweight="bold")
+    ax.set_ylabel("Score", fontsize=12, fontweight="bold")
+    ax.set_title(
+        f"Per-Class Metrics - {model_name} ({split_name})",
+        fontsize=14,
+        fontweight="bold",
+    )
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"Class {i}" for i in range(n_classes)])
+    ax.legend(fontsize=11)
+    ax.set_ylim((0, 1.1))
+    ax.grid(True, alpha=0.3, axis="y")
+
+    plt.tight_layout()
+    output_path = (
+        output_dir / f"{model_name}_{noise_tag}_per_class_metrics_{split_name}.png"
+    )
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    logger.info(f"Per-class metrics saved to {output_path}")
+    plt.close()

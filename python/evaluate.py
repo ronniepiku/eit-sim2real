@@ -14,7 +14,6 @@ import joblib
 import numpy as np
 import torch
 from configs.loader import load_config
-from data.load_dataset import load_mat_dataset, prepare_splits
 from models.cnn1d import EITConv1D
 from sklearn.metrics import (
     accuracy_score,
@@ -22,6 +21,9 @@ from sklearn.metrics import (
     confusion_matrix,
     f1_score,
 )
+from torch.utils.data import DataLoader, TensorDataset
+
+from data.load_dataset import load_mat_dataset, prepare_splits
 
 logging.basicConfig(
     level=logging.INFO,
@@ -183,6 +185,7 @@ def evaluate_severity_sweep(
     if len(accuracies) >= 2:
         # Graceful degradation rate (slope of accuracy vs severity)
         from numpy.polynomial.polynomial import polyfit
+
         coeffs = polyfit(severity_multipliers, accuracies, 1)
         metrics["degradation_slope"] = float(coeffs[1])
 
@@ -246,6 +249,265 @@ def _load_model(
             f"Unsupported model file format: {model_path.suffix}. "
             "Expected .pt (CNN) or .joblib (sklearn)."
         )
+
+
+def get_cnn_predictions(
+    model: EITConv1D,
+    X: np.ndarray,
+    batch_size: int = 64,
+    device: str = "auto",
+) -> tuple[np.ndarray, np.ndarray]:
+    """Get predictions and probabilities from CNN model.
+
+    Args:
+        model: Trained CNN model.
+        X: Input features.
+        batch_size: Batch size for prediction.
+        device: Device to use.
+
+    Returns:
+        Tuple of (predicted labels, predicted probabilities).
+    """
+    if device == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    model.to(device)
+    model.eval()
+
+    ds = TensorDataset(torch.from_numpy(X).float())
+    loader = DataLoader(ds, batch_size=batch_size, shuffle=False)
+
+    all_preds = []
+    all_probs = []
+
+    with torch.no_grad():
+        for (X_batch,) in loader:
+            X_batch = X_batch.to(device)
+            logits = model(X_batch)
+            probs = torch.softmax(logits, dim=1)
+            preds = logits.argmax(dim=1)
+
+            all_preds.append(preds.cpu().numpy())
+            all_probs.append(probs.cpu().numpy())
+
+    return np.concatenate(all_preds), np.concatenate(all_probs)
+
+
+def evaluate_and_visualize_cnn(
+    model: EITConv1D,
+    X_val: np.ndarray,
+    y_val: np.ndarray,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    output_dir: Path,
+    noise_tag: str,
+    model_name: str = "cnn1d",
+    batch_size: int = 64,
+    device: str = "auto",
+) -> None:
+    """Evaluate CNN model and generate all visualizations.
+
+    Args:
+        model: Trained CNN model.
+        X_val: Validation features.
+        y_val: Validation labels.
+        X_test: Test features.
+        y_test: Test labels.
+        output_dir: Directory to save visualizations.
+        noise_tag: Noise tag for file naming.
+        model_name: Name of the model.
+        batch_size: Batch size for prediction.
+        device: Device to use.
+    """
+    # Import visualization functions
+    from visualisation import (
+        plot_confusion_matrix_and_save,
+        plot_per_class_metrics_and_save,
+        plot_precision_recall_curves_and_save,
+        plot_roc_curves_and_save,
+        plot_training_curves,
+    )
+
+    logger.info("Generating CNN visualizations...")
+
+    # Get predictions
+    y_val_pred, y_val_probs = get_cnn_predictions(
+        model, X_val, batch_size=batch_size, device=device
+    )
+    y_test_pred, y_test_probs = get_cnn_predictions(
+        model, X_test, batch_size=batch_size, device=device
+    )
+
+    n_classes = y_val_probs.shape[1]
+
+    # Validation set visualizations
+    plot_confusion_matrix_and_save(
+        y_val, y_val_pred, output_dir, model_name, noise_tag, split_name="val"
+    )
+    plot_roc_curves_and_save(
+        y_val,
+        y_val_probs,
+        output_dir,
+        model_name,
+        noise_tag,
+        split_name="val",
+        n_classes=n_classes,
+    )
+    plot_precision_recall_curves_and_save(
+        y_val,
+        y_val_probs,
+        output_dir,
+        model_name,
+        noise_tag,
+        split_name="val",
+        n_classes=n_classes,
+    )
+    plot_per_class_metrics_and_save(
+        y_val, y_val_pred, output_dir, model_name, noise_tag, split_name="val"
+    )
+
+    # Test set visualizations
+    plot_confusion_matrix_and_save(
+        y_test, y_test_pred, output_dir, model_name, noise_tag, split_name="test"
+    )
+    plot_roc_curves_and_save(
+        y_test,
+        y_test_probs,
+        output_dir,
+        model_name,
+        noise_tag,
+        split_name="test",
+        n_classes=n_classes,
+    )
+    plot_precision_recall_curves_and_save(
+        y_test,
+        y_test_probs,
+        output_dir,
+        model_name,
+        noise_tag,
+        split_name="test",
+        n_classes=n_classes,
+    )
+    plot_per_class_metrics_and_save(
+        y_test, y_test_pred, output_dir, model_name, noise_tag, split_name="test"
+    )
+
+    # Compute and log metrics
+    val_acc = accuracy_score(y_val, y_val_pred)
+    test_acc = accuracy_score(y_test, y_test_pred)
+
+    logger.info(f"Validation Accuracy: {val_acc:.4f}")
+    logger.info(f"Test Accuracy: {test_acc:.4f}")
+
+
+def evaluate_and_visualize_baseline(
+    model,
+    X_val: np.ndarray,
+    y_val: np.ndarray,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    output_dir: Path,
+    noise_tag: str,
+    model_name: str,
+) -> None:
+    """Evaluate baseline model and generate visualizations.
+
+    Args:
+        model: Trained baseline model (sklearn).
+        X_val: Validation features.
+        y_val: Validation labels.
+        X_test: Test features.
+        y_test: Test labels.
+        output_dir: Directory to save visualizations.
+        noise_tag: Noise tag for file naming.
+        model_name: Name of the model (e.g., 'svm', 'random_forest').
+    """
+    # Import visualization functions
+    from visualisation import (
+        plot_confusion_matrix_and_save,
+        plot_per_class_metrics_and_save,
+        plot_precision_recall_curves_and_save,
+        plot_roc_curves_and_save,
+    )
+
+    logger.info(f"Generating {model_name} visualizations...")
+
+    # Get predictions
+    y_val_pred = model.predict(X_val)
+    y_test_pred = model.predict(X_test)
+
+    # Get prediction probabilities if available
+    if hasattr(model, "predict_proba"):
+        y_val_probs = model.predict_proba(X_val)
+        y_test_probs = model.predict_proba(X_test)
+        n_classes = y_val_probs.shape[1]
+    else:
+        y_val_probs = None
+        y_test_probs = None
+        n_classes = len(np.unique(y_val))
+
+    # Validation set visualizations
+    plot_confusion_matrix_and_save(
+        y_val, y_val_pred, output_dir, model_name, noise_tag, split_name="val"
+    )
+    plot_per_class_metrics_and_save(
+        y_val, y_val_pred, output_dir, model_name, noise_tag, split_name="val"
+    )
+
+    if y_val_probs is not None:
+        plot_roc_curves_and_save(
+            y_val,
+            y_val_probs,
+            output_dir,
+            model_name,
+            noise_tag,
+            split_name="val",
+            n_classes=n_classes,
+        )
+        plot_precision_recall_curves_and_save(
+            y_val,
+            y_val_probs,
+            output_dir,
+            model_name,
+            noise_tag,
+            split_name="val",
+            n_classes=n_classes,
+        )
+
+    # Test set visualizations
+    plot_confusion_matrix_and_save(
+        y_test, y_test_pred, output_dir, model_name, noise_tag, split_name="test"
+    )
+    plot_per_class_metrics_and_save(
+        y_test, y_test_pred, output_dir, model_name, noise_tag, split_name="test"
+    )
+
+    if y_test_probs is not None:
+        plot_roc_curves_and_save(
+            y_test,
+            y_test_probs,
+            output_dir,
+            model_name,
+            noise_tag,
+            split_name="test",
+            n_classes=n_classes,
+        )
+        plot_precision_recall_curves_and_save(
+            y_test,
+            y_test_probs,
+            output_dir,
+            model_name,
+            noise_tag,
+            split_name="test",
+            n_classes=n_classes,
+        )
+
+    # Compute and log metrics
+    val_acc = accuracy_score(y_val, y_val_pred)
+    test_acc = accuracy_score(y_test, y_test_pred)
+
+    logger.info(f"Validation Accuracy: {val_acc:.4f}")
+    logger.info(f"Test Accuracy: {test_acc:.4f}")
 
 
 def parse_args() -> argparse.Namespace:

@@ -11,100 +11,9 @@
 
 ## Week-by-Week Schedule
 
-### WEEK 1 (May 13–19): Get EIDORS Running
-
-**Goal**: Eliminate the single biggest project risk.
-
-1. **Install EIDORS**
-   - Download from http://eidors3d.sourceforge.net/
-   - Extract to `matlab/eidors/`
-   - Open MATLAB, run `matlab/eidors/startup.m`
-   - Verify with: `imdl = mk_common_model('b2c2', 16);` — if no error, EIDORS works
-
-2. **Run your pipeline end-to-end**
-   ```matlab
-   cd matlab
-   main
-   ```
-   - Expected output: a `.mat` file with 5000 samples (1000 per class)
-   - If it crashes: read the error, fix it, try again. Common issues:
-     - Path problems → check `addpath` calls in `main.m`
-     - EIDORS version mismatch → use EIDORS v3.10+
-     - `fwd_solve` errors → check mesh creation parameters
-
-3. **Quick validation**
-   - Load the output `.mat` file in Python
-   - Plot 10 random voltage vectors per class on the same axes
-   - Check: do the classes look different? Are the magnitudes sensible?
-   - Run PCA on all samples, colour by class, check visual separation
-
-4. **If EIDORS fails completely**
-   - Try the Docker-based EIDORS image if available
-   - Try running on a university Linux machine
-   - Absolute fallback: use the Bath HPC cluster or ask supervisor for MATLAB access
-   - Do NOT spend more than 3 days stuck — escalate to supervisor
-
-**Deliverable**: A working `.mat` dataset file and one PCA plot showing class separation.
-
----
-
-### WEEK 2 (May 20–26): Fix Code
-
-**Goal**: Repair known bugs and ground parameters in physics.
-
-1. **Fix critical Python bugs** (2–3 hours total)
-
-   **Fix 1** — `python/models/cnn1d.py`: Replace brittle `flat_dim` calculation with adaptive pooling:
-   ```python
-   # Before the FC layers, add:
-   self.adaptive_pool = nn.AdaptiveAvgPool1d(1)
-   # In forward(), replace flatten logic with:
-   x = self.adaptive_pool(x)  # (B, C, 1)
-   x = x.view(x.size(0), -1)  # (B, C)
-   ```
-
-   **Fix 2** — `python/train.py`: Fix the `--use-noisy` CLI arg:
-   ```python
-   # Change from:
-   parser.add_argument('--use-noisy', default=True, action='store_true')
-   # To:
-   parser.add_argument('--no-noise', action='store_true', help='Train on clean data')
-   # Then use: use_noisy = not args.no_noise
-   ```
-
-   **Fix 3** — `python/ablation.py`: Wire in the generated configs:
-   ```python
-   # In run_ablation(), after the 4 hardcoded experiments, add:
-   configs = generate_ablation_configs()
-   for config in configs:
-       # Run experiment with this noise config
-       ...
-   ```
-
-   **Fix 4** — Load `config.yaml` in train.py and evaluate.py:
-   ```python
-   import yaml
-   with open('python/configs/config.yaml') as f:
-       cfg = yaml.safe_load(f)
-   ```
-
-**Deliverable**: All 4 code fixes committed. Material properties documented. Updated class parameters.
-
----
-
 ### WEEK 3 (May 27–June 2): Validate Classes + Generate Pilot Dataset
 
 **Goal**: Confirm the 5 classes are separable and noise parameters are reasonable.
-
-1. **Generate 500 samples per class (2,500 total) — clean only**
-   - Modify `main.m` to generate 500 per class temporarily
-   - Run and save as `pilot_clean.mat`
-
-2. **Visualise class separability**
-   - PCA (2D scatter, coloured by class)
-   - t-SNE (perplexity=30, coloured by class)
-   - Per-class voltage magnitude histograms
-   - If classes overlap badly → increase Δσ gaps or adjust radius ranges
 
 3. **Generate 2,500 noisy samples and compare**
    - Load `pilot_clean.mat`, check both `dataset_X_clean` and `dataset_X_noisy`
@@ -122,33 +31,6 @@
    - This becomes material for your Methodology chapter
 
 **Deliverable**: Validated class parameters. Confirmed noise levels. Pilot visualisations saved to `results/figures/`.
-
----
-
-### WEEK 4 (June 3–9): Full Dataset Generation
-
-**Goal**: Produce the final dataset for all experiments.
-
-1. **Generate full dataset**: 5,000 samples per class × 5 classes = 25,000 samples
-   - Estimated time: 1–4 hours depending on machine (forward solve × 25,000)
-   - If too slow: use `parfor` in MATLAB or reduce to 3,000 per class (15,000 total — still fine)
-   - Save as `dataset_full.mat` (v7.3 for >2GB support)
-
-2. **Split into train/val/test**
-   - Run `load_dataset.py` to verify it loads correctly
-   - Check: 70/15/15 split, stratified, reproducible with seed
-   - Confirm label encoding is correct (0-indexed in Python)
-
-3. **Compute dataset statistics**
-   - Per-class sample counts (should be balanced)
-   - Feature ranges (min, max, mean, std per measurement index)
-   - Save stats for the Results chapter
-
-4. **Back up the dataset**
-   - Copy to a second location (USB, OneDrive, whatever)
-   - This file is irreplaceable without re-running EIDORS for hours
-
-**Deliverable**: `dataset_full.mat` generated, loaded in Python, split verified, backed up.
 
 ---
 

@@ -17,10 +17,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 from configs.loader import load_config
-from data.load_dataset import load_mat_dataset, prepare_splits
 from models.baselines import get_baseline, train_baseline
 from models.cnn1d import EITConv1D
 from torch.utils.data import DataLoader, TensorDataset
+
+from data.load_dataset import load_mat_dataset, prepare_splits
 
 logging.basicConfig(
     level=logging.INFO,
@@ -75,10 +76,25 @@ def parse_args() -> argparse.Namespace:
         help="Learning rate (default: from config).",
     )
     parser.add_argument(
+        "--early-stopping-patience",
+        type=int,
+        default=None,
+        help="Epochs without improvement before early stopping (default: from config).",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=Path("results/models"),
         help="Directory to save trained models.",
+    )
+    parser.add_argument(
+        "--figures-dir",
+        type=Path,
+        default=Path("results/figures"),
+        help=(
+            "Directory to save figures. Plots are stored as "
+            "<figures-dir>/<model>/<noisy|clean>/"
+        ),
     )
     parser.add_argument(
         "--config",
@@ -96,13 +112,13 @@ def train_cnn(
     X_val: np.ndarray,
     y_val: np.ndarray,
     n_classes: int = 5,
-    epochs: int = 100,
+    epochs: int = 200,
     batch_size: int = 64,
     lr: float = 1e-3,
     weight_decay: float = 1e-4,
     scheduler_patience: int = 10,
     scheduler_factor: float = 0.5,
-    early_stopping_patience: int = 20,
+    early_stopping_patience: int = 40,
     device: str = "auto",
 ) -> tuple[EITConv1D, dict[str, list[float]]]:
     """Train the 1D-CNN model with early stopping.
@@ -246,6 +262,9 @@ def train_cnn(
 
 def main() -> None:
     """Main training entry point."""
+    from evaluate import evaluate_and_visualize_baseline, evaluate_and_visualize_cnn
+    from visualisation import plot_training_curves
+
     args = parse_args()
 
     # Load config, then let CLI args override
@@ -257,6 +276,11 @@ def main() -> None:
         args.batch_size
         if args.batch_size is not None
         else cfg["training"]["batch_size"]
+    )
+    early_stopping_patience = (
+        args.early_stopping_patience
+        if args.early_stopping_patience is not None
+        else cfg["training"]["early_stopping_patience"]
     )
     lr = args.lr if args.lr is not None else cfg["training"]["learning_rate"]
 
@@ -280,8 +304,12 @@ def main() -> None:
     )
 
     # Train model
-    args.output_dir.mkdir(parents=True, exist_ok=True)
     noise_tag = "noisy" if use_noisy else "clean"
+    model_output_dir = args.output_dir
+    figures_output_dir = args.figures_dir / args.model / noise_tag
+
+    model_output_dir.mkdir(parents=True, exist_ok=True)
+    figures_output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.model == "cnn1d":
         logger.info("Training 1D-CNN...")
@@ -296,12 +324,26 @@ def main() -> None:
             weight_decay=cfg["training"]["weight_decay"],
             scheduler_patience=cfg["training"]["scheduler_patience"],
             scheduler_factor=cfg["training"]["scheduler_factor"],
-            early_stopping_patience=cfg["training"]["early_stopping_patience"],
+            early_stopping_patience=early_stopping_patience,
         )
         # Save model
-        model_path = args.output_dir / f"cnn1d_{noise_tag}_best.pt"
+        model_path = model_output_dir / f"cnn1d_{noise_tag}_best.pt"
         torch.save(model.state_dict(), model_path)
         logger.info(f"CNN model saved to {model_path}")
+
+        # Generate visualizations
+        plot_training_curves(history, figures_output_dir, noise_tag)
+        evaluate_and_visualize_cnn(
+            model,
+            dataset.X_val,
+            dataset.y_val,
+            dataset.X_test,
+            dataset.y_test,
+            figures_output_dir,
+            noise_tag,
+            model_name="cnn1d",
+            batch_size=batch_size,
+        )
     else:
         logger.info(f"Training baseline: {args.model}...")
         model = get_baseline(args.model, random_state=seed)
@@ -312,9 +354,21 @@ def main() -> None:
         logger.info(f"Validation accuracy: {val_acc:.4f}")
 
         # Persist baseline model
-        model_path = args.output_dir / f"{args.model}_{noise_tag}.joblib"
+        model_path = model_output_dir / f"{args.model}_{noise_tag}.joblib"
         joblib.dump(model, model_path)
         logger.info(f"Baseline model saved to {model_path}")
+
+        # Generate visualizations
+        evaluate_and_visualize_baseline(
+            model,
+            dataset.X_val,
+            dataset.y_val,
+            dataset.X_test,
+            dataset.y_test,
+            figures_output_dir,
+            noise_tag,
+            model_name=args.model,
+        )
 
     logger.info("Training complete.")
 

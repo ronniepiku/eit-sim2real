@@ -22,9 +22,11 @@ import joblib
 import numpy as np
 import pandas as pd
 from configs.loader import load_config
-from data.load_dataset import load_mat_dataset, prepare_splits
+from evaluate import evaluate_and_visualize_baseline
 from models.baselines import get_baseline, train_baseline
 from sklearn.metrics import accuracy_score, f1_score
+
+from data.load_dataset import load_mat_dataset, prepare_splits
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,7 +49,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run all baseline experiments.")
     parser.add_argument("--data-path", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=Path("results/models"))
-    parser.add_argument("--results-csv", type=Path, default=Path("results/tables/baseline_results.csv"))
+    parser.add_argument("--figures-dir", type=Path, default=Path("results/figures"))
+    parser.add_argument("--tables-dir", type=Path, default=Path("results/tables"))
+    parser.add_argument(
+        "--results-csv", type=Path, default=Path("results/tables/baseline_results.csv")
+    )
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -72,6 +78,8 @@ def main() -> None:
 
     results: list[dict] = []
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    args.figures_dir.mkdir(parents=True, exist_ok=True)
+    args.tables_dir.mkdir(parents=True, exist_ok=True)
 
     for model_name in MODELS:
         for condition_name, train_key, eval_key in CONDITIONS:
@@ -90,19 +98,39 @@ def main() -> None:
 
             logger.info(f"  Accuracy: {acc:.4f} | F1 (macro): {f1:.4f}")
 
-            results.append({
-                "model": model_name,
-                "condition": condition_name,
-                "train_data": train_key,
-                "eval_data": eval_key,
-                "accuracy": acc,
-                "f1_macro": f1,
-            })
+            results.append(
+                {
+                    "model": model_name,
+                    "condition": condition_name,
+                    "train_data": train_key,
+                    "eval_data": eval_key,
+                    "accuracy": acc,
+                    "f1_macro": f1,
+                }
+            )
 
             # Save model
             model_path = args.output_dir / f"{model_name}_{train_key}.joblib"
             if not model_path.exists():
                 joblib.dump(model, model_path)
+
+            # Output directories for this run
+            figures_output_dir = args.figures_dir / model_name / condition_name
+            tables_output_dir = args.tables_dir / model_name / condition_name
+            figures_output_dir.mkdir(parents=True, exist_ok=True)
+            tables_output_dir.mkdir(parents=True, exist_ok=True)
+
+            # Generate evaluation figures and tables
+            evaluate_and_visualize_baseline(
+                model,
+                ds_eval.X_val,
+                ds_eval.y_val,
+                ds_eval.X_test,
+                ds_eval.y_test,
+                figures_output_dir,
+                noise_tag=condition_name,
+                model_name=model_name,
+            )
 
     # Save results
     df = pd.DataFrame(results)
