@@ -70,6 +70,24 @@ class EITConv1D(nn.Module):
         if channels is None:
             channels = [32, 64, 128]
 
+        # Validate that input is large enough for the pooling operations
+        # Each Conv1DBlock has MaxPool1d(kernel_size=2), which halves the sequence length.
+        # With len(channels) blocks, the minimum input size is 2^len(channels).
+        min_features = 2 ** len(channels)
+        if n_features < min_features:
+            raise ValueError(
+                f"Input feature size ({n_features}) is too small for CNN architecture. "
+                f"The architecture has {len(channels)} pooling layers (2x reduction each), "
+                f"requiring at least {min_features} input features. "
+                f"\nRecommendation:\n"
+                f"  • For CNN: Use eit_cleaned.mat (22 features) ✓\n"
+                f"  • For shallow models (SVM/RF/MLP):\n"
+                f"    - eit_cleaned.mat (22 features)\n"
+                f"    - eit_cleaned_pca.mat (7 features)\n"
+                f"    - eit_cleaned_umap.mat (7 features)\n"
+                f"    - eit_cleaned_lda.mat (4 features)\n"
+            )
+
         # Build convolutional backbone
         conv_layers: list[nn.Module] = []
         in_ch = 1  # Single-channel input (voltage vector as 1D signal)

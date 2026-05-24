@@ -132,6 +132,49 @@ uv run python python/train.py \
 uv run python python/run_baselines.py
 ```
 
+#### Using Custom Datasets
+
+All scripts support loading datasets from custom paths via `--data-path`:
+
+```bash
+# Train on custom dataset
+uv run python python/train.py --model cnn1d --data-path /path/to/custom_data.mat
+
+# Evaluate on custom dataset
+uv run python python/evaluate.py \
+  --model-path results/models/cnn1d_noisy_best.pt \
+  --data-path /path/to/custom_data.mat
+
+# Run baselines on custom dataset
+uv run python python/run_baselines.py --data-path /path/to/custom_data.mat
+
+# Run statistical tests on custom dataset
+uv run python python/statistical_tests.py --model cnn1d --data-path /path/to/custom_data.mat
+```
+
+**Using Cleaned & Reduced Datasets**
+
+The EDA notebook produces cleaned datasets with duplicate removal, redundant feature removal, and optional dimensionality reduction:
+
+```bash
+# Full cleaned dataset (22 features after redundancy removal) — recommended for CNN
+uv run python python/train.py --model cnn1d --data-path data/cleaned/eit_cleaned.mat
+
+# PCA-reduced (7 components) — use with shallow models
+uv run python python/train.py --model random_forest --data-path data/cleaned/eit_cleaned_pca.mat
+
+# LDA-reduced (4 components, supervised) — use with shallow models
+uv run python python/train.py --model svm --data-path data/cleaned/eit_cleaned_lda.mat
+
+# UMAP-reduced (7 components, unsupervised) — use with shallow models
+uv run python python/train.py --model random_forest --data-path data/cleaned/eit_cleaned_umap.mat
+```
+
+**Note on model compatibility**: The CNN requires ≥8 features for its pooling layers.
+Use only `eit_cleaned.mat` (22 features) for CNN training. Use non-CNN models (SVM/RF/MLP) for dimensionality-reduced datasets.
+
+See [`docs/SETUP.md`](docs/SETUP.md#using-custom-datasets) for dataset format requirements.
+
 ### Evaluate
 
 ```bash
@@ -207,6 +250,8 @@ See [`docs/NOISE_MODEL.md`](docs/NOISE_MODEL.md) for detailed derivations.
 | `validate_dataset.py` | Dataset integrity report | `uv run python python/validate_dataset.py` |
 | `log_environment.py` | Reproducibility logging | `uv run python python/log_environment.py` |
 | `visualisation.py` | Plotting utilities (library) | `from python.visualisation import plot_confusion_matrix` |
+
+**All scripts support `--data-path <path>` to load custom datasets.**
 
 ## Output Layout
 

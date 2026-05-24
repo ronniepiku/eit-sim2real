@@ -152,6 +152,126 @@ uv run python python/statistical_tests.py --model cnn1d
 uv run python python/statistical_tests.py --model random_forest
 ```
 
+### Master Experiment Runner (Recommended)
+
+Run all experiments across all datasets, models, and conditions in one command:
+
+```bash
+# Run full experiment suite (all 4 datasets × all models × 4 conditions × 3 seeds)
+uv run python python/run_all_experiments.py
+
+# Specify datasets and seed count
+uv run python python/run_all_experiments.py --datasets raw cleaned pca --seeds 5
+
+# Custom CNN config
+uv run python python/run_all_experiments.py --epochs 300 --early-stopping-patience 50
+```
+
+This produces:
+- `results/reports/experiment_report.md` — Full Markdown report with analysis
+- `results/reports/all_results.csv` — Consolidated results table
+- `results/reports/all_results.json` — Machine-readable results
+- `results/reports/accuracy_pivot.csv` — Accuracy by model × condition
+- `results/reports/f1_pivot.csv` — F1 by model × condition
+- `results/figures/<dataset>/<model>/<condition>/` — Confusion matrices, training curves
+
+### Using Custom Datasets
+
+All training and evaluation scripts support loading datasets from custom paths
+via the `--data-path` CLI argument. This allows you to:
+
+- Use alternative dataset files
+- Evaluate on external datasets
+- Test different dataset versions
+
+**Example: Use a custom dataset file**
+
+```bash
+# Train CNN on custom dataset
+uv run python python/train.py --model cnn1d --data-path /path/to/custom_dataset.mat
+
+# Run all baselines on custom dataset
+uv run python python/run_baselines.py --data-path /path/to/custom_dataset.mat
+
+# Validate custom dataset
+uv run python python/validate_dataset.py --data-path /path/to/custom_dataset.mat
+
+# Evaluate model on custom dataset
+uv run python python/evaluate.py \
+    --model-path results/models/cnn1d_noisy_best.pt \
+    --data-path /path/to/custom_dataset.mat
+
+# Run statistical tests on custom dataset
+uv run python python/statistical_tests.py --data-path /path/to/custom_dataset.mat
+
+# Run architecture sweep on custom dataset
+uv run python python/architecture_sweep.py --data-path /path/to/custom_dataset.mat
+
+# Run ablation study on custom dataset
+uv run python python/ablation.py --data-path /path/to/custom_dataset.mat
+```
+
+**Dataset Format Requirements**
+
+Custom datasets must be in MATLAB `.mat` format with the following structure:
+
+```matlab
+% Original dataset format (from MATLAB generation):
+dataset_X_clean    % (n_samples, n_features) clean measurements
+dataset_X_noisy    % (n_samples, n_features) noisy measurements
+dataset_y          % (n_samples, 1) class labels (1-indexed, 1-5 for 5 classes)
+
+% Cleaned dataset format (from EDA notebook):
+X_clean            % (n_samples, n_features) clean measurements (0-indexed labels)
+X_noisy            % (n_samples, n_features) noisy measurements
+y                  % (n_samples, 1) class labels (0-indexed, 0-4 for 5 classes)
+
+% Alternative single-X format:
+dataset_X          % Used if dataset_X_clean/dataset_X_noisy not present
+dataset_y
+
+% Supported class labels:
+% 1 (original) or 0 (cleaned) = No contact        (baseline/reference)
+% 2 (original) or 1 (cleaned) = Light touch
+% 3 (original) or 2 (cleaned) = Firm press
+% 4 (original) or 3 (cleaned) = Point contact
+% 5 (original) or 4 (cleaned) = Distributed
+```
+
+**Using Cleaned Datasets from EDA Analysis**
+
+The EDA notebook (`notebooks/eda_analysis.ipynb`) produces cleaned datasets with removed duplicates, redundant features, and optional dimensionality reduction:
+
+```bash
+# Full cleaned dataset (22 features after redundancy removal) — RECOMMENDED FOR CNN
+uv run python python/train.py --model cnn1d --data-path data/cleaned/eit_cleaned.mat
+
+# PCA-reduced dataset (7 components) — suitable for shallow models
+uv run python python/train.py --model svm --data-path data/cleaned/eit_cleaned_pca.mat
+uv run python python/train.py --model random_forest --data-path data/cleaned/eit_cleaned_pca.mat
+
+# LDA-reduced dataset (4 components, supervised) — best for shallow models
+uv run python python/train.py --model svm --data-path data/cleaned/eit_cleaned_lda.mat
+uv run python python/train.py --model mlp --data-path data/cleaned/eit_cleaned_lda.mat
+
+# UMAP-reduced dataset (7 components, unsupervised nonlinear) — suitable for shallow models
+uv run python python/train.py --model random_forest --data-path data/cleaned/eit_cleaned_umap.mat
+```
+
+**CNN vs. Non-CNN Models and Dataset Sizes**
+
+- **CNN (1D-Conv1D)**: Requires at least 8 features due to 3 pooling layers
+  - ✓ Works with: eit_cleaned.mat (22 features)
+  - ✗ Too small: eit_cleaned_pca.mat (7), eit_cleaned_lda.mat (4), eit_cleaned_umap.mat (7)
+
+- **Non-CNN models** (SVM, Random Forest, MLP): Work with any dataset size
+  - ✓ All cleaned datasets work
+  - Good for studying effect of dimensionality reduction
+
+**If using H5PY-compatible `.mat` files** (newer MATLAB versions):
+The loader automatically handles both scipy-compatible and HDF5-based `.mat`
+files, so no additional configuration is needed.
+
 ## Configuration
 
 All hyperparameters are centralised in `python/configs/config.yaml`:

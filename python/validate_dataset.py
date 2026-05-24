@@ -12,14 +12,18 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import matplotlib
+
+# Use a non-GUI backend for script execution to avoid Tkinter thread errors.
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.io as sio
 import seaborn as sns
 from sklearn.decomposition import PCA
-from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE
+from sklearn.metrics import pairwise_distances
 
 # Consistent plotting style for report figures.
 plt.style.use("seaborn-v0_8-whitegrid")
@@ -40,7 +44,9 @@ DEFAULT_CLASS_NAMES = [
 POLAR_IMAGE_SHAPE = (16, 13)
 
 
-def load_dataset(data_path: Path | str, use_noisy: bool = True) -> tuple[np.ndarray, np.ndarray]:
+def load_dataset(
+    data_path: Path | str, use_noisy: bool = True
+) -> tuple[np.ndarray, np.ndarray]:
     """Load EIT feature matrix and labels from a MATLAB .mat file."""
     data_path = Path(data_path)
     if not data_path.exists():
@@ -80,7 +86,11 @@ def class_name_map(unique_labels: np.ndarray) -> dict[int, str]:
     mapping: dict[int, str] = {}
     for label in unique_labels:
         idx = int(label)
-        mapping[idx] = DEFAULT_CLASS_NAMES[idx] if idx < len(DEFAULT_CLASS_NAMES) else f"Class {idx}"
+        mapping[idx] = (
+            DEFAULT_CLASS_NAMES[idx]
+            if idx < len(DEFAULT_CLASS_NAMES)
+            else f"Class {idx}"
+        )
     return mapping
 
 
@@ -105,9 +115,11 @@ def vector_to_polar_grid(vector: np.ndarray) -> np.ndarray:
 def reconstruction_figure_paths(reconstruction_dir: Path) -> dict[str, Path]:
     """Return expected reconstruction figure paths produced by MATLAB."""
     return {
-        "clean_random": reconstruction_dir / "random_reconstructed_class_images_clean.png",
+        "clean_random": reconstruction_dir
+        / "random_reconstructed_class_images_clean.png",
         "clean_mean": reconstruction_dir / "mean_reconstructed_class_images_clean.png",
-        "noisy_random": reconstruction_dir / "random_reconstructed_class_images_noisy.png",
+        "noisy_random": reconstruction_dir
+        / "random_reconstructed_class_images_noisy.png",
         "noisy_mean": reconstruction_dir / "mean_reconstructed_class_images_noisy.png",
     }
 
@@ -257,7 +269,9 @@ def plot_sample_descriptor_boxplots(sample_stats: pd.DataFrame, fig_dir: Path) -
     ylabels = ["L2 norm", "Within-sample std", "Mean |voltage|"]
 
     for ax, column, ylabel in zip(axes, columns, ylabels, strict=True):
-        sns.boxplot(data=sample_stats, x="class_name", y=column, ax=ax, showfliers=False)
+        sns.boxplot(
+            data=sample_stats, x="class_name", y=column, ax=ax, showfliers=False
+        )
         ax.set_xlabel("Class")
         ax.set_ylabel(ylabel)
         ax.tick_params(axis="x", rotation=20)
@@ -497,7 +511,9 @@ def plot_tsne_embedding(
     for label in labels:
         class_indices = np.flatnonzero(y == label)
         n_pick = min(per_class, class_indices.size)
-        selected_indices.extend(rng.choice(class_indices, size=n_pick, replace=False).tolist())
+        selected_indices.extend(
+            rng.choice(class_indices, size=n_pick, replace=False).tolist()
+        )
 
     selected_indices = np.array(selected_indices)
     X_sel = X[selected_indices]
@@ -541,7 +557,9 @@ def save_tables(tables: dict[str, pd.DataFrame], table_dir: Path) -> None:
     """Write all tables as CSV files."""
     table_dir.mkdir(parents=True, exist_ok=True)
     for name, table in tables.items():
-        table.to_csv(table_dir / f"{name}.csv", index=True if "matrix" in name else False)
+        table.to_csv(
+            table_dir / f"{name}.csv", index=True if "matrix" in name else False
+        )
 
 
 def write_report_markdown(
@@ -558,8 +576,12 @@ def write_report_markdown(
     dominant = class_dist.sort_values("count", ascending=False).iloc[0]
     minority = class_dist.sort_values("count", ascending=True).iloc[0]
 
-    pca2 = float(pca_ratios[:2].sum()) if len(pca_ratios) >= 2 else float(pca_ratios.sum())
-    pca5 = float(pca_ratios[:5].sum()) if len(pca_ratios) >= 5 else float(pca_ratios.sum())
+    pca2 = (
+        float(pca_ratios[:2].sum()) if len(pca_ratios) >= 2 else float(pca_ratios.sum())
+    )
+    pca5 = (
+        float(pca_ratios[:5].sum()) if len(pca_ratios) >= 5 else float(pca_ratios.sum())
+    )
 
     report_path = output_dir / "validation_report.md"
     report_lines = [
@@ -601,21 +623,25 @@ def write_report_markdown(
             ]
         )
 
-    report_lines.extend([
-        "",
-        "## Additional Visuals",
-        "- t-SNE embedding: figures/tsne_embedding.(png|pdf)",
-        "",
-        "## Outputs",
-        "- Figures: results/dataset_validation/figures",
-        "- Tables: results/dataset_validation/tables",
-    ])
+    report_lines.extend(
+        [
+            "",
+            "## Additional Visuals",
+            "- t-SNE embedding: figures/tsne_embedding.(png|pdf)",
+            "",
+            "## Outputs",
+            "- Figures: results/dataset_validation/figures",
+            "- Tables: results/dataset_validation/tables",
+        ]
+    )
     report_path.write_text("\n".join(report_lines), encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Comprehensive EIT dataset validation report")
+    parser = argparse.ArgumentParser(
+        description="Comprehensive EIT dataset validation report"
+    )
     parser.add_argument(
         "--data-path",
         type=Path,
@@ -697,7 +723,9 @@ def validate_dataset(args: argparse.Namespace) -> None:
     _, pca_ratios = plot_pca_outputs(X, y, labels, name_by_label, fig_dir)
     plot_centroid_distance_heatmap(tables, fig_dir)
     if recon_figures:
-        print(f"Using {len(recon_figures)} MATLAB reconstruction figure(s) from: {args.reconstruction_dir}")
+        print(
+            f"Using {len(recon_figures)} MATLAB reconstruction figure(s) from: {args.reconstruction_dir}"
+        )
     else:
         plot_random_class_images(X, y, labels, name_by_label, fig_dir, rng)
         plot_mean_class_images(X, y, labels, name_by_label, fig_dir)

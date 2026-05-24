@@ -28,6 +28,10 @@ def load_mat_dataset(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Load EIT dataset from MATLAB .mat file.
 
+    Supports both original dataset format and cleaned dataset format:
+    - Original: dataset_X_clean/dataset_X_noisy, dataset_y, dataset_X (fallback)
+    - Cleaned: X_clean/X_noisy, y (from EDA notebook)
+
     Args:
         data_path: Path to the .mat file.
         use_noisy: If True, load noisy measurements; else load clean.
@@ -42,19 +46,48 @@ def load_mat_dataset(
     try:
         mat = sio.loadmat(str(data_path))
     except NotImplementedError:
-        with h5py.File(data_path, 'r') as f:
+        with h5py.File(data_path, "r") as f:
             key = "dataset_X_noisy" if use_noisy else "dataset_X_clean"
             X = np.array(f[key], dtype=np.float32)
             y = np.array(f["dataset_y"], dtype=np.int64).ravel()
     else:
+        # Try original dataset format first (dataset_X_noisy/dataset_X_clean)
         key = "dataset_X_noisy" if use_noisy else "dataset_X_clean"
         if key not in mat:
+            # Fall back to generic dataset_X
             key = "dataset_X"
-        X = np.array(mat[key], dtype=np.float32)
-        y = np.array(mat["dataset_y"], dtype=np.int64).ravel()
+        if key not in mat:
+            # Fall back to cleaned dataset format (X_noisy/X_clean)
+            key = "X_noisy" if use_noisy else "X_clean"
 
-    # Convert from 1-indexed (MATLAB) to 0-indexed (PyTorch) labels
-    y = y - 1
+        if key not in mat:
+            available_keys = [k for k in mat.keys() if not k.startswith("__")]
+            raise KeyError(
+                f"Could not find dataset keys in {data_path}. "
+                f"Tried: {['dataset_X_noisy', 'dataset_X_clean', 'dataset_X', 'X_noisy', 'X_clean']} "
+                f"Found: {available_keys}"
+            )
+
+        X = np.array(mat[key], dtype=np.float32)
+
+        # Try original label format first (dataset_y)
+        y_key = "dataset_y"
+        if y_key not in mat:
+            # Fall back to cleaned dataset format (y)
+            y_key = "y"
+
+        if y_key not in mat:
+            raise KeyError(
+                f"Could not find labels in {data_path}. Tried: ['dataset_y', 'y']"
+            )
+
+        y = np.array(mat[y_key], dtype=np.int64).ravel()
+
+    # Check if labels are already 0-indexed (cleaned dataset format)
+    # Original format is 1-indexed, cleaned is already 0-indexed
+    if y.min() >= 1:
+        # Convert from 1-indexed (MATLAB) to 0-indexed (PyTorch) labels
+        y = y - 1
 
     # Ensure X rows match y length
     if X.shape[0] != y.shape[0]:
@@ -65,11 +98,11 @@ def load_mat_dataset(
                 f"Unexpected dataset shape: X={X.shape}, y={y.shape}. "
                 "Expected n_samples rows in X."
             )
-    
-    if y.min() < 0:
+
+    if y.min() < 0 or y.max() >= 5:
         raise ValueError(
-            f"Labels contain values < 1 before conversion (min={y.min() + 1}). "
-            "Expected 1-indexed class labels from MATLAB."
+            f"Labels out of range: min={y.min()}, max={y.max()}. "
+            "Expected 0-indexed class labels (0-4 for 5 classes)."
         )
 
     return X, y

@@ -15,6 +15,10 @@ can either save or display them as needed.
 import logging
 from pathlib import Path
 
+import matplotlib
+
+# Use a non-GUI backend for script execution to avoid Tkinter thread errors.
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
