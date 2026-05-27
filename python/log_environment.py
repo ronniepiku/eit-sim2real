@@ -11,15 +11,14 @@ Usage:
 import argparse
 import json
 import platform
-import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
 def get_environment_info() -> dict:
     """Collect comprehensive environment information."""
     info: dict = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "system": {
             "os": platform.system(),
             "os_version": platform.version(),
@@ -34,15 +33,23 @@ def get_environment_info() -> dict:
 
     # Package versions
     packages_to_check = [
-        "torch", "numpy", "scipy", "sklearn", "pandas", "joblib", "yaml"
+        "torch",
+        "numpy",
+        "scipy",
+        "sklearn",
+        "pandas",
+        "joblib",
+        "yaml",
     ]
     for pkg_name in packages_to_check:
         try:
             if pkg_name == "sklearn":
                 import sklearn
+
                 info["packages"]["scikit-learn"] = sklearn.__version__
             elif pkg_name == "yaml":
                 import yaml
+
                 info["packages"]["pyyaml"] = yaml.__version__
             else:
                 mod = __import__(pkg_name)
@@ -53,6 +60,7 @@ def get_environment_info() -> dict:
     # PyTorch-specific info
     try:
         import torch
+
         info["hardware"]["cuda_available"] = torch.cuda.is_available()
         if torch.cuda.is_available():
             info["hardware"]["cuda_version"] = torch.version.cuda
@@ -73,6 +81,7 @@ def get_environment_info() -> dict:
     # CPU info
     try:
         import os
+
         info["hardware"]["cpu_count"] = os.cpu_count()
     except Exception:
         pass

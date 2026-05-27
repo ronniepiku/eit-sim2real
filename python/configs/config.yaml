@@ -43,7 +43,22 @@ baselines:
 evaluation:
   n_folds: 5
   robustness_noise_levels: [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0]
-  severity_multipliers: [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+  severity_multipliers: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+
+# Online noise augmentation (Python-side)
+# Used by train.py and ablation.py for on-the-fly noise injection
+noise_augmentation:
+  enabled: false  # Set true to apply noise during training
+  snr_db: 40.0
+  noise_floor: 1.0e-4
+  contact_impedance_std_percent: 10.0
+  max_bias: 0.02
+  adc_bits: 16
+  voltage_range: 1.0
+  n_electrodes: 16
+  # Multi-severity: sample severity from this range each batch
+  # Set null to use fixed severity of 1.0
+  severity_range: [0.5, 2.0]
 
 # Architecture sweep (for methodology validation)
 architecture_sweep:

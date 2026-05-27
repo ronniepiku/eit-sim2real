@@ -8,6 +8,8 @@ overridden via CLI arguments.  Baseline models are persisted with
 ``joblib`` alongside CNN checkpoints.
 """
 
+from __future__ import annotations
+
 import argparse
 import logging
 from pathlib import Path
@@ -17,17 +19,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 from configs.loader import load_config
+from data.load_dataset import load_mat_dataset, prepare_splits
+from data.noise import NoiseConfig, apply_noise_batch_vectorised
 from models.baselines import get_baseline, train_baseline
 from models.cnn1d import EITConv1D
 from torch.utils.data import DataLoader, TensorDataset
 
-from data.load_dataset import load_mat_dataset, prepare_splits
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 
 
@@ -120,6 +117,8 @@ def train_cnn(
     scheduler_factor: float = 0.5,
     early_stopping_patience: int = 40,
     device: str = "auto",
+    noise_config: NoiseConfig | None = None,
+    severity_range: tuple[float, float] | None = None,
 ) -> tuple[EITConv1D, dict[str, list[float]]]:
     """Train the 1D-CNN model with early stopping.
 
@@ -128,7 +127,7 @@ def train_cnn(
     (by validation loss) is always returned.
 
     Args:
-        X_train: Training features.
+        X_train: Training features (clean if noise_config is provided).
         y_train: Training labels (0-indexed).
         X_val: Validation features.
         y_val: Validation labels.
@@ -141,6 +140,12 @@ def train_cnn(
         scheduler_factor: LR reduction factor.
         early_stopping_patience: Epochs without improvement before stopping.
         device: Device string ('cpu', 'cuda', or 'auto').
+        noise_config: If provided, apply this noise model on-the-fly to
+            training data each epoch (online augmentation). X_train should
+            be CLEAN data in this case.
+        severity_range: If provided with noise_config, sample the severity
+            multiplier uniformly from this range each batch. E.g. (0.5, 2.0)
+            for multi-severity domain randomisation.
 
     Returns:
         Tuple of (trained model, training history dict).
@@ -151,7 +156,11 @@ def train_cnn(
     n_features = X_train.shape[1]
     model = EITConv1D(n_features=n_features, n_classes=n_classes).to(device)
 
-    # Data loaders
+    # Online augmentation setup
+    augment = noise_config is not None and noise_config.enabled
+    aug_rng = np.random.default_rng(42) if augment else None
+
+    # Data loaders — store raw numpy for augmentation, or pre-tensorise
     train_ds = TensorDataset(
         torch.from_numpy(X_train).float(),
         torch.from_numpy(y_train).long(),
@@ -189,6 +198,16 @@ def train_cnn(
         train_total = 0
 
         for X_batch, y_batch in train_loader:
+            # Apply online noise augmentation if configured
+            if augment:
+                X_np = X_batch.numpy()
+                if severity_range is not None:
+                    noise_config.severity = float(
+                        aug_rng.uniform(severity_range[0], severity_range[1])
+                    )
+                X_np = apply_noise_batch_vectorised(X_np, noise_config, rng=aug_rng)
+                X_batch = torch.from_numpy(X_np).float()
+
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
 
             optimizer.zero_grad()
@@ -262,6 +281,12 @@ def train_cnn(
 
 def main() -> None:
     """Main training entry point."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     from evaluate import evaluate_and_visualize_baseline, evaluate_and_visualize_cnn
     from visualisation import plot_training_curves
 

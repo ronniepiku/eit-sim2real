@@ -35,12 +35,6 @@ from sklearn.metrics import (
     confusion_matrix as cm_sklearn,
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 
 # Consistent style across all plots
@@ -52,7 +46,7 @@ CLASS_NAMES = [
     "Light touch",
     "Firm press",
     "Point contact",
-    "Distributed",
+    "Distributed contact",
 ]
 
 
@@ -179,7 +173,7 @@ def plot_per_class_f1(
     bars = ax.bar(class_names, f1_scores, edgecolor="black", linewidth=0.5)
 
     # Add value labels on bars
-    for bar, score in zip(bars, f1_scores):
+    for bar, score in zip(bars, f1_scores, strict=True):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + 0.01,

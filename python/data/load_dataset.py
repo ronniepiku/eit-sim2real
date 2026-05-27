@@ -61,7 +61,7 @@ def load_mat_dataset(
             key = "X_noisy" if use_noisy else "X_clean"
 
         if key not in mat:
-            available_keys = [k for k in mat.keys() if not k.startswith("__")]
+            available_keys = [k for k in mat if not k.startswith("__")]
             raise KeyError(
                 f"Could not find dataset keys in {data_path}. "
                 f"Tried: {['dataset_X_noisy', 'dataset_X_clean', 'dataset_X', 'X_noisy', 'X_clean']} "

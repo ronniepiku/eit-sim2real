@@ -20,11 +20,6 @@ from data.load_dataset import load_mat_dataset, prepare_splits
 from models.cnn1d import EITConv1D
 from torch.utils.data import DataLoader, TensorDataset
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 
 
@@ -135,6 +130,12 @@ def train_and_evaluate(
 
 
 def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     parser = argparse.ArgumentParser(description="CNN architecture depth sweep.")
     parser.add_argument("--data-path", type=Path, default=None)
     parser.add_argument(
@@ -173,7 +174,9 @@ def main() -> None:
     results = []
 
     for n_blocks in block_counts:
-        logger.info(f"\n--- {n_blocks} conv blocks (channels: {build_channel_list(n_blocks)}) ---")
+        logger.info(
+            f"\n--- {n_blocks} conv blocks (channels: {build_channel_list(n_blocks)}) ---"
+        )
         result = train_and_evaluate(
             n_blocks=n_blocks,
             X_train=X_train_dev,

@@ -108,26 +108,41 @@
 
 ### WEEK 7 (June 24–30): Ablation Study
 
-**Goal**: Isolate which noise components matter most.
+**Goal**: Isolate which noise components matter most using Python-side noise injection.
 
-1. **Single-component ablation**
+**Infrastructure (COMPLETED)**: The ablation pipeline now uses Python-side noise injection
+via `python/data/noise.py`. No MATLAB dependency at experiment time. The CNN receives fresh
+noise realisations each epoch (better generalisation). All experiments are evaluated against
+the same full 4-component noise test condition for consistency.
+
+1. **Run full ablation study**
+   ```bash
+   # Core mismatch (4 experiments: clean→clean, clean→noisy, noisy→noisy, noisy→clean)
+   uv run python python/ablation.py --model cnn1d
+
+   # Full per-component ablation (4 single-component + 4 leave-one-out)
+   uv run python python/ablation.py --model cnn1d --all-configs
+
+   # Repeat for best baseline
+   uv run python python/ablation.py --model random_forest --all-configs
+   ```
+
+2. **Single-component ablation (4 experiments)**
    - Train CNN with ONLY Gaussian noise → evaluate
    - Train CNN with ONLY contact impedance → evaluate
-   - Train CNN with ONLY drift → evaluate
    - Train CNN with ONLY electrode bias → evaluate
    - Train CNN with ONLY quantisation → evaluate
    
-   This gives 5 experiments, each showing the individual effect.
+   Uses `NoiseConfig.only(component)` — each experiment trains on clean data with
+   only one noise component applied on-the-fly.
 
-2. **Leave-one-out ablation**
+3. **Leave-one-out ablation (4 experiments)**
    - Train CNN with ALL noise EXCEPT Gaussian → evaluate
    - Train CNN with ALL noise EXCEPT contact impedance → evaluate
-   - ... (5 more experiments)
+   - Train CNN with ALL noise EXCEPT electrode bias → evaluate
+   - Train CNN with ALL noise EXCEPT quantisation → evaluate
    
-   This shows: "what happens if you remove one component?"
-
-3. **Full augmentation (all 5 components)**
-   - Already done in Week 6, but confirm result
+   Uses `NoiseConfig.without(component)`.
 
 4. **Create ablation summary table**
 
@@ -136,47 +151,69 @@
    | None (clean) | X% | X | baseline |
    | Gaussian only | X% | X | +Y% |
    | Contact impedance only | X% | X | +Y% |
-   | ... | ... | ... | ... |
+   | Electrode bias only | X% | X | +Y% |
+   | Quantisation only | X% | X | +Y% |
+   | Without Gaussian | X% | X | +Y% |
+   | Without Contact impedance | X% | X | +Y% |
+   | Without Electrode bias | X% | X | +Y% |
+   | Without Quantisation | X% | X | +Y% |
    | All combined | X% | X | +Y% |
 
 5. **Interpret**
    - Rank components by impact
    - Which single component gives the most robustness?
    - Does combining all always beat individual components?
+   - Compare CNN vs baseline ablation patterns
 
-**Deliverable**: Ablation table with 12+ rows. Ablation heatmap figure. Clear ranking of noise components.
+**Deliverable**: Ablation table with 10+ rows. Ablation heatmap figure. Clear ranking of noise components.
 
 ---
 
-### WEEK 8 (July 1–7): Robustness Severity Sweep
+### WEEK 8 (July 1–7): Multi-Severity Training + Robustness Sweep
 
-**Goal**: Test whether noise-trained models generalise beyond training severity.
+**Goal**: Address over-specialisation and test generalisation beyond training severity.
 
-1. **Define severity levels**
-   - 0.5×, 1×, 1.5×, 2×, 2.5×, 3× the default noise parameters
-   - For each level, scale ALL noise component magnitudes proportionally
+**Context**: Current results show over-specialisation — the noise-trained CNN achieves 74.1%
+at 1.0× severity but drops to 43.3% at 0.5× (worse than expected). This indicates the model
+encodes the specific training noise level rather than learning noise-invariant features.
 
-2. **Evaluate all models at each severity**
-   - Clean-trained CNN at 6 severity levels
-   - Noise-trained CNN at 6 severity levels
-   - Best baseline (from Week 5) at 6 severity levels
+1. **Train multi-severity CNN (domain randomisation)**
+   - Enable `noise_augmentation.enabled: true` in `config.yaml`
+   - `severity_range: [0.5, 2.0]` samples different noise intensities per batch
+   - Each batch sees a different severity → model cannot overfit to one noise level
+   ```bash
+   uv run python python/train.py --model cnn1d
+   ```
+
+2. **Evaluate at all severity levels (7 points)**
+   - Severity multipliers: {0.0×, 0.5×, 1.0×, 1.5×, 2.0×, 2.5×, 3.0×}
+   - Use `evaluate_severity_sweep_python()` which generates fresh noise at each level
+   - Compare: single-severity trained vs multi-severity trained vs clean-trained
 
 3. **Plot robustness curves**
    - X-axis: noise severity multiplier
    - Y-axis: accuracy (or macro-F1)
-   - Lines: one per model/training condition
-   - Expected: clean-trained collapses at 1.5×+, noise-trained degrades gracefully
+   - Lines: clean-trained CNN, single-severity CNN, multi-severity CNN, best baseline
+   - Expected: multi-severity trained shows flatter curve (less over-specialisation)
 
-4. **Find the crossover point**
-   - At what severity does clean-trained fall below 50% (random for 5 classes = 20%)?
-   - At what severity does noise-trained fall below 80%?
-   - The gap between these is your "robustness margin"
+4. **Quantify robustness improvements**
+   - Compare accuracy at 0.5× (below training level) for single vs multi-severity
+   - Compare accuracy at 2.0× and 3.0× (above training level)
+   - Calculate degradation slope (accuracy per unit severity increase)
+   - Find crossover points where models fall below useful accuracy
 
 5. **Statistical significance at key severity levels**
-   - At 2× and 3×: is the difference between clean-trained and noise-trained significant?
-   - Paired t-test on 5-fold results
+   - At 0.5×, 1.0×, and 2.0×: is the difference between training regimes significant?
+   - Use 5-fold CV results where possible
 
-**Deliverable**: Robustness curve figure (publication quality). Severity analysis table. Key p-values.
+6. **Investigate BatchNorm contribution to over-specialisation**
+   - Consider: does BN encode noise statistics? Would instance normalisation or
+     group normalisation produce less severity-specific models?
+   - If time permits: quick experiment replacing BN with GN in one comparison
+
+**Deliverable**: Robustness curve figure (publication quality). Multi-severity vs single-severity
+comparison. Severity analysis table with degradation slopes. Evidence of over-specialisation
+resolved (or characterised).
 
 ---
 
@@ -211,10 +248,11 @@
    - 3.1 Research design overview (200 words) — why simulation-based, why static
    - 3.2 EIT simulation (500 words) — EIDORS, mesh type, electrode config, forward solve. Include mesh figure.
    - 3.3 Touch class definitions (300 words) — table with class, force range (from CoST), Δσ range (from material model), radius range. Justify the force→Δσ conversion.
-   - 3.4 Noise model (600 words) — for each of 5 components: physical source, equation, parameter value, citation. Include the key equations:
+   - 3.4 Noise model (600 words) — for each of 4 components: physical source, equation, parameter value, citation. Include the key equations:
      - Gaussian: $v_{\text{noisy}} = v + \mathcal{N}(0, \sigma_n^2)$ where $\sigma_n = \|v\| / (10^{\text{SNR}/20})$
      - Contact impedance: $v_{\text{noisy}} = v \cdot z_i$, $z_i \sim \text{LogNormal}(0, \sigma_z^2)$
-     - etc.
+     - Electrode bias: $v_{\text{noisy}} = v + b_e$, $b_e \sim U(-b_{max}, +b_{max})$
+     - Quantisation: $v_{\text{noisy}} = v + q$, $q \sim U(-\text{LSB}/2, +\text{LSB}/2)$
    - 3.5 ML pipeline (500 words) — preprocessing, architectures (table of layers for CNN), training protocol, evaluation protocol
    - 3.6 Ablation design (200 words) — what is toggled, what is measured
    - 3.7 Metrics and statistical testing (200 words) — accuracy, F1, paired t-test, reporting protocol
@@ -418,7 +456,7 @@
 | Classes not separable | Reduce to 3 classes (no contact / light / firm). Still publishable. |
 | CNN doesn't outperform baselines | That IS a result. Report it honestly. "Noise augmentation benefits all model families equally" is a valid finding. |
 | Material properties never arrive | Use published values from paper [19] or [3]. State this explicitly as an assumption. |
-| Timeline slips badly | Drop ablation to single-component only (5 experiments instead of 12+). Drop severity sweep to 3 points instead of 6. |
+| Timeline slips badly | Drop ablation to single-component only (4 experiments instead of 10+). Drop severity sweep to 3 points instead of 7. |
 | Real data access falls through | Expected. Frame as future work. Your simulation contribution stands alone. |
 
 ---
@@ -444,14 +482,14 @@
 
 | Week | Dates | Target | Status |
 |---|---|---|---|
-| 1 | May 13–19 | EIDORS running, pilot data | |
-| 2 | May 20–26 | Code fixed, material props, class params | |
-| 3 | May 27–Jun 2 | Validated classes, pilot visualisations | |
+| 1 | May 13–19 | EIDORS running, pilot data | ✅ Complete |
+| 2 | May 20–26 | Code fixed, material props, class params | ✅ Complete |
+| 3 | May 27–Jun 2 | Validated classes, pilot visualisations | 🔄 In progress |
 | 4 | Jun 3–9 | Full dataset generated | |
-| 5 | Jun 10–16 | Baselines trained and evaluated | |
-| 6 | Jun 17–23 | CNN trained, statistical tests done | |
-| 7 | Jun 24–30 | Ablation study complete | |
-| 8 | Jul 1–7 | Severity sweep complete | |
+| 5 | Jun 10–16 | Baselines trained and evaluated | ✅ Complete (run_all_experiments.py) |
+| 6 | Jun 17–23 | CNN trained, statistical tests done | ✅ Complete (3 seeds × 4 conditions) |
+| 7 | Jun 24–30 | Ablation study (Python-side noise) | Ready to run |
+| 8 | Jul 1–7 | Multi-severity training + severity sweep | Ready to run |
 | 9 | Jul 8–14 | Buffer / bonus analyses | |
 | 10 | Jul 15–21 | Methodology + Results drafted | |
 | 11 | Jul 22–28 | Literature Review drafted | |
@@ -460,3 +498,41 @@
 | 14 | Aug 12–18 | Supervisor feedback received | |
 | 15 | Aug 19–25 | Final revisions complete | |
 | 16 | Aug 26–29 | SUBMITTED | |
+
+---
+
+## Completed Infrastructure (as of Week 3)
+
+The following development work has been completed ahead of schedule:
+
+### Python-Side Noise Augmentation Module (`python/data/noise.py`)
+- Full 4-component noise model matching MATLAB `add_noise.m`
+- `NoiseConfig` dataclass with factory methods: `.only()`, `.without()`, `.all_off()`, `.from_yaml()`
+- Vectorised batch noise application (`apply_noise_batch_vectorised()`) for fast training
+- Severity scaling: all parameters scaled by a single multiplier
+- Per-electrode structure for contact impedance and bias
+
+### Online Noise Augmentation in Training (`python/train.py`)
+- `noise_config` parameter enables on-the-fly noise during CNN training
+- `severity_range` parameter samples severity uniformly per batch
+- Clean data used as input; noise applied per-batch (different realisation each epoch)
+- Addresses over-specialisation by exposing model to multiple noise intensities
+
+### Refactored Ablation Study (`python/ablation.py`)
+- Python-side noise injection eliminates MATLAB dependency at experiment time
+- Consistent evaluation: all experiments tested against full 4-component noise
+- GPU support with proper device handling throughout
+- Supports both CNN (on-the-fly noise) and sklearn (pre-applied noise)
+- `--all-configs` flag runs 4 single-component + 4 leave-one-out experiments
+
+### Python Severity Sweep (`python/evaluate.py`)
+- `evaluate_severity_sweep_python()` generates fresh noise at each severity level
+- 7 severity multipliers: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+- Computes degradation slope and key severity-level metrics
+
+### Initial Experiment Results (from `run_all_experiments.py`)
+- 56 experiments: 4 datasets × 4 models × 4 conditions × 3 seeds
+- Best noisy-domain: CNN on raw data (75.1% accuracy, noisy→noisy)
+- Best clean-domain: CNN on cleaned data (98.1% accuracy, clean→clean)
+- Noise training improvement: +52.5pp for CNN on raw (clean→noisy vs noisy→noisy)
+- Over-specialisation identified: CNN drops to 43.3% at 0.5× severity (below training level)

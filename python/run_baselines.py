@@ -1,10 +1,10 @@
-"""Run all baseline experiments for Week 5.
+"""Run all baseline experiments.
 
 Trains SVM, Random Forest, and MLP under 4 conditions:
-1. Clean → Clean  (ceiling)
-2. Clean → Noisy  (vulnerability)
-3. Noisy → Noisy  (robustness)
-4. Noisy → Clean  (generalisation)
+1. Clean -> Clean  (ceiling)
+2. Clean -> Noisy  (vulnerability)
+3. Noisy -> Noisy  (robustness)
+4. Noisy -> Clean  (generalisation)
 
 Records accuracy and macro-F1 for each combination and writes a
 summary CSV to ``results/tables/baseline_results.csv``.
@@ -22,17 +22,11 @@ import joblib
 import numpy as np
 import pandas as pd
 from configs.loader import load_config
+from data.load_dataset import load_mat_dataset, prepare_splits
 from evaluate import evaluate_and_visualize_baseline
 from models.baselines import get_baseline, train_baseline
 from sklearn.metrics import accuracy_score, f1_score
 
-from data.load_dataset import load_mat_dataset, prepare_splits
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 
 MODELS = ["svm", "random_forest", "mlp"]
@@ -46,6 +40,12 @@ CONDITIONS = [
 
 
 def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     parser = argparse.ArgumentParser(description="Run all baseline experiments.")
     parser.add_argument("--data-path", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=Path("results/models"))

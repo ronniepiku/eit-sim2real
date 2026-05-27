@@ -5,6 +5,8 @@ Supports both CNN and sklearn baseline models.  Results are saved to the
 ``results/`` directory for reproducibility and downstream visualisation.
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import logging
@@ -14,6 +16,8 @@ import joblib
 import numpy as np
 import torch
 from configs.loader import load_config
+from data.load_dataset import load_mat_dataset, prepare_splits
+from data.noise import NoiseConfig, apply_noise_batch_vectorised
 from models.cnn1d import EITConv1D
 from sklearn.metrics import (
     accuracy_score,
@@ -23,13 +27,6 @@ from sklearn.metrics import (
 )
 from torch.utils.data import DataLoader, TensorDataset
 
-from data.load_dataset import load_mat_dataset, prepare_splits
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 
 CLASS_NAMES = [
@@ -37,7 +34,7 @@ CLASS_NAMES = [
     "Light touch",
     "Firm press",
     "Point contact",
-    "Distributed",
+    "Distributed contact",
 ]
 
 
@@ -204,6 +201,85 @@ def evaluate_severity_sweep(
     }
 
 
+def evaluate_severity_sweep_python(
+    model: EITConv1D | object,
+    X_clean: np.ndarray,
+    y_test: np.ndarray,
+    severity_multipliers: list[float] | None = None,
+    device: str = "cpu",
+    seed: int = 42,
+) -> dict[str, list[float]]:
+    """Evaluate model robustness using the full Python noise model at varying severity.
+
+    Unlike evaluate_severity_sweep (which scales a fixed noise delta), this function
+    generates fresh noise at each severity level using the full 4-component model.
+    This provides a more realistic evaluation of robustness to varying noise intensity.
+
+    Args:
+        model: Trained CNN or sklearn model.
+        X_clean: Clean test features.
+        y_test: Test labels.
+        severity_multipliers: List of severity factors. 1.0 = default noise params.
+        device: Device for CNN inference.
+        seed: Random seed for reproducible noise generation.
+
+    Returns:
+        Dictionary with multipliers, accuracies, F1 scores, and degradation metrics.
+    """
+    if severity_multipliers is None:
+        severity_multipliers = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+
+    accuracies: list[float] = []
+    f1_scores_list: list[float] = []
+
+    for mult in severity_multipliers:
+        if mult == 0.0:
+            X_test = X_clean
+        else:
+            noise_cfg = NoiseConfig(severity=mult)
+            rng = np.random.default_rng(seed)
+            X_test = apply_noise_batch_vectorised(X_clean, noise_cfg, rng=rng)
+
+        results = evaluate_model(model, X_test, y_test, device=device)
+        accuracies.append(results["accuracy"])
+        f1_scores_list.append(results["f1_macro"])
+
+        logger.info(
+            f"  Severity {mult:.1f}x | "
+            f"Acc: {results['accuracy']:.4f} | "
+            f"F1: {results['f1_macro']:.4f}"
+        )
+
+    # Compute degradation metrics (exclude 0.0 if present)
+    eval_mults = [m for m in severity_multipliers if m > 0]
+    eval_accs = [
+        a for m, a in zip(severity_multipliers, accuracies, strict=True) if m > 0
+    ]
+
+    metrics: dict[str, float] = {}
+    if len(eval_accs) >= 2:
+        from numpy.polynomial.polynomial import polyfit
+
+        coeffs = polyfit(eval_mults, eval_accs, 1)
+        metrics["degradation_slope"] = float(coeffs[1])
+
+    for target in [2.0, 3.0]:
+        if target in severity_multipliers:
+            idx = severity_multipliers.index(target)
+            metrics[f"accuracy_at_{target:.0f}x"] = accuracies[idx]
+            metrics[f"f1_at_{target:.0f}x"] = f1_scores_list[idx]
+
+    if 0.0 in severity_multipliers:
+        metrics["accuracy_at_0x"] = accuracies[severity_multipliers.index(0.0)]
+
+    return {
+        "severity_multipliers": severity_multipliers,
+        "accuracies": accuracies,
+        "f1_scores": f1_scores_list,
+        "metrics": metrics,
+    }
+
+
 def _save_results(
     results: dict,
     output_dir: Path,
@@ -325,7 +401,6 @@ def evaluate_and_visualize_cnn(
         plot_per_class_metrics_and_save,
         plot_precision_recall_curves_and_save,
         plot_roc_curves_and_save,
-        plot_training_curves,
     )
 
     logger.info("Generating CNN visualizations...")
@@ -550,6 +625,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     """Main evaluation entry point."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     args = parse_args()
     cfg = load_config()
 

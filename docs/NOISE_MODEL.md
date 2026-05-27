@@ -140,10 +140,20 @@ Each component enabled individually — reveals standalone contribution:
 All components except one — reveals marginal value when others present:
 - `without_gaussian`, `without_contact_impedance`, `without_electrode_bias`, `without_quantisation`
 
-### Severity Sweep (6 levels)
-All parameters scaled by multiplier {0.5×, 1.0×, 1.5×, 2.0×, 2.5×, 3.0×}:
+### Severity Sweep (7 levels)
+All parameters scaled by multiplier {0.0×, 0.5×, 1.0×, 1.5×, 2.0×, 2.5×, 3.0×}:
 - Tests generalisation beyond training-time noise intensity
 - Produces robustness curves (accuracy vs. severity)
+- 0.0× provides a clean baseline for reference
+- For Gaussian noise, severity adjusts effective SNR: `effective_snr = snr_db + 20·log₁₀(1/severity)`
+- For other components, severity linearly scales the parameter magnitude
+
+### Multi-Severity Domain Randomisation
+To address over-specialisation at training noise level:
+- Sample severity uniformly from a range (default: [0.5, 2.0]) per mini-batch
+- Each batch sees a different noise intensity during training
+- Produces noise-invariant features rather than noise-level-specific features
+- Configured via `noise_augmentation.severity_range` in `config.yaml`
 
 ## Configuration
 
@@ -171,7 +181,16 @@ quantisation:
 ## Implementation
 
 - **MATLAB**: [`matlab/noise_model/add_noise.m`](../matlab/noise_model/add_noise.m) — applies noise during dataset generation
-- **Python** (severity sweep): [`python/evaluate.py`](../python/evaluate.py) — scales noise perturbation at evaluation time
+- **Python (noise module)**: [`python/data/noise.py`](../python/data/noise.py) — full 4-component noise model for on-the-fly augmentation during training and ablation
+- **Python (training)**: [`python/train.py`](../python/train.py) — online noise augmentation with optional multi-severity domain randomisation
+- **Python (ablation)**: [`python/ablation.py`](../python/ablation.py) — systematic ablation via Python-side noise injection (no MATLAB dependency at experiment time)
+- **Python (evaluation)**: [`python/evaluate.py`](../python/evaluate.py) — `evaluate_severity_sweep_python()` generates fresh noise at each severity level
+
+The Python noise module (`NoiseConfig` class) provides factory methods for ablation:
+- `NoiseConfig.only('gaussian')` — single-component experiment
+- `NoiseConfig.without('contact_impedance')` — leave-one-out experiment
+- `NoiseConfig.all_off()` — clean baseline
+- `NoiseConfig(severity=2.0)` — severity-scaled noise
 
 ## References
 

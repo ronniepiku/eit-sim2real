@@ -4,7 +4,7 @@ Implements 5-fold stratified cross-validation with paired t-tests and
 Bonferroni correction, as described in the methodology chapter.
 
 Reports:
-- Mean ± std accuracy/F1 per condition
+- Mean +/- std accuracy/F1 per condition
 - Paired t-test p-values between conditions
 - Cohen's d effect sizes
 - Bonferroni-corrected significance
@@ -20,30 +20,27 @@ import logging
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 from configs.loader import load_config
 from data.load_dataset import get_cv_splits, load_mat_dataset
 from models.baselines import get_baseline, train_baseline
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.preprocessing import StandardScaler
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 
 
 def cohens_d(x: np.ndarray, y: np.ndarray) -> float:
     """Compute Cohen's d for paired samples."""
     diff = x - y
-    return float(np.mean(diff) / np.std(diff, ddof=1)) if np.std(diff, ddof=1) > 0 else 0.0
+    return (
+        float(np.mean(diff) / np.std(diff, ddof=1)) if np.std(diff, ddof=1) > 0 else 0.0
+    )
 
 
 def paired_t_test(x: np.ndarray, y: np.ndarray) -> tuple[float, float]:
     """Perform paired t-test, returning (t_statistic, p_value)."""
     from scipy import stats
+
     t_stat, p_val = stats.ttest_rel(x, y)
     return float(t_stat), float(p_val)
 
@@ -61,7 +58,9 @@ def run_cv_experiment(
 
     Returns per-fold accuracy and F1 on the test set.
     """
-    folds = get_cv_splits(X_train_full, y_train_full, n_folds=n_folds, random_state=seed)
+    folds = get_cv_splits(
+        X_train_full, y_train_full, n_folds=n_folds, random_state=seed
+    )
 
     accuracies = np.zeros(n_folds)
     f1_scores = np.zeros(n_folds)
@@ -77,7 +76,6 @@ def run_cv_experiment(
 
         if model_name == "cnn1d":
             import torch
-            from models.cnn1d import EITConv1D
             from train import train_cnn
 
             cfg = load_config()
@@ -87,7 +85,10 @@ def run_cv_experiment(
 
             torch.manual_seed(seed + fold_idx)
             model, _ = train_cnn(
-                X_tr, y_tr, X_val_fold, y_val_fold,
+                X_tr,
+                y_tr,
+                X_val_fold,
+                y_val_fold,
                 epochs=cfg["training"]["epochs"],
                 batch_size=cfg["training"]["batch_size"],
                 lr=cfg["training"]["learning_rate"],
@@ -117,6 +118,12 @@ def run_cv_experiment(
 
 
 def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     parser = argparse.ArgumentParser(description="Statistical testing with 5-fold CV.")
     parser.add_argument("--data-path", type=Path, default=None)
     parser.add_argument(
@@ -142,6 +149,7 @@ def main() -> None:
 
     # Use a fixed test set (15%) and run CV on the rest
     from sklearn.model_selection import train_test_split
+
     test_size = cfg["data"].get("test_size", 0.15)
 
     X_clean_trainval, X_clean_test, y_trainval, y_test = train_test_split(
@@ -164,7 +172,10 @@ def main() -> None:
     for cond_name, (X_tr, y_tr, X_te, y_te) in conditions.items():
         logger.info(f"\nCondition: {cond_name}")
         results = run_cv_experiment(
-            X_tr, y_tr, X_te, y_te,
+            X_tr,
+            y_tr,
+            X_te,
+            y_te,
             model_name=args.model,
             n_folds=n_folds,
             seed=args.seed,
@@ -233,18 +244,18 @@ def main() -> None:
     logger.info(f"\nResults saved to {output_path}")
 
     # Summary table
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Statistical Testing Summary: {args.model}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"{'Condition':<30} {'Accuracy':>12} {'F1 (macro)':>12}")
-    print(f"{'-'*60}")
+    print(f"{'-' * 60}")
     for cond, res in all_results.items():
         print(
             f"{cond:<30} "
             f"{res['accuracy_mean']:.4f}±{res['accuracy_std']:.4f} "
             f"{res['f1_mean']:.4f}±{res['f1_std']:.4f}"
         )
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
 
 if __name__ == "__main__":

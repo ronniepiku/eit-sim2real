@@ -1,23 +1,23 @@
 """Master experiment runner for EIT touch classification.
 
-Runs all model × dataset × condition combinations across multiple seeds,
-collects metrics with uncertainty estimates (mean ± std), generates all
+Runs all model x dataset x condition combinations across multiple seeds,
+collects metrics with uncertainty estimates (mean +/- std), generates all
 figures/tables, and produces a final Markdown report.
 
 Datasets:
-    - Raw (data/eit_dataset.mat) — 208 features
-    - Cleaned (data/cleaned/eit_cleaned.mat) — 22 features
-    - PCA (data/cleaned/eit_cleaned_pca.mat) — 7 features
-    - LDA (data/cleaned/eit_cleaned_lda.mat) — 4 features
+    - Raw (data/eit_dataset.mat) -- 208 features
+    - Cleaned (data/cleaned/eit_cleaned.mat) -- 22 features
+    - PCA (data/cleaned/eit_cleaned_pca.mat) -- 7 features
+    - LDA (data/cleaned/eit_cleaned_lda.mat) -- 4 features
 
 Models:
-    - 1D-CNN (only on datasets with ≥8 features)
+    - 1D-CNN (only on datasets with >=8 features)
     - SVM (RBF kernel)
     - Random Forest (500 trees)
-    - MLP (2×128 hidden)
+    - MLP (2x128 hidden)
 
 Conditions:
-    - Clean→Clean, Clean→Noisy, Noisy→Noisy, Noisy→Clean
+    - Clean->Clean, Clean->Noisy, Noisy->Noisy, Noisy->Clean
 
 Usage:
     uv run python python/run_all_experiments.py
@@ -26,7 +26,6 @@ Usage:
 """
 
 import argparse
-import json
 import logging
 import time
 from datetime import datetime
@@ -39,25 +38,17 @@ matplotlib.use("Agg")
 import numpy as np
 import pandas as pd
 import torch
-from configs.loader import load_config
+from data.load_dataset import load_mat_dataset, prepare_splits
 from models.baselines import get_baseline, train_baseline
 from models.cnn1d import EITConv1D
 from sklearn.metrics import (
     accuracy_score,
-    classification_report,
-    confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
 )
+from train import train_cnn
 
-from data.load_dataset import load_mat_dataset, prepare_splits
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 
 # ── Configuration ─────────────────────────────────────────────────────
@@ -84,114 +75,11 @@ CLASS_NAMES = [
     "Light touch",
     "Firm press",
     "Point contact",
-    "Distributed",
+    "Distributed contact",
 ]
 
 
-# ── Training helpers ──────────────────────────────────────────────────
-
-
-def train_cnn_model(
-    X_train: np.ndarray,
-    y_train: np.ndarray,
-    X_val: np.ndarray,
-    y_val: np.ndarray,
-    epochs: int = 200,
-    batch_size: int = 64,
-    lr: float = 1e-3,
-    weight_decay: float = 1e-4,
-    scheduler_patience: int = 10,
-    scheduler_factor: float = 0.5,
-    early_stopping_patience: int = 40,
-    device: str = "auto",
-) -> tuple[EITConv1D, dict]:
-    """Train CNN and return model + history."""
-    import torch.nn as nn
-    from torch.utils.data import DataLoader, TensorDataset
-
-    if device == "auto":
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    n_features = X_train.shape[1]
-    n_classes = len(np.unique(y_train))
-    model = EITConv1D(n_features=n_features, n_classes=n_classes).to(device)
-
-    train_ds = TensorDataset(
-        torch.from_numpy(X_train).float(),
-        torch.from_numpy(y_train).long(),
-    )
-    val_ds = TensorDataset(
-        torch.from_numpy(X_val).float(),
-        torch.from_numpy(y_val).long(),
-    )
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
-
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", patience=scheduler_patience, factor=scheduler_factor
-    )
-
-    history = {"train_loss": [], "val_loss": [], "train_acc": [], "val_acc": []}
-    best_val_loss = float("inf")
-    best_state = None
-    patience_counter = 0
-
-    for epoch in range(epochs):
-        # Train
-        model.train()
-        train_loss, train_correct, train_total = 0.0, 0, 0
-        for X_batch, y_batch in train_loader:
-            X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-            optimizer.zero_grad()
-            logits = model(X_batch)
-            loss = criterion(logits, y_batch)
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item() * len(y_batch)
-            train_correct += (logits.argmax(1) == y_batch).sum().item()
-            train_total += len(y_batch)
-
-        # Validate
-        model.eval()
-        val_loss, val_correct, val_total = 0.0, 0, 0
-        with torch.no_grad():
-            for X_batch, y_batch in val_loader:
-                X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-                logits = model(X_batch)
-                loss = criterion(logits, y_batch)
-                val_loss += loss.item() * len(y_batch)
-                val_correct += (logits.argmax(1) == y_batch).sum().item()
-                val_total += len(y_batch)
-
-        epoch_train_loss = train_loss / train_total
-        epoch_val_loss = val_loss / val_total
-        epoch_train_acc = train_correct / train_total
-        epoch_val_acc = val_correct / val_total
-
-        history["train_loss"].append(epoch_train_loss)
-        history["val_loss"].append(epoch_val_loss)
-        history["train_acc"].append(epoch_train_acc)
-        history["val_acc"].append(epoch_val_acc)
-
-        scheduler.step(epoch_val_loss)
-
-        # Early stopping
-        if epoch_val_loss < best_val_loss:
-            best_val_loss = epoch_val_loss
-            best_state = model.state_dict().copy()
-            patience_counter = 0
-        else:
-            patience_counter += 1
-            if patience_counter >= early_stopping_patience:
-                break
-
-    if best_state is not None:
-        model.load_state_dict(best_state)
-
-    model.eval()
-    return model, history
+# ── Helpers ───────────────────────────────────────────────────────────
 
 
 def predict_cnn(model: EITConv1D, X: np.ndarray, device: str = "auto") -> np.ndarray:
@@ -259,9 +147,9 @@ def run_experiments(
         if not ds_path.exists():
             continue
 
-        logger.info(f"\n{'='*70}")
+        logger.info(f"\n{'=' * 70}")
         logger.info(f"DATASET: {ds_name} ({ds_path})")
-        logger.info(f"{'='*70}")
+        logger.info(f"{'=' * 70}")
 
         # Load both clean and noisy versions
         X_clean, y = load_mat_dataset(ds_path, use_noisy=False)
@@ -309,7 +197,7 @@ def run_experiments(
                     # Train
                     start_time = time.time()
                     if model_name == "cnn1d":
-                        model, history = train_cnn_model(
+                        model, history = train_cnn(
                             train_ds.X_train,
                             train_ds.y_train,
                             train_ds.X_val,
@@ -431,7 +319,7 @@ def _generate_all_figures(
                 torch.manual_seed(seed)
 
                 if model_name == "cnn1d":
-                    model, history = train_cnn_model(
+                    model, history = train_cnn(
                         train_ds.X_train,
                         train_ds.y_train,
                         train_ds.X_val,
@@ -662,12 +550,12 @@ def generate_report(df: pd.DataFrame, output_dir: Path, runtime_s: float) -> Non
         if cleaned_best > raw_best:
             report_lines.append(
                 f"3. **Feature engineering on clean data**: Improved ceiling by "
-                f"{(cleaned_best - raw_best)*100:.1f}pp"
+                f"{(cleaned_best - raw_best) * 100:.1f}pp"
             )
         else:
             report_lines.append(
                 f"3. **Feature engineering on clean data**: Decreased ceiling by "
-                f"{(raw_best - cleaned_best)*100:.1f}pp"
+                f"{(raw_best - cleaned_best) * 100:.1f}pp"
             )
 
     report_lines.append(
@@ -728,6 +616,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     args = parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     args.figures_dir.mkdir(parents=True, exist_ok=True)

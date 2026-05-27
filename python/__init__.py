@@ -6,11 +6,12 @@ touch types from simulated EIT voltage measurements.
 
 __version__ = "0.1.0"
 
-CLASS_NAMES = {
-    1: "No contact",
-    2: "Light touch",
-    3: "Firm press",
-    4: "Point contact",
-    5: "Distributed contact",
-}
 NUM_CLASSES = 5
+
+CLASS_NAMES: list[str] = [
+    "No contact",
+    "Light touch",
+    "Firm press",
+    "Point contact",
+    "Distributed contact",
+]

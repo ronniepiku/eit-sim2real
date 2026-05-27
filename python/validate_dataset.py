@@ -38,7 +38,7 @@ DEFAULT_CLASS_NAMES = [
     "Light touch",
     "Firm press",
     "Point contact",
-    "Distributed",
+    "Distributed contact",
 ]
 
 POLAR_IMAGE_SHAPE = (16, 13)
@@ -557,9 +557,7 @@ def save_tables(tables: dict[str, pd.DataFrame], table_dir: Path) -> None:
     """Write all tables as CSV files."""
     table_dir.mkdir(parents=True, exist_ok=True)
     for name, table in tables.items():
-        table.to_csv(
-            table_dir / f"{name}.csv", index=True if "matrix" in name else False
-        )
+        table.to_csv(table_dir / f"{name}.csv", index="matrix" in name)
 
 
 def write_report_markdown(

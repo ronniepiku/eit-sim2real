@@ -1,0 +1,116 @@
+"""Unit tests for the Python-side EIT noise model."""
+
+import numpy as np
+import pytest
+from data.noise import NoiseConfig, apply_noise, apply_noise_batch_vectorised
+
+
+@pytest.fixture
+def clean_signal() -> np.ndarray:
+    """Generate a synthetic clean EIT measurement batch."""
+    rng = np.random.default_rng(42)
+    return rng.standard_normal((50, 208)).astype(np.float32)
+
+
+class TestNoiseConfig:
+    """Tests for NoiseConfig construction and helpers."""
+
+    def test_defaults_all_enabled(self) -> None:
+        cfg = NoiseConfig()
+        assert cfg.enabled
+        assert cfg.gaussian_enabled
+        assert cfg.contact_impedance_enabled
+        assert cfg.electrode_bias_enabled
+        assert cfg.quantisation_enabled
+
+    def test_all_off(self) -> None:
+        cfg = NoiseConfig.all_off()
+        assert not cfg.enabled
+
+    def test_only_gaussian(self) -> None:
+        cfg = NoiseConfig.only("gaussian")
+        assert cfg.gaussian_enabled
+        assert not cfg.contact_impedance_enabled
+        assert not cfg.electrode_bias_enabled
+        assert not cfg.quantisation_enabled
+
+    def test_without_gaussian(self) -> None:
+        cfg = NoiseConfig.without("gaussian")
+        assert not cfg.gaussian_enabled
+        assert cfg.contact_impedance_enabled
+        assert cfg.electrode_bias_enabled
+        assert cfg.quantisation_enabled
+
+    def test_only_invalid_raises(self) -> None:
+        with pytest.raises(ValueError, match="Unknown component"):
+            NoiseConfig.only("invalid")
+
+    def test_component_flags(self) -> None:
+        cfg = NoiseConfig.only("quantisation")
+        flags = cfg.component_flags()
+        assert flags == {
+            "gaussian": False,
+            "contact_impedance": False,
+            "electrode_bias": False,
+            "quantisation": True,
+        }
+
+
+class TestApplyNoise:
+    """Tests for noise application functions."""
+
+    def test_disabled_returns_copy(self, clean_signal: np.ndarray) -> None:
+        cfg = NoiseConfig.all_off()
+        result = apply_noise(clean_signal, cfg)
+        np.testing.assert_array_equal(result, clean_signal)
+        # Ensure it's a copy, not same buffer
+        assert result is not clean_signal
+
+    def test_enabled_modifies_signal(self, clean_signal: np.ndarray) -> None:
+        cfg = NoiseConfig()
+        result = apply_noise(clean_signal, cfg, rng=np.random.default_rng(0))
+        assert not np.allclose(result, clean_signal)
+
+    def test_output_shape_preserved(self, clean_signal: np.ndarray) -> None:
+        cfg = NoiseConfig()
+        result = apply_noise(clean_signal, cfg, rng=np.random.default_rng(0))
+        assert result.shape == clean_signal.shape
+
+    def test_reproducibility(self, clean_signal: np.ndarray) -> None:
+        cfg = NoiseConfig()
+        r1 = apply_noise(clean_signal, cfg, rng=np.random.default_rng(123))
+        r2 = apply_noise(clean_signal, cfg, rng=np.random.default_rng(123))
+        np.testing.assert_array_equal(r1, r2)
+
+    def test_severity_increases_noise(self, clean_signal: np.ndarray) -> None:
+        cfg_low = NoiseConfig(severity=0.5)
+        cfg_high = NoiseConfig(severity=2.0)
+        r_low = apply_noise(clean_signal, cfg_low, rng=np.random.default_rng(0))
+        r_high = apply_noise(clean_signal, cfg_high, rng=np.random.default_rng(0))
+        # Higher severity should produce larger deviations from clean
+        diff_low = np.abs(r_low - clean_signal).mean()
+        diff_high = np.abs(r_high - clean_signal).mean()
+        assert diff_high > diff_low
+
+
+class TestApplyNoiseBatchVectorised:
+    """Tests for the vectorised noise application."""
+
+    def test_output_shape(self, clean_signal: np.ndarray) -> None:
+        cfg = NoiseConfig()
+        result = apply_noise_batch_vectorised(
+            clean_signal, cfg, rng=np.random.default_rng(0)
+        )
+        assert result.shape == clean_signal.shape
+
+    def test_disabled_returns_copy(self, clean_signal: np.ndarray) -> None:
+        cfg = NoiseConfig.all_off()
+        result = apply_noise_batch_vectorised(clean_signal, cfg)
+        np.testing.assert_array_equal(result, clean_signal)
+
+    def test_produces_noise(self, clean_signal: np.ndarray) -> None:
+        cfg = NoiseConfig()
+        result = apply_noise_batch_vectorised(
+            clean_signal, cfg, rng=np.random.default_rng(0)
+        )
+        assert not np.allclose(result, clean_signal)

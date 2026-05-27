@@ -7,11 +7,12 @@ Project investigating whether physically-motivated noise modelling during traini
 This project:
 1. Simulates EIT boundary voltage measurements using EIDORS (FEM forward solver)
 2. Models an ionic hydrogel substrate with positive piezoresistive response (conductivity decreases under pressure)
-3. Applies a configurable 5-component physically-motivated noise model
+3. Applies a configurable 4-component physically-motivated noise model
 4. Trains and evaluates 4 classifiers (SVM, Random Forest, MLP, 1D-CNN)
-5. Performs systematic ablation (single-component + leave-one-out) to identify critical noise sources
-6. Demonstrates that noise-augmented training bridges the simulation-to-reality gap
-7. Generates EIDORS inverse reconstructions for representative clean/noisy class examples
+5. Supports online noise augmentation with multi-severity domain randomisation
+6. Performs systematic ablation (single-component + leave-one-out) to identify critical noise sources
+7. Demonstrates that noise-augmented training bridges the simulation-to-reality gap
+8. Generates EIDORS inverse reconstructions for representative clean/noisy class examples
 
 ## Touch Classes
 
@@ -37,16 +38,16 @@ All contact classes satisfy σ < σ₀, consistent with the positive piezoresist
 │   ├── setup_eidors.m               # EIDORS path initialisation
 │   ├── validate_mesh_convergence.m  # Mesh refinement convergence study
 │   ├── noise_model/
-│   │   ├── add_noise.m              # 5-component noise application
+│   │   ├── add_noise.m              # 4-component noise application
 │   │   └── load_noise_params.m      # YAML parameter loader
 │   ├── configs/
 │   │   └── noise_params.yaml        # Literature-justified noise parameters
 │   └── utils/
 │       └── get_element_centers.m
 ├── python/                          # ML training & evaluation pipeline
-│   ├── train.py                     # Model training (CNN + baselines)
-│   ├── evaluate.py                  # Evaluation, robustness & severity sweep
-│   ├── ablation.py                  # Ablation study (single + leave-one-out)
+│   ├── train.py                     # Model training (CNN + baselines) with online noise augmentation
+│   ├── evaluate.py                  # Evaluation, robustness & severity sweep (Python noise model)
+│   ├── ablation.py                  # Ablation study (Python-side noise, no MATLAB dependency)
 │   ├── run_baselines.py             # All baselines × 4 conditions
 │   ├── statistical_tests.py         # 5-fold CV, paired t-tests, Cohen's d
 │   ├── architecture_sweep.py        # CNN depth selection validation
@@ -57,18 +58,21 @@ All contact classes satisfy σ < σ₀, consistent with the positive piezoresist
 │   │   ├── cnn1d.py                 # EITConv1D (3×Conv1D, ~56k params)
 │   │   └── baselines.py             # SVM, RF, MLP wrappers
 │   ├── data/
-│   │   └── load_dataset.py          # Loading, splitting, normalisation
+│   │   ├── load_dataset.py          # Loading, splitting, normalisation
+│   │   └── noise.py                 # Python-side 4-component noise model (on-the-fly augmentation)
 │   └── configs/
-│       ├── config.yaml              # Central hyperparameter config
+│       ├── config.yaml              # Central hyperparameter config + noise augmentation settings
 │       └── loader.py                # YAML config loader
 ├── dissertation/                    # LaTeX dissertation source
 │   ├── main.tex
 │   ├── references.bib
 │   └── chapters/
-├── tests/                           # Unit tests (24 tests)
+├── tests/                           # Unit tests (42 tests)
 │   ├── test_baselines.py
 │   ├── test_cnn1d.py
-│   └── test_data.py
+│   ├── test_config.py
+│   ├── test_data.py
+│   └── test_noise.py
 ├── data/                            # Generated datasets (.mat)
 ├── results/                         # Outputs (models, figures, tables)
 │   ├── models/                      # Trained checkpoints (.pt/.joblib)
@@ -190,11 +194,15 @@ uv run python python/statistical_tests.py --model cnn1d
 ### Ablation Study
 
 ```bash
-# Core 4-condition mismatch experiment
+# Core 4-condition mismatch experiment (uses Python-side noise injection)
 uv run python python/ablation.py --model cnn1d
 
-# Full per-component ablation (requires per-config datasets)
-uv run python python/ablation.py --model random_forest --all-configs
+# Full per-component ablation (single-component + leave-one-out, no MATLAB dependency)
+uv run python python/ablation.py --model cnn1d --all-configs
+
+# Multi-severity trained CNN (domain randomisation over [0.5×, 2.0×])
+# Enable in config.yaml: noise_augmentation.enabled: true
+uv run python python/train.py --model cnn1d
 ```
 
 ### Dataset Reconstructions
@@ -219,21 +227,27 @@ Models are evaluated under a 2×2 condition matrix:
 | **Train on Noisy**   | Generalisation    | Robustness        |
 
 Additionally:
-- **Severity sweep**: noise multipliers {0.5×, 1.0×, 1.5×, 2.0×, 2.5×, 3.0×}
+- **Severity sweep**: noise multipliers {0.0×, 0.5×, 1.0×, 1.5×, 2.0×, 2.5×, 3.0×} using Python noise model
 - **Statistical testing**: 5-fold stratified CV, paired t-tests with Bonferroni correction, Cohen's d effect sizes
-- **Ablation**: single-component (5 exps) + leave-one-out (5 exps)
+- **Ablation**: single-component (4 exps) + leave-one-out (4 exps) via Python-side noise injection
 
 ## Noise Model
 
-Five physically-motivated components applied sequentially:
+Four physically-motivated components applied sequentially:
 
 | # | Component | Parameter | Default | Reference |
-|---|-----------|-----------|---------|-----------|
+|---|-----------|-----------|---------|----------|
 | 1 | Gaussian measurement noise | SNR | 40 dB | Adler & Lionheart (2006) |
 | 2 | Contact impedance variation | σ_z | 10% | Vilhunen et al. (2002) |
-| 3 | Temporal drift | σ_d / d_max | 0.001 / 0.05 | Boone & Holder (1996) |
-| 4 | Electrode positioning bias | b_max | 0.02 | Kolehmainen et al. (1997) |
-| 5 | Quantisation noise | bits / V_range | 16 / 1.0 V | Hardware specs |
+| 3 | Electrode positioning bias | b_max | 0.02 | Kolehmainen et al. (1997) |
+| 4 | Quantisation noise | bits / V_range | 16 / 1.0 V | Hardware specs |
+
+The noise model is implemented in both MATLAB (`matlab/noise_model/add_noise.m`) for dataset
+generation and Python (`python/data/noise.py`) for on-the-fly training augmentation. The Python
+implementation supports:
+- Per-component toggling for ablation studies
+- Severity scaling (all parameters scaled by a single multiplier)
+- Multi-severity domain randomisation (severity sampled per-batch from a configurable range)
 
 See [`docs/NOISE_MODEL.md`](docs/NOISE_MODEL.md) for detailed derivations.
 
@@ -270,18 +284,27 @@ Examples:
 
 - All random seeds fixed (`seed: 42` in `config.yaml`, MATLAB `rng(42)`)
 - Dataset generation is deterministic given same EIDORS version
-- Noise parameters stored in version-controlled YAML
+- Noise parameters stored in version-controlled YAML (`matlab/configs/noise_params.yaml`)
+- Python noise model mirrors MATLAB implementation for consistency
 - Train/val/test split: 70/15/15 (stratified)
 - Environment logged via `log_environment.py` → `results/environment.json`
 - CNN training uses early stopping (patience=20) and LR scheduling (patience=10)
+- Ablation study uses Python-side noise (fresh realisation each epoch for CNN)
+- All dependencies (including PyTorch) declared in `pyproject.toml`
+- Logging configured only at CLI entry points (modules use `logging.getLogger(__name__)`)
 
 ## Running Tests
 
 ```bash
-uv run python -m pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
-All 24 tests cover CNN architecture, baseline models, and data loading.
+All 42 tests cover:
+- **CNN architecture** (`test_cnn1d.py`): output shapes, adaptive pooling, gradient flow
+- **Baseline models** (`test_baselines.py`): creation, training, prediction
+- **Data pipeline** (`test_data.py`): splitting, stratification, normalisation, CV folds
+- **Noise model** (`test_noise.py`): config construction, noise application, reproducibility, severity scaling
+- **Configuration** (`test_config.py`): YAML loading, required keys, error handling
 
 ## Citation
 

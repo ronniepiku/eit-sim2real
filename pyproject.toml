@@ -8,15 +8,15 @@ license = "MIT"
 authors = [{ name = "Ronald P" }]
 dependencies = [
     "joblib>=1.4.0",
-    "matplotlib>=3.10.9",
-    "numpy>=2.4.4",
-    "pandas>=3.0.2",
-    "pyyaml>=6.0.3",
-    "scikit-learn>=1.8.0",
-    "scipy>=1.17.1",
+    "matplotlib>=3.9.0",
+    "numpy>=1.26.0",
+    "pandas>=2.1.0",
+    "pyyaml>=6.0.1",
+    "scikit-learn>=1.4.0",
+    "scipy>=1.12.0",
     "seaborn>=0.13.2",
-    "torch>=2.12.0",
     "h5py>=3.8.0",
+    "torch>=2.1.0",
     "umap-learn>=0.5.12",
 ]
 
@@ -24,9 +24,10 @@ dependencies = [
 dev = [
     "ipykernel>=7.2.0",
     "jupyter>=1.1.1",
-    "mypy>=1.20.2",
-    "pytest>=9.0.3",
-    "ruff>=0.15.12",
+    "mypy>=1.10.0",
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+    "types-PyYAML>=6.0.12",
 ]
 
 [tool.ruff]
@@ -34,8 +35,11 @@ target-version = "py311"
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM"]
-ignore = ["N803", "N806"]  # Allow uppercase in args/vars (ML convention: X for features)
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM", "PT"]
+ignore = [
+    "N803", "N806",  # Allow uppercase in args/vars (ML convention: X for features)
+    "E501",  # Line length handled by ruff formatter; remaining are strings
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -33,8 +33,8 @@ uv sync
 ```
 
 This installs all runtime and development dependencies specified in `pyproject.toml`:
-- **Runtime**: torch, numpy, scipy, scikit-learn, pandas, matplotlib, seaborn, pyyaml, joblib
-- **Dev**: pytest, ruff, mypy, jupyter, ipykernel
+- **Runtime**: torch, numpy, scipy, scikit-learn, pandas, matplotlib, seaborn, pyyaml, joblib, h5py, umap-learn
+- **Dev**: pytest, ruff, mypy, jupyter, ipykernel, types-PyYAML
 
 If you plan to use an NVIDIA GPU for training, this project was tested with
 CUDA 12.6 and the corresponding `cu126` PyTorch wheels. After running
@@ -50,7 +50,7 @@ PyTorch wheels installed by `uv sync` will work.
 ### Verify Python Installation
 
 ```bash
-# Run test suite (should pass all 24 tests)
+# Run test suite (should pass all 42 tests)
 uv run python -m pytest tests/ -v
 
 # Verify imports work
@@ -144,8 +144,9 @@ uv run python python/run_baselines.py
 uv run python python/evaluate.py \
     --model-path results/models/cnn1d_noisy_best.pt --robustness
 
-# 6. Run ablation study
+# 6. Run ablation study (Python-side noise, no MATLAB dependency)
 uv run python python/ablation.py --model cnn1d
+uv run python python/ablation.py --model cnn1d --all-configs  # full per-component ablation
 
 # 7. Statistical significance testing
 uv run python python/statistical_tests.py --model cnn1d
@@ -283,9 +284,20 @@ All hyperparameters are centralised in `python/configs/config.yaml`:
 | `training` | Epochs, batch size, LR, early stopping |
 | `baselines` | SVM/RF/MLP hyperparameters |
 | `evaluation` | CV folds, noise levels, severity multipliers |
+| `noise_augmentation` | Online noise injection params, severity range for domain randomisation |
 | `seed` | Global random seed (42) |
 
 CLI arguments override config values when provided.
+
+### Online Noise Augmentation
+
+The `noise_augmentation` section in `config.yaml` controls Python-side noise injection
+during training. When `enabled: true`, clean data is augmented on-the-fly with the
+4-component noise model. Key settings:
+
+- `severity_range: [0.5, 2.0]` — sample severity uniformly per batch (multi-severity training)
+- Set `severity_range: null` to use fixed severity of 1.0
+- All noise parameters (SNR, contact impedance std, bias, ADC bits) match the MATLAB config
 
 ## Troubleshooting
 
