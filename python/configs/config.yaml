@@ -3,11 +3,12 @@
 
 # Dataset
 data:
-  path: "data/eit_dataset.mat"
+  path: "data/cleaned/eit_cleaned.mat"
   use_noisy: true
   test_size: 0.15
   val_size: 0.15
   normalize: true
+  scaler: "robust"  # Evidence-based: RobustScaler outperforms StandardScaler (p<0.001)
 
 # Model: cnn1d
 cnn:
@@ -64,6 +65,26 @@ noise_augmentation:
 architecture_sweep:
   block_counts: [2, 3, 4, 5]
   dev_fraction: 0.1
+
+# Hyperparameter optimisation (grid search for robustness)
+hyperparameter_optimisation:
+  n_folds: 3
+  epochs_per_trial: 100
+  final_model_epochs: 150
+  final_early_stopping_patience: 30
+  objective: "robustness"  # Harmonic mean of clean-F1 and noisy-F1
+  search_space:
+    channels:
+      - [32, 64, 128]
+      - [64, 128, 256]
+      - [32, 64, 128, 256]
+      - [64, 128, 256, 512]
+    fc_dim: [128, 256]
+    dropout: [0.2, 0.3, 0.5]
+    learning_rate: [0.001, 0.0005, 0.0001]
+    batch_size: [32, 64, 128]
+    weight_decay: [0.0001, 0.001]
+    noise_augmentation: [false, true]
 
 # Reproducibility
 seed: 42

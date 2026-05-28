@@ -48,6 +48,21 @@ function [dv_noisy, dv_clean, class_id, metadata] = generate_sample(fmdl, vh, no
                     (elem_centres(:,2) - touch_params.y).^2);
         contact_mask = dist < touch_params.radius;
 
+        % Ensure at least one element is perturbed for every contact class.
+        % Small-radius contacts (especially 'point', r = 0.02–0.05) may
+        % not contain any element centroid on the discrete mesh, yielding
+        % an all-false mask and a zero dv_clean indistinguishable from the
+        % 'none' class.  Fallback: include the element whose centroid is
+        % nearest to the contact centre.  This preserves the physical intent
+        % (the element directly under the contact point is perturbed) while
+        % preventing degenerate zero-vector duplicates.
+        % Ref: nearest-neighbour element assignment consistent with the
+        % discrete FEM interpretation of a point load (Kim et al., 2019).
+        if ~any(contact_mask)
+            [~, nearest_idx] = min(dist);
+            contact_mask(nearest_idx) = true;
+        end
+
         % Apply conductivity change to contact region
         img.elem_data(contact_mask) = touch_params.conductivity;
     end

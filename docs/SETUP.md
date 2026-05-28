@@ -112,7 +112,7 @@ Generation takes approximately 2–4 hours on a single CPU core.
 
 ## EIT Reconstruction Figures
 
-If you want true inverse-reconstructed class images for the dissertation report, run the MATLAB helper after dataset generation:
+If you want true inverse-reconstructed class images, run the MATLAB helper after dataset generation:
 
 ```matlab
 cd matlab
@@ -146,7 +146,7 @@ uv run python python/evaluate.py \
 
 # 6. Run ablation study (Python-side noise, no MATLAB dependency)
 uv run python python/ablation.py --model cnn1d
-uv run python python/ablation.py --model cnn1d --all-configs  # full per-component ablation
+uv run python python/ablation.py --model cnn1d --all-configs  # exhaustive subset/order ablation
 
 # 7. Statistical significance testing
 uv run python python/statistical_tests.py --model cnn1d
@@ -241,7 +241,7 @@ dataset_y
 
 **Using Cleaned Datasets from EDA Analysis**
 
-The EDA notebook (`notebooks/eda_analysis.ipynb`) produces cleaned datasets with removed duplicates, redundant features, and optional dimensionality reduction:
+The EDA notebook (`notebooks/eda_analysis.ipynb`) produces cleaned datasets using a leakage-safe preprocessing comparison, plus a decision log:
 
 ```bash
 # Full cleaned dataset (22 features after redundancy removal) — RECOMMENDED FOR CNN
@@ -255,15 +255,15 @@ uv run python python/train.py --model random_forest --data-path data/cleaned/eit
 uv run python python/train.py --model svm --data-path data/cleaned/eit_cleaned_lda.mat
 uv run python python/train.py --model mlp --data-path data/cleaned/eit_cleaned_lda.mat
 
-# UMAP-reduced dataset (7 components, unsupervised nonlinear) — suitable for shallow models
-uv run python python/train.py --model random_forest --data-path data/cleaned/eit_cleaned_umap.mat
+# View selected preprocessing route and CV summary
+cat data/cleaned/eda_decision_log.json
 ```
 
 **CNN vs. Non-CNN Models and Dataset Sizes**
 
 - **CNN (1D-Conv1D)**: Requires at least 8 features due to 3 pooling layers
   - ✓ Works with: eit_cleaned.mat (22 features)
-  - ✗ Too small: eit_cleaned_pca.mat (7), eit_cleaned_lda.mat (4), eit_cleaned_umap.mat (7)
+  - ✗ Too small: eit_cleaned_pca.mat (7), eit_cleaned_lda.mat (4)
 
 - **Non-CNN models** (SVM, Random Forest, MLP): Work with any dataset size
   - ✓ All cleaned datasets work

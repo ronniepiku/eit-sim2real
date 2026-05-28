@@ -639,8 +639,9 @@ def main() -> None:
 
     # Load data
     use_noisy = args.eval_on == "noisy"
+    scaler_type = cfg.get("data", {}).get("scaler", "robust")
     X, y = load_mat_dataset(data_path, use_noisy=use_noisy)
-    dataset = prepare_splits(X, y, random_state=args.seed)
+    dataset = prepare_splits(X, y, random_state=args.seed, scaler_type=scaler_type)
 
     # Load model
     n_features = dataset.X_test.shape[1]
@@ -661,7 +662,9 @@ def main() -> None:
         logger.info("\nRobustness evaluation (varying noise levels):")
         # Always use clean test features as base for noise injection
         X_clean_test, _ = load_mat_dataset(data_path, use_noisy=False)
-        dataset_clean = prepare_splits(X_clean_test, y, random_state=args.seed)
+        dataset_clean = prepare_splits(
+            X_clean_test, y, random_state=args.seed, scaler_type=scaler_type
+        )
         rob = evaluate_robustness(
             model,
             dataset_clean.X_test,
@@ -678,7 +681,9 @@ def main() -> None:
         # Severity sweep (Hendrycks-style with noise multipliers)
         logger.info("\nSeverity sweep evaluation:")
         X_noisy_all, _ = load_mat_dataset(data_path, use_noisy=True)
-        dataset_noisy = prepare_splits(X_noisy_all, y, random_state=args.seed)
+        dataset_noisy = prepare_splits(
+            X_noisy_all, y, random_state=args.seed, scaler_type=scaler_type
+        )
         severity_mults = cfg["evaluation"].get(
             "severity_multipliers", [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
         )

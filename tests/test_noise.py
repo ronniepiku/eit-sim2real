@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+
 from data.noise import NoiseConfig, apply_noise, apply_noise_batch_vectorised
 
 
@@ -54,6 +55,30 @@ class TestNoiseConfig:
             "electrode_bias": False,
             "quantisation": True,
         }
+
+    def test_resolved_order_uses_default_for_enabled_components(self) -> None:
+        cfg = NoiseConfig()
+        assert cfg.resolved_component_order() == (
+            "gaussian",
+            "contact_impedance",
+            "electrode_bias",
+            "quantisation",
+        )
+
+    def test_resolved_order_filters_disabled_components(self) -> None:
+        cfg = NoiseConfig.only("electrode_bias")
+        cfg.component_order = ("quantisation", "electrode_bias", "gaussian")
+        assert cfg.resolved_component_order() == ("electrode_bias",)
+
+    def test_resolved_order_appends_missing_enabled_components(self) -> None:
+        cfg = NoiseConfig(
+            gaussian_enabled=True,
+            contact_impedance_enabled=True,
+            electrode_bias_enabled=False,
+            quantisation_enabled=False,
+            component_order=("contact_impedance",),
+        )
+        assert cfg.resolved_component_order() == ("contact_impedance", "gaussian")
 
 
 class TestApplyNoise:

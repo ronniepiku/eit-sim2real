@@ -1,0 +1,125 @@
+{
+  "seed": 42,
+  "n_samples": 25000,
+  "n_features": 208,
+  "n_classes": 5,
+  "class_names": [
+    "No contact",
+    "Light touch",
+    "Firm press",
+    "Point contact",
+    "Distributed"
+  ],
+  "deduplication": {
+    "applied": false,
+    "reason": "No non-class-0 exact duplicates found. Class 0 duplicates are physically correct.",
+    "duplicates_class0": 4999,
+    "duplicates_non_class0": 0
+  },
+  "selected_pipeline": {
+    "name": "RobustScaler + full features (no reduction)",
+    "scaler": "RobustScaler",
+    "feature_reduction": "none",
+    "n_features_final": 208
+  },
+  "cv_comparison": {
+    "method": "RepeatedStratifiedKFold(n_splits=5, n_repeats=3)",
+    "metric": "macro_f1",
+    "results": [
+      {
+        "pipeline": "robust_lr",
+        "macro_f1_mean": 0.7180050931018498,
+        "macro_f1_std": 0.004229893659182008,
+        "balanced_acc_mean": 0.7213999999999998,
+        "balanced_acc_std": 0.004115013163202931
+      },
+      {
+        "pipeline": "standard_lr",
+        "macro_f1_mean": 0.7129204893921935,
+        "macro_f1_std": 0.0044297739476682665,
+        "balanced_acc_mean": 0.7168800000000001,
+        "balanced_acc_std": 0.004200825315736561
+      },
+      {
+        "pipeline": "corr090_f_lr",
+        "macro_f1_mean": 0.7037854226671036,
+        "macro_f1_std": 0.004237966783025202,
+        "balanced_acc_mean": 0.7087466666666666,
+        "balanced_acc_std": 0.003788027924336826
+      },
+      {
+        "pipeline": "lda_classifier",
+        "macro_f1_mean": 0.6834983001745321,
+        "macro_f1_std": 0.1098658012805176,
+        "balanced_acc_mean": 0.6998533333333333,
+        "balanced_acc_std": 0.09148856297677624
+      },
+      {
+        "pipeline": "corr075_f_lr",
+        "macro_f1_mean": 0.6831600727868281,
+        "macro_f1_std": 0.006864997462531146,
+        "balanced_acc_mean": 0.6882933333333334,
+        "balanced_acc_std": 0.006608223832636284
+      },
+      {
+        "pipeline": "pca95_lr",
+        "macro_f1_mean": 0.6729031407392877,
+        "macro_f1_std": 0.0051463200313267956,
+        "balanced_acc_mean": 0.6780133333333332,
+        "balanced_acc_std": 0.004808030319741723
+      },
+      {
+        "pipeline": "corr075_pca95_lr",
+        "macro_f1_mean": 0.6720074046105643,
+        "macro_f1_std": 0.006508518650538435,
+        "balanced_acc_mean": 0.6769199999999999,
+        "balanced_acc_std": 0.006290649145093589
+      }
+    ]
+  },
+  "statistical_tests": {
+    "method": "Wilcoxon signed-rank (paired, two-sided)",
+    "comparisons": [
+      {
+        "pipeline_A": "robust_lr",
+        "pipeline_B": "standard_lr",
+        "mean_A": 0.7180050931018498,
+        "mean_B": 0.7129204893921935,
+        "mean_diff": 0.005084603709656347,
+        "cohens_d": 2.2872659560960846,
+        "wilcoxon_stat": 1.0,
+        "p_value": 0.0001220703125,
+        "significant_0.05": "True"
+      },
+      {
+        "pipeline_A": "robust_lr",
+        "pipeline_B": "corr090_f_lr",
+        "mean_A": 0.7180050931018498,
+        "mean_B": 0.7037854226671036,
+        "mean_diff": 0.014219670434746152,
+        "cohens_d": 3.8630524313883505,
+        "wilcoxon_stat": 0.0,
+        "p_value": 6.103515625e-05,
+        "significant_0.05": "True"
+      },
+      {
+        "pipeline_A": "standard_lr",
+        "pipeline_B": "corr090_f_lr",
+        "mean_A": 0.7129204893921935,
+        "mean_B": 0.7037854226671036,
+        "mean_diff": 0.009135066725089807,
+        "cohens_d": 2.9431980038214443,
+        "wilcoxon_stat": 0.0,
+        "p_value": 6.103515625e-05,
+        "significant_0.05": "True"
+      }
+    ],
+    "conclusion": "RobustScaler significantly outperforms StandardScaler (p<0.001, d=2.29). Correlation pruning and PCA both significantly reduce performance."
+  },
+  "exported_datasets": {
+    "eit_cleaned.mat": "Raw full features (primary). Apply RobustScaler in training.",
+    "eit_cleaned_pca.mat": "RobustScaler+PCA95 (7 components). Do NOT re-scale.",
+    "eit_cleaned_lda.mat": "RobustScaler+LDA (4 components). Do NOT re-scale.",
+    "eit_cleaned_umap.mat": "RobustScaler+UMAP (2 components). Visualisation only."
+  }
+}

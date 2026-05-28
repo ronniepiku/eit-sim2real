@@ -126,35 +126,6 @@ No formal prior feedback is referenced within the notes. However, the mark schem
 | "Does the discussion evaluate and critique the research outcomes and propose any new hypotheses?" | Use the literature gaps to derive 2–3 testable hypotheses that the dissertation will address. |
 | Milestone: "Submit the draft of your Introduction chapter by 3rd July" | The review must be sufficiently complete to support the introduction. Prioritise structuring the argument now. |
 
----
-
-## 8. Recommended Next Steps
-
-1. **Remove duplicates** (papers [3]/[5], [44]/[45], [52]/[53]) and decide which social touch papers are essential.
-
-2. **Restructure the review thematically**. Suggested structure:
-   - Section 2.1: Electronic skin for prosthetics — materials, requirements, and biological inspiration
-   - Section 2.2: EIT as a sensing modality — principles, advantages, and inherent limitations
-   - Section 2.3: ML for EIT reconstruction — classical, deep learning, and hybrid approaches
-   - Section 2.4: Robustness, noise, and the sim-to-real gap
-   - Section 2.5: Touch classification and perception — from static sensing to temporal and social touch
-   - Section 2.6: Deployment challenges — scalability, drift, inter-user variability, ethical considerations
-
-3. **Create a comparison table** summarising key papers by: sensing modality, ML method, dataset type (real/simulated), validation strategy, reported accuracy, and identified limitations.
-
-4. **Write explicit gap statements** at the end of each thematic section, culminating in a summary of the overall research gap the dissertation addresses.
-
-5. **Add ethical, sustainable, and economic discussion** — even a brief paragraph will satisfy the mark scheme requirement and demonstrate maturity.
-
-6. **Derive 2–3 specific research questions or hypotheses** from the gaps identified. For example:
-   - *RQ1: Does physics-informed noise augmentation (electrode drift, conductivity variation) during training improve EIT reconstruction robustness compared to Gaussian noise alone?*
-   - *RQ2: Can a hybrid CNN-regularisation approach outperform end-to-end deep learning for multi-touch EIT reconstruction under realistic noise conditions?*
-
-7. **Strengthen cross-source synthesis**: For every claim, cite at least two sources and explain whether they agree, disagree, or extend one another.
-
-8. **Ensure Harvard referencing** is applied consistently. The notes currently use informal numbering ([1], [2], etc.) which must be replaced.
-
----
 
 ## Thematic Summary Table
 

@@ -25,10 +25,10 @@ config.mesh.n_rings = 2;
 config.mesh.refinement = 'd';  % Finer mesh (~1024 elements) ensures point contacts resolve
 
 %% Initialise
-% Set random seed for reproducibility
-rng(config.seed);
-
 % Initialise EIDORS (adjust path as needed)
+% Note: rng seed is applied AFTER EIDORS startup because EIDORS' startup
+% script modifies MATLAB's global random state internally.  Setting the
+% seed here would be overwritten before any rand() calls in generation.
 eidors_path = fullfile(fileparts(mfilename('fullpath')), 'eidors-v3.12-ng\eidors', 'startup.m');
 if exist(eidors_path, 'file')
     run(eidors_path);
@@ -59,6 +59,9 @@ fprintf('Noise model loaded (components: gaussian=%d, impedance=%d, bias=%d, qua
     noise_params.quantisation.enabled);
 
 %% Generate Dataset
+% Set random seed immediately before generation so EIDORS startup and
+% mesh/noise setup do not disturb the reproducible sequence.
+rng(config.seed);
 total_samples = config.samples_per_class * config.n_classes;
 fprintf('Generating %d samples (%d per class)...\n', total_samples, config.samples_per_class);
 

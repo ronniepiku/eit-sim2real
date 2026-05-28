@@ -52,9 +52,10 @@ class TestPrepareSplits:
         X, y = synthetic_dataset
         dataset = prepare_splits(X, y, normalize=True)
 
-        # Training set should be approximately zero-mean unit-variance
-        assert abs(dataset.X_train.mean()) < 0.1
-        assert abs(dataset.X_train.std() - 1.0) < 0.1
+        # RobustScaler centres on median; check data is scaled (not raw)
+        assert abs(dataset.X_train.mean()) < 0.5
+        # RobustScaler doesn't guarantee unit std but should reduce spread
+        assert dataset.X_train.std() < 2.0
 
     def test_no_normalization(
         self, synthetic_dataset: tuple[np.ndarray, np.ndarray]

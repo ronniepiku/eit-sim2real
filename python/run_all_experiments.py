@@ -122,8 +122,13 @@ def run_experiments(
     figures_dir: Path,
 ) -> pd.DataFrame:
     """Run all experiments and return consolidated results."""
+
     all_results: list[dict] = []
     total_experiments = 0
+
+    # Select device once for all CNN experiments
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    logger.info(f"Using device for CNN models: {device}")
 
     # Count total experiments for progress
     for ds_name in datasets:
@@ -204,8 +209,9 @@ def run_experiments(
                             train_ds.y_val,
                             epochs=epochs,
                             early_stopping_patience=early_stopping_patience,
+                            device=device,
                         )
-                        y_pred = predict_cnn(model, eval_ds.X_test)
+                        y_pred = predict_cnn(model, eval_ds.X_test, device=device)
                         stopped_epoch = len(history["train_loss"])
                     else:
                         model = get_baseline(model_name, random_state=seed)

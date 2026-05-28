@@ -7,7 +7,7 @@ import h5py
 import numpy as np
 import scipy.io as sio
 from sklearn.model_selection import StratifiedKFold, train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler, StandardScaler
 
 
 class EITDataset(NamedTuple):
@@ -19,7 +19,7 @@ class EITDataset(NamedTuple):
     y_train: np.ndarray
     y_val: np.ndarray
     y_test: np.ndarray
-    scaler: StandardScaler
+    scaler: RobustScaler | StandardScaler
 
 
 def load_mat_dataset(
@@ -115,6 +115,7 @@ def prepare_splits(
     val_size: float = 0.15,
     random_state: int = 42,
     normalize: bool = True,
+    scaler_type: str = "robust",
 ) -> EITDataset:
     """Split data into train/val/test and optionally normalize.
 
@@ -124,7 +125,9 @@ def prepare_splits(
         test_size: Fraction for test set.
         val_size: Fraction for validation set (from remaining after test).
         random_state: Random seed for reproducibility.
-        normalize: Whether to apply StandardScaler.
+        normalize: Whether to apply feature scaling.
+        scaler_type: Scaler to use ('robust' or 'standard'). RobustScaler is
+            the evidence-based default from EDA CV comparison.
 
     Returns:
         EITDataset with all splits and fitted scaler.
@@ -145,7 +148,11 @@ def prepare_splits(
     )
 
     # Normalize features (fit on train only)
-    scaler = StandardScaler()
+    if scaler_type == "robust":
+        scaler = RobustScaler()
+    else:
+        scaler = StandardScaler()
+
     if normalize:
         X_train = scaler.fit_transform(X_train)
         X_val = scaler.transform(X_val)

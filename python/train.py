@@ -322,7 +322,8 @@ def main() -> None:
     logger.info(f"Dataset loaded: {X.shape[0]} samples, {X.shape[1]} features")
 
     # Prepare splits
-    dataset = prepare_splits(X, y, random_state=seed)
+    scaler_type = cfg.get("data", {}).get("scaler", "robust")
+    dataset = prepare_splits(X, y, random_state=seed, scaler_type=scaler_type)
     logger.info(
         f"Splits: train={len(dataset.y_train)}, "
         f"val={len(dataset.y_val)}, test={len(dataset.y_test)}"

@@ -15,6 +15,7 @@ Supported experiments:
 
 from __future__ import annotations
 
+import itertools
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -23,12 +24,13 @@ import numpy as np
 import pandas as pd
 import torch
 from configs.loader import load_config
-from data.load_dataset import load_mat_dataset, prepare_splits
-from data.noise import NoiseConfig, apply_noise_batch_vectorised
 from models.baselines import get_baseline, train_baseline
 from models.cnn1d import EITConv1D
 from sklearn.metrics import accuracy_score, f1_score
 from train import train_cnn
+
+from data.load_dataset import load_mat_dataset, prepare_splits
+from data.noise import NoiseConfig, apply_noise_batch_vectorised
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +54,7 @@ class AblationResult:
     test_accuracy: float
     test_f1_macro: float
     description: str = ""
+    component_order: tuple[str, ...] | None = None
 
 
 @dataclass
@@ -71,6 +74,8 @@ class AblationStudy:
                 "val_acc": r.val_accuracy,
                 "test_acc": r.test_accuracy,
                 "test_f1": r.test_f1_macro,
+                "noise_order": " > ".join(r.component_order or ()),
+                "noise_n_components": sum(r.noise_config.values()),
             }
             for comp in NOISE_COMPONENTS:
                 row[f"noise_{comp}"] = r.noise_config.get(comp, False)
@@ -85,37 +90,62 @@ class AblationStudy:
         logger.info(f"Ablation results saved to {output_path}")
 
 
-def generate_ablation_configs() -> list[tuple[str, dict[str, bool]]]:
-    """Generate all noise component combinations for ablation.
+def generate_ablation_configs() -> list[tuple[str, NoiseConfig]]:
+    """Generate all physically-meaningful noise configs for ablation.
 
     Returns:
-        List of (description, config) tuples.  Includes:
-        - All off (clean baseline)
-        - Each component individually (single-component)
-        - Leave-one-out (all except one)
-        - All on (full noise)
+        List of (description, NoiseConfig) tuples. Includes every non-empty
+        component subset (1/2/3/4 components) and all physically admissible
+        orderings under these rules:
+        - Quantisation is always last when enabled.
+        - Contact impedance is applied before electrode bias when both enabled.
     """
-    configs: list[tuple[str, dict[str, bool]]] = []
+    configs: list[tuple[str, NoiseConfig]] = []
 
-    # Clean baseline (no noise)
-    configs.append(("clean", {c: False for c in NOISE_COMPONENTS}))
-
-    # Individual components (single-component training)
-    for comp in NOISE_COMPONENTS:
-        config = {c: False for c in NOISE_COMPONENTS}
-        config[comp] = True
-        configs.append((f"only_{comp}", config))
-
-    # Leave-one-out (all except one component)
-    for comp in NOISE_COMPONENTS:
-        config = {c: True for c in NOISE_COMPONENTS}
-        config[comp] = False
-        configs.append((f"without_{comp}", config))
-
-    # All on (full noise model)
-    configs.append(("all_noise", {c: True for c in NOISE_COMPONENTS}))
+    for n_components in range(1, len(NOISE_COMPONENTS) + 1):
+        for subset in itertools.combinations(NOISE_COMPONENTS, n_components):
+            for order in _physically_valid_orders(subset):
+                cfg = NoiseConfig(
+                    enabled=True,
+                    gaussian_enabled="gaussian" in subset,
+                    contact_impedance_enabled="contact_impedance" in subset,
+                    electrode_bias_enabled="electrode_bias" in subset,
+                    quantisation_enabled="quantisation" in subset,
+                    component_order=order,
+                )
+                subset_str = "+".join(subset)
+                order_str = "->".join(order)
+                configs.append((f"subset_{subset_str}__order_{order_str}", cfg))
 
     return configs
+
+
+def _physically_valid_orders(components: tuple[str, ...]) -> list[tuple[str, ...]]:
+    """Return physically constrained component orderings for a subset.
+
+    Rules:
+        1) quantisation is fixed as the last stage when present.
+        2) contact impedance precedes electrode bias when both are present.
+    """
+    active = list(components)
+    includes_quant = "quantisation" in active
+
+    non_quant = [c for c in active if c != "quantisation"]
+    candidate_orders = list(itertools.permutations(non_quant))
+    valid_non_quant: list[tuple[str, ...]] = []
+
+    for order in candidate_orders:
+        if (
+            "contact_impedance" in order
+            and "electrode_bias" in order
+            and order.index("contact_impedance") > order.index("electrode_bias")
+        ):
+            continue
+        valid_non_quant.append(order)
+
+    if includes_quant:
+        return [order + ("quantisation",) for order in valid_non_quant]
+    return valid_non_quant
 
 
 def _evaluate_sklearn(
@@ -170,11 +200,12 @@ def run_ablation(
     the Python noise model. This eliminates the need for separate MATLAB
     datasets for each noise configuration.
 
-    Experiments:
-        - Core mismatch (4 experiments): clean→clean, clean→noisy,
-          noisy→noisy, noisy→clean.
-        - Per-component ablation (10 experiments when run_all_configs=True):
-          single-component (4), leave-one-out (4), clean baseline, full noise.
+        Experiments:
+                - Core mismatch (4 experiments): clean→clean, clean→noisy,
+                    noisy→noisy, noisy→clean.
+                - Exhaustive component/order ablation (when run_all_configs=True):
+                    all non-empty component subsets (1/2/3/4 components) with all
+                    physically constrained orderings.
 
     For CNN models, noise is applied on-the-fly during training (different
     noise realisation each epoch). For sklearn models, noise is applied once
@@ -184,8 +215,8 @@ def run_ablation(
         data_path: Path to the dataset .mat file (must contain clean vectors).
         model_name: Model to train ('cnn1d', 'svm', 'random_forest', 'mlp').
         seed: Random seed.
-        run_all_configs: If True, run all single-component and leave-one-out
-            ablation experiments using Python-side noise injection.
+        run_all_configs: If True, run all subset/order ablation experiments
+            using Python-side noise injection.
 
     Returns:
         Completed AblationStudy.
@@ -317,6 +348,9 @@ def run_ablation(
                 test_accuracy=test_acc,
                 test_f1_macro=test_f1,
                 description=description,
+                component_order=(
+                    noise_cfg.resolved_component_order() if noise_cfg else ()
+                ),
             )
         )
         logger.info(f"  {description}: acc={test_acc:.4f}, f1={test_f1:.4f}")
@@ -334,19 +368,16 @@ def run_ablation(
     logger.info("Exp 4/4: train_noisy → eval_clean")
     _run_experiment("noisy_python", "clean", full_noise, "train_noisy_eval_clean")
 
-    # ── Per-component ablation (Python-side noise injection) ───────────
+    # ── Exhaustive component/order ablation (Python-side injection) ─────
     if run_all_configs:
-        logger.info("\n── Single-component ablation ──")
-        for comp in NOISE_COMPONENTS:
-            cfg_only = NoiseConfig.only(comp)
-            logger.info(f"  Training with only: {comp}")
-            _run_experiment("noisy_python", "noisy", cfg_only, f"only_{comp}")
-
-        logger.info("\n── Leave-one-out ablation ──")
-        for comp in NOISE_COMPONENTS:
-            cfg_without = NoiseConfig.without(comp)
-            logger.info(f"  Training without: {comp}")
-            _run_experiment("noisy_python", "noisy", cfg_without, f"without_{comp}")
+        configs = generate_ablation_configs()
+        logger.info(
+            "\n── Exhaustive component/order ablation (%d experiments) ──",
+            len(configs),
+        )
+        for idx, (description, cfg_variant) in enumerate(configs, start=1):
+            logger.info("  [%d/%d] %s", idx, len(configs), description)
+            _run_experiment("noisy_python", "noisy", cfg_variant, description)
 
     logger.info("Ablation study complete.")
     return study
@@ -382,7 +413,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--all-configs",
         action="store_true",
-        help="Run single-component and leave-one-out ablation experiments.",
+        help=(
+            "Run exhaustive ablation over all 1/2/3/4-component subsets and "
+            "physically constrained component orders."
+        ),
     )
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()

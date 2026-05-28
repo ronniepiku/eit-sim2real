@@ -18,7 +18,8 @@ class TestLoadConfig:
 
     def test_has_required_keys(self) -> None:
         cfg = load_config()
-        assert cfg["data"]["path"] == "data/eit_dataset.mat"
+        assert cfg["data"]["path"] == "data/cleaned/eit_cleaned.mat"
+        assert cfg["data"]["scaler"] == "robust"
         assert cfg["training"]["epochs"] > 0
         assert cfg["training"]["batch_size"] > 0
         assert cfg["training"]["learning_rate"] > 0

@@ -23,6 +23,13 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+DEFAULT_COMPONENT_ORDER = (
+    "gaussian",
+    "contact_impedance",
+    "electrode_bias",
+    "quantisation",
+)
+
 
 @dataclass
 class NoiseConfig:
@@ -56,6 +63,11 @@ class NoiseConfig:
 
     # Severity multiplier (scales all noise magnitudes)
     severity: float = 1.0
+
+    # Component application order.
+    # Any enabled component omitted from this tuple is appended using the
+    # default order in DEFAULT_COMPONENT_ORDER.
+    component_order: tuple[str, ...] = DEFAULT_COMPONENT_ORDER
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "NoiseConfig":
@@ -144,6 +156,23 @@ class NoiseConfig:
             "quantisation": self.quantisation_enabled,
         }
 
+    def active_components(self) -> list[str]:
+        """Return enabled components in canonical default order."""
+        flags = self.component_flags()
+        return [comp for comp in DEFAULT_COMPONENT_ORDER if flags[comp]]
+
+    def resolved_component_order(self) -> tuple[str, ...]:
+        """Resolve the effective component order for enabled components."""
+        active = self.active_components()
+        if not active:
+            return ()
+
+        # Keep only enabled components from requested order, then append any
+        # missing enabled components in canonical order for stability.
+        requested = [comp for comp in self.component_order if comp in active]
+        missing = [comp for comp in active if comp not in requested]
+        return tuple(requested + missing)
+
 
 def apply_noise(
     X: np.ndarray,
@@ -152,8 +181,9 @@ def apply_noise(
 ) -> np.ndarray:
     """Apply the 4-component noise model to a batch of EIT measurements.
 
-    Matches the MATLAB add_noise.m implementation with identical physics:
-    - Fixed application order: Gaussian → Contact Impedance → Bias → Quantisation
+    Matches the MATLAB add_noise.m implementation by default (same component
+    defaults and same default order). The order can be overridden via
+    ``NoiseConfig.component_order``.
     - Per-electrode structure for impedance and bias
     - Signal-dependent Gaussian noise scaling
 
@@ -176,69 +206,64 @@ def apply_noise(
     n_samples, n_meas = X_noisy.shape
     severity = config.severity
 
-    # --- 1. Gaussian measurement noise (SNR-based) ---
-    if config.gaussian_enabled:
-        # Severity scales the effective noise: lower effective SNR
-        effective_snr = (
-            config.snr_db + 20 * np.log10(1.0 / severity)
-            if severity > 0
-            else config.snr_db
-        )
-        for i in range(n_samples):
-            noise = rng.standard_normal(n_meas)
-            signal_power = np.linalg.norm(X_noisy[i])
-            if signal_power > 0:
-                scale = (
-                    signal_power / np.linalg.norm(noise) * 10 ** (-effective_snr / 20)
-                )
-            else:
-                # Noise floor for zero-signal (no-contact class)
-                scale = config.noise_floor * n_meas / np.linalg.norm(noise)
-            X_noisy[i] += scale * noise
+    n_elec = config.n_electrodes
+    meas_per_elec = n_meas / n_elec
 
-    # --- 2. Electrode contact impedance variation (per-electrode, multiplicative) ---
-    if config.contact_impedance_enabled:
-        n_elec = config.n_electrodes
-        meas_per_elec = n_meas / n_elec
-        effective_std = (config.contact_impedance_std_percent / 100.0) * severity
-
-        for i in range(n_samples):
-            # Log-normal per-electrode factors
-            elec_factors = np.exp(effective_std * rng.standard_normal(n_elec))
-            # Map to measurements (block structure)
-            impedance_vec = np.repeat(elec_factors, int(np.round(meas_per_elec)))
-            # Trim/pad to match n_meas
-            if len(impedance_vec) > n_meas:
-                impedance_vec = impedance_vec[:n_meas]
-            elif len(impedance_vec) < n_meas:
-                impedance_vec = np.pad(
-                    impedance_vec, (0, n_meas - len(impedance_vec)), constant_values=1.0
-                )
-            X_noisy[i] *= impedance_vec
-
-    # --- 3. Electrode positioning bias (per-electrode, additive) ---
-    if config.electrode_bias_enabled:
-        n_elec = config.n_electrodes
-        meas_per_elec = n_meas / n_elec
-        effective_bias = config.max_bias * severity
-
-        for i in range(n_samples):
-            elec_bias = effective_bias * (2 * rng.random(n_elec) - 1)
-            bias_vec = np.repeat(elec_bias, int(np.round(meas_per_elec)))
-            if len(bias_vec) > n_meas:
-                bias_vec = bias_vec[:n_meas]
-            elif len(bias_vec) < n_meas:
-                bias_vec = np.pad(
-                    bias_vec, (0, n_meas - len(bias_vec)), constant_values=0.0
-                )
-            X_noisy[i] += bias_vec
-
-    # --- 4. Quantisation noise (ADC) ---
-    if config.quantisation_enabled:
-        lsb = config.voltage_range / (2**config.adc_bits)
-        effective_lsb = lsb * severity
-        quant_noise = (rng.random((n_samples, n_meas)) - 0.5) * effective_lsb
-        X_noisy += quant_noise
+    for component in config.resolved_component_order():
+        if component == "gaussian":
+            effective_snr = (
+                config.snr_db + 20 * np.log10(1.0 / severity)
+                if severity > 0
+                else config.snr_db
+            )
+            for i in range(n_samples):
+                noise = rng.standard_normal(n_meas)
+                signal_power = np.linalg.norm(X_noisy[i])
+                if signal_power > 0:
+                    scale = (
+                        signal_power
+                        / np.linalg.norm(noise)
+                        * 10 ** (-effective_snr / 20)
+                    )
+                else:
+                    # Noise floor for zero-signal (no-contact class)
+                    scale = config.noise_floor * n_meas / np.linalg.norm(noise)
+                X_noisy[i] += scale * noise
+        elif component == "contact_impedance":
+            effective_std = (config.contact_impedance_std_percent / 100.0) * severity
+            for i in range(n_samples):
+                elec_factors = np.exp(effective_std * rng.standard_normal(n_elec))
+                impedance_vec = np.repeat(elec_factors, int(np.round(meas_per_elec)))
+                if len(impedance_vec) > n_meas:
+                    impedance_vec = impedance_vec[:n_meas]
+                elif len(impedance_vec) < n_meas:
+                    impedance_vec = np.pad(
+                        impedance_vec,
+                        (0, n_meas - len(impedance_vec)),
+                        constant_values=1.0,
+                    )
+                X_noisy[i] *= impedance_vec
+        elif component == "electrode_bias":
+            effective_bias = config.max_bias * severity
+            for i in range(n_samples):
+                elec_bias = effective_bias * (2 * rng.random(n_elec) - 1)
+                bias_vec = np.repeat(elec_bias, int(np.round(meas_per_elec)))
+                if len(bias_vec) > n_meas:
+                    bias_vec = bias_vec[:n_meas]
+                elif len(bias_vec) < n_meas:
+                    bias_vec = np.pad(
+                        bias_vec,
+                        (0, n_meas - len(bias_vec)),
+                        constant_values=0.0,
+                    )
+                X_noisy[i] += bias_vec
+        elif component == "quantisation":
+            lsb = config.voltage_range / (2**config.adc_bits)
+            effective_lsb = lsb * severity
+            quant_noise = (rng.random((n_samples, n_meas)) - 0.5) * effective_lsb
+            X_noisy += quant_noise
+        else:
+            raise ValueError(f"Unknown noise component in order: {component}")
 
     return X_noisy.astype(np.float32)
 
@@ -273,55 +298,51 @@ def apply_noise_batch_vectorised(
     n_elec = config.n_electrodes
     meas_per_elec = int(np.round(n_meas / n_elec))
 
-    # --- 1. Gaussian noise ---
-    if config.gaussian_enabled:
-        effective_snr = (
-            config.snr_db + 20 * np.log10(1.0 / severity)
-            if severity > 0
-            else config.snr_db
-        )
-        noise = rng.standard_normal((n_samples, n_meas))
-        signal_norms = np.linalg.norm(X_noisy, axis=1, keepdims=True)
-        noise_norms = np.linalg.norm(noise, axis=1, keepdims=True)
-
-        # Signal-dependent scaling
-        scale = np.where(
-            signal_norms > 0,
-            signal_norms / noise_norms * 10 ** (-effective_snr / 20),
-            config.noise_floor * n_meas / noise_norms,
-        )
-        X_noisy += scale * noise
-
-    # --- 2. Contact impedance (per-electrode, multiplicative) ---
-    if config.contact_impedance_enabled:
-        effective_std = (config.contact_impedance_std_percent / 100.0) * severity
-        elec_factors = np.exp(effective_std * rng.standard_normal((n_samples, n_elec)))
-        # Expand to measurement vector via block repetition
-        impedance_matrix = np.repeat(elec_factors, meas_per_elec, axis=1)[:, :n_meas]
-        # Pad if needed
-        if impedance_matrix.shape[1] < n_meas:
-            pad_width = n_meas - impedance_matrix.shape[1]
-            impedance_matrix = np.pad(
-                impedance_matrix, ((0, 0), (0, pad_width)), constant_values=1.0
+    for component in config.resolved_component_order():
+        if component == "gaussian":
+            effective_snr = (
+                config.snr_db + 20 * np.log10(1.0 / severity)
+                if severity > 0
+                else config.snr_db
             )
-        X_noisy *= impedance_matrix
-
-    # --- 3. Electrode bias (per-electrode, additive) ---
-    if config.electrode_bias_enabled:
-        effective_bias = config.max_bias * severity
-        elec_bias = effective_bias * (2 * rng.random((n_samples, n_elec)) - 1)
-        bias_matrix = np.repeat(elec_bias, meas_per_elec, axis=1)[:, :n_meas]
-        if bias_matrix.shape[1] < n_meas:
-            pad_width = n_meas - bias_matrix.shape[1]
-            bias_matrix = np.pad(
-                bias_matrix, ((0, 0), (0, pad_width)), constant_values=0.0
+            noise = rng.standard_normal((n_samples, n_meas))
+            signal_norms = np.linalg.norm(X_noisy, axis=1, keepdims=True)
+            noise_norms = np.linalg.norm(noise, axis=1, keepdims=True)
+            scale = np.where(
+                signal_norms > 0,
+                signal_norms / noise_norms * 10 ** (-effective_snr / 20),
+                config.noise_floor * n_meas / noise_norms,
             )
-        X_noisy += bias_matrix
-
-    # --- 4. Quantisation noise ---
-    if config.quantisation_enabled:
-        lsb = config.voltage_range / (2**config.adc_bits)
-        effective_lsb = lsb * severity
-        X_noisy += (rng.random((n_samples, n_meas)) - 0.5) * effective_lsb
+            X_noisy += scale * noise
+        elif component == "contact_impedance":
+            effective_std = (config.contact_impedance_std_percent / 100.0) * severity
+            elec_factors = np.exp(
+                effective_std * rng.standard_normal((n_samples, n_elec))
+            )
+            impedance_matrix = np.repeat(elec_factors, meas_per_elec, axis=1)[
+                :, :n_meas
+            ]
+            if impedance_matrix.shape[1] < n_meas:
+                pad_width = n_meas - impedance_matrix.shape[1]
+                impedance_matrix = np.pad(
+                    impedance_matrix, ((0, 0), (0, pad_width)), constant_values=1.0
+                )
+            X_noisy *= impedance_matrix
+        elif component == "electrode_bias":
+            effective_bias = config.max_bias * severity
+            elec_bias = effective_bias * (2 * rng.random((n_samples, n_elec)) - 1)
+            bias_matrix = np.repeat(elec_bias, meas_per_elec, axis=1)[:, :n_meas]
+            if bias_matrix.shape[1] < n_meas:
+                pad_width = n_meas - bias_matrix.shape[1]
+                bias_matrix = np.pad(
+                    bias_matrix, ((0, 0), (0, pad_width)), constant_values=0.0
+                )
+            X_noisy += bias_matrix
+        elif component == "quantisation":
+            lsb = config.voltage_range / (2**config.adc_bits)
+            effective_lsb = lsb * severity
+            X_noisy += (rng.random((n_samples, n_meas)) - 0.5) * effective_lsb
+        else:
+            raise ValueError(f"Unknown noise component in order: {component}")
 
     return X_noisy.astype(np.float32)
