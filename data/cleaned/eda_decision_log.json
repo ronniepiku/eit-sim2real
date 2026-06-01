@@ -116,8 +116,11 @@
     ],
     "conclusion": "RobustScaler significantly outperforms StandardScaler (p<0.001, d=2.29). Correlation pruning and PCA both significantly reduce performance."
   },
+  "primary_training_data": {
+    "path": "data/eit_dataset.mat",
+    "notes": "Use raw dataset for primary training with train-split RobustScaler fitting."
+  },
   "exported_datasets": {
-    "eit_cleaned.mat": "Raw full features (primary). Apply RobustScaler in training.",
     "eit_cleaned_pca.mat": "RobustScaler+PCA95 (7 components). Do NOT re-scale.",
     "eit_cleaned_lda.mat": "RobustScaler+LDA (4 components). Do NOT re-scale.",
     "eit_cleaned_umap.mat": "RobustScaler+UMAP (2 components). Visualisation only."

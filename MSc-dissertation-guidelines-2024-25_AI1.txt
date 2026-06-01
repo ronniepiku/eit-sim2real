@@ -1,0 +1,420 @@
+                                EE52037 MSc AI4ED
+                                 Research Project
+
+                                     Unit convenor:
+                               Dr. Veronica Ferrandiz-Mas
+                                      vfm24@bath.ac.uk
+
+
+General
+The MSc dissertation should be up to 10,000 words, including footnotes, but excluding
+references, acknowledgements and any appendices where required.
+
+The research project is a 30 ECTS unit that takes place during the period June to August.
+Your research project will act as platform for you to identify, explore and interpret aspects at
+the forefront of AI / ML applications and implement a programme of research. Under the
+guidance of an academic supervisor, you will design and manage your own project using
+skills and knowledge developed during the course and disseminate your research outcomes
+to a range of audiences.
+
+Learning Outcomes
+On successful completion of the unit, the students should be able to demonstrate the ability
+to:
+    1. Select and critically evaluate technical literature and other sources of information to
+       solve a complex research problem
+    2. Implement and critically evaluate novel research in the context of existing literature.
+    3. Consider and take appropriate action for economic, ethical and sustainable issues
+       which may impact on your project outcomes
+    4. Select appropriate methodology, justifying and evaluating chosen methods
+    5. Develop evidence-based conclusions and recommendations
+    6. Effectively communicate the outcomes to a range of audiences
+    7. Exercise initiative and personal responsibility
+
+Dissertations should aim to:
+   •   Demonstrate originality, insight and critical analysis on a topic relating to your course.
+   •   Show relevance to current literature on the chosen topic issues/themes through
+       contextualising chosen subject(s).
+   •   Identify clearly the issues, themes and research questions that will be addressed.
+   •   Set out the rationale for critically selecting a research method that can accomplish
+       the research aims and objectives and assess research results in light of precedent
+       and current issues/themes.
+   •   Sum up the current state of the art (up to 2025) scholarship/knowledge relevant to the
+       topic discussed.
+   •   Map the evidence that supports your arguments clearly and critically.
+   •   Acknowledge the technical/social context of your work etc, and
+       where relevant/possible, explore issues associated with them.
+   •   Critically define key terms, concepts, and constructs relevant to your research.
+   •   Set out the scope, extent, audience, aim etc., of any surveys initiated.
+   •   Demonstrate how the evidence from items in the bibliography has been used in the
+       text.
+
+
+
+                                          Page 1 of 8
+Dissertation Milestones
+In order for supervisors to provide support and formative feedback to your dissertation
+research and your writing style and presentation, there are two interim formative submissions
+during your dissertation research, though they carry no mark:
+1. 3rd July 2025: Submit the draft of your "Introduction" chapter (for ED/CHB/CE)
+
+2. 18th July 2025: Submit the draft of your "Methodology" chapter (for ED/CHB/CE)
+The supervisor will not read the whole draft of the dissertation before submission. The
+dissertation must be, and be seen to be, your own work.
+
+Supervision arrangements
+The dissertation is student-led research under the directed supervision of an academic
+supervisor. The supervisor is the first point of contact for any help/guidance required for the
+dissertation research. Therefore, the following guidelines will apply:
+
+      The student will expect to typically have up to 14 contact hours with their
+       supervisors over the course of the dissertation period. The precise number may,
+       however, vary from case to case.
+      It is the student's responsibility to make contact with the supervisor by
+       email and arrange mutually convenient dates.
+      Formal supervision meetings are usually expected to take place about every two
+       weeks. During these, students should report on progress since the previous meeting,
+       problems that have been solved, problems that may have arisen and the plan of work
+       for the next period.
+      Once arranged, supervisors should allocate appropriate time in their diary to review
+       progress and provide feedback.
+      When meetings happen (virtually, electronically or physically), the student should
+       maintain an electronic supervision diary that can be exchanged with the supervisor to
+       agree on what was discussed at the meeting.
+      The student should be aware that if the supervisor is away from the University
+       during the dissertation period, it is the student's responsibility to plan his/her
+       project work and supervision meetings during the supervisor's absence.
+
+Dissertation submission
+The final dissertation must be submitted by
+4 pm on Friday 29 August 2025
+after completion of the taught course (teaching having finished in May). While the
+dissertation will in most cases spring from ideas gained during the course, you are strongly
+encouraged to select and commence your subject as soon into the academic year as
+possible. The dissertations are submitted electronically on Moodle and the arrangements for
+this and to the library are posted on course Moodle page in the submission section EE2037.
+
+Taught Postgraduate Dissertations - Library submission details for students
+This information is for taught postgraduate dissertations. The Library now accepts taught
+postgraduate dissertations (MSc, MBA, MRes, etc.) in electronic format only.
+
+Guidelines about depositing dissertations can be found here:
+
+Deposit your dissertation with the Library
+
+
+
+                                          Page 2 of 8
+ You must submit your dissertation or project report to your academic
+ department/school for assessment.
+   1. If you would also like to deposit your dissertation with the Library, please note the following:
+    Depositing your dissertation with the library is optional.
+    Please do not deposit your dissertation if it contains personal or commercially confidential
+       information.
+    Upload your dissertation as a single PDF file (no larger than 30MB).
+    Dissertations will be made available according to the classification of degree awarded.
+    Dissertations will only be made available to members of the University of Bath.
+    Dissertations will be kept for no more than five years.
+
+Some notes on dissertation writing
+You are encouraged to keep careful notes of everything you read, noting publication titles
+and relevant page numbers, as required for the notes and bibliography (see below for CHB).
+The following structuring and formatting of the dissertation must be adopted.
+
+Format guidelines:
+
+       Pdf files, max size 50MB.
+       Arial seems compatible to most printers.
+       Minimum 11 point text.
+       1.5 spacing.
+       No less than 2.5 cm margins, top, right and bottom.
+       3cm left margin for binding.
+       Centre bottom page numbering.
+       Harvard Referencing format.
+
+The dissertation must be clearly structured to provide:
+
+    1. Title sheet
+    2. Contents list with page numbers
+    3. Abstract
+    4. List of illustrations/figures and tables
+    5. Acknowledgements
+    6. Introduction
+    7. A description and analysis of the subject, using appropriate chapter headings
+    8. Conclusion
+    9. References
+    10. Appendices (where it is needed)
+
+Please look into Moodle for dissertation template: EE52037_Dissertation Template AI.docx
+
+
+1. Title sheet
+This should state the title and the following: A dissertation submitted by [author's name]
+towards the degree of Master of Science MSc Artificial Intelligence in Engineering and
+Design
+
+2. Contents list with page numbers
+If possible, place this on a single sheet for ease of reference by the reader.
+
+3. Abstract and key findings
+The dissertation should be clearly structured around the hypothesis that is being made. The
+argument and the structure of the writing go hand in hand.
+
+                                            Page 3 of 8
+4. List of illustrations/figures and tables
+A list of illustrations/figures/tables with sources acknowledged should be located on a
+separate sheet. Figures are an important part of the presentation and should be located in
+the text whenever practical adjacent to the first mention of the item being illustrated. They
+should be keyed into the text using square brackets thus: [Fig. 1]. Ensure that photocopies
+are of a high quality and if you are using your own drawings, ensure that these are of a
+similar high quality to other material being presented.
+
+5. Acknowledgements
+All those who have helped with the writing of the work should be thanked.
+
+6. Introduction
+The introduction should briefly define the subject and the hypothesis, and say what other
+works exist on the subject and how the following dissertation differs and agrees with this
+body of work. A case for the originality of the dissertation also needs to be made. Where
+possible the principle sources need to be mentioned. This will clarify both the usefulness of
+the work to readers, and the terms upon which the dissertation should be marked.
+
+7. A description and analysis of the subject, placing it in an appropriate context,
+using appropriate chapter headings (e.g., Aims and Objectives, Literature review,
+Methods, Results and Analysis, etc.)
+
+8. Conclusion
+The conclusion should be concise but clear, not simply repeating the earlier conclusions but
+have an individual character of its own. It is possible to introduce a new piece of evidence or
+idea at the end to add your own take on the result and impact of your work. Potential future
+developments and improvements can also be included here.
+
+9. References
+A reference to a book by Bernard Feilden would appear in the notes as surname, date of
+publication, relevant page references:
+
+       Feilden (1982), p.123.
+
+And in the bibliography as surname, initial(s), title (with upper case letters for key words,
+emboldened, in italics or underlined), publisher and city of publication, date of publication:
+
+     Feilden, Bernard M., Conservation of Historic Buildings, London, 1982
+
+A publication in a journal or conference proceedings would be presented slightly differently,
+as follows:
+
+In the notes as surname, date of publication, relevant page references:
+
+       Forsyth (2003), pp. 4-9
+
+
+
+
+                                          Page 4 of 8
+And in the bibliography as surname, initial(s), title (in inverted commas, with upper case
+letters for first word only), journal title (emboldened, in Italics or underlined), volume/no., date
+of publication, relevant pages:
+
+Forsyth, 'Victorian and Edwardian Bath: the forgotten years', The Victorian, The Victorian
+Society, Nov 2003, n.14, pp 4-9.
+
+NB: It is important that punctuation and spacing is used correctly and consistently, as
+indicated in the examples above.
+
+10. Appendices
+ Appendices should only be used to accommodate information subordinate to the text. This
+ will not be marked as part of the dissertation but provide supplementary material that may
+ be of interest to the reader.
+
+Assessment of the dissertation
+Dissertations are blind marked by a first and second examiner. Where the first and second
+marker cannot agree a mark or where the difference is more than 4%, the unit convenor will
+appoint and coordinate a third examiner but will not act as the third marker. The mark you
+will receive will be based on the assessment criteria.
+
+What is assessed
+The mark you will receive depends on meeting the marking criteria (see assessement criteria
+rubric on Moodle: https://moodle.bath.ac.uk/mod/resource/view.php?id=1448134. These
+include structure; clarity and consistency, argument; use of English; scholarly or technical
+correctness; proper referencing (Harvard or APA), the completeness of the finished work;
+and its contribution to the area chosen.
+
+A good dissertation is one that is focused and that demonstrates scholarship and critical,
+innovative thought. In assessing the dissertation, we will bear in mind the following
+considerations:
+
+        Do you demonstrate a good knowledge of the literature on the chosen topic and
+         closely related topics? To what extent have you understood the literature? Is
+         the factual material accurate?
+
+        To what extent is there a logical arrangement of an argument throughout
+         the dissertation? We are looking here at the arrangement and structure of
+         the dissertation rather than detailed arguments within it.
+
+        To what extent are you able to look critically at other people's arguments
+         and published 'facts'? Here, the presentation of detailed argument is
+         important.
+
+        To what extent are you able to evolve original criticism of other people's work and
+         make original constructive comments of your own? Here, also, the presentation
+         of detailed argument is important.
+
+        Is the dissertation written in good grammatical English? Are your arguments
+         as clearly written as possible?
+
+
+
+
+                                            Page 5 of 8
+       Finally, your presentation: get your spelling right, sensible paragraphs, give
+        correct references and bibliographical information.
+
+Marking scheme
+Work at each level will exhibit most of the characteristics described. Please note there is no
+resit minimum mark. If a student failed the unit, he/she can be reassessed for a capped 50%
+pass mark; up to two reassessments are permitted for the unit.
+
+ 80%+        Distinction     EXCELLENT
+                             Work well resolved in all aspects
+                             Dense and relevant references to a large body of primary
+                             source material handled with critical acumen
+                             Argument sophisticated and challenging
+                             Point of view clear and confidently expressed
+                             Rigorous use of appropriate and innovative methodology
+                             Very good knowledge and understanding of the topic,
+                             broadening it into other disciplines where relevant
+                             (bibliography)
+                             Highly original, suitable for publication
+                             Very well written
+                             High level of critical insight and ability in choosing visual
+                             material
+                             Presentation and referencing immaculate
+ 70-79%      Distinction     VERY GOOD
+                             Work Resolved in all aspects
+                             References to a large body of primary source material
+                             Well-articulated argument
+                             Point of view well expressed
+                             Appropriate use of methodology
+                             Good use of factual material handled with critical acumen
+                             Good knowledge and understanding of the topic (bibliography)
+                             Original
+                             Well written
+                             Good level of critical insight and ability in choosing visual
+                             material
+                             Polished presentation and referencing
+
+                             75-79 shows real grasp of topic and confidence in its
+                             exposition
+                             70-74 consistently well crafted
+ 60-69%      Merit           GOOD
+                             Work resolved in most aspects
+                             References to some primary source material
+                             Sound argument
+                             Point of view tentative
+                             Some discussion and use of methodology,
+                             Good use of factual material
+                             Good, but patchy knowledge and understanding of the topic
+                             (bibliography)
+                             Some original insight
+                             Generally well written
+
+
+
+
+                                         Page 6 of 8
+                Judicious and consistent use of visual material
+                Competent presentation and referencing
+
+                (60-64% Routine but cogent set of ideas)
+50-59%   Pass   FAIR
+                Work resolved in some aspects
+                Secondary sources substituting for first-hand
+                Argument set out but not fully resolved
+                Point of view not clear – little critical awareness
+                Methodology not articulated, but apparent through reading
+                Fair level of knowledge and understanding of the topic
+                (bibliography)
+                Little original insight
+                Generally adequate quality of writing
+                Visual material not always appropriate
+                Presentation and referencing inconsistent
+
+                50-54 tendency towards padding, lack of ideas, simple
+                synopsis with little analysis
+40-49%   Fail   POOR
+                Few aspects of work resolved
+                Secondary sources dominate, sometimes poorly utilised
+                Poor resolution of sketchy argument
+                Point of view never addressed
+                No consistent methodology apparent
+                Scant level of knowledge of topic (limited bibliography)
+                Almost no original insight
+                Writing sometimes poor
+                Visual material scant, often inappropriate and sometimes
+                irrelevant
+                Presentation and referencing poor
+
+                40-44 Lacking direction, often padded, evidence of haste in
+                execution
+<40%     Fail   Very few aspects of work resolved
+                Limited use of secondary sources.
+                No apparent argument
+                No critical awareness or articulation of own point of view.
+                Non-existent use of research methodology
+                Meagre or non-existent knowledge of topic (very limited or
+                non-existent bibliography)
+                Totally derivative
+                Writing poor
+                Very little care taken with presentation.
+                No references.
+                Full of waffle
+
+
+
+
+                            Page 7 of 8
+Presentations
+Marking scheme and guidelines in Moodle:
+https://moodle.bath.ac.uk/mod/resource/view.php?id=1455684
+
+
+Purpose of the assessment
+This individual presentation (worth 20% of the overall Research Project unit mark) is intended
+to:
+      Convey the project aims, methods, findings, and significance.
+      Demonstrate effective communication of technical content to a mixed audience.
+      Defend critical aspects of the research through viva-style questioning.
+Structure of the assessment
+
+      Online Live MS Teams Presentation:
+           o   Presentation (7 minutes): A recorded voice-over slide deck in PowerPoint (pre-
+               submitted).
+           o   Viva-style Discussion (13 minutes): Online Live Q&A with first marker and
+               supervisor. The viva discussion will be recorded for moderation and 3rd marking
+               purposes.
+Assessment criteria and weighting
+
+      Communicating to a Wider Audience 20%
+      Presentation Quality 10%
+      Critical Thinking and Argumentation 70%
+
+
+Important: Dealine for submitting your presentation is 5th September 2025 by 4 pm. You will
+have to submit a recorded voice-over slide deck in Power Point in the submission point abilitated
+in Moodle (please look for submission point for presentation under the Assessment Information
+section in Moodle).
+On the week commencing on the 8th September, you will have an oral viva of your submitted
+presentation. Your supervisor will be encouraged to organise your viva, that can be online or
+in person depending of your availability and your supervisor/second marker availability.
+If the viva is going to take place in person, it is your supervisor responsibility to make room
+arrangements. Your supervisor will contact you to confirm date, time and location of the viva.
+Please, discuss with your supervisor if you prefer an online presentation (for example if you will
+be away) or if you prefer to take place in person.
+On the day of your viva, the first 7 minutes will be for playing your pre-submitted presentation,
+follow by 13 minutes of live Q&A (online or in person). The viva discussion will be recorded for
+moderation and 3rd marking purpose.
+
+
+
+
+                                           Page 8 of 8
+

@@ -308,7 +308,7 @@ Key architectural decisions:
     
     \item \textbf{Adaptive average pooling.} Collapses the temporal dimension to a single value per channel, making the architecture independent of input length and enabling transfer to different electrode configurations without architectural changes.
     
-    \item \textbf{Dropout ($p = 0.3$).} Applied only in the fully-connected classification head to regularise the highest-capacity layers, consistent with the recommendation of \textcite{lecun2015} for moderate-sized networks.
+    \item \textbf{Dropout ($p = 0.3$).} Applied only in the fully-connected classification head to regularise the highest-capacity layers \parencite{srivastava2014dropout}, consistent with the recommendation of \textcite{lecun2015} for moderate-sized networks. For noise-augmented training, this is increased to $p = 0.4$ to provide additional regularisation complementing the noise augmentation.
 \end{itemize}
 
 The architecture totals approximately 56{,}000 trainable parameters which is orders of magnitude smaller than networks used for image classification, reflecting the lower dimensionality and complexity of \gls{eit} voltage data compared to natural images.
@@ -326,8 +326,10 @@ The CNN is trained using the Adam optimiser \parencite{kingma2015adam} with lear
 
 \begin{enumerate}
     \item \textbf{Learning rate scheduling.} ReduceLROnPlateau reduces $\eta$ by factor 0.5 after 10 epochs without validation loss improvement.
-    \item \textbf{Early stopping.} Training halts after 20 consecutive epochs without validation loss improvement. The best model (minimum validation loss) is always retained.
+    \item \textbf{Early stopping.} Training halts after 20 consecutive epochs without validation loss improvement \parencite{prechelt1998early}. The best model (minimum validation loss) is always retained.
 \end{enumerate}
+
+For noise-augmented training, label smoothing ($\epsilon = 0.05$) \parencite{muller2019labelsmooth} and increased dropout ($p = 0.4$) \parencite{srivastava2014dropout} are additionally applied to complement noise augmentation as a regularisation strategy. The noise severity is sampled uniformly from a configurable range during each training batch, implementing online domain randomisation \parencite{tobin2017}.
 
 The loss function is cross-entropy over the five classes:
 \begin{equation}
@@ -390,14 +392,14 @@ Per-class precision, recall, and F1 are additionally reported in confusion matri
 \subsection{Statistical Testing}
 \label{sec:method-stats}
 
-To establish whether observed differences are statistically significant, 5-fold stratified cross-validation is performed for each model $\times$ condition combination. The resulting five accuracy estimates enable:
+To establish whether observed differences are statistically significant, 5-fold stratified cross-validation \parencite{kohavi1995crossval} is performed for each model $\times$ condition combination. The resulting five accuracy estimates enable:
 
 \begin{enumerate}
     \item Reporting of mean $\pm$ standard deviation for all metrics.
     \item \emph{Paired} $t$-tests between conditions of interest (e.g., clean-trained vs.\ noise-trained CNN on noisy test data), with significance threshold $\alpha = 0.05$ after Bonferroni correction for multiple comparisons.
 \end{enumerate}
 
-The paired design controls for fold-to-fold variance, increasing statistical power. Effect size (Cohen's $d$) is reported alongside $p$-values to distinguish statistical significance from practical significance, following recommendations for rigorous ML evaluation \parencite{caruana2006empirical}.
+The paired design controls for fold-to-fold variance, increasing statistical power \parencite{demsar2006statistical}. Effect size (Cohen's $d$) is reported alongside $p$-values to distinguish statistical significance from practical significance, following recommendations for rigorous ML evaluation \parencite{caruana2006empirical}.
 
 \subsection{Robustness Evaluation}
 \label{sec:method-robustness}
@@ -422,6 +424,41 @@ The ablation study isolates the contribution of each noise component through two
 \end{enumerate}
 
 All ablation experiments are evaluated on test data corrupted with the \emph{full} four-component noise model, ensuring that robustness is assessed against the most realistic degradation scenario. This design choice means that single-component models face a domain mismatch at test time---directly measuring whether exposure to a \emph{subset} of real-world noise provides partial protection against the full distribution.
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Extended Evaluation Framework}
+\label{sec:method-extended}
+
+Beyond the core model$\times$condition grid and ablation, five additional analyses are conducted to provide comprehensive robustness characterisation. These extended experiments address gaps in deployment readiness identified in Chapter~\ref{ch:literature_review} and are reported in the Appendix.
+
+\subsection{Confidence Calibration}
+\label{sec:method-calibration}
+
+Following \textcite{guo2017calibration}, who demonstrated that modern neural networks are systematically over-confident, the CNN's predicted probabilities are analysed for calibration under clean and noisy conditions. The Expected Calibration Error (ECE) and Maximum Calibration Error (MCE) are computed using 10-bin reliability diagrams. ECE measures the weighted average absolute difference between predicted confidence and empirical accuracy:
+\begin{equation}
+    \text{ECE} = \sum_{m=1}^{M} \frac{|B_m|}{n} \left| \text{acc}(B_m) - \text{conf}(B_m) \right|
+\end{equation}
+where $B_m$ is the set of predictions in bin $m$. Well-calibrated models are critical for safety-critical prosthetic applications, where over-confident misclassifications under noise may be more dangerous than correctly uncertain predictions.
+
+\subsection{Per-Class Robustness Profiling}
+\label{sec:method-perclass}
+
+Per-class accuracy and F1 scores are tracked across severity levels $\{0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0\}$ to identify classes disproportionately affected by noise. This reveals decision-boundary vulnerability: classes with overlapping voltage patterns under noise (e.g., light touch vs.\ distributed contact) may degrade faster than well-separated classes. The analysis informs clinical assessment of which tactile modalities are most reliable under degraded conditions.
+
+\subsection{Domain Gap Quantification}
+\label{sec:method-domaingap}
+
+The distributional divergence between clean and noisy feature spaces is formally quantified using Maximum Mean Discrepancy \parencite{gretton2012kernel} with an RBF kernel, per-feature Wasserstein distance, and correlation structure change. MMD is computed both for the full noise model and per-component, enabling identification of which noise source contributes most to the simulation-to-reality gap. This analysis connects the noise model design to the theoretical bounds of \textcite{ben-david2010domain}: larger MMD implies greater domain divergence and, absent explicit adaptation, higher expected generalisation error.
+
+\subsection{Noise Parameter Sensitivity}
+\label{sec:method-noise-sensitivity}
+
+To verify that conclusions are robust to noise model assumptions, each noise parameter is swept independently while holding others at default values: SNR $\in \{60, 50, 40, 30, 20\}$~dB, contact impedance $\sigma_z \in \{5, 10, 15, 20, 25\}\%$, electrode bias $b_{\max} \in \{0.005, 0.01, 0.02, 0.04, 0.08\}$, and ADC bits $\in \{8, 10, 12, 14, 16\}$. This addresses the fundamental concern that the noise model parameters are literature-constrained rather than directly measured: if results hold across reasonable parameter ranges, findings generalise beyond specific calibration assumptions.
+
+\subsection{Hyperparameter Sensitivity}
+\label{sec:method-hp-sensitivity}
+
+Key training hyperparameters (learning rate, dropout \parencite{srivastava2014dropout}, weight decay, severity range) are swept to confirm that the noise augmentation benefit is not an artefact of particular hyperparameter choices. Each sweep retrains the CNN from scratch and evaluates on both clean and noisy test data, reporting accuracy ranges. Narrow ranges indicate robust conclusions; wide ranges would indicate parameter sensitivity requiring careful tuning.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Ethical, Economic, and Sustainability Considerations}
@@ -474,15 +511,16 @@ Simulation tool & EIDORS v3.12-ng & Open-source, validated, standard in EIT rese
 Geometry & 2D circle, 16 electrodes & Tractable; matches prior work \parencite{yao2022, chen2023} \\
 Material model & Ionic hydrogel ($\sigma < \sigma_0$) & Physics-grounded; matches \textcite{lee2019} \\
 Dataset size & 25{,}000 (5{,}000/class) & Balanced; sufficient for deep \& classical models \\
-Noise model & 4 independent components & Captures dominant per-frame EIT distortions \\
+Noise model & 4 independent components & Captures dominant per-frame EIT distortions \parencite{adler2006, vilhunen2002} \\
 Noise parameters & Literature-derived & Reproducible; avoids arbitrary choices \\
-Noise structure & Per-electrode & Physically correct (interface property) \\
+Noise structure & Per-electrode & Physically correct (interface property) \parencite{kolehmainen1997} \\
 Position constraint & Inner 40\% of boundary & Limits sensitivity-gradient variance \\
 Mesh refinement & Medium (`d') & Resolves small contact regions \\
-Models & SVM, RF, MLP, 1D-CNN & Spans classical--deep spectrum \\
+Models & SVM, RF, MLP, 1D-CNN & Spans classical--deep spectrum \parencite{caruana2006empirical} \\
 Evaluation & 4 conditions + ablation & Isolates noise augmentation effect \\
-Statistical testing & 5-fold CV, paired $t$-test & Controls for variance; tests significance \\
-Robustness sweep & 6 severity levels & Tests generalisation beyond training severity \\
+Statistical testing & 5-fold CV, paired $t$-test & Controls for variance; tests significance \parencite{demsar2006statistical, kohavi1995crossval} \\
+Robustness sweep & 6 severity levels & Tests generalisation beyond training severity \parencite{hendrycks2019} \\
+Extended analyses & Calibration, domain gap, sensitivity & Deployment readiness \parencite{guo2017calibration, gretton2012kernel} \\
 \bottomrule
 \end{tabular}
 \end{table}

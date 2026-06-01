@@ -15,7 +15,7 @@ robustness during simulation-to-reality transfer.
 2. **Independently configurable**: Components can be toggled on/off for ablation studies
 3. **Literature-parameterised**: All default values derive from published EIT hardware characterisations
 4. **Per-electrode structure**: Contact impedance and bias are applied per-electrode (not per-measurement), reflecting that these are properties of the electrode–substrate interface
-5. **Canonical physical order with constrained variants**: Default order is Gaussian → Contact Impedance → Bias → Quantisation, while ablation supports physically constrained re-ordering (Quantisation fixed last; Contact Impedance before Bias)
+5. **Fixed application order**: Components are applied sequentially (Gaussian → Contact Impedance → Bias → Quantisation), reflecting the physical signal chain
 
 ## Component Specifications
 
@@ -130,30 +130,15 @@ Becomes significant only for low-resolution portable systems or in severity swee
 
 ## Ablation Study Design
 
-The Python ablation runner supports exhaustive component-subset and order sweeps.
+The noise model enables three ablation configurations:
 
-### Exhaustive Component Subsets (15 experiments)
-All non-empty subsets of the 4 noise components are evaluated:
-- 1-component: 4 combinations
-- 2-component: 6 combinations
-- 3-component: 4 combinations
-- 4-component: 1 combination
+### Single-Component (4 experiments)
+Each component enabled individually — reveals standalone contribution:
+- `only_gaussian`, `only_contact_impedance`, `only_electrode_bias`, `only_quantisation`
 
-This captures interaction effects that are missed by only single-component and leave-one-out studies.
-
-### Physically Constrained Order Sweep (per subset)
-For each active subset, all orderings that satisfy the physical constraints are tested:
-- `quantisation` is always the final stage when enabled (ADC stage)
-- `contact_impedance` is always applied before `electrode_bias` when both are enabled
-
-Across all non-empty subsets, this produces 23 physically valid subset/order configurations.
-
-Example valid order variants:
-- `gaussian -> contact_impedance -> electrode_bias -> quantisation`
-- `contact_impedance -> gaussian -> electrode_bias -> quantisation`
-- `contact_impedance -> electrode_bias -> gaussian -> quantisation`
-
-For the full 4-component model, this yields 3 valid orders under the constraints above.
+### Leave-One-Out (4 experiments)
+All components except one — reveals marginal value when others present:
+- `without_gaussian`, `without_contact_impedance`, `without_electrode_bias`, `without_quantisation`
 
 ### Severity Sweep (7 levels)
 All parameters scaled by multiplier {0.0×, 0.5×, 1.0×, 1.5×, 2.0×, 2.5×, 3.0×}:
@@ -193,16 +178,6 @@ quantisation:
   enabled: false
 ```
 
-To run exhaustive subset/order ablation from Python:
-```bash
-uv run python python/ablation.py --model cnn1d --all-configs
-```
-
-The resulting CSV includes:
-- `noise_gaussian`, `noise_contact_impedance`, `noise_electrode_bias`, `noise_quantisation`
-- `noise_n_components` (active component count)
-- `noise_order` (actual applied order, e.g. `contact_impedance > gaussian > electrode_bias > quantisation`)
-
 ## Implementation
 
 - **MATLAB**: [`matlab/noise_model/add_noise.m`](../matlab/noise_model/add_noise.m) — applies noise during dataset generation
@@ -211,12 +186,11 @@ The resulting CSV includes:
 - **Python (ablation)**: [`python/ablation.py`](../python/ablation.py) — systematic ablation via Python-side noise injection (no MATLAB dependency at experiment time)
 - **Python (evaluation)**: [`python/evaluate.py`](../python/evaluate.py) — `evaluate_severity_sweep_python()` generates fresh noise at each severity level
 
-The Python noise module (`NoiseConfig` class) provides factory methods and order control:
+The Python noise module (`NoiseConfig` class) provides factory methods for ablation:
 - `NoiseConfig.only('gaussian')` — single-component experiment
 - `NoiseConfig.without('contact_impedance')` — leave-one-out experiment
 - `NoiseConfig.all_off()` — clean baseline
 - `NoiseConfig(severity=2.0)` — severity-scaled noise
-- `NoiseConfig(component_order=(...))` — explicit component order (enabled components only)
 
 ## References
 

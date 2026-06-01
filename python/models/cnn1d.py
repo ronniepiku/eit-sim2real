@@ -80,11 +80,10 @@ class EITConv1D(nn.Module):
                 f"The architecture has {len(channels)} pooling layers (2x reduction each), "
                 f"requiring at least {min_features} input features. "
                 f"\nRecommendation:\n"
-                f"  • For CNN: Use eit_cleaned.mat (22 features) ✓\n"
+                f"  • For CNN: Use data/eit_dataset.mat (208 features) ✓\n"
                 f"  • For shallow models (SVM/RF/MLP):\n"
-                f"    - eit_cleaned.mat (22 features)\n"
                 f"    - eit_cleaned_pca.mat (7 features)\n"
-                f"    - eit_cleaned_umap.mat (7 features)\n"
+                f"    - eit_cleaned_umap.mat (2 features)\n"
                 f"    - eit_cleaned_lda.mat (4 features)\n"
             )
 

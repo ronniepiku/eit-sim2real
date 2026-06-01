@@ -16,7 +16,6 @@ dependencies = [
     "scipy>=1.12.0",
     "seaborn>=0.13.2",
     "h5py>=3.8.0",
-    "torch>=2.1.0",
     "umap-learn>=0.5.12",
 ]
 

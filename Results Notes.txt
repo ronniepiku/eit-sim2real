@@ -1,0 +1,52 @@
+General Notes and comments
+- Should all models be hyper parameter optimised before running experiments? This allows for a more equal comparison
+- Best performer is raw mlp with 98.81% � 0.0069% Acc and 98.80% � 0.0069% F1 (macro) across 5 folds. How does this compare with state of the art in literature. Is there even a fair comparison to be made since dataset and classes are different. I think it�s only important to get results close to literature to show that models are performing as expected. Focus on paper is in noise robustness.
+- Looks like EDA wasn�t applied to cleaned dataset since same number of features. Check if this is true and investigate why it happened. Seem to get different results between raw and cleaned on noisy -> noisy so there may be some eda.
+- PCA and LDA confirmed as ineffective due to very poor results on cleaned data.
+- Without noise-augmented training, ALL models collapse to near-chance (20% for 5 classes) under the default noise model. This demonstrates the severity of the simulation-to-reality gap and validates the core research question.
+- Best model on Noisy -> noisy prediction is CNN on Raw dataset. This may mean that it�s better to not do eda. 
+- The CNN on raw data benefits enormously from noise training (+52.5pp) � the largest improvement of any model/dataset combination.
+- Raw features are essential for noise robustness. Dimensionality-reduced datasets (PCA, LDA) show negligible benefit from noise training (~+2pp).
+- Feature engineering that removes noise-carrying channels (cleaned, PCA, LDA) also removes the signal the model needs to learn noise-invariant representations. What is the evidence for this claim?
+- Noise-trained models lose the ability to classify clean data. This is expected � the model learns features that are robust to noise but different from the features optimal for clean data. The RF shows the smallest gap, suggesting its ensemble nature provides some inherent robustness.
+- The model achieves 74.1% at the training severity (1.0�) but drops dramatically in both directions:
+o At 0.5� (below training): 43.3% (?30.8pp)
+o At 1.5� (above training): 36.7% (?37.4pp)
+o At 3.0�: 23.7% (near-chance)
+This reveals the model has memorised the specific noise statistics at 1.0� rather than learning genuinely noise-invariant features. The asymmetric degradation (worse above than below) suggests the model has learned noise-specific patterns rather than suppressing noise. Would a different model perform better? Since CNN is best performer, would improving complexity help? Would RNN, LSTM or something with attention perform better?
+- For all noisy dataset CNN models there is overfitting early on in training which triggers the early stopping.
+- The CNN's dramatic advantage on raw 208-feature data (+17.5pp over RF in noisy?noisy) likely stems from:
+o Spatial structure exploitation: The 1D-CNN treats the 208 measurements as a sequence with local correlations (adjacent electrode pairs). Convolutional filters can learn spatial patterns that are noise-invariant.
+o Hierarchical feature learning: The 3-layer architecture extracts increasingly abstract representations, potentially isolating conductivity-change patterns from noise patterns.
+o Redundancy utilisation: Raw data has many correlated measurements (208 from 16 electrodes); the CNN can learn to average across these for denoising, while RF/SVM treat each feature independently.
+- PCA and LDA reduced datasets show near-zero benefit from noise training. This is because:
+o Information loss: PCA/LDA projections optimised on clean data project away variance that happens to correlate with noise structure. The model cannot learn noise-invariance if the noise-relevant subspace is already removed.
+o Noise amplification in reduced space: In low-dimensional projections, additive noise has proportionally larger impact (SNR is lower per-component).
+o Missing redundancy: The CNN's noise robustness relies on exploiting measurement redundancy � dimensionality reduction eliminates this redundancy by design.
+Implication for practice: For noise-robust EIT classification, use the full (or minimally reduced) measurement vector. Aggressive feature engineering is counterproductive for robustness.
+- Key results have low variance across 3 seeds:
+o CNN raw noisy?noisy: 75.1% � 0.2% (very stable)
+o RF raw noisy?noisy: 57.6% � 0.7% (stable)
+o CNN raw clean?clean: 93.1% � 2.6% (moderate variance � sensitive to initialisation on clean data)
+The �2.6% variance for clean CNN suggests the model has multiple loss landscape minima when noise doesn't constrain the solution. Noise training appears to regularise the optimisation (lower variance �0.2%).
+- A deployed EIT tactile sensor will always encounter noise. The noisy?noisy condition is the deployment-relevant metric, not clean?clean. However, isn�t this going to be very specific to our noise model? Shouldn�t a good model perform well on both noisy and clean? Should there then be a dataset and training regime on a mixed noisy and clean dataset where the noise applied also varies?
+- Our 75.1% on 5 classes under a more comprehensive noise model compares favourably to prior work that uses simpler noise or fewer classes. However, the over-specialisation finding reveals that raw accuracy at one noise level is insufficient � robustness curves are needed.
+- Would a dataset with c combination of clean and noisy data improve training? Would it be better to vary the noise and the noise type applied to prevent overfitting? How would you find the best proportion of this?
+- How does our best performing model on noisy data perform on gaussian only noise. This will allow us to compare it to other literature.
+Clean Dataset
+- Main miss classifications in clean -> clean is class 3 being predicted as class 1. Occasionally 2 is labelled as 1 and 3 as 2 but this is sparse. Overall class 3 is the hardest to predict. Confirmed by per class metrics. Similar results are seen in noisy -> noisy confusion matrix but exaggerated.
+- All CNN training curs show erratic val loss which indicates unstable training.
+- CNNs tend to be well fit during training on clean data but are overfit on noisy training where we see val loss plateau earlier and training loss continue to decrease. This becomes clear after ~40 epochs.
+- Train loss on noisy datasets plateaus at ~0.2 whereas on clean it plateaus at ~0.05. Does this indicate that there�s more learning to be done? How can we learn more if the dataset is already overfitting.
+- Cross diagonal evaluation (e.g. clean -> noisy or noisy -> clean) shows poor performances across the board. Hard to extract any analysis as all results are being poorly predicted.
+- Clean -> noisy rf model predicts everything as class 3. Not sure what to take from this.
+- All clean -> noisy models predict labels 1 and 3 heavily and rarely predict classes 0, 2 or 4. What is the analysis for this?
+- All noisy -> clean models predict class 0 and class 4 heavily but barely predict the others. What is this result telling us?
+Raw Dataset
+- More of the same as the cleaned dataset, class 3 is still the poorest performer.
+LDA Dataset
+- Clean -> Noisy shows more variety in predictions but still poor results 
+- Noisy -> Clean almost exclusively predicts class 0
+PCA Dataset
+- Clean -> Noisy almost never predicting Class 2
+- Noisy -> clean always predicting 2 as 4 across all models. Surprisingly, always getting class 0 and class 4 correct in almost all models. What is this telling us about those classes? Could they be very similar?

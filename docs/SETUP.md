@@ -133,48 +133,85 @@ uv run python python/validate_dataset.py
 # 2. Log environment for reproducibility
 uv run python python/log_environment.py
 
-# 3. Train CNN under both conditions
-uv run python python/train.py --model cnn1d                # noisy training
-uv run python python/train.py --model cnn1d --no-noise     # clean training
-
-# 4. Train all baselines under 4 conditions
-uv run python python/run_baselines.py
-
-# 5. Evaluate with robustness + severity sweep
-uv run python python/evaluate.py \
-    --model-path results/models/cnn1d_noisy_best.pt --robustness
-
-# 6. Run ablation study (Python-side noise, no MATLAB dependency)
-uv run python python/ablation.py --model cnn1d
-uv run python python/ablation.py --model cnn1d --all-configs  # exhaustive subset/order ablation
-
-# 7. Statistical significance testing
-uv run python python/statistical_tests.py --model cnn1d
-uv run python python/statistical_tests.py --model random_forest
+# 3. Run master experiment suite (recommended — single command)
+uv run python python/run_all_experiments.py --seeds 5
 ```
 
 ### Master Experiment Runner (Recommended)
 
-Run all experiments across all datasets, models, and conditions in one command:
+The master runner executes all experiments, generates figures, runs severity
+sweeps, and produces a comprehensive Markdown report:
 
 ```bash
-# Run full experiment suite (all 4 datasets × all models × 4 conditions × 3 seeds)
+# Full suite: 3 datasets × 4 models × 8 conditions × 5 seeds + severity sweeps
 uv run python python/run_all_experiments.py
 
-# Specify datasets and seed count
-uv run python python/run_all_experiments.py --datasets raw cleaned pca --seeds 5
+# Quick validation run (fewer seeds)
+uv run python python/run_all_experiments.py --seeds 3
 
-# Custom CNN config
+# Specific datasets only
+uv run python python/run_all_experiments.py --datasets raw pca
+
+# Custom CNN training duration
 uv run python python/run_all_experiments.py --epochs 300 --early-stopping-patience 50
 ```
 
-This produces:
+**Training conditions executed by the master runner:**
+
+| Condition | Training Data | Evaluation Data | Purpose |
+|-----------|--------------|-----------------|---------|
+| `clean_train_clean_eval` | Clean | Clean | Ceiling performance |
+| `clean_train_noisy_eval` | Clean | Noisy | Vulnerability baseline |
+| `noisy_train_noisy_eval` | Noisy (multi-severity augmented) | Noisy | Standard noise training |
+| `noisy_train_clean_eval` | Noisy (multi-severity augmented) | Clean | Generalisation check |
+| `augmented_train_noisy_eval` | Clean + online multi-severity noise | Noisy | Domain randomisation |
+| `augmented_train_clean_eval` | Clean + online multi-severity noise | Clean | Augmented generalisation |
+| `mixed_train_noisy_eval` | Mixed clean+noisy batches | Noisy | Best robustness regime |
+| `mixed_train_clean_eval` | Mixed clean+noisy batches | Clean | Dual-domain performance |
+
+**Key features of the updated pipeline:**
+- **Multi-severity noise augmentation**: Severity sampled uniformly from [0.5, 2.0]
+  each batch, preventing noise-level memorisation
+- **Mixed clean+noisy training**: 30% clean / 70% noise-augmented per batch,
+  maintaining clean-data representations while learning noise robustness
+- **Stronger regularisation for noisy models**: Higher dropout (0.4), weight
+  decay (1e-3), and label smoothing (0.05)
+- **Severity sweep**: After main experiments, evaluates CNN models across
+  severity levels [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0] to assess generalisation
+
+**Outputs:**
 - `results/reports/experiment_report.md` — Full Markdown report with analysis
 - `results/reports/all_results.csv` — Consolidated results table
 - `results/reports/all_results.json` — Machine-readable results
 - `results/reports/accuracy_pivot.csv` — Accuracy by model × condition
 - `results/reports/f1_pivot.csv` — F1 by model × condition
+- `results/reports/severity_sweep_results.json` — Severity generalisation curves
 - `results/figures/<dataset>/<model>/<condition>/` — Confusion matrices, training curves
+
+### Individual Script Usage
+
+For targeted runs or debugging:
+
+```bash
+# Train CNN under both conditions
+uv run python python/train.py --model cnn1d                # noisy training
+uv run python python/train.py --model cnn1d --no-noise     # clean training
+
+# Train all baselines under 4 conditions
+uv run python python/run_baselines.py
+
+# Evaluate with robustness + severity sweep
+uv run python python/evaluate.py \
+    --model-path results/models/cnn1d_noisy_best.pt --robustness
+
+# Run ablation study (Python-side noise, no MATLAB dependency)
+uv run python python/ablation.py --model cnn1d
+uv run python python/ablation.py --model cnn1d --all-configs
+
+# Statistical significance testing
+uv run python python/statistical_tests.py --model cnn1d
+uv run python python/statistical_tests.py --model random_forest
+```
 
 ### Using Custom Datasets
 
@@ -222,7 +259,7 @@ dataset_X_clean    % (n_samples, n_features) clean measurements
 dataset_X_noisy    % (n_samples, n_features) noisy measurements
 dataset_y          % (n_samples, 1) class labels (1-indexed, 1-5 for 5 classes)
 
-% Cleaned dataset format (from EDA notebook):
+% Exported reduced-dataset format (from EDA notebook):
 X_clean            % (n_samples, n_features) clean measurements (0-indexed labels)
 X_noisy            % (n_samples, n_features) noisy measurements
 y                  % (n_samples, 1) class labels (0-indexed, 0-4 for 5 classes)
@@ -232,21 +269,19 @@ dataset_X          % Used if dataset_X_clean/dataset_X_noisy not present
 dataset_y
 
 % Supported class labels:
-% 1 (original) or 0 (cleaned) = No contact        (baseline/reference)
-% 2 (original) or 1 (cleaned) = Light touch
-% 3 (original) or 2 (cleaned) = Firm press
-% 4 (original) or 3 (cleaned) = Point contact
-% 5 (original) or 4 (cleaned) = Distributed
+% 1 (original) or 0 (zero-indexed) = No contact        (baseline/reference)
+% 2 (original) or 1 (zero-indexed) = Light touch
+% 3 (original) or 2 (zero-indexed) = Firm press
+% 4 (original) or 3 (zero-indexed) = Point contact
+% 5 (original) or 4 (zero-indexed) = Distributed
 ```
 
-**Using Cleaned Datasets from EDA Analysis**
+**Using Dimensionality-Reduced Datasets**
 
-The EDA notebook (`notebooks/eda_analysis.ipynb`) produces cleaned datasets using a leakage-safe preprocessing comparison, plus a decision log:
+The EDA notebook (`notebooks/eda_analysis.ipynb`) produces dimensionality-reduced
+datasets using a leakage-safe preprocessing comparison, plus a decision log:
 
 ```bash
-# Full cleaned dataset (22 features after redundancy removal) — RECOMMENDED FOR CNN
-uv run python python/train.py --model cnn1d --data-path data/cleaned/eit_cleaned.mat
-
 # PCA-reduced dataset (7 components) — suitable for shallow models
 uv run python python/train.py --model svm --data-path data/cleaned/eit_cleaned_pca.mat
 uv run python python/train.py --model random_forest --data-path data/cleaned/eit_cleaned_pca.mat
@@ -259,14 +294,18 @@ uv run python python/train.py --model mlp --data-path data/cleaned/eit_cleaned_l
 cat data/cleaned/eda_decision_log.json
 ```
 
+> **Note**: Primary training now uses `data/eit_dataset.mat` directly.
+> The EDA notebook exports reduced variants only: `pca` (7 components),
+> `lda` (4 components), and `umap` (2 components for visualisation).
+
 **CNN vs. Non-CNN Models and Dataset Sizes**
 
 - **CNN (1D-Conv1D)**: Requires at least 8 features due to 3 pooling layers
-  - ✓ Works with: eit_cleaned.mat (22 features)
+  - ✓ Works with: eit_dataset.mat (208 features)
   - ✗ Too small: eit_cleaned_pca.mat (7), eit_cleaned_lda.mat (4)
 
 - **Non-CNN models** (SVM, Random Forest, MLP): Work with any dataset size
-  - ✓ All cleaned datasets work
+  - ✓ All reduced datasets work
   - Good for studying effect of dimensionality reduction
 
 **If using H5PY-compatible `.mat` files** (newer MATLAB versions):

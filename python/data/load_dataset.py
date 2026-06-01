@@ -28,9 +28,9 @@ def load_mat_dataset(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Load EIT dataset from MATLAB .mat file.
 
-    Supports both original dataset format and cleaned dataset format:
+    Supports both original dataset format and reduced-export format:
     - Original: dataset_X_clean/dataset_X_noisy, dataset_y, dataset_X (fallback)
-    - Cleaned: X_clean/X_noisy, y (from EDA notebook)
+    - Exported: X_clean/X_noisy, y (from EDA notebook reduced outputs)
 
     Args:
         data_path: Path to the .mat file.
@@ -57,7 +57,7 @@ def load_mat_dataset(
             # Fall back to generic dataset_X
             key = "dataset_X"
         if key not in mat:
-            # Fall back to cleaned dataset format (X_noisy/X_clean)
+            # Fall back to exported reduced format (X_noisy/X_clean)
             key = "X_noisy" if use_noisy else "X_clean"
 
         if key not in mat:
@@ -73,7 +73,7 @@ def load_mat_dataset(
         # Try original label format first (dataset_y)
         y_key = "dataset_y"
         if y_key not in mat:
-            # Fall back to cleaned dataset format (y)
+            # Fall back to exported reduced format (y)
             y_key = "y"
 
         if y_key not in mat:
@@ -83,8 +83,8 @@ def load_mat_dataset(
 
         y = np.array(mat[y_key], dtype=np.int64).ravel()
 
-    # Check if labels are already 0-indexed (cleaned dataset format)
-    # Original format is 1-indexed, cleaned is already 0-indexed
+    # Check if labels are already 0-indexed (exported reduced format)
+    # Original format is 1-indexed, exported format is already 0-indexed
     if y.min() >= 1:
         # Convert from 1-indexed (MATLAB) to 0-indexed (PyTorch) labels
         y = y - 1

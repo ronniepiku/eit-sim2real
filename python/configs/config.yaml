@@ -3,7 +3,7 @@
 
 # Dataset
 data:
-  path: "data/cleaned/eit_cleaned.mat"
+  path: "data/eit_dataset.mat"
   use_noisy: true
   test_size: 0.15
   val_size: 0.15
@@ -16,15 +16,30 @@ cnn:
   fc_dim: 128
   dropout: 0.3
 
-# Training
+# Training (default — used for clean-trained models)
 training:
-  epochs: 100
+  epochs: 200
   batch_size: 64
   learning_rate: 0.001
   weight_decay: 0.0001
   scheduler_patience: 10
   scheduler_factor: 0.5
-  early_stopping_patience: 20
+  early_stopping_patience: 40
+  label_smoothing: 0.0
+
+# Training overrides for noisy/augmented conditions
+# These stronger regularisation settings reduce overfitting to noise statistics
+training_noisy:
+  weight_decay: 0.001
+  dropout: 0.4
+  label_smoothing: 0.05
+
+# Training overrides for mixed clean+noisy regime
+training_mixed:
+  weight_decay: 0.001
+  dropout: 0.4
+  label_smoothing: 0.05
+  clean_ratio: 0.3  # 30% clean, 70% noise-augmented per batch
 
 # Baselines
 baselines:
@@ -47,9 +62,9 @@ evaluation:
   severity_multipliers: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
 
 # Online noise augmentation (Python-side)
-# Used by train.py and ablation.py for on-the-fly noise injection
+# Used by train.py, run_all_experiments.py, and ablation.py
 noise_augmentation:
-  enabled: false  # Set true to apply noise during training
+  enabled: true
   snr_db: 40.0
   noise_floor: 1.0e-4
   contact_impedance_std_percent: 10.0
@@ -58,7 +73,7 @@ noise_augmentation:
   voltage_range: 1.0
   n_electrodes: 16
   # Multi-severity: sample severity from this range each batch
-  # Set null to use fixed severity of 1.0
+  # Prevents the model from memorising one specific noise level
   severity_range: [0.5, 2.0]
 
 # Architecture sweep (for methodology validation)
