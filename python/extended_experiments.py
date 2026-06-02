@@ -35,16 +35,9 @@ from models.cnn1d import EITConv1D
 from sklearn.manifold import TSNE
 from sklearn.metrics import accuracy_score, f1_score
 from train import train_cnn, train_cnn_mixed
+from utils import CLASS_NAMES, get_device, predict_cnn
 
 logger = logging.getLogger(__name__)
-
-CLASS_NAMES = [
-    "No contact",
-    "Light touch",
-    "Firm press",
-    "Point contact",
-    "Distributed contact",
-]
 
 NOISE_COMPONENTS = ["gaussian", "contact_impedance", "electrode_bias", "quantisation"]
 COMPONENT_LABELS = {
@@ -56,7 +49,7 @@ COMPONENT_LABELS = {
 
 
 def _get_device() -> str:
-    return "cuda" if torch.cuda.is_available() else "cpu"
+    return get_device()
 
 
 def _predict_cnn(
@@ -64,10 +57,7 @@ def _predict_cnn(
 ) -> np.ndarray:
     if device is None:
         device = _get_device()
-    model.to(device).eval()
-    X_t = torch.from_numpy(X).float().to(device)
-    with torch.no_grad():
-        return model(X_t).argmax(dim=1).cpu().numpy()
+    return predict_cnn(model, X, device)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -138,8 +128,6 @@ def run_statistical_tests(
                     epochs=epochs,
                     early_stopping_patience=early_stopping_patience,
                     device=device,
-                    noise_config=noise_cfg,
-                    severity_range=(0.5, 2.0),
                     weight_decay=1e-3,
                     dropout=0.4,
                     label_smoothing=0.05,
@@ -675,7 +663,7 @@ def run_tsne_visualisation(
     # Fit t-SNE on combined data for consistent embedding
     X_combined = np.vstack([X_clean_sub, X_noisy_sub])
     logger.info(f"  Running t-SNE on {X_combined.shape[0]} samples...")
-    tsne = TSNE(n_components=2, perplexity=30, random_state=seed, n_iter=1000)
+    tsne = TSNE(n_components=2, perplexity=30, random_state=seed, max_iter=1000)
     X_2d = tsne.fit_transform(X_combined)
 
     X_clean_2d = X_2d[:n]
@@ -766,7 +754,9 @@ def run_tsne_visualisation(
         X_comp = apply_noise_batch_vectorised(X_clean_sub, cfg, rng=rng_noise)
 
         X_comp_combined = np.vstack([X_clean_sub, X_comp])
-        tsne_comp = TSNE(n_components=2, perplexity=30, random_state=seed, n_iter=1000)
+        tsne_comp = TSNE(
+            n_components=2, perplexity=30, random_state=seed, max_iter=1000
+        )
         X_comp_2d = tsne_comp.fit_transform(X_comp_combined)
 
         X_c2d = X_comp_2d[:n]

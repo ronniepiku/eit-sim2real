@@ -19,6 +19,7 @@ from configs.loader import load_config
 from data.load_dataset import load_mat_dataset, prepare_splits
 from models.cnn1d import EITConv1D
 from torch.utils.data import DataLoader, TensorDataset
+from utils import get_device, set_seeds
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +42,9 @@ def train_and_evaluate(
     seed: int = 42,
 ) -> dict[str, float]:
     """Train a CNN with specified depth and return metrics."""
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+    set_seeds(seed)
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = get_device()
     channels = build_channel_list(n_blocks)
     n_features = X_train.shape[1]
 
@@ -151,8 +151,7 @@ def main() -> None:
     cfg = load_config()
     data_path = args.data_path or Path(cfg["data"]["path"])
 
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
+    set_seeds(args.seed)
 
     # Load and split data
     X, y = load_mat_dataset(data_path, use_noisy=True)

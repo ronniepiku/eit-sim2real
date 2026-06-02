@@ -61,6 +61,8 @@ from sklearn.metrics import (
     recall_score,
 )
 from train import train_cnn, train_cnn_mixed
+from utils import CLASS_NAMES, get_device
+from utils import predict_cnn as _predict_cnn_util
 
 logger = logging.getLogger(__name__)
 
@@ -91,14 +93,6 @@ CNN_EXTENDED_CONDITIONS = [
     ("mixed_train_clean_eval", "mixed", "clean"),
 ]
 
-CLASS_NAMES = [
-    "No contact",
-    "Light touch",
-    "Firm press",
-    "Point contact",
-    "Distributed contact",
-]
-
 # Training hyperparameters for noisy/augmented/mixed conditions
 NOISY_CNN_PARAMS = {
     "weight_decay": 1e-3,
@@ -122,12 +116,8 @@ DEFAULT_SEVERITY_RANGE = (0.5, 2.0)
 def predict_cnn(model: EITConv1D, X: np.ndarray, device: str = "auto") -> np.ndarray:
     """Get CNN predictions."""
     if device == "auto":
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device).eval()
-    X_tensor = torch.from_numpy(X).float().to(device)
-    with torch.no_grad():
-        logits = model(X_tensor)
-    return logits.argmax(dim=1).cpu().numpy()
+        device = get_device()
+    return _predict_cnn_util(model, X, device)
 
 
 def _get_noise_config() -> NoiseConfig:
@@ -193,6 +183,10 @@ def run_experiments(
         total_experiments += n_base + n_ext
 
     logger.info(f"Total experiments to run: {total_experiments}")
+    logger.info(
+        "Validation logs are in-domain only (Val Acc uses each condition's val split); "
+        "cross-domain robustness is reported from held-out test metrics by condition."
+    )
     experiment_idx = 0
 
     for ds_name in datasets:
@@ -207,6 +201,12 @@ def run_experiments(
         # Load both clean and noisy versions
         X_clean, y = load_mat_dataset(ds_path, use_noisy=False)
         X_noisy, _ = load_mat_dataset(ds_path, use_noisy=True)
+        normalize_features = ds_name == "raw"
+        if not normalize_features:
+            logger.info(
+                "  Using pre-transformed features for reduced dataset; "
+                "skipping additional scaling."
+            )
         n_features = X_clean.shape[1]
         n_samples = X_clean.shape[0]
 
@@ -239,8 +239,12 @@ def run_experiments(
                     if torch.cuda.is_available():
                         torch.cuda.manual_seed_all(seed)
 
-                    ds_clean = prepare_splits(X_clean, y, random_state=seed)
-                    ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
+                    ds_clean = prepare_splits(
+                        X_clean, y, random_state=seed, normalize=normalize_features
+                    )
+                    ds_noisy = prepare_splits(
+                        X_noisy, y, random_state=seed, normalize=normalize_features
+                    )
 
                     splits = {"clean": ds_clean, "noisy": ds_noisy}
                     train_ds = splits[train_key]
@@ -248,9 +252,9 @@ def run_experiments(
 
                     start_time = time.time()
                     if model_name == "cnn1d":
-                        # Use stronger regularisation for noisy training
+                        # Noisy base condition should train on the fixed noisy dataset only.
+                        # Keep augmentation for explicit augmented/mixed conditions.
                         if train_key == "noisy":
-                            noise_cfg = _get_noise_config()
                             model, history = train_cnn(
                                 train_ds.X_train,
                                 train_ds.y_train,
@@ -258,8 +262,6 @@ def run_experiments(
                                 train_ds.y_val,
                                 epochs=epochs,
                                 early_stopping_patience=early_stopping_patience,
-                                noise_config=noise_cfg,
-                                severity_range=DEFAULT_SEVERITY_RANGE,
                                 weight_decay=NOISY_CNN_PARAMS["weight_decay"],
                                 dropout=NOISY_CNN_PARAMS["dropout"],
                                 label_smoothing=NOISY_CNN_PARAMS["label_smoothing"],
@@ -322,8 +324,12 @@ def run_experiments(
                     if torch.cuda.is_available():
                         torch.cuda.manual_seed_all(seed)
 
-                    ds_clean = prepare_splits(X_clean, y, random_state=seed)
-                    ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
+                    ds_clean = prepare_splits(
+                        X_clean, y, random_state=seed, normalize=normalize_features
+                    )
+                    ds_noisy = prepare_splits(
+                        X_noisy, y, random_state=seed, normalize=normalize_features
+                    )
 
                     eval_ds = ds_noisy if eval_key == "noisy" else ds_clean
                     noise_cfg = _get_noise_config()
@@ -473,14 +479,19 @@ def _generate_all_figures(
 
         X_clean, y = load_mat_dataset(ds_path, use_noisy=False)
         X_noisy, _ = load_mat_dataset(ds_path, use_noisy=True)
+        normalize_features = ds_name == "raw"
         n_features = X_clean.shape[1]
 
         models_for_ds = [
             m for m in ALL_MODELS if m != "cnn1d" or n_features >= CNN_MIN_FEATURES
         ]
 
-        ds_clean = prepare_splits(X_clean, y, random_state=seed)
-        ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
+        ds_clean = prepare_splits(
+            X_clean, y, random_state=seed, normalize=normalize_features
+        )
+        ds_noisy = prepare_splits(
+            X_noisy, y, random_state=seed, normalize=normalize_features
+        )
 
         for model_name in models_for_ds:
             conditions_for_model = (
@@ -534,8 +545,6 @@ def _generate_all_figures(
                             ds_noisy.y_val,
                             epochs=epochs,
                             early_stopping_patience=early_stopping_patience,
-                            noise_config=noise_cfg,
-                            severity_range=DEFAULT_SEVERITY_RANGE,
                             weight_decay=NOISY_CNN_PARAMS["weight_decay"],
                             dropout=NOISY_CNN_PARAMS["dropout"],
                             label_smoothing=NOISY_CNN_PARAMS["label_smoothing"],
@@ -1079,8 +1088,6 @@ def _run_severity_sweeps(
             ds_noisy.y_val,
             epochs=epochs,
             early_stopping_patience=early_stopping_patience,
-            noise_config=noise_cfg,
-            severity_range=DEFAULT_SEVERITY_RANGE,
             **NOISY_CNN_PARAMS,
         ),
         "augmented": lambda: train_cnn(

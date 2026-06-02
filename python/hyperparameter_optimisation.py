@@ -37,6 +37,7 @@ from sklearn.metrics import f1_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import RobustScaler
 from torch.utils.data import DataLoader, TensorDataset
+from utils import count_parameters, get_device, set_seeds
 
 logger = logging.getLogger(__name__)
 
@@ -117,24 +118,17 @@ def harmonic_mean(a: float, b: float) -> float:
 
 def _get_device() -> torch.device:
     """Select the best available device."""
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    return torch.device("cpu")
+    return torch.device(get_device())
 
 
 def _set_seeds(seed: int) -> None:
     """Set all random seeds for reproducibility."""
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
+    set_seeds(seed)
 
 
 def _count_parameters(model: nn.Module) -> int:
     """Count trainable parameters."""
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    return count_parameters(model)
 
 
 def train_fold(

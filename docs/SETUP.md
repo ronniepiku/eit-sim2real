@@ -33,6 +33,7 @@ uv sync
 ```
 
 This installs all runtime and development dependencies specified in `pyproject.toml`:
+
 - **Runtime**: torch, numpy, scipy, scikit-learn, pandas, matplotlib, seaborn, pyyaml, joblib, h5py, umap-learn
 - **Dev**: pytest, ruff, mypy, jupyter, ipykernel, types-PyYAML
 
@@ -50,7 +51,7 @@ PyTorch wheels installed by `uv sync` will work.
 ### Verify Python Installation
 
 ```bash
-# Run test suite (should pass all 42 tests)
+# Run test suite (should pass all 45 tests)
 uv run python -m pytest tests/ -v
 
 # Verify imports work
@@ -66,9 +67,11 @@ EIDORS v3.12-ng is included in this repository under `matlab/eidors-v3.12-ng/`.
 No separate download is required.
 
 If you need a fresh installation:
-1. Download from: http://eidors3d.sourceforge.net/download.shtml
+
+1. Download from: <http://eidors3d.sourceforge.net/download.shtml>
 2. Extract to `matlab/eidors-v3.12-ng/`
 3. Verify the directory structure:
+
    ```
    matlab/eidors-v3.12-ng/
    ├── eidors/
@@ -104,6 +107,7 @@ main    % Generates 25,000 samples (5,000/class) → data/eit_dataset.mat
 ```
 
 **Expected output**: `data/eit_dataset.mat` containing:
+
 - `dataset_X_clean` — (25000 × 208) clean voltage difference vectors
 - `dataset_X_noisy` — (25000 × 208) noise-corrupted vectors
 - `dataset_y` — (25000 × 1) class labels (1-indexed)
@@ -170,6 +174,7 @@ uv run python python/run_all_experiments.py --epochs 300 --early-stopping-patien
 | `mixed_train_clean_eval` | Mixed clean+noisy batches | Clean | Dual-domain performance |
 
 **Key features of the updated pipeline:**
+
 - **Multi-severity noise augmentation**: Severity sampled uniformly from [0.5, 2.0]
   each batch, preventing noise-level memorisation
 - **Mixed clean+noisy training**: 30% clean / 70% noise-augmented per batch,
@@ -180,6 +185,7 @@ uv run python python/run_all_experiments.py --epochs 300 --early-stopping-patien
   severity levels [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0] to assess generalisation
 
 **Outputs:**
+
 - `results/reports/experiment_report.md` — Full Markdown report with analysis
 - `results/reports/all_results.csv` — Consolidated results table
 - `results/reports/all_results.json` — Machine-readable results
@@ -197,8 +203,8 @@ For targeted runs or debugging:
 uv run python python/train.py --model cnn1d                # noisy training
 uv run python python/train.py --model cnn1d --no-noise     # clean training
 
-# Train all baselines under 4 conditions
-uv run python python/run_baselines.py
+# Train all models under all conditions
+uv run python python/run_all_experiments.py
 
 # Evaluate with robustness + severity sweep
 uv run python python/evaluate.py \
@@ -228,8 +234,8 @@ via the `--data-path` CLI argument. This allows you to:
 # Train CNN on custom dataset
 uv run python python/train.py --model cnn1d --data-path /path/to/custom_dataset.mat
 
-# Run all baselines on custom dataset
-uv run python python/run_baselines.py --data-path /path/to/custom_dataset.mat
+# Run all experiments on custom dataset
+uv run python python/run_all_experiments.py --data-path /path/to/custom_dataset.mat
 
 # Validate custom dataset
 uv run python python/validate_dataset.py --data-path /path/to/custom_dataset.mat
@@ -341,16 +347,20 @@ during training. When `enabled: true`, clean data is augmented on-the-fly with t
 ## Troubleshooting
 
 ### EIDORS `startup.m` not found
+
 Ensure `setup_eidors.m` is on the MATLAB path and that `matlab/eidors-v3.12-ng/eidors/`
 contains `startup.m`. Run from the `matlab/` directory.
 
 ### Netgen not found (3D models only)
+
 3D cylindrical models require Netgen. If unavailable, use the default 2D circle:
+
 ```matlab
 opts.geometry = '2d_circle';  % Default — does not require Netgen
 ```
 
 ### CUDA not detected by PyTorch
+
 - Verify: `uv run python -c "import torch; print(torch.cuda.is_available())"`
 - Ensure NVIDIA drivers and CUDA toolkit are installed
 - Training works on CPU (slower but functional)
@@ -362,11 +372,14 @@ supports CUDA 12.6; otherwise install a PyTorch wheel that matches your
 system CUDA or use the CPU-only wheel.
 
 ### Memory issues during dataset generation
+
 - 25,000 samples × 208 features × 8 bytes × 2 (clean + noisy) ≈ 84 MB — should fit in 8 GB RAM
 - If issues persist, reduce `samples_per_class` in `matlab/main.m`
 
 ### Import errors from Python scripts
+
 All scripts must be run from the project root or from `python/`:
+
 ```bash
 # From project root:
 uv run python python/train.py --model cnn1d

@@ -5,6 +5,7 @@ Project investigating whether physically-motivated noise modelling during traini
 ## Overview
 
 This project:
+
 1. Simulates EIT boundary voltage measurements using EIDORS (FEM forward solver)
 2. Models an ionic hydrogel substrate with positive piezoresistive response (conductivity decreases under pressure)
 3. Applies a configurable 4-component physically-motivated noise model
@@ -45,12 +46,14 @@ All contact classes satisfy σ < σ₀, consistent with the positive piezoresist
 │   └── utils/
 │       └── get_element_centers.m
 ├── python/                          # ML training & evaluation pipeline
+│   ├── utils.py                     # Shared utilities (device, seeds, predict helpers)
 │   ├── train.py                     # Model training (CNN + baselines) with online noise augmentation
 │   ├── evaluate.py                  # Evaluation, robustness & severity sweep (Python noise model)
 │   ├── ablation.py                  # Ablation study (Python-side noise, no MATLAB dependency)
-│   ├── run_baselines.py             # All baselines × 4 conditions
+│   ├── run_all_experiments.py       # Master experiment runner (all models × datasets × conditions)
 │   ├── statistical_tests.py         # 5-fold CV, paired t-tests, Cohen's d
 │   ├── architecture_sweep.py        # CNN depth selection validation
+│   ├── hyperparameter_optimisation.py # Grid search for CNN hyperparameters
 │   ├── log_environment.py           # Hardware/package version logging
 │   ├── validate_dataset.py          # Dataset integrity & EDA report
 │   ├── visualisation.py             # Publication-quality plotting
@@ -67,7 +70,7 @@ All contact classes satisfy σ < σ₀, consistent with the positive piezoresist
 │   ├── main.tex
 │   ├── references.bib
 │   └── chapters/
-├── tests/                           # Unit tests (42 tests)
+├── tests/                           # Unit tests (45 tests)
 │   ├── test_baselines.py
 │   ├── test_cnn1d.py
 │   ├── test_config.py
@@ -92,8 +95,8 @@ All contact classes satisfy σ < σ₀, consistent with the positive piezoresist
 - MATLAB R2019b+ with EIDORS v3.12-ng
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) package manager
- - (Optional, for GPU acceleration) NVIDIA GPU with CUDA 12.6 and matching drivers
-   - If you plan to use an NVIDIA GPU, install CUDA 12.6 — the project is
+- (Optional, for GPU acceleration) NVIDIA GPU with CUDA 12.6 and matching drivers
+  - If you plan to use an NVIDIA GPU, install CUDA 12.6 — the project is
      tested with PyTorch cu126 wheels. Install a matching `torch` build using
      the PyTorch index for `cu126` (see `docs/SETUP.md`).
 
@@ -133,7 +136,7 @@ uv run python python/train.py \
   --figures-dir results/figures
 
 # Train all baselines under all 4 conditions
-uv run python python/run_baselines.py
+uv run python python/run_all_experiments.py
 ```
 
 #### Using Custom Datasets
@@ -150,7 +153,7 @@ uv run python python/evaluate.py \
   --data-path /path/to/custom_data.mat
 
 # Run baselines on custom dataset
-uv run python python/run_baselines.py --data-path /path/to/custom_data.mat
+uv run python python/run_all_experiments.py --data-path /path/to/custom_data.mat
 
 # Run statistical tests on custom dataset
 uv run python python/statistical_tests.py --model cnn1d --data-path /path/to/custom_data.mat
@@ -161,21 +164,18 @@ uv run python python/statistical_tests.py --model cnn1d --data-path /path/to/cus
 The EDA notebook produces cleaned datasets with duplicate removal, redundant feature removal, and optional dimensionality reduction:
 
 ```bash
-# Full cleaned dataset (22 features after redundancy removal) — recommended for CNN
-uv run python python/train.py --model cnn1d --data-path data/cleaned/eit_cleaned.mat
-
 # PCA-reduced (7 components) — use with shallow models
 uv run python python/train.py --model random_forest --data-path data/cleaned/eit_cleaned_pca.mat
 
 # LDA-reduced (4 components, supervised) — use with shallow models
 uv run python python/train.py --model svm --data-path data/cleaned/eit_cleaned_lda.mat
 
-# UMAP-reduced (7 components, unsupervised) — use with shallow models
+# UMAP-reduced (2 components, unsupervised) — visualisation-focused
 uv run python python/train.py --model random_forest --data-path data/cleaned/eit_cleaned_umap.mat
 ```
 
 **Note on model compatibility**: The CNN requires ≥8 features for its pooling layers.
-Use only `eit_cleaned.mat` (22 features) for CNN training. Use non-CNN models (SVM/RF/MLP) for dimensionality-reduced datasets.
+In this repository, use `data/eit_dataset.mat` (208 features) for CNN experiments. Use non-CNN models (SVM/RF/MLP) for dimensionality-reduced datasets.
 
 See [`docs/SETUP.md`](docs/SETUP.md#using-custom-datasets) for dataset format requirements.
 
@@ -227,6 +227,7 @@ Models are evaluated under a 2×2 condition matrix:
 | **Train on Noisy**   | Generalisation    | Robustness        |
 
 Additionally:
+
 - **Severity sweep**: noise multipliers {0.0×, 0.5×, 1.0×, 1.5×, 2.0×, 2.5×, 3.0×} using Python noise model
 - **Statistical testing**: 5-fold stratified CV, paired t-tests with Bonferroni correction, Cohen's d effect sizes
 - **Ablation**: single-component (4 exps) + leave-one-out (4 exps) via Python-side noise injection
@@ -245,6 +246,7 @@ Four physically-motivated components applied sequentially:
 The noise model is implemented in both MATLAB (`matlab/noise_model/add_noise.m`) for dataset
 generation and Python (`python/data/noise.py`) for on-the-fly training augmentation. The Python
 implementation supports:
+
 - Per-component toggling for ablation studies
 - Severity scaling (all parameters scaled by a single multiplier)
 - Multi-severity domain randomisation (severity sampled per-batch from a configurable range)
@@ -257,14 +259,11 @@ See [`docs/NOISE_MODEL.md`](docs/NOISE_MODEL.md) for detailed derivations.
 |--------|---------|---------|
 | `train.py` | Train any model | `uv run python python/train.py --model cnn1d` |
 | `evaluate.py` | Evaluate + robustness | `uv run python python/evaluate.py --model-path X --robustness` |
-| `run_baselines.py` | All baselines × 4 conditions | `uv run python python/run_baselines.py` |
+| `run_all_experiments.py` | All models × datasets × conditions | `uv run python python/run_all_experiments.py` |
 | `ablation.py` | Noise component ablation | `uv run python python/ablation.py --model cnn1d` |
 | `statistical_tests.py` | 5-fold CV + significance | `uv run python python/statistical_tests.py --model rf` |
 | `architecture_sweep.py` | CNN depth validation | `uv run python python/architecture_sweep.py` |
-| `validate_dataset.py` | Dataset integrity report | `uv run python python/validate_dataset.py` |
-| `log_environment.py` | Reproducibility logging | `uv run python python/log_environment.py` |
-| `visualisation.py` | Plotting utilities (library) | `from python.visualisation import plot_confusion_matrix` |
-
+| `hyperparameter_optimisation.py` | Grid search for CNN | `uv run python python/hyperparameter_optimisation.py` |
 **All scripts support `--data-path <path>` to load custom datasets.**
 
 ## Output Layout
@@ -288,7 +287,7 @@ Examples:
 - Python noise model mirrors MATLAB implementation for consistency
 - Train/val/test split: 70/15/15 (stratified)
 - Environment logged via `log_environment.py` → `results/environment.json`
-- CNN training uses early stopping (patience=20) and LR scheduling (patience=10)
+- CNN training uses early stopping (patience=40) and LR scheduling (patience=10)
 - Ablation study uses Python-side noise (fresh realisation each epoch for CNN)
 - All dependencies (including PyTorch) declared in `pyproject.toml`
 - Logging configured only at CLI entry points (modules use `logging.getLogger(__name__)`)
@@ -299,7 +298,8 @@ Examples:
 uv run pytest tests/ -v
 ```
 
-All 42 tests cover:
+All 45 tests cover:
+
 - **CNN architecture** (`test_cnn1d.py`): output shapes, adaptive pooling, gradient flow
 - **Baseline models** (`test_baselines.py`): creation, training, prediction
 - **Data pipeline** (`test_data.py`): splitting, stratification, normalisation, CV folds

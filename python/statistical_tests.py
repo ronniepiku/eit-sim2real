@@ -24,7 +24,7 @@ from configs.loader import load_config
 from data.load_dataset import get_cv_splits, load_mat_dataset
 from models.baselines import get_baseline, train_baseline
 from sklearn.metrics import accuracy_score, f1_score
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler, StandardScaler
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,7 @@ def run_cv_experiment(
     model_name: str,
     n_folds: int = 5,
     seed: int = 42,
+    scaler_type: str = "robust",
 ) -> dict[str, np.ndarray]:
     """Run k-fold CV on training data, evaluate on held-out test set.
 
@@ -70,7 +71,7 @@ def run_cv_experiment(
         y_tr = y_train_full[train_idx]
 
         # Normalise per fold
-        scaler = StandardScaler()
+        scaler = RobustScaler() if scaler_type == "robust" else StandardScaler()
         X_tr = scaler.fit_transform(X_tr)
         X_te = scaler.transform(X_test)
 
@@ -139,6 +140,7 @@ def main() -> None:
 
     cfg = load_config()
     data_path = args.data_path or Path(cfg["data"]["path"])
+    scaler_type = cfg.get("data", {}).get("scaler", "robust")
     n_folds = args.n_folds
 
     np.random.seed(args.seed)
@@ -179,6 +181,7 @@ def main() -> None:
             model_name=args.model,
             n_folds=n_folds,
             seed=args.seed,
+            scaler_type=scaler_type,
         )
         all_results[cond_name] = {
             "accuracy_mean": float(np.mean(results["accuracies"])),

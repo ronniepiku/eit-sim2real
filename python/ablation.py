@@ -44,6 +44,7 @@ from models.baselines import get_baseline, train_baseline
 from models.cnn1d import EITConv1D
 from sklearn.metrics import accuracy_score, f1_score
 from train import train_cnn
+from utils import get_device, predict_cnn
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ SEVERITY_LEVELS = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
 
 def _get_device() -> str:
     """Return the best available device."""
-    return "cuda" if torch.cuda.is_available() else "cpu"
+    return get_device()
 
 
 @dataclass
@@ -247,10 +248,7 @@ def _predict_cnn(
     """Get CNN predictions on GPU."""
     if device is None:
         device = _get_device()
-    model.to(device).eval()
-    X_tensor = torch.from_numpy(X).float().to(device)
-    with torch.no_grad():
-        return model(X_tensor).argmax(dim=1).cpu().numpy()
+    return predict_cnn(model, X, device)
 
 
 # ── Figure generation ─────────────────────────────────────────────────
