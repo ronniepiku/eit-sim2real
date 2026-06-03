@@ -46,7 +46,6 @@ import numpy as np
 import pandas as pd
 import torch
 from ablation import generate_ablation_report, run_ablation
-from configs.loader import load_config
 from data.load_dataset import load_mat_dataset, prepare_splits
 from data.noise import NoiseConfig, apply_noise_batch_vectorised
 from extended_experiments import run_all_extended_experiments
@@ -54,14 +53,12 @@ from models.baselines import get_baseline, train_baseline
 from models.cnn1d import EITConv1D
 from sklearn.metrics import (
     accuracy_score,
-    classification_report,
-    confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
 )
 from train import train_cnn, train_cnn_mixed
-from utils import CLASS_NAMES, get_device
+from utils import get_device, rescale_cross_condition
 from utils import predict_cnn as _predict_cnn_util
 
 logger = logging.getLogger(__name__)
@@ -250,6 +247,14 @@ def run_experiments(
                     train_ds = splits[train_key]
                     eval_ds = splits[eval_key]
 
+                    # Cross-condition: rescale eval test data into training feature space
+                    if eval_key != train_key and normalize_features:
+                        X_test_eval = rescale_cross_condition(
+                            eval_ds.X_test, eval_ds.scaler, train_ds.scaler
+                        )
+                    else:
+                        X_test_eval = eval_ds.X_test
+
                     start_time = time.time()
                     if model_name == "cnn1d":
                         # Noisy base condition should train on the fixed noisy dataset only.
@@ -275,14 +280,14 @@ def run_experiments(
                                 epochs=epochs,
                                 early_stopping_patience=early_stopping_patience,
                             )
-                        y_pred = predict_cnn(model, eval_ds.X_test)
+                        y_pred = predict_cnn(model, X_test_eval)
                         stopped_epoch = len(history["train_loss"])
                     else:
                         model = get_baseline(model_name, random_state=seed)
                         model = train_baseline(
                             model, train_ds.X_train, train_ds.y_train
                         )
-                        y_pred = model.predict(eval_ds.X_test)
+                        y_pred = model.predict(X_test_eval)
                         stopped_epoch = None
 
                     train_time = time.time() - start_time
@@ -331,7 +336,13 @@ def run_experiments(
                         X_noisy, y, random_state=seed, normalize=normalize_features
                     )
 
-                    eval_ds = ds_noisy if eval_key == "noisy" else ds_clean
+                    # Augmented/mixed always train in clean-scaler space
+                    if eval_key == "noisy" and normalize_features:
+                        X_test_eval = rescale_cross_condition(
+                            ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+                        )
+                    else:
+                        X_test_eval = ds_clean.X_test
                     noise_cfg = _get_noise_config()
 
                     start_time = time.time()
@@ -368,11 +379,11 @@ def run_experiments(
                     else:
                         raise ValueError(f"Unknown train_key: {train_key}")
 
-                    y_pred = predict_cnn(model, eval_ds.X_test)
+                    y_pred = predict_cnn(model, X_test_eval)
                     stopped_epoch = len(history["train_loss"])
                     train_time = time.time() - start_time
 
-                    metrics = evaluate_predictions(eval_ds.y_test, y_pred)
+                    metrics = evaluate_predictions(ds_clean.y_test, y_pred)
                     metrics["train_time_s"] = train_time
                     metrics["stopped_epoch"] = stopped_epoch
 
@@ -502,7 +513,36 @@ def _generate_all_figures(
                 fig_output = figures_dir / ds_name / model_name / condition_name
                 fig_output.mkdir(parents=True, exist_ok=True)
 
-                eval_ds = ds_noisy if eval_key == "noisy" else ds_clean
+                # Determine correctly-scaled eval test data
+                if eval_key == "noisy":
+                    eval_ds = ds_noisy
+                else:
+                    eval_ds = ds_clean
+
+                # Determine the training scaler space
+                if train_key in ("clean", "augmented", "mixed"):
+                    train_ds_for_scaler = ds_clean
+                else:  # noisy
+                    train_ds_for_scaler = ds_noisy
+
+                if (
+                    eval_key != train_key
+                    and normalize_features
+                    and train_key not in ("augmented", "mixed")
+                ):
+                    X_test_eval = rescale_cross_condition(
+                        eval_ds.X_test, eval_ds.scaler, train_ds_for_scaler.scaler
+                    )
+                elif (
+                    train_key in ("augmented", "mixed")
+                    and eval_key == "noisy"
+                    and normalize_features
+                ):
+                    X_test_eval = rescale_cross_condition(
+                        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+                    )
+                else:
+                    X_test_eval = eval_ds.X_test
 
                 np.random.seed(seed)
                 torch.manual_seed(seed)
@@ -559,13 +599,13 @@ def _generate_all_figures(
                             early_stopping_patience=early_stopping_patience,
                         )
 
-                    y_pred = predict_cnn(model, eval_ds.X_test)
+                    y_pred = predict_cnn(model, X_test_eval)
                     plot_training_curves(history, fig_output, condition_name)
                 else:
                     train_ds = ds_noisy if train_key == "noisy" else ds_clean
                     model = get_baseline(model_name, random_state=seed)
                     model = train_baseline(model, train_ds.X_train, train_ds.y_train)
-                    y_pred = model.predict(eval_ds.X_test)
+                    y_pred = model.predict(X_test_eval)
 
                 plot_confusion_matrix_and_save(
                     eval_ds.y_test,
@@ -1122,18 +1162,27 @@ def _run_severity_sweeps(
 
         model, _ = train_fn()
 
+        # Determine base test data in the regime's native feature space.
+        # For noisy_fixed, model operates in noisy-scaler space;
+        # for augmented/mixed, model operates in clean-scaler space.
+        if regime_name == "noisy_fixed":
+            # Get raw clean test data and scale into noisy feature space
+            base_test = rescale_cross_condition(
+                ds_clean.X_test, ds_clean.scaler, ds_noisy.scaler
+            )
+        else:
+            base_test = ds_clean.X_test
+
         # Evaluate at each severity level
         accuracies = []
         f1_scores = []
         for mult in severity_multipliers:
             if mult == 0.0:
-                X_test = ds_clean.X_test
+                X_test = base_test
             else:
                 sweep_cfg = NoiseConfig(severity=mult)
                 rng = np.random.default_rng(seed)
-                X_test = apply_noise_batch_vectorised(
-                    ds_clean.X_test, sweep_cfg, rng=rng
-                )
+                X_test = apply_noise_batch_vectorised(base_test, sweep_cfg, rng=rng)
 
             y_pred = predict_cnn(model, X_test)
             acc = float(accuracy_score(ds_clean.y_test, y_pred))

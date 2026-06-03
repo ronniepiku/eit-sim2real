@@ -17,7 +17,9 @@ CLASS_NAMES: list[str] = [
 def get_device() -> str:
     """Return the best available compute device."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Using device: {torch.cuda.get_device_name(0) if device == 'cuda' else 'CPU'}")
+    print(
+        f"Using device: {torch.cuda.get_device_name(0) if device == 'cuda' else 'CPU'}"
+    )
     return device
 
 
@@ -83,6 +85,29 @@ def predict_cnn_with_probs(
             all_probs.append(torch.softmax(logits, dim=1).cpu().numpy())
 
     return np.concatenate(all_preds), np.concatenate(all_probs)
+
+
+def rescale_cross_condition(
+    X_scaled: np.ndarray,
+    source_scaler,
+    target_scaler,
+) -> np.ndarray:
+    """Re-scale data from one scaler's feature space into another's.
+
+    When evaluating a model trained in target_scaler's space on data that
+    was originally scaled by source_scaler, this inverts source_scaler and
+    re-applies target_scaler so the features are in the correct space.
+
+    Args:
+        X_scaled: Data in source_scaler's feature space.
+        source_scaler: The scaler that was used to produce X_scaled.
+        target_scaler: The scaler for the model's training space.
+
+    Returns:
+        Data transformed into target_scaler's feature space.
+    """
+    X_raw = source_scaler.inverse_transform(X_scaled)
+    return target_scaler.transform(X_raw)
 
 
 def count_parameters(model: torch.nn.Module) -> int:

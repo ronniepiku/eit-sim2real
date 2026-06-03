@@ -7,24 +7,26 @@ All models follow a consistent interface for fair comparison.
 from typing import Any
 
 import numpy as np
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
 
-def create_svm(random_state: int = 42) -> SVC:
+def create_svm(random_state: int = 42) -> CalibratedClassifierCV:
     """Create an SVM classifier with RBF kernel.
 
     Hyperparameters chosen based on typical EIT classification literature.
+    Uses CalibratedClassifierCV to provide predict_proba support.
     """
-    return SVC(
+    svc = SVC(
         kernel="rbf",
         C=10.0,
         gamma="scale",
         decision_function_shape="ovr",
         random_state=random_state,
-        probability=True,
     )
+    return CalibratedClassifierCV(svc, ensemble=False)
 
 
 def create_random_forest(random_state: int = 42) -> RandomForestClassifier:

@@ -27,15 +27,14 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import torch
-from configs.loader import load_config
 from data.load_dataset import load_mat_dataset, prepare_splits
 from data.noise import NoiseConfig, apply_noise_batch_vectorised
 from models.baselines import get_baseline, train_baseline
 from models.cnn1d import EITConv1D
 from sklearn.manifold import TSNE
 from sklearn.metrics import accuracy_score, f1_score
-from train import train_cnn, train_cnn_mixed
-from utils import CLASS_NAMES, get_device, predict_cnn
+from train import train_cnn
+from utils import CLASS_NAMES, get_device, predict_cnn, rescale_cross_condition
 
 logger = logging.getLogger(__name__)
 
@@ -149,9 +148,27 @@ def run_statistical_tests(
                 )
 
             if eval_key == "clean":
-                X_te, y_te = ds_clean.X_test, ds_clean.y_test
+                if train_key == "noisy":
+                    # Model trained in noisy-scaler space, eval on clean data
+                    X_te = rescale_cross_condition(
+                        ds_clean.X_test, ds_clean.scaler, ds_noisy.scaler
+                    )
+                else:
+                    X_te = ds_clean.X_test
+                y_te = ds_clean.y_test
             else:
-                X_te, y_te = ds_noisy.X_test, ds_noisy.y_test
+                # eval_key == "noisy": rescale into training feature space
+                if train_key in ("clean", "augmented"):
+                    # Model trained in clean-scaler space
+                    X_te = rescale_cross_condition(
+                        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+                    )
+                elif train_key == "noisy":
+                    # Model trained in noisy-scaler space (same space)
+                    X_te = ds_noisy.X_test
+                else:
+                    X_te = ds_noisy.X_test
+                y_te = ds_noisy.y_test
 
             y_pred = _predict_cnn(model, X_te, device)
             condition_scores[cond_name].append(float(accuracy_score(y_te, y_pred)))
@@ -279,6 +296,11 @@ def run_dataset_size_experiment(
     ds_clean = prepare_splits(X_clean, y, random_state=seed)
     ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
 
+    # Noisy test data rescaled into clean-scaler space for cross-condition eval
+    X_noisy_test_in_clean_space = rescale_cross_condition(
+        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+    )
+
     results = {"fractions": fractions, "clean": [], "augmented": []}
 
     for frac in fractions:
@@ -299,8 +321,6 @@ def run_dataset_size_experiment(
 
         X_sub = ds_clean.X_train[indices]
         y_sub = ds_clean.y_train[indices]
-        X_noisy_sub = ds_noisy.X_train[indices]
-        y_noisy_sub = ds_noisy.y_train[indices]
 
         logger.info(f"  Fraction {frac:.0%}: {len(indices)} samples")
 
@@ -315,7 +335,7 @@ def run_dataset_size_experiment(
             early_stopping_patience=early_stopping_patience,
             device=device,
         )
-        y_pred_clean = _predict_cnn(model_clean, ds_noisy.X_test, device)
+        y_pred_clean = _predict_cnn(model_clean, X_noisy_test_in_clean_space, device)
         acc_clean = float(accuracy_score(ds_noisy.y_test, y_pred_clean))
         f1_clean = float(f1_score(ds_noisy.y_test, y_pred_clean, average="macro"))
 
@@ -335,7 +355,7 @@ def run_dataset_size_experiment(
             dropout=0.4,
             label_smoothing=0.05,
         )
-        y_pred_aug = _predict_cnn(model_aug, ds_noisy.X_test, device)
+        y_pred_aug = _predict_cnn(model_aug, X_noisy_test_in_clean_space, device)
         acc_aug = float(accuracy_score(ds_noisy.y_test, y_pred_aug))
         f1_aug = float(f1_score(ds_noisy.y_test, y_pred_aug, average="macro"))
 
@@ -446,6 +466,11 @@ def run_ensemble_experiment(
     ds_clean = prepare_splits(X_clean, y, random_state=seed)
     ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
 
+    # Noisy test data rescaled into clean-scaler space for CNN evaluation
+    X_noisy_test_clean_space = rescale_cross_condition(
+        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+    )
+
     results = {}
 
     # ── Individual model baselines ──
@@ -467,7 +492,7 @@ def run_ensemble_experiment(
         dropout=0.4,
         label_smoothing=0.05,
     )
-    pred_cnn = _predict_cnn(cnn_aug, ds_noisy.X_test, device)
+    pred_cnn = _predict_cnn(cnn_aug, X_noisy_test_clean_space, device)
 
     # Random Forest
     rf = get_baseline("random_forest", random_state=seed)
@@ -538,7 +563,7 @@ def run_ensemble_experiment(
             dropout=0.4,
             label_smoothing=0.05,
         )
-        multi_cnn_preds.append(_predict_cnn(m, ds_noisy.X_test, device))
+        multi_cnn_preds.append(_predict_cnn(m, X_noisy_test_clean_space, device))
 
     multi_cnn_stack = np.stack(multi_cnn_preds, axis=0)
     ensemble_2_pred = sp_stats.mode(multi_cnn_stack, axis=0, keepdims=False).mode
@@ -559,7 +584,7 @@ def run_ensemble_experiment(
         early_stopping_patience=early_stopping_patience,
         device=device,
     )
-    pred_cnn_clean = _predict_cnn(cnn_clean, ds_noisy.X_test, device)
+    pred_cnn_clean = _predict_cnn(cnn_clean, X_noisy_test_clean_space, device)
 
     mixed_stack = np.stack([pred_cnn_clean, pred_cnn], axis=0)
     ensemble_3_pred = sp_stats.mode(mixed_stack, axis=0, keepdims=False).mode
@@ -1267,12 +1292,25 @@ def run_calibration_analysis(
             "overall_accuracy": float(accuracies_arr.mean()),
         }
 
+    # Noisy test data rescaled into clean-scaler space for CNN evaluation
+    X_noisy_test_clean_space = rescale_cross_condition(
+        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+    )
+
     # Compute calibration for each model × condition
     conditions = {
         "Clean CNN → Clean data": (cnn_clean, ds_clean.X_test, ds_clean.y_test),
-        "Clean CNN → Noisy data": (cnn_clean, ds_noisy.X_test, ds_noisy.y_test),
+        "Clean CNN → Noisy data": (
+            cnn_clean,
+            X_noisy_test_clean_space,
+            ds_noisy.y_test,
+        ),
         "Augmented CNN → Clean data": (cnn_aug, ds_clean.X_test, ds_clean.y_test),
-        "Augmented CNN → Noisy data": (cnn_aug, ds_noisy.X_test, ds_noisy.y_test),
+        "Augmented CNN → Noisy data": (
+            cnn_aug,
+            X_noisy_test_clean_space,
+            ds_noisy.y_test,
+        ),
     }
 
     results = {}
@@ -1942,6 +1980,11 @@ def run_hyperparameter_sensitivity(
     ds_clean = prepare_splits(X_clean, y, random_state=seed)
     ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
 
+    # Noisy test data rescaled into clean-scaler space for cross-condition eval
+    X_noisy_test_clean_space = rescale_cross_condition(
+        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+    )
+
     results = {}
 
     # Define sweeps: (param_name, values, default, label)
@@ -2008,7 +2051,7 @@ def run_hyperparameter_sensitivity(
                 **train_kwargs,
             )
 
-            y_pred_noisy = _predict_cnn(model, ds_noisy.X_test, device)
+            y_pred_noisy = _predict_cnn(model, X_noisy_test_clean_space, device)
             y_pred_clean = _predict_cnn(model, ds_clean.X_test, device)
             accs_noisy.append(float(accuracy_score(ds_noisy.y_test, y_pred_noisy)))
             accs_clean.append(float(accuracy_score(ds_clean.y_test, y_pred_clean)))
