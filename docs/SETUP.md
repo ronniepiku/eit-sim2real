@@ -164,7 +164,7 @@ eit experiments run-all
 | `mixed_train_noisy_eval` | Mixed clean+noisy batches | Noisy | Best robustness regime |
 | `mixed_train_clean_eval` | Mixed clean+noisy batches | Clean | Dual-domain performance |
 
-**Key features of the updated pipeline:**
+**Key features of the pipeline:**
 
 - **Multi-severity noise augmentation**: Severity sampled uniformly from [0.5, 2.0]
   each batch, preventing noise-level memorisation
