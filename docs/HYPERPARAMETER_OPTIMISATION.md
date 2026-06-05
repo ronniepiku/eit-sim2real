@@ -1,8 +1,12 @@
-# Hyperparameter Optimisation
+# Hyperparameter Optimisation — Specification
 
 ## Overview
 
-This document describes the hyperparameter optimisation (HPO) pipeline for the 1D-CNN touch classifier. The objective is to find the most **robust** model — one that performs well on both clean and noisy EIT measurements — aligned with the dissertation's core research question on simulation-to-reality transfer.
+This document describes the hyperparameter optimisation (HPO) pipeline for the
+1D-CNN touch classifier. The objective is to identify the configuration that
+maximises robustness—defined as strong performance on both clean and noisy EIT
+measurements—in alignment with the dissertation's core research question on
+simulation-to-reality transfer.
 
 ## Objective Function
 
@@ -12,17 +16,20 @@ $$\text{Robustness} = \frac{2 \cdot F1_{\text{clean}} \cdot F1_{\text{noisy}}}{F
 
 The harmonic mean penalises configurations that sacrifice performance on one condition for the other. A model scoring 0.99 on clean but 0.50 on noisy would receive a robustness of 0.67, whereas a balanced 0.90/0.88 model achieves 0.89.
 
-### Why Not Arithmetic Mean?
+### Justification for Harmonic Mean
 
-The arithmetic mean (0.745 for the 0.99/0.50 case) is less punitive of extreme imbalances. For a sim-to-real pipeline, both conditions must perform acceptably — the harmonic mean enforces this constraint.
+The arithmetic mean (0.745 for the 0.99/0.50 case) is less punitive of extreme
+imbalances. For a sim-to-real pipeline where both evaluation conditions must yield
+acceptable performance, the harmonic mean enforces this constraint by construction.
 
 ## Search Strategy
 
-**Grid search** is used rather than random or Bayesian approaches because:
-1. The search space is tractable (864 configurations × 3 folds)
-2. Grid search is exhaustive and reproducible
-3. It provides a complete picture of the hyperparameter landscape
-4. Results are straightforward to analyse and report in the dissertation
+**Grid search** is employed rather than random or Bayesian approaches for the
+following reasons:
+1. The search space is tractable (864 configurations × 3 folds = 2,592 evaluations)
+2. Exhaustive enumeration ensures reproducibility and complete landscape coverage
+3. Results are straightforward to analyse and report without stochastic confounds
+4. No surrogate model assumptions are required
 
 ## Search Space
 
@@ -50,9 +57,13 @@ Each configuration is evaluated with **3-fold stratified cross-validation**:
    - Robustness score is computed
 3. Mean and standard deviation of robustness across folds is recorded
 
-### Why 3 Folds (Not 5)?
+### Justification for 3-Fold Cross-Validation
 
-With 864 configurations, 3-fold CV provides 2,592 training runs. At ~30-60 seconds per run (GPU), this is approximately 24-48 hours of compute. 3 folds gives reliable estimates while remaining tractable.
+With 864 configurations, 3-fold CV yields 2,592 training runs. At approximately
+30–60 seconds per run on GPU, the total compute requirement is 24–48 hours.
+Three folds provides sufficiently reliable estimates while remaining
+computationally tractable; the trade-off between estimation variance and compute
+cost favours tractability given the exhaustive grid coverage.
 
 ## Pipeline Architecture
 
@@ -75,34 +86,37 @@ flowchart TD
     L --> M[Save Model + Report]
 ```
 
-## Noise Augmentation
+## Noise Augmentation Configuration
 
-When `noise_augmentation=True`, the training loop applies the project's 4-component physically-motivated noise model on-the-fly:
+When `noise_augmentation=True`, the training loop applies the project's
+4-component physically-motivated noise model on-the-fly:
 
 1. **Gaussian measurement noise** (SNR=40dB)
 2. **Contact impedance variation** (σ=10%)
 3. **Electrode positioning bias** (max=0.02)
 4. **Quantisation noise** (16-bit ADC)
 
-Severity is sampled uniformly from [0.5, 2.0] each batch (multi-severity domain randomisation), forcing the model to generalise across a range of degradation levels.
+Severity is sampled uniformly from [0.5, 2.0] per batch (multi-severity domain
+randomisation), requiring the model to generalise across a range of degradation
+levels rather than over-specialising to a single noise intensity.
 
-## GPU Acceleration
+## Computational Infrastructure
 
-The pipeline automatically detects and uses CUDA if available:
-- All model training and inference runs on GPU
-- Pin memory is enabled for faster CPU→GPU transfers
-- `torch.backends.cudnn.deterministic = True` ensures reproducibility
+The pipeline automatically detects and utilises CUDA if available:
+- All model training and inference executes on GPU
+- Pin memory is enabled for efficient CPU→GPU data transfer
+- `torch.backends.cudnn.deterministic = True` ensures reproducibility across runs
 
-## Resume Support
+## Checkpoint and Resume Support
 
 The grid search saves checkpoints incrementally:
 - Completed trial UIDs are stored in `grid_search_checkpoint.json`
 - Results are saved to `grid_search_results.csv` after each trial
 - Use `--resume` to skip completed trials if interrupted
 
-## Output Files
+## Output Artefacts
 
-All outputs are saved to `results/hyperparameter_optimisation/`:
+All outputs are written to `results/hyperparameter_optimisation/`:
 
 | File | Description |
 |---|---|
@@ -159,15 +173,16 @@ print(f"Clean F1: {checkpoint['metrics']['clean_f1']:.4f}")
 print(f"Noisy F1: {checkpoint['metrics']['noisy_f1']:.4f}")
 ```
 
-## Alignment with Dissertation Objectives
+## Alignment with Research Objectives
 
-This HPO pipeline directly addresses the dissertation's research questions:
+The HPO pipeline directly addresses the dissertation's research questions:
 
-| Dissertation Objective | HPO Alignment |
+| Research Objective | HPO Alignment |
 |---|---|
-| **RQ1**: How does noise-aware training affect performance? | Grid includes noise_augmentation=True/False for direct comparison |
-| **RQ3**: Can models generalise to unseen severity? | Multi-severity training (0.5–2.0×) tests generalisation |
-| **Hypothesis 1**: Noise-augmented > clean-trained | Robustness metric quantifies the gap |
-| **Hypothesis 3**: CNN outperforms baselines under corruption | Optimised CNN provides the strongest possible CNN comparator |
+| **RQ1**: How does noise-aware training affect performance? | Grid includes `noise_augmentation=True/False` for direct comparison |
+| **RQ3**: Can models generalise to unseen severity? | Multi-severity training (0.5–2.0×) tests out-of-distribution generalisation |
+| **Hypothesis 1**: Noise-augmented outperforms clean-trained | Robustness metric quantifies the gap |
+| **Hypothesis 3**: CNN outperforms baselines under corruption | Optimised CNN provides the strongest possible comparator |
 
-The robustness objective ensures the selected model is the best candidate for the sim-to-real transfer evaluation presented in the results chapter.
+The robustness objective ensures the selected configuration represents the best
+candidate for the sim-to-real transfer evaluation presented in the results chapter.
