@@ -1,213 +1,0 @@
-THE UNIVERSITY OF BATH
-DEPARTMENT OF ELECTRONIC AND ELECTRICAL ENGINEERING
-
-STUDENT ASSESSMENT AND FEEDBACK 
-MSc DISSERTATION 2024-2025 (EE52037)
-
-Please see below the assessment and feedback sheets and grade descriptors for the assessment of the dissertation. The assessment completion date is 29/08/2025.
-
-Assessment process 
-Step 1
-Using the assessment criterion and grade descriptors undertake the blind double marking exercise following the guidance in QA16 [see below].  
-QA16 Double Marking 
- 
-10.11 All final projects/dissertations that make a significant contribution to the final classification should be blind double marked.  
- 
-10.12 Each marker should make a record of all mark(s) awarded, together with written comments indicating their rationale for awarding marks. 
- 
-10.13 Where the marks of a first (supervisor) and second marker differ then, in the first instance, the markers should meet to determine whether, through further discussion, they can agree a final mark.  
- 
-10.14 Where a first and second marker cannot agree on the mark awarded, the following approach shall apply unless the Department has agreed an alternative method with the Faculty: 
- -        In instances where the difference is 4% or less, and does not cross a classification boundary, then the average of the marks shall be taken forward to the examination board; 
-·          In instances where a first and second marker cannot agree, and the difference is more than 4% and/or crosses a classification boundary, a third marker will be appointed by the relevant Head of Department on the basis of their subject expertise. 
-·         The third marker will receive the marks and comments from the first two markers and discuss the work with them. 
-·         If the third marker is unable to facilitate the determination of an agreed mark, then the third marker will award a mark anywhere within the range bounded by the marks awarded by the first and second marker, and this mark shall be the mark taken forward to the examination board. 
-Step 2
-Once the final marks are agreed between the two markers a concise feedback statement needs to be composed by the dissertation supervisor. This will be the feedback provided to the student. The completed assessment sheets should be emailed as an attachment to the Unit Convenor [Veronica Ferrandiz-Mas – vfm24@bath.ac.uk]. 
-Step 3
-On the rare occasion where a third marker is required return the two assessment sheets to me and I will arrange for a third marker.
-Veronica Ferrandiz-Mas, unit convenor, August 2025
-
-Student:Title:Programme:First marker (supervisor):Mark:Second marker:Mark:Third marker:Mark:Final mark:
-SHORT SUPERVISOR’S SUMMARY PROVIDING AN OVERALL ASSESSMENT OF THE DISSERTATION 
-(in particular focusing on strong aspects of the dissertation, and where improvement could have been made). This summary feedback will be uploaded to Moodle for the students to view. Comment on the student’s capacity to situate their work within AI/ML for engineering and design contexts, including cross-disciplinary relevance if applicable.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Important Marking Notes: Ensure that the feedback is contextualised and that your description is consistent with the descriptors set out below. Can you please word process your feedback comments and return the completed assessment sheet to the unit convenor [Veronica Ferrandiz-Mas, vfm24@bath.ac.uk]? I will upload the combined feedback statement to Moodle for the student to view. The marks will be disclosed to the students after the board.
-
-The marks stated below do not take account of any resit, or academic misconduct penalties that may apply, and are subject to moderation and ratification by the Board of Examiners.
-DETAILED FIRST MARKER (SUPERVISOR) FEEDBACK
-Assessment CriterionMax. markMarkContextualised feedback specific to the dissertationScope 
-* Does the abstract accurately describe the outcomes and findings of the work undertaken?
-* Are the aims & objectives clearly defined?
-* Were the research methodologies mapped to the original objectives? 
-* Have the limitations and boundaries defined the context of the dissertation topic?
-
-
-
-
-10Understanding of subject matter (literature review) 
-* Has the student understood the literature and demonstrated insights at the forefront of their discipline?
-* Does the student demonstrate a systematic and comprehensive knowledge of current best practice?
-* Is the factual material accurate?
-* Has the student been sufficiently critical with respect to other people's arguments and published 'facts'?  
-
-
-
-
-
-
-20Planning and implementation of research methodology
-* Was the work planned using the most appropriate methodology?
-* Were the chosen methodologies, data/source material collection and analysis implemented appropriately?
-* Is the primary data/source material collected of an appropriate standard? 
-* Did the methodology evolve as the work progressed?
-* To what extent is there a logical arrangement of an argument throughout    the dissertation? 
-
-
-
-20Critical analysis based on evidence (structure of argument)
-* Was there sufficient critical analysis of the primary source material/data?  
-* Are the results and analysis tied back to the literature?
-* Does the discussion evaluate and critique the research outcomes and, where appropriate propose any new hypotheses?
-* Has the student been able to evolve original criticism of other people's work and make original constructive comments of their own?
-* Did the conclusions demonstrate how successfully each objective was achieved?
-* Consideration of ethical, sustainable, or economic implications of the research
-
-
-35Presentation / communication 
-* Are the statistical tables, diagrams, illustrations and accompanying legends clear and informative?  
-* Are the statistical tables and diagrams relevant and do they explain the written text?  
-* Are the arguments as clearly written as possible?
-* Are references and bibliographical information presented and cited correctly? 
-* Is the Harvard referencing system used appropriately throughout the dissertation, and in the list of references?
-
-10Spelling, grammar, syntax 
-Is the dissertation written in good grammatical English, appropriate for a postgraduate dissertation?  
-5
-MARK: ……………………………………………………….. (FIRST MARKER)
-
-
-DETAILED SECOND MARKER FEEDBACK
-Assessment CriterionMax. markMarkContextualised feedback specific to the dissertationScope 
-* Does the abstract accurately describe the outcomes and findings of the work undertaken?
-* Are the aims & objectives clearly defined?
-* Were the research methodologies mapped to the original objectives? 
-* Have the limitations and boundaries defined the context of the dissertation topic?
-
-
-
-
-10Understanding of subject matter (literature review) 
-* Has the student understood the literature and demonstrated insights at the forefront of their discipline?
-* Does the student demonstrate a systematic and comprehensive knowledge of current best practice?
-* Is the factual material accurate?
-* Has the student been sufficiently critical with respect to other people's arguments and published 'facts'?  
-
-
-
-
-
-
-20Planning and implementation of research methodology
-* Was the work planned using the most appropriate methodology?
-* Were the chosen methodologies, data/source material collection and analysis implemented appropriately?
-* Is the primary data/source material collected of an appropriate standard? 
-* Did the methodology evolve as the work progressed?
-* To what extent is there a logical arrangement of an argument throughout    the dissertation? 
-
-
-
-20Critical analysis based on evidence (structure of argument)
-* Was there sufficient critical analysis of the primary source material/data?  
-* Are the results and analysis tied back to the literature?
-* Does the discussion evaluate and critique the research outcomes and, where appropriate propose any new hypotheses?
-* Has the student been able to evolve original criticism of other people's work and make original constructive comments of their own?
-* Did the conclusions demonstrate how successfully each objective was achieved?
-
-
-35Presentation / communication 
-* Are the statistical tables, diagrams, illustrations and accompanying legends clear and informative?  
-* Are the statistical tables and diagrams relevant and do they explain the written text?  
-* Are the arguments as clearly written as possible?
-* Are references and bibliographical information presented and cited correctly? 
-* Is the Harvard referencing system used appropriately throughout the dissertation, and in the list of references?
-
-10Spelling, grammar, syntax 
-Is the dissertation written in good grammatical English, appropriate for a postgraduate dissertation?  
-5
-
-MARK: ……………………………………………………….. (SECOND MARKER)
-
-DETAILED THIRD MARKER FEEDBACK
-Assessment CriterionMax. markMarkContextualised feedback specific to the dissertationScope 
-* Does the abstract accurately describe the outcomes and findings of the work undertaken?
-* Are the aims & objectives clearly defined?
-* Were the research methodologies mapped to the original objectives? 
-* Have the limitations and boundaries defined the context of the dissertation topic?
-
-
-
-
-10Understanding of subject matter (literature review) 
-* Has the student understood the literature and demonstrated insights at the forefront of their discipline?
-* Does the student demonstrate a systematic and comprehensive knowledge of current best practice?
-* Is the factual material accurate?
-* Has the student been sufficiently critical with respect to other people's arguments and published 'facts'?  
-
-
-
-
-
-
-20Planning and implementation of research methodology
-* Was the work planned using the most appropriate methodology?
-* Were the chosen methodologies, data/source material collection and analysis implemented appropriately?
-* Is the primary data/source material collected of an appropriate standard? 
-* Did the methodology evolve as the work progressed?
-* To what extent is there a logical arrangement of an argument throughout    the dissertation? 
-
-
-
-20Critical analysis based on evidence (structure of argument)
-* Was there sufficient critical analysis of the primary source material/data?  
-* Are the results and analysis tied back to the literature?
-* Does the discussion evaluate and critique the research outcomes and, where appropriate propose any new hypotheses?
-* Has the student been able to evolve original criticism of other people's work and make original constructive comments of their own?
-* Did the conclusions demonstrate how successfully each objective was achieved?
-
-
-35Presentation / communication 
-* Are the statistical tables, diagrams, illustrations and accompanying legends clear and informative?  
-* Are the statistical tables and diagrams relevant and do they explain the written text?  
-* Are the arguments as clearly written as possible?
-* Are references and bibliographical information presented and cited correctly? 
-* Is the Harvard referencing system used appropriately throughout the dissertation, and in the list of references?
-
-10Spelling, grammar, syntax 
-Is the dissertation written in good grammatical English, appropriate for a postgraduate dissertation?  
-5
-MARK: ……………………………………………………….. (THIRD MARKER)
-
-GRADE DESCRIPTORS (to be used as a guide, as appropriate for the submitted work, to determine the awarded grades provided above)
-90-100% Outstanding80-89% Excellent70-79% Very good60-69% Good50-59% SatisfactoryScopeOutstanding clarity of focus, includes what is important, and excludes irrelevant issuesExcellent clarity of focus, boundaries set with no significant omissions or unnecessary issuesClear focus. Very good setting of boundaries, includes most of what is relevantClear scope and focus, with some minor omissions or unnecessary issuesScope evident and satisfactory but with some omissions and unnecessary issuesUnderstanding of subject matterOutstanding with critical awareness of relevance of issues. Exceptional expression of ideas, evidence of originalityExcellent, with critical awareness of relevance of issues. Excellent expression of ideas, some originalityVery good with critical awareness of relevance of issues. Very good expression of ideas, potential for originalityGood, with some awareness of relevance of issues. Ideas are expressed well, with some minor limitationsBasic with limited awareness of relevance of issues. Limited but satisfactory expression of ideasUse of secondary sourcesComprehensive review of sources. Outstanding evaluation and synthesis of source material with no significant errorsExcellent independent secondary research. The majority of significant sources are evaluated and synthesizedVery good independent secondary research. A wide range of sources are evaluated and synthesizedGood secondary research to extend taught materials. Evidence of evaluation of sources, some deficiencies in choice and synthesisLimited secondary research to extend taught materials. Limited evaluation of sources, deficiencies in choice and synthesisUse of primary sourcesOutstanding collection of pertinent data, using robust methods of collection, and adding to knowledge base in disciplineData collection of very high standard, relevant to dissertation and robust method, providing avenues for future researchData collection of high standard, allowing the testing of analytical questions specific to dissertationGood data collection, simple methodology, relevant results for the studyAdequate engagement with data collection to provide basis for primary analysis, awareness of methodological issuesCritical analysis based on evidenceOutstanding analysis, authoritative questioning of sources, understanding of bias, very strong independence of thought and cogencyExcellent analysis – highly coherent questioning of sources, understanding of bias, strong independence of thought and cogency Very good critical analysis. Sources are questioned appropriately, and a very good understanding of bias, showing independence of thought and cogencyCritical analysis with some questioning of sources. Understanding of bias, with some evidence of independence of thought and cogencyAnalysis evident but uncritical. Sources are not always questioned, with limited but acceptable independence of thought and cogencyStructure of argumentOutstanding structure, compelling and persuasive argument that leads to a valuable contribution to field, paves way for future workArgument has excellent structure and persuasiveness, leading to significant insights and relevant future workWell-structured and persuasive argument. Insightful conclusion draws together key issues and possible future workStructured and fairly convincing argument leads to conclusion that summarizes key issuesArgument has some structure and development towards conclusion with limitations in summary of issuesPresentation / communication (including referencing)Very high levels of presentation. Full information and extent of analysis conveyed lucidly. Very high levels of presentation. Full information and extent of analysis conveyed lucidly.Very high levels of presentation. Full information and extent of analysis conveyed lucidly.Presentation satisfactory, with limited but effective style of presentation Presentation satisfactory, with limited but effective style of presentationSpelling, grammar, syntaxOutstanding written language. FlawlessExcellent written language with only minor flawsVery good written language with few, very minor errorsGood written language, some minor errors but none affects clarityAcceptable written language. Some errors in punctuation, spelling, sentence construction
-40-49% Unsatisfactory30-39% Inadequate20-29% Poor10-19% Very poor0-9% Extremely poorScopeInadequately scoped with significant omissions and unnecessary issuesVery vague definition of topic with few relevant issuesExtremely confused perception of topic with significant misrepresentation of issuesScope of topic almost irrelevant to dissertationNo awareness of scope of topic or any relevant issuesUnderstanding of subject matterInadequate understanding with little awareness of relevance of issuesVery shallow understanding, with many relevant elements omittedSome significant misunderstandings which prevent coherent discussionSubject misunderstood in the main, with significant errors and omissions in knowledgeTotal misunderstanding of subjectUse of secondary sourcesVery limited extension of taught materials. Poor choice and synthesis of materialsVery limited use of secondary materials, with inclusion of irrelevant / inappropriate sourcesNo use of secondary sources beyond taught materialsNo use of secondary sources beyond taught materials. Taught material inadequately engaged withNo meaningful use of any secondary source materialUse of primary sourcesInadequate use of primary data for purposes of dissertation. Methodologically weakInsufficient collection of primary data with little awareness of methodological considerationsPoor data collection with significant methodological error / confusionUnusable primary data, through inadequate collection or methodological flawsNo evidence of awareness of need for primary data collection or methodologyCritical analysis based on evidenceVague analysis displaying lack of clarity or focus. Some relevant elements discernibleVery vague analysis with apparent contradictions / errors. Some awareness of role of analysisExtremely limited and largely unsuccessful attempt at analysis. No discussion of sourcesNo analysis beyond general speculation. No discussion of sourcesNo valid analysisStructure of argumentArgument is largely unstructured, vague conclusion. Evidence that structure could be strengthened Largely discursive approach to topic which presents little argumentation Entirely discursive piece of work with no structured presentation of argument. Cursory conclusion No argument or structure beyond loosely connected list of points. No substantive conclusionNo evidence of argument or conclusionPresentation / communication (including referencing)Inadequate presentation which needs to strengthen clarity and precision of communicationPoorly organized and presented with some information difficult to understand. Presentation hinders presentation of key themesPoorly organized and presented with some information difficult to understand. Presentation hinders presentation of key themesNo attempt to present work in acceptable formatNo attempt to present work in acceptable formatSpelling, grammar, syntaxA number of errors in punctuation, use of words, spelling and sentence construction, many significant, obscuring meaning of textSignificant errors in punctuation, use of words, spelling, sentence construction, making arguments difficult to understandCoherence and structure of argument is fundamentally obscured due to poor use of languageAlmost complete lack of comprehension with only vestiges of argument / information understandable due to very poor use of languageDissertation incomprehensible due to level of spelling, grammar and syntax
-
-
-
-

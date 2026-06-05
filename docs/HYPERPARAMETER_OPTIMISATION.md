@@ -116,31 +116,32 @@ All outputs are saved to `results/hyperparameter_optimisation/`:
 
 ```bash
 # Full pipeline (grid search + final model training)
-uv run python python/hyperparameter_optimisation.py
+eit experiments hyperopt
 
-# Custom settings
-uv run python python/hyperparameter_optimisation.py \
+# Or run directly with custom settings:
+uv run python -m eit_sim2real.experiments.hyperopt \
   --n-folds 5 \
   --epochs 150 \
   --output-dir results/hpo_extended
 
 # Resume interrupted run
-uv run python python/hyperparameter_optimisation.py --resume
+uv run python -m eit_sim2real.experiments.hyperopt --resume
 
 # Skip search, retrain final model from existing results
-uv run python python/hyperparameter_optimisation.py --final-only
+uv run python -m eit_sim2real.experiments.hyperopt --final-only
 
 # Use raw dataset instead of cleaned
-uv run python python/hyperparameter_optimisation.py --data-path data/eit_dataset.mat
+uv run python -m eit_sim2real.experiments.hyperopt --data-path data/eit_dataset.mat
 ```
 
 ## Loading the Optimised Model
 
 ```python
 import torch
-from models.cnn1d import EITConv1D
+from eit_sim2real.models.cnn1d import EITConv1D
 
-checkpoint = torch.load("results/hyperparameter_optimisation/cnn1d_optimised_best.pt")
+checkpoint = torch.load("results/hyperparameter_optimisation/cnn1d_optimised_best.pt",
+                        weights_only=True)
 config = checkpoint["config"]
 
 model = EITConv1D(

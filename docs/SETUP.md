@@ -51,14 +51,14 @@ PyTorch wheels installed by `uv sync` will work.
 ### Verify Python Installation
 
 ```bash
-# Run test suite (should pass all 45 tests)
-uv run python -m pytest tests/ -v
+# Run test suite (should pass all 67 tests)
+uv run pytest tests/ -v
 
-# Verify imports work
-uv run python -c "from python.data.load_dataset import load_mat_dataset; print('OK')"
+# Verify CLI works
+uv run eit --version
 
 # Log environment details
-uv run python python/log_environment.py
+uv run eit log-environment
 ```
 
 ## EIDORS Installation
@@ -132,13 +132,13 @@ After dataset generation, the following sequence reproduces all results:
 
 ```bash
 # 1. Validate dataset integrity
-uv run python python/validate_dataset.py
+eit validate-dataset
 
 # 2. Log environment for reproducibility
-uv run python python/log_environment.py
+eit log-environment
 
 # 3. Run master experiment suite (recommended — single command)
-uv run python python/run_all_experiments.py --seeds 5
+eit experiments run-all
 ```
 
 ### Master Experiment Runner (Recommended)
@@ -148,16 +148,7 @@ sweeps, and produces a comprehensive Markdown report:
 
 ```bash
 # Full suite: 3 datasets × 4 models × 8 conditions × 5 seeds + severity sweeps
-uv run python python/run_all_experiments.py
-
-# Quick validation run (fewer seeds)
-uv run python python/run_all_experiments.py --seeds 3
-
-# Specific datasets only
-uv run python python/run_all_experiments.py --datasets raw pca
-
-# Custom CNN training duration
-uv run python python/run_all_experiments.py --epochs 300 --early-stopping-patience 50
+eit experiments run-all
 ```
 
 **Training conditions executed by the master runner:**
@@ -200,59 +191,43 @@ For targeted runs or debugging:
 
 ```bash
 # Train CNN under both conditions
-uv run python python/train.py --model cnn1d                # noisy training
-uv run python python/train.py --model cnn1d --no-noise     # clean training
+eit train cnn                # noisy training (default)
+eit train cnn --no-noise     # clean training
 
-# Train all models under all conditions
-uv run python python/run_all_experiments.py
+# Train all baselines under both conditions
+eit train baselines
+eit train baselines --no-noise
 
-# Evaluate with robustness + severity sweep
-uv run python python/evaluate.py \
-    --model-path results/models/cnn1d_noisy_best.pt --robustness
+# Evaluate a trained model
+eit evaluate --model-path results/models/cnn1d_noisy_best.pt
 
 # Run ablation study (Python-side noise, no MATLAB dependency)
-uv run python python/ablation.py --model cnn1d
-uv run python python/ablation.py --model cnn1d --all-configs
+eit experiments ablation
 
-# Statistical significance testing
-uv run python python/statistical_tests.py --model cnn1d
-uv run python python/statistical_tests.py --model random_forest
+# Hyperparameter optimisation
+eit experiments hyperopt
 ```
 
 ### Using Custom Datasets
 
-All training and evaluation scripts support loading datasets from custom paths
-via the `--data-path` CLI argument. This allows you to:
+All training and evaluation commands support loading datasets from custom paths
+via config overrides or the `--config` CLI option. This allows you to:
 
 - Use alternative dataset files
 - Evaluate on external datasets
 - Test different dataset versions
 
-**Example: Use a custom dataset file**
+**Example: Use a custom config with a different dataset path**
 
 ```bash
-# Train CNN on custom dataset
-uv run python python/train.py --model cnn1d --data-path /path/to/custom_dataset.mat
+# Train CNN on custom dataset (set data.path in your config.yaml)
+eit train cnn --config path/to/config.yaml
 
-# Run all experiments on custom dataset
-uv run python python/run_all_experiments.py --data-path /path/to/custom_dataset.mat
+# Evaluate model
+eit evaluate --model-path results/models/cnn1d_noisy_best.pt --config path/to/config.yaml
 
 # Validate custom dataset
-uv run python python/validate_dataset.py --data-path /path/to/custom_dataset.mat
-
-# Evaluate model on custom dataset
-uv run python python/evaluate.py \
-    --model-path results/models/cnn1d_noisy_best.pt \
-    --data-path /path/to/custom_dataset.mat
-
-# Run statistical tests on custom dataset
-uv run python python/statistical_tests.py --data-path /path/to/custom_dataset.mat
-
-# Run architecture sweep on custom dataset
-uv run python python/architecture_sweep.py --data-path /path/to/custom_dataset.mat
-
-# Run ablation study on custom dataset
-uv run python python/ablation.py --data-path /path/to/custom_dataset.mat
+eit validate-dataset --data-path /path/to/custom_dataset.mat
 ```
 
 **Dataset Format Requirements**
@@ -285,16 +260,19 @@ dataset_y
 **Using Dimensionality-Reduced Datasets**
 
 The EDA notebook (`notebooks/eda_analysis.ipynb`) produces dimensionality-reduced
-datasets using a leakage-safe preprocessing comparison, plus a decision log:
+datasets using a leakage-safe preprocessing comparison, plus a decision log.
+Reduced datasets can be used by setting `data.path` in a custom config:
+
+```yaml
+# In a custom config.yaml:
+data:
+  path: "data/cleaned/eit_cleaned_pca.mat"  # PCA-reduced (7 components)
+  # or: "data/cleaned/eit_cleaned_lda.mat"  # LDA-reduced (4 components)
+```
 
 ```bash
-# PCA-reduced dataset (7 components) — suitable for shallow models
-uv run python python/train.py --model svm --data-path data/cleaned/eit_cleaned_pca.mat
-uv run python python/train.py --model random_forest --data-path data/cleaned/eit_cleaned_pca.mat
-
-# LDA-reduced dataset (4 components, supervised) — best for shallow models
-uv run python python/train.py --model svm --data-path data/cleaned/eit_cleaned_lda.mat
-uv run python python/train.py --model mlp --data-path data/cleaned/eit_cleaned_lda.mat
+# Train baselines on reduced datasets
+eit train baselines --config path/to/pca_config.yaml
 
 # View selected preprocessing route and CV summary
 cat data/cleaned/eda_decision_log.json
@@ -320,7 +298,7 @@ files, so no additional configuration is needed.
 
 ## Configuration
 
-All hyperparameters are centralised in `python/configs/config.yaml`:
+All hyperparameters are centralised in `src/eit_sim2real/configs/config.yaml`:
 
 | Section | Controls |
 |---------|----------|
@@ -378,13 +356,10 @@ system CUDA or use the CPU-only wheel.
 
 ### Import errors from Python scripts
 
-All scripts must be run from the project root or from `python/`:
+The package is installed in editable mode. Ensure you have run:
 
 ```bash
-# From project root:
-uv run python python/train.py --model cnn1d
-
-# Or from python/ directory:
-cd python
-uv run train.py --model cnn1d
+uv pip install -e .
 ```
+
+All imports use the full package path (e.g., `from eit_sim2real.data import load_mat_dataset`).

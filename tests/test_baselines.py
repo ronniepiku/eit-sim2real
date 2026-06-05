@@ -2,7 +2,8 @@
 
 import numpy as np
 import pytest
-from models.baselines import (
+
+from eit_sim2real.models.baselines import (
     create_mlp,
     create_random_forest,
     create_svm,
@@ -35,8 +36,10 @@ class TestBaselineCreation:
 
     def test_create_svm(self) -> None:
         model = create_svm()
-        assert model.kernel == "rbf"
-        assert model.C == 10.0
+        # create_svm wraps in CalibratedClassifierCV
+        assert hasattr(model, "estimator")
+        assert model.estimator.kernel == "rbf"
+        assert model.estimator.C == 10.0
 
     def test_create_random_forest(self) -> None:
         model = create_random_forest()

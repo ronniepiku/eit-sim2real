@@ -181,10 +181,10 @@ quantisation:
 ## Implementation
 
 - **MATLAB**: [`matlab/noise_model/add_noise.m`](../matlab/noise_model/add_noise.m) — applies noise during dataset generation
-- **Python (noise module)**: [`python/data/noise.py`](../python/data/noise.py) — full 4-component noise model for on-the-fly augmentation during training and ablation
-- **Python (training)**: [`python/train.py`](../python/train.py) — online noise augmentation with optional multi-severity domain randomisation
-- **Python (ablation)**: [`python/ablation.py`](../python/ablation.py) — systematic ablation via Python-side noise injection (no MATLAB dependency at experiment time)
-- **Python (evaluation)**: [`python/evaluate.py`](../python/evaluate.py) — `evaluate_severity_sweep_python()` generates fresh noise at each severity level
+- **Python (noise module)**: [`src/eit_sim2real/data/noise.py`](../src/eit_sim2real/data/noise.py) — full 4-component noise model for on-the-fly augmentation during training and ablation
+- **Python (training)**: [`src/eit_sim2real/train.py`](../src/eit_sim2real/train.py) — online noise augmentation with optional multi-severity domain randomisation
+- **Python (ablation)**: [`src/eit_sim2real/experiments/ablation.py`](../src/eit_sim2real/experiments/ablation.py) — systematic ablation via Python-side noise injection (no MATLAB dependency at experiment time)
+- **Python (evaluation)**: [`src/eit_sim2real/evaluate.py`](../src/eit_sim2real/evaluate.py) — `evaluate_severity_sweep()` generates fresh noise at each severity level
 
 The Python noise module (`NoiseConfig` class) provides factory methods for ablation:
 - `NoiseConfig.only('gaussian')` — single-component experiment

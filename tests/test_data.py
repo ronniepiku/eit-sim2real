@@ -2,7 +2,8 @@
 
 import numpy as np
 import pytest
-from data.load_dataset import get_cv_splits, prepare_splits
+
+from eit_sim2real.data import get_cv_splits, prepare_splits
 
 
 @pytest.fixture

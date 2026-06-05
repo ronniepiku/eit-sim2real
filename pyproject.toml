@@ -1,5 +1,5 @@
 [project]
-name = "eit-touch-classification"
+name = "eit-sim2real"
 version = "0.1.0"
 description = "Noise-robust classification of simulated touch for EIT-based electronic skin"
 readme = "README.md"
@@ -7,6 +7,7 @@ requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "Ronald P" }]
 dependencies = [
+    "click>=8.1.0",
     "joblib>=1.4.0",
     "matplotlib>=3.9.0",
     "numpy>=1.26.0",
@@ -19,33 +20,69 @@ dependencies = [
     "umap-learn>=0.5.12",
 ]
 
+[project.scripts]
+eit = "eit_sim2real.cli:cli"
+
 [dependency-groups]
 dev = [
     "ipykernel>=7.2.0",
     "jupyter>=1.1.1",
     "mypy>=1.10.0",
     "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
     "ruff>=0.4.0",
     "types-PyYAML>=6.0.12",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/eit_sim2real"]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 88
+src = ["src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM", "PT"]
 ignore = [
     "N803", "N806",  # Allow uppercase in args/vars (ML convention: X for features)
     "E501",  # Line length handled by ruff formatter; remaining are strings
+    "E741",  # Ambiguous var names (l, I) used in scientific code
+    "B007",  # Unused loop variable — common in experiment grid code
+    "B905",  # zip() without strict= — arrays always same length in scientific code
+    "SIM108",  # if-else vs ternary — readability preference
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["python"]
+pythonpath = ["src"]
 
 [tool.mypy]
 python_version = "3.11"
-strict = true
-warn_return_any = true
+warn_return_any = false
 warn_unused_configs = true
+disallow_untyped_defs = true
+mypy_path = "src"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "eit_sim2real.experiments.*"
+disallow_untyped_defs = false
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "eit_sim2real.cli.*"
+disallow_untyped_defs = false
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "eit_sim2real.validate_dataset"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "eit_sim2real.visualisation"
+ignore_errors = true

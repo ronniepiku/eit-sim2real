@@ -1,7 +1,170 @@
 %% Appendices
+
+\chapter{Supplementary Results}
+\label{app:supplementary}
+
+This appendix provides supplementary figures and tables that support the findings presented in Chapter~\ref{ch:results}. These include training convergence analyses, full confusion matrices across all conditions, t-SNE visualisations of the domain shift, and detailed ablation results.
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Training Convergence}
+\label{app:training-curves}
+
+Figures~\ref{fig:app-training-noisy}--\ref{fig:app-training-augmented} show the training and validation loss curves for the CNN under the key training regimes. The fixed-noise-trained model (Figure~\ref{fig:app-training-noisy}) converges smoothly within 60 epochs with clear validation loss minimisation, indicating effective learning of noise-corrupted representations. The augmented model (Figure~\ref{fig:app-training-augmented}) also converges stably---confirming that the augmentation paradox is not a training failure but a representation learning phenomenon: the model successfully learns a clean-signal extractor rather than failing to converge.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{../results/figures/raw/cnn1d/noisy_train_noisy_eval/cnn1d_noisy_train_noisy_eval_training_curves.png}
+\caption{CNN training curves: fixed noisy training data, evaluated on noisy test data (Noisy$\to$Noisy condition). The model converges within approximately 60 epochs with smooth validation loss reduction.}
+\label{fig:app-training-noisy}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{../results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_training_curves.png}
+\caption{CNN training curves: online noise augmentation, evaluated on noisy test data (Augmented$\to$Noisy condition). Despite stable convergence and low training loss, the model achieves only 19.8\% test accuracy---demonstrating that the augmentation paradox arises from what the model \emph{learns}, not from training instability.}
+\label{fig:app-training-augmented}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{../results/figures/raw/cnn1d/clean_train_clean_eval/cnn1d_clean_train_clean_eval_training_curves.png}
+\caption{CNN training curves: clean training data, evaluated on clean test data (Clean$\to$Clean condition). Rapid convergence confirms the forward model produces well-separated class representations.}
+\label{fig:app-training-clean}
+\end{figure}
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Confusion Matrices}
+\label{app:confusion-matrices}
+
+Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full confusion matrices for the CNN under key evaluation conditions.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.65\textwidth]{../results/figures/raw/cnn1d/noisy_train_noisy_eval/cnn1d_noisy_train_noisy_eval_cm_test.png}
+\caption{Confusion matrix: CNN trained on noisy data, evaluated on noisy data (Noisy$\to$Noisy, 76.1\%). Principal confusions occur between light touch and point contact, and between firm press and distributed contact---classes with similar voltage magnitude but different spatial extent.}
+\label{fig:app-cm-noisy}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.65\textwidth]{../results/figures/raw/cnn1d/clean_train_noisy_eval/cnn1d_clean_train_noisy_eval_cm_test.png}
+\caption{Confusion matrix: CNN trained on clean data, evaluated on noisy data (Clean$\to$Noisy, 19.4\%). Predictions collapse primarily to a single class, demonstrating complete feature-space destruction rather than uniform random guessing.}
+\label{fig:app-cm-clean-noisy}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.65\textwidth]{../results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_cm_test.png}
+\caption{Confusion matrix: CNN with online noise augmentation, evaluated on noisy data (Augmented$\to$Noisy, 19.8\%). The failure pattern closely mirrors Clean$\to$Noisy, confirming the model has learned a clean-signal extractor that cannot accommodate fixed test-time noise.}
+\label{fig:app-cm-augmented}
+\end{figure}
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Domain Shift Visualisation}
+\label{app:tsne}
+
+Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy feature spaces, providing qualitative insight into the distributional divergence quantified by MMD in Section~\ref{sec:res-extended}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{../results/figures/tsne_clean_vs_noisy.png}
+\caption{t-SNE visualisation comparing clean (left) and noisy (right) feature distributions. Under noise, class clusters lose cohesion and overlap substantially---particularly light touch and point contact---consistent with the per-class vulnerability analysis.}
+\label{fig:app-tsne}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{../results/figures/tsne_per_component.png}
+\caption{t-SNE visualisation of per-component noise effects. Electrode bias (top-right) causes the most severe cluster disruption, consistent with its dominant contribution to MMD (0.387). Gaussian noise and quantisation produce minimal visible effect on cluster structure.}
+\label{fig:app-tsne-components}
+\end{figure}
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Ablation Details}
+\label{app:ablation}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{../results/figures/ablation/single_component_impact.png}
+\caption{Single-component ablation: accuracy when training with only one noise component active, evaluated against the full 4-component noise. Quantisation-only training produces the lowest accuracy, indicating it provides the least transferable noise representation.}
+\label{fig:app-ablation-single}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{../results/figures/ablation/component_subset_heatmap.png}
+\caption{Component subset heatmap showing accuracy for all 16 possible component combinations. Performance saturates at 3 components, with diminishing returns from the fourth---consistent with the overlap between Gaussian noise and quantisation effects at 16-bit resolution.}
+\label{fig:app-ablation-heatmap}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{../results/figures/ablation/ordering_impact.png}
+\caption{Component ordering impact on final accuracy. The minimal spread (0.37pp between best and worst permutation) confirms that the noise components contribute approximately independently, validating the compositional noise model design.}
+\label{fig:app-ablation-ordering}
+\end{figure}
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Calibration and Confidence}
+\label{app:calibration}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{../results/figures/calibration_reliability_diagrams.png}
+\caption{Reliability diagrams for the CNN under clean and noisy evaluation. Under domain shift (Clean$\to$Noisy), predicted confidences cluster near 1.0 regardless of actual accuracy, producing ECE = 0.795. Matched-distribution training reduces ECE to 0.053.}
+\label{fig:app-reliability}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{../results/figures/calibration_confidence_distributions.png}
+\caption{Distribution of predicted confidences under clean and noisy conditions. The bimodal distribution under domain shift (high confidence but low accuracy) represents the worst-case failure mode for safety-critical deployment.}
+\label{fig:app-confidence}
+\end{figure}
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Sensitivity Analyses}
+\label{app:sensitivity}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{../results/figures/noise_parameter_sensitivity.png}
+\caption{Noise parameter sensitivity: CNN accuracy as each noise parameter is swept independently while others are held at default values. Accuracy remains above 97.5\% across all physically plausible ranges except extreme Gaussian noise (20\,dB SNR: 88.9\%).}
+\label{fig:app-noise-sensitivity}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{../results/figures/hyperparameter_sensitivity.png}
+\caption{Hyperparameter sensitivity: CNN accuracy under sweeps of learning rate, dropout, weight decay, and severity range. Narrow accuracy ranges ($\pm$2pp) confirm that the noise augmentation benefit is robust to hyperparameter choices.}
+\label{fig:app-hp-sensitivity}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{../results/figures/domain_gap_analysis.png}
+\caption{Domain gap analysis: per-feature MMD contributions and distributional divergence decomposition. Electrode bias dominates the gap structure, with clear block-periodic patterns corresponding to the 13 measurements per electrode.}
+\label{fig:app-domain-gap}
+\end{figure}
+
+%% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Code Repository}
 \label{app:code}
 
-The full source code for this project is available at: \url{https://github.com/<username>/eit-touch-classification}.
+The full source code, trained models, and data generation pipeline are available at:
 
-% TODO: Add additional appendix content as needed (e.g., hyperparameter tables, full confusion matrices, additional figures).
+\begin{center}
+\url{https://github.com/ronniepiku/eit-sim2real}
+\end{center}
+
+\noindent The repository includes:
+\begin{itemize}
+    \item MATLAB scripts for EIDORS-based dataset generation (\texttt{matlab/})
+    \item Python training and evaluation pipeline (\texttt{python/})
+    \item Configuration files for exact reproduction (\texttt{python/configs/config.yaml})
+    \item All trained model weights (\texttt{results/models/})
+    \item Jupyter notebook for exploratory data analysis (\texttt{notebooks/})
+    \item Automated test suite (\texttt{tests/})
+\end{itemize}
+
+\noindent All experiments can be reproduced from a single command: \texttt{python -m python.run\_all\_experiments}.

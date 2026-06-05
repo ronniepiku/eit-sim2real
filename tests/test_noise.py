@@ -3,7 +3,11 @@
 import numpy as np
 import pytest
 
-from data.noise import NoiseConfig, apply_noise, apply_noise_batch_vectorised
+from eit_sim2real.data.noise import (
+    NoiseConfig,
+    apply_noise,
+    apply_noise_batch_vectorised,
+)
 
 
 @pytest.fixture

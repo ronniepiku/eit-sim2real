@@ -45,18 +45,18 @@ This dissertation investigates whether incorporating a physically-motivated, mul
 \section{Contributions}
 \label{sec:intro-contributions}
 
-This work makes the following contributions to the field:
+Beyond achieving the research objectives, this work makes the following novel contributions to the field:
 
 \begin{itemize}
-    \item A four-component, literature-justified noise model for \gls{eit} tactile simulation that captures dominant real-world distortions more comprehensively than the single-component Gaussian noise used in prior work \parencite{chen2023, yao2022}. Crucially, contact impedance and bias are applied per-electrode rather than per-measurement, reflecting the physical structure of the electrode--substrate interface \parencite{vilhunen2002, kolehmainen1997}.
+    \item \textbf{A structured, per-electrode noise model.} The four-component noise model applies contact impedance and electrode bias \emph{per-electrode} rather than per-measurement, reflecting the physical electrode--substrate interface structure \parencite{vilhunen2002, kolehmainen1997}. This structural fidelity distinguishes the model from prior additive noise approaches \parencite{chen2023, yao2022} and produces qualitatively different degradation patterns (block-structured rather than i.i.d.), requiring fundamentally different mitigation strategies.
     
-    \item An open-source, reproducible pipeline spanning data generation (MATLAB/EIDORS), model training (Python/PyTorch), evaluation, and visualisation, facilitating future benchmarking and addressing the standardisation gap identified by \textcite{jiang2023}.
+    \item \textbf{Identification of the augmentation paradox.} The finding that online noise augmentation \emph{fails completely} (19.8\%) despite the success of matched-noise training (76.1\%) constitutes a previously undocumented failure mode of domain randomisation \parencite{tobin2017} specific to sensor modalities with fixed per-device characteristics. The formal explanation ($\mathbb{E}[\mathbf{b}] = \mathbf{0}$ causing clean-signal extraction) generalises beyond \gls{eit} to any system with persistent calibration offsets.
     
-    \item Empirical evidence quantifying the robustness benefit of noise-augmented training for \gls{eit} touch classification, with systematic ablation across noise components---inspired by the corruption benchmark methodology of \textcite{hendrycks2019} but adapted to \gls{eit}-specific distortions.
+    \item \textbf{Empirical demonstration that Gaussian-only noise evaluation is misleading.} By showing that all models achieve $>$99\% under Gaussian noise while collapsing to 20\% under the full model, this work demonstrates that prior reported accuracies \parencite{yao2022, chen2023} fundamentally mischaracterise deployment readiness---a finding with immediate methodological implications for the \gls{eit} community.
     
-    \item A comparative study of classical ML baselines (\gls{svm}, \gls{rf}, \gls{mlp}) against a purpose-designed 1D-\gls{cnn} architecture under identical noise conditions, providing practical guidance for resource-constrained prosthetic systems \parencite{wang2020, zhang2022fista}.
+    \item \textbf{Component-wise domain gap decomposition.} The use of per-component MMD to decompose the simulation-to-reality gap into individually addressable factors provides a novel diagnostic methodology. The finding that electrode bias accounts for 99.8\% of distributional divergence transforms an apparently intractable multi-source problem into a single targeted engineering challenge.
     
-    \item An extended evaluation framework comprising confidence calibration analysis \parencite{guo2017calibration}, per-class robustness profiling, domain gap quantification via Maximum Mean Discrepancy \parencite{gretton2012kernel}, noise parameter sensitivity analysis, and hyperparameter sensitivity verification---providing the multi-faceted robustness characterisation absent from prior \gls{eit} studies.
+    \item \textbf{An open-source, end-to-end reproducible pipeline} spanning data generation (MATLAB/EIDORS), model training (Python/PyTorch), evaluation, and visualisation, facilitating future benchmarking and addressing the standardisation gap identified by \textcite{jiang2023}.
 \end{itemize}
 
 \section{Dissertation Structure}

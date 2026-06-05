@@ -248,7 +248,7 @@ This fixed 70/15/15 split is used for all primary results (Tables and figures in
 \subsection{Feature Normalisation}
 \label{sec:method-normalisation}
 
-All features are standardised using \texttt{StandardScaler}. Each measurement index is shifted to zero mean and unit variance, computed \emph{exclusively} on the training split. The validation and test sets are transformed using the training-derived statistics to prevent information leakage. This normalisation is critical for \gls{svm} (which is sensitive to feature scale) and \gls{mlp} (which benefits from zero-centred inputs), while being invariant for the \gls{rf} and operationally neutral for the batch-normalised \gls{cnn}.
+All features are normalised using \texttt{RobustScaler} (median subtraction, interquartile range scaling), computed \emph{exclusively} on the training split. The validation and test sets are transformed using the training-derived statistics to prevent information leakage. RobustScaler was selected over StandardScaler because the noise-corrupted measurements contain outliers from the contact impedance and quantisation components; median-based statistics are less sensitive to these extremes. This normalisation is critical for \gls{svm} (which is sensitive to feature scale) and \gls{mlp} (which benefits from centred inputs), while being invariant for the \gls{rf} and operationally neutral for the batch-normalised \gls{cnn}.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Model Architectures}
@@ -322,14 +322,14 @@ The three-block depth was selected following a preliminary architecture sweep ov
 \subsection{CNN Training}
 \label{sec:method-training-cnn}
 
-The CNN is trained using the Adam optimiser \parencite{kingma2015adam} with learning rate $\eta = 10^{-3}$, weight decay $\lambda = 10^{-4}$, and batch size 64 for a maximum of 100 epochs. Two safeguards prevent overfitting:
+The CNN is trained using the Adam optimiser \parencite{kingma2015adam} with learning rate $\eta = 10^{-3}$, weight decay $\lambda = 10^{-4}$, and batch size 64 for a maximum of 200 epochs. Two safeguards prevent overfitting:
 
 \begin{enumerate}
     \item \textbf{Learning rate scheduling.} ReduceLROnPlateau reduces $\eta$ by factor 0.5 after 10 epochs without validation loss improvement.
-    \item \textbf{Early stopping.} Training halts after 20 consecutive epochs without validation loss improvement \parencite{prechelt1998early}. The best model (minimum validation loss) is always retained.
+    \item \textbf{Early stopping.} Training halts after 40 consecutive epochs without validation loss improvement \parencite{prechelt1998early}. The best model (minimum validation loss) is always retained.
 \end{enumerate}
 
-For noise-augmented training, label smoothing ($\epsilon = 0.05$) \parencite{muller2019labelsmooth} and increased dropout ($p = 0.4$) \parencite{srivastava2014dropout} are additionally applied to complement noise augmentation as a regularisation strategy. The noise severity is sampled uniformly from a configurable range during each training batch, implementing online domain randomisation \parencite{tobin2017}.
+For noise-augmented training, label smoothing ($\epsilon = 0.05$) \parencite{muller2019labelsmooth} and increased dropout ($p = 0.4$) \parencite{srivastava2014dropout} are additionally applied to complement noise augmentation as a regularisation strategy. Online domain randomisation \parencite{tobin2017} is implemented by sampling new noise at each epoch, with the hypothesis that exposure to diverse noise realisations during training should improve generalisation to fixed noise at test time. This follows the theoretical motivation of domain randomisation: if the training distribution encompasses the test distribution, the model should generalise. Whether this holds for sensor modalities with \emph{fixed} per-device noise---where the test noise is a single draw rather than a sample from the training distribution---is an empirical question this work directly investigates.
 
 The loss function is cross-entropy over the five classes:
 \begin{equation}
@@ -392,7 +392,7 @@ Per-class precision, recall, and F1 are additionally reported in confusion matri
 \subsection{Statistical Testing}
 \label{sec:method-stats}
 
-To establish whether observed differences are statistically significant, 5-fold stratified cross-validation \parencite{kohavi1995crossval} is performed for each model $\times$ condition combination. The resulting five accuracy estimates enable:
+To establish whether observed differences are statistically significant, each experiment is repeated over 5 independent random seeds with stratified 70/15/15 splits \parencite{kohavi1995crossval}. The resulting five accuracy estimates enable:
 
 \begin{enumerate}
     \item Reporting of mean $\pm$ standard deviation for all metrics.

@@ -10,9 +10,6 @@ wheels/
 .pytest_cache/
 .ruff_cache/
 
-# uv
-uv.lock
-
 # Jupyter
 .ipynb_checkpoints/
 
@@ -20,7 +17,7 @@ uv.lock
 *.asv
 *.mex*
 
-# Data (large generated files)
+# Data
 *.mat
 *.npz
 *.npy
@@ -35,8 +32,11 @@ data/processed/
 .DS_Store
 Thumbs.db
 
-# EIDORS (external dependency - too large for repo)
+# EIDORS
 matlab/eidors/
 
-# Results (regenerable)
+# Results
 results/
+
+# notes
+notes/

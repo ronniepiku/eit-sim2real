@@ -2,7 +2,8 @@
 
 import pytest
 import torch
-from models.cnn1d import Conv1DBlock, EITConv1D
+
+from eit_sim2real.models.cnn1d import Conv1DBlock, EITConv1D
 
 
 class TestConv1DBlock:

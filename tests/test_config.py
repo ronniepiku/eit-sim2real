@@ -3,7 +3,8 @@
 from pathlib import Path
 
 import pytest
-from configs.loader import load_config
+
+from eit_sim2real.configs import load_config
 
 
 class TestLoadConfig:
