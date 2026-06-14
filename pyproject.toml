@@ -18,6 +18,9 @@ dependencies = [
     "seaborn>=0.13.2",
     "h5py>=3.8.0",
     "umap-learn>=0.5.12",
+    "torch>=2.12.0",
+    "torchvision>=0.27.0",
+    "torchaudio>=2.11.0",
 ]
 
 [project.scripts]
@@ -86,3 +89,13 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = "eit_sim2real.visualisation"
 ignore_errors = true
+
+[tool.uv.sources]
+torch = { index = "pytorch" }
+torchvision = { index = "pytorch" }
+torchaudio = { index = "pytorch" }
+
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
