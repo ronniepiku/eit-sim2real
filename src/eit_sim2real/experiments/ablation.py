@@ -695,6 +695,7 @@ def run_ablation(
     data_path: Path,
     model_name: str = "cnn1d",
     seed: int = 42,
+    n_seeds: int = 5,
     run_all_configs: bool = True,
     run_severity_sweep: bool = True,
     epochs: int = 200,
@@ -713,10 +714,14 @@ def run_ablation(
             run_all_configs=False): all non-empty component subsets (1/2/3/4
             components) with all physically constrained orderings.
 
+    Each experiment is repeated over `n_seeds` independent random seeds with
+    different stratified splits for statistical robustness (mean ± std).
+
     Args:
         data_path: Path to the dataset .mat file (must contain clean vectors).
         model_name: Model to train ('cnn1d', 'svm', 'random_forest', 'mlp').
-        seed: Random seed.
+        seed: Base random seed (actual seeds used: seed, seed+1, ..., seed+n_seeds-1).
+        n_seeds: Number of independent seeds/splits to run (default: 5).
         run_all_configs: Run all subset/order ablation experiments (default True).
         run_severity_sweep: If True, run per-component severity sweeps.
         epochs: Max CNN training epochs.
@@ -725,104 +730,115 @@ def run_ablation(
         output_dir: Output directory for report.
 
     Returns:
-        Completed AblationStudy.
+        Completed AblationStudy (aggregated across seeds).
     """
     device = get_device()
+    seeds = [seed + i for i in range(n_seeds)]
     logger.info(f"Starting ablation study with model: {model_name}")
     logger.info(f"Using device: {device}")
-
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if device == "cuda":
-        torch.cuda.manual_seed_all(seed)
+    logger.info(f"Running {n_seeds} seeds: {seeds}")
 
     # Load CLEAN data as the base (noise is applied in Python)
     X_clean, y = load_mat_dataset(data_path, use_noisy=False)
     X_noisy_matlab, _ = load_mat_dataset(data_path, use_noisy=True)
 
-    # Use identical splits for all experiments
-    dataset_clean = prepare_splits(X_clean, y, random_state=seed)
-    dataset_noisy = prepare_splits(X_noisy_matlab, y, random_state=seed)
-
     # Full noise config (all 4 components at default severity)
     full_noise = NoiseConfig()
 
-    study = AblationStudy()
+    # Collect per-seed results: dict[description, list[AblationResult]]
+    all_seed_results: dict[str, list[AblationResult]] = {}
+    # Severity sweep: dict[comp, list[dict]] per seed
+    all_seed_severity: dict[str, list[dict]] = {c: [] for c in NOISE_COMPONENTS}
 
-    def _run_experiment(
-        train_data: str,
-        eval_data: str,
-        noise_cfg: NoiseConfig | None,
-        description: str,
-    ) -> None:
-        """Train and evaluate a single ablation experiment."""
-        if train_data == "clean":
-            X_tr = dataset_clean.X_train
-            y_tr = dataset_clean.y_train
-            X_v = dataset_clean.X_val
-            y_v = dataset_clean.y_val
-            train_noise_cfg = None
-        elif train_data == "noisy_matlab":
-            X_tr = dataset_noisy.X_train
-            y_tr = dataset_noisy.y_train
-            X_v = dataset_noisy.X_val
-            y_v = dataset_noisy.y_val
-            train_noise_cfg = None
-        elif train_data == "noisy_python":
-            X_tr = dataset_clean.X_train
-            y_tr = dataset_clean.y_train
-            X_v = dataset_clean.X_val
-            y_v = dataset_clean.y_val
-            train_noise_cfg = noise_cfg
-        else:
-            raise ValueError(f"Unknown train_data: {train_data}")
+    for seed_idx, current_seed in enumerate(seeds):
+        logger.info(f"\n{'='*60}")
+        logger.info(f"  SEED {seed_idx + 1}/{n_seeds} (seed={current_seed})")
+        logger.info(f"{'='*60}")
 
-        if eval_data == "clean":
-            X_te = dataset_clean.X_test
-            y_te = dataset_clean.y_test
-        elif eval_data == "noisy":
-            eval_rng = np.random.default_rng(seed + 999)
-            X_te = apply_noise_batch_vectorised(
-                dataset_clean.X_test, full_noise, rng=eval_rng
+        np.random.seed(current_seed)
+        torch.manual_seed(current_seed)
+        if device == "cuda":
+            torch.cuda.manual_seed_all(current_seed)
+
+        # Use different splits for each seed
+        dataset_clean = prepare_splits(X_clean, y, random_state=current_seed)
+        dataset_noisy = prepare_splits(X_noisy_matlab, y, random_state=current_seed)
+
+        def _run_experiment(
+            train_data: str,
+            eval_data: str,
+            noise_cfg: NoiseConfig | None,
+            description: str,
+        ) -> AblationResult:
+            """Train and evaluate a single ablation experiment."""
+            if train_data == "clean":
+                X_tr = dataset_clean.X_train
+                y_tr = dataset_clean.y_train
+                X_v = dataset_clean.X_val
+                y_v = dataset_clean.y_val
+                train_noise_cfg = None
+            elif train_data == "noisy_matlab":
+                X_tr = dataset_noisy.X_train
+                y_tr = dataset_noisy.y_train
+                X_v = dataset_noisy.X_val
+                y_v = dataset_noisy.y_val
+                train_noise_cfg = None
+            elif train_data == "noisy_python":
+                X_tr = dataset_clean.X_train
+                y_tr = dataset_clean.y_train
+                X_v = dataset_clean.X_val
+                y_v = dataset_clean.y_val
+                train_noise_cfg = noise_cfg
+            else:
+                raise ValueError(f"Unknown train_data: {train_data}")
+
+            if eval_data == "clean":
+                X_te = dataset_clean.X_test
+                y_te = dataset_clean.y_test
+            elif eval_data == "noisy":
+                eval_rng = np.random.default_rng(current_seed + 999)
+                X_te = apply_noise_batch_vectorised(
+                    dataset_clean.X_test, full_noise, rng=eval_rng
+                )
+                y_te = dataset_clean.y_test
+            else:
+                raise ValueError(f"Unknown eval_data: {eval_data}")
+
+            start_time = time.time()
+            if model_name == "cnn1d":
+                model, _ = train_cnn(
+                    X_tr,
+                    y_tr,
+                    X_v,
+                    y_v,
+                    epochs=epochs,
+                    early_stopping_patience=early_stopping_patience,
+                    device=device,
+                    noise_config=train_noise_cfg,
+                )
+                train_acc, _ = _evaluate_cnn(model, X_tr, y_tr, device=device)
+                val_acc, _ = _evaluate_cnn(model, X_v, y_v, device=device)
+                test_acc, test_f1 = _evaluate_cnn(model, X_te, y_te, device=device)
+            else:
+                if train_noise_cfg is not None and train_noise_cfg.enabled:
+                    aug_rng = np.random.default_rng(current_seed)
+                    X_tr = apply_noise_batch_vectorised(
+                        X_tr, train_noise_cfg, rng=aug_rng
+                    )
+
+                model = get_baseline(model_name, random_state=current_seed)
+                model = train_baseline(model, X_tr, y_tr)
+                train_acc, val_acc, test_acc, test_f1 = _evaluate_sklearn(
+                    model, X_tr, y_tr, X_v, y_v, X_te, y_te
+                )
+            train_time = time.time() - start_time
+
+            noise_flags = (
+                noise_cfg.component_flags()
+                if noise_cfg
+                else {c: False for c in NOISE_COMPONENTS}
             )
-            y_te = dataset_clean.y_test
-        else:
-            raise ValueError(f"Unknown eval_data: {eval_data}")
-
-        start_time = time.time()
-        if model_name == "cnn1d":
-            model, _ = train_cnn(
-                X_tr,
-                y_tr,
-                X_v,
-                y_v,
-                epochs=epochs,
-                early_stopping_patience=early_stopping_patience,
-                device=device,
-                noise_config=train_noise_cfg,
-            )
-            train_acc, _ = _evaluate_cnn(model, X_tr, y_tr, device=device)
-            val_acc, _ = _evaluate_cnn(model, X_v, y_v, device=device)
-            test_acc, test_f1 = _evaluate_cnn(model, X_te, y_te, device=device)
-        else:
-            if train_noise_cfg is not None and train_noise_cfg.enabled:
-                aug_rng = np.random.default_rng(seed)
-                X_tr = apply_noise_batch_vectorised(X_tr, train_noise_cfg, rng=aug_rng)
-
-            model = get_baseline(model_name, random_state=seed)
-            model = train_baseline(model, X_tr, y_tr)
-            train_acc, val_acc, test_acc, test_f1 = _evaluate_sklearn(
-                model, X_tr, y_tr, X_v, y_v, X_te, y_te
-            )
-        train_time = time.time() - start_time
-
-        noise_flags = (
-            noise_cfg.component_flags()
-            if noise_cfg
-            else {c: False for c in NOISE_COMPONENTS}
-        )
-        study.results.append(
-            AblationResult(
+            result = AblationResult(
                 noise_config=noise_flags,
                 model_name=model_name,
                 train_accuracy=train_acc,
@@ -835,90 +851,148 @@ def run_ablation(
                 ),
                 train_time_s=train_time,
             )
-        )
-        logger.info(
-            f"  {description}: acc={test_acc:.4f}, f1={test_f1:.4f} ({train_time:.1f}s)"
-        )
-
-    # ── 1. Core mismatch experiments ──────────────────────────────────
-    logger.info("\n── Core Mismatch Experiments (4) ──")
-    _run_experiment("clean", "clean", None, "train_clean_eval_clean")
-    _run_experiment("clean", "noisy", None, "train_clean_eval_noisy")
-    _run_experiment("noisy_python", "noisy", full_noise, "train_noisy_eval_noisy")
-    _run_experiment("noisy_python", "clean", full_noise, "train_noisy_eval_clean")
-
-    # ── 2. Single-component isolation ─────────────────────────────────
-    logger.info("\n── Single-Component Isolation (4) ──")
-    single_configs = generate_single_component_configs()
-    for description, cfg_variant in single_configs:
-        _run_experiment("noisy_python", "noisy", cfg_variant, description)
-
-    # ── 3. Exhaustive component/order ablation ────────────────────────
-    if run_all_configs:
-        configs = generate_ablation_configs()
-        logger.info(
-            f"\n── Exhaustive Component/Order Ablation ({len(configs)} experiments) ──"
-        )
-        for idx, (description, cfg_variant) in enumerate(configs, start=1):
-            if idx % 10 == 0:
-                logger.info(f"  Progress: {idx}/{len(configs)}")
-            _run_experiment("noisy_python", "noisy", cfg_variant, description)
-
-    # ── 4. Per-component severity sweep ───────────────────────────────
-    if run_severity_sweep and model_name == "cnn1d":
-        logger.info("\n── Per-Component Severity Sweep ──")
-        logger.info("  Training CNN on full noise, then evaluating per-component...")
-
-        np.random.seed(seed)
-        torch.manual_seed(seed)
-        if device == "cuda":
-            torch.cuda.manual_seed_all(seed)
-
-        sweep_model, _ = train_cnn(
-            dataset_clean.X_train,
-            dataset_clean.y_train,
-            dataset_clean.X_val,
-            dataset_clean.y_val,
-            epochs=epochs,
-            early_stopping_patience=early_stopping_patience,
-            device=device,
-            noise_config=full_noise,
-        )
-
-        for comp in NOISE_COMPONENTS:
-            comp_accs = []
-            comp_f1s = []
-            for sev in SEVERITY_LEVELS:
-                if sev == 0.0:
-                    X_te = dataset_clean.X_test
-                else:
-                    sweep_cfg = NoiseConfig(
-                        enabled=True,
-                        gaussian_enabled=(comp == "gaussian"),
-                        contact_impedance_enabled=(comp == "contact_impedance"),
-                        electrode_bias_enabled=(comp == "electrode_bias"),
-                        quantisation_enabled=(comp == "quantisation"),
-                        severity=sev,
-                    )
-                    rng = np.random.default_rng(seed + 777)
-                    X_te = apply_noise_batch_vectorised(
-                        dataset_clean.X_test, sweep_cfg, rng=rng
-                    )
-
-                y_pred = predict_cnn(sweep_model, X_te, device=device)
-                acc = float(accuracy_score(dataset_clean.y_test, y_pred))
-                f1 = float(f1_score(dataset_clean.y_test, y_pred, average="macro"))
-                comp_accs.append(acc)
-                comp_f1s.append(f1)
-
-            study.severity_sweep_results[comp] = {
-                "severity_levels": SEVERITY_LEVELS,
-                "accuracies": comp_accs,
-                "f1_scores": comp_f1s,
-            }
             logger.info(
-                f"  {COMPONENT_LABELS[comp]}: {comp_accs[0]:.3f} → {comp_accs[-1]:.3f}"
+                f"  {description}: acc={test_acc:.4f}, f1={test_f1:.4f} "
+                f"({train_time:.1f}s)"
             )
+            return result
+
+        # ── 1. Core mismatch experiments ──────────────────────────────
+        logger.info("\n── Core Mismatch Experiments (4) ──")
+        for train_data, eval_data, noise_cfg, desc in [
+            ("clean", "clean", None, "train_clean_eval_clean"),
+            ("clean", "noisy", None, "train_clean_eval_noisy"),
+            ("noisy_python", "noisy", full_noise, "train_noisy_eval_noisy"),
+            ("noisy_python", "clean", full_noise, "train_noisy_eval_clean"),
+        ]:
+            r = _run_experiment(train_data, eval_data, noise_cfg, desc)
+            all_seed_results.setdefault(desc, []).append(r)
+
+        # ── 2. Single-component isolation ─────────────────────────────
+        logger.info("\n── Single-Component Isolation (4) ──")
+        single_configs = generate_single_component_configs()
+        for description, cfg_variant in single_configs:
+            r = _run_experiment("noisy_python", "noisy", cfg_variant, description)
+            all_seed_results.setdefault(description, []).append(r)
+
+        # ── 3. Exhaustive component/order ablation ────────────────────
+        if run_all_configs:
+            configs = generate_ablation_configs()
+            logger.info(
+                f"\n── Exhaustive Component/Order Ablation "
+                f"({len(configs)} experiments) ──"
+            )
+            for idx, (description, cfg_variant) in enumerate(configs, start=1):
+                if idx % 10 == 0:
+                    logger.info(f"  Progress: {idx}/{len(configs)}")
+                r = _run_experiment("noisy_python", "noisy", cfg_variant, description)
+                all_seed_results.setdefault(description, []).append(r)
+
+        # ── 4. Per-component severity sweep ───────────────────────────
+        if run_severity_sweep and model_name == "cnn1d":
+            logger.info("\n── Per-Component Severity Sweep ──")
+            logger.info(
+                "  Training CNN on full noise, then evaluating per-component..."
+            )
+
+            np.random.seed(current_seed)
+            torch.manual_seed(current_seed)
+            if device == "cuda":
+                torch.cuda.manual_seed_all(current_seed)
+
+            sweep_model, _ = train_cnn(
+                dataset_clean.X_train,
+                dataset_clean.y_train,
+                dataset_clean.X_val,
+                dataset_clean.y_val,
+                epochs=epochs,
+                early_stopping_patience=early_stopping_patience,
+                device=device,
+                noise_config=full_noise,
+            )
+
+            for comp in NOISE_COMPONENTS:
+                comp_accs = []
+                comp_f1s = []
+                for sev in SEVERITY_LEVELS:
+                    if sev == 0.0:
+                        X_te = dataset_clean.X_test
+                    else:
+                        sweep_cfg = NoiseConfig(
+                            enabled=True,
+                            gaussian_enabled=(comp == "gaussian"),
+                            contact_impedance_enabled=(comp == "contact_impedance"),
+                            electrode_bias_enabled=(comp == "electrode_bias"),
+                            quantisation_enabled=(comp == "quantisation"),
+                            severity=sev,
+                        )
+                        rng = np.random.default_rng(current_seed + 777)
+                        X_te = apply_noise_batch_vectorised(
+                            dataset_clean.X_test, sweep_cfg, rng=rng
+                        )
+
+                    y_pred = predict_cnn(sweep_model, X_te, device=device)
+                    acc = float(accuracy_score(dataset_clean.y_test, y_pred))
+                    f1 = float(f1_score(dataset_clean.y_test, y_pred, average="macro"))
+                    comp_accs.append(acc)
+                    comp_f1s.append(f1)
+
+                all_seed_severity[comp].append(
+                    {"accuracies": comp_accs, "f1_scores": comp_f1s}
+                )
+                logger.info(
+                    f"  {COMPONENT_LABELS[comp]}: "
+                    f"{comp_accs[0]:.3f} → {comp_accs[-1]:.3f}"
+                )
+
+    # ── Aggregate results across seeds ────────────────────────────────
+    logger.info(f"\n{'='*60}")
+    logger.info(f"  AGGREGATING {n_seeds} SEEDS")
+    logger.info(f"{'='*60}")
+
+    study = AblationStudy()
+
+    for desc, results_list in all_seed_results.items():
+        # Use the first result as template for noise config/order metadata,
+        # but store aggregated (mean) metrics
+        template = results_list[0]
+        accs = [r.test_accuracy for r in results_list]
+        f1s = [r.test_f1_macro for r in results_list]
+        train_accs = [r.train_accuracy for r in results_list]
+        val_accs = [r.val_accuracy for r in results_list]
+        times = [r.train_time_s for r in results_list]
+
+        study.results.append(
+            AblationResult(
+                noise_config=template.noise_config,
+                model_name=template.model_name,
+                train_accuracy=float(np.mean(train_accs)),
+                val_accuracy=float(np.mean(val_accs)),
+                test_accuracy=float(np.mean(accs)),
+                test_f1_macro=float(np.mean(f1s)),
+                description=template.description,
+                component_order=template.component_order,
+                train_time_s=float(np.mean(times)),
+            )
+        )
+        logger.info(
+            f"  {desc}: acc={np.mean(accs):.4f} ± {np.std(accs):.4f}, "
+            f"f1={np.mean(f1s):.4f} ± {np.std(f1s):.4f}"
+        )
+
+    # Aggregate severity sweep: mean across seeds
+    if run_severity_sweep and model_name == "cnn1d":
+        for comp in NOISE_COMPONENTS:
+            if all_seed_severity[comp]:
+                all_accs = np.array([s["accuracies"] for s in all_seed_severity[comp]])
+                all_f1s = np.array([s["f1_scores"] for s in all_seed_severity[comp]])
+                study.severity_sweep_results[comp] = {
+                    "severity_levels": SEVERITY_LEVELS,
+                    "accuracies": all_accs.mean(axis=0).tolist(),
+                    "accuracies_std": all_accs.std(axis=0).tolist(),
+                    "f1_scores": all_f1s.mean(axis=0).tolist(),
+                    "f1_scores_std": all_f1s.std(axis=0).tolist(),
+                }
 
     # ── Generate figures ──────────────────────────────────────────────
     logger.info("\n── Generating Ablation Figures ──")
@@ -932,6 +1006,27 @@ def run_ablation(
     if run_all_configs:
         _plot_component_heatmap(df, figures_dir)
         _plot_ordering_impact(df, figures_dir)
+
+    # ── Save per-seed raw results for transparency ────────────────────
+    raw_rows = []
+    for desc, results_list in all_seed_results.items():
+        for seed_idx, r in enumerate(results_list):
+            raw_rows.append(
+                {
+                    "seed": seeds[seed_idx],
+                    "description": r.description,
+                    "model": r.model_name,
+                    "test_acc": r.test_accuracy,
+                    "test_f1": r.test_f1_macro,
+                    "val_acc": r.val_accuracy,
+                    "train_time_s": r.train_time_s,
+                }
+            )
+    raw_df = pd.DataFrame(raw_rows)
+    raw_path = output_dir / "ablation_per_seed_results.csv"
+    raw_path.parent.mkdir(parents=True, exist_ok=True)
+    raw_df.to_csv(raw_path, index=False)
+    logger.info(f"Per-seed results saved to {raw_path}")
 
     logger.info("Ablation study complete.")
     return study
@@ -981,6 +1076,12 @@ def parse_args() -> argparse.Namespace:
         help="Skip the per-component severity sweep.",
     )
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--n-seeds",
+        type=int,
+        default=5,
+        help="Number of independent seeds for statistical robustness (default: 5).",
+    )
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--early-stopping-patience", type=int, default=40)
     return parser.parse_args()
@@ -1005,6 +1106,7 @@ if __name__ == "__main__":
         data_path,
         model_name=args.model,
         seed=args.seed,
+        n_seeds=args.n_seeds,
         run_all_configs=not args.skip_all_configs,
         run_severity_sweep=not args.no_severity_sweep,
         epochs=args.epochs,

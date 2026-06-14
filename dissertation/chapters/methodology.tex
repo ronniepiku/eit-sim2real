@@ -37,7 +37,7 @@ This chapter details the experimental methodology employed to investigate noise-
 \label{fig:method-pipeline}
 \end{figure}
 
-All code, configuration files, and trained models are made publicly available\footnote{Repository: \url{https://github.com/ronniepiku/eit-sim2real} (to be released upon submission).} to support reproducibility, addressing the standardisation gap identified in Chapter~\ref{ch:literature_review}.
+All code, configuration files, and trained models are made publicly available\footnote{Repository: \url{https://github.com/ronniepiku/eit-sim2real}} to support reproducibility, addressing the standardisation gap identified in Chapter~\ref{ch:literature_review}.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{EIT Simulation Framework}
@@ -86,7 +86,7 @@ The forward model therefore assigns conductivity values $\sigma < \sigma_0$ with
 \subsection{Touch Class Definitions}
 \label{sec:method-classes}
 
-Five touch classes are defined to represent the principal interaction modalities encountered in prosthetic use \parencite{yao2022, silvera-tawil2012eit}. Each class is parameterised by a conductivity range ($\sigma$) and a spatial radius ($r$), with random position constrained to the inner 40\% of the mesh boundary to limit the impact of EIT's non-uniform spatial sensitivity on within-class variance. Table~\ref{tab:class-params} presents the complete parameterisation with evidence basis.
+Five touch classes are defined to represent the principal interaction modalities encountered in prosthetic use \parencite{yao2022, silvera-tawil2012eit}. Each class is parameterised by a conductivity range ($\sigma$) and a spatial radius ($r$), with random position constrained to the inner 40\% of the mesh boundary. Table~\ref{tab:class-params} presents the complete parameterisation with evidence basis.
 
 \begin{table}[htbp]
 \centering
@@ -106,7 +106,7 @@ Five touch classes are defined to represent the principal interaction modalities
 \end{tabular}
 \end{table}
 
-Three design principles govern this parameterisation:
+Three design principles govern this parametrisation:
 
 \begin{enumerate}
     \item \textbf{Sign constraint.} All contact classes satisfy $\sigma < \sigma_0$, consistent with the positive piezoresistive response of ionic hydrogels \parencite{lee2019}.
@@ -144,6 +144,8 @@ The noise model is motivated by the observation that real \gls{eit} hardware pro
 
 Note that temporal drift is deliberately excluded from this model. Drift is a \emph{sequential} phenomenon (baseline shift across measurement frames over minutes to hours) that cannot be meaningfully represented within a single-frame static measurement. Modelling drift as a spatial random walk across channels within one frame (as some prior work has done) is physically incorrect and introduces structured artefacts that do not correspond to real hardware behaviour. Addressing temporal drift requires sequential data and temporal models (e.g., RNNs, online adaptation), which is identified as future work in Chapter~\ref{ch:conclusions}.
 
+Importantly, the noise model \emph{structure} is material-agnostic: the functional forms---additive Gaussian, multiplicative log-normal per-electrode, additive per-electrode uniform, and uniform quantisation---derive from the physics of the measurement chain and the electrode--substrate interface, not from the specific substrate chemistry. What changes between material platforms (hydrogel, conductive elastomer, textile) is the \emph{parametric magnitude} of each component (e.g., $\sigma_z$ may be 5\% for a rigid elastomer with stable contact or 20\%+ for a textile electrode with variable drape), not the distributional form. This means the framework developed here generalises directly to other \gls{eit} sensing substrates without requiring re-derivation; only the YAML configuration parameters need adjustment to match material-specific characterisation data. The sensitivity analysis in Section~\ref{sec:res-extended} validates that classifier conclusions hold across the full physically plausible parameter range for all common e-skin materials ($\sigma_z \in [5\%, 25\%]$, $b_{\max} \in [0.005, 0.08]$, SNR $\in [20, 60]$\,dB).
+
 \subsection{Component Specifications}
 \label{sec:method-noise-components}
 
@@ -166,6 +168,8 @@ Each component is defined by its physical mechanism, mathematical formulation, p
 \end{equation}
 
 \noindent where $e(i)$ maps measurement $i$ to the electrode responsible for that measurement block ($e \in \{1, \ldots, 16\}$). Each electrode has a single impedance factor applied to all measurements it participates in, producing block-structured multiplicative distortion. The log-normal model ensures $z_e > 0$ (physically, contact impedance cannot be negative) and produces asymmetric variation consistent with the experimental findings of \textcite{vilhunen2002}, who demonstrated that contact impedance variations of 5--20\% significantly affect reconstruction quality.
+
+The $\sigma_z = 10\%$ default derives from \textcite{vilhunen2002}, whose measurements characterise metal electrodes on saline phantoms and biological tissue. For the ionic hydrogel substrate modelled in this work, the electrode--substrate interface presents a qualitatively different electrochemistry: current is carried by mobile ions (Na$^+$, Cl$^-$) diffusing within a cross-linked polymer network, and the metal--hydrogel double-layer impedance depends on local ionic concentration, polymer mesh density, and hydration state \parencite{lee2019, sun2019}. No published study provides quantitative electrode--hydrogel contact impedance \emph{variation} data suitable for direct parametrisation; \textcite{lee2019} and \textcite{yao2022} both employ metal electrodes on hydrogel substrates but report no impedance spectroscopy at the interface. The physical analogy (metal electrode contacting an ionic conductor) nevertheless supports the same order of magnitude as saline-based measurements, while the compliant hydrogel surface---whose effective contact area varies with applied pressure---may produce \emph{higher} variability than rigid phantoms. The sensitivity analysis (Section~\ref{sec:res-extended}) confirms that classifier performance remains robust across the physically plausible range $\sigma_z \in [5\%, 25\%]$, mitigating the impact of this parametric uncertainty on the reported findings.
 
 \paragraph{Component 3: Electrode positioning bias.} Models systematic measurement error from imprecise electrode placement on the physical substrate.
 
@@ -347,7 +351,7 @@ Baseline models (\gls{svm}, \gls{rf}, \gls{mlp}) are trained on the same trainin
 \subsection{Reproducibility}
 \label{sec:method-reproducibility}
 
-All experiments use fixed random seeds: NumPy ($\texttt{seed}=42$), PyTorch ($\texttt{seed}=42$), and MATLAB ($\texttt{rng(42)}$). The complete configuration is stored in a YAML file (\texttt{python/configs/config.yaml}), enabling exact reproduction of all results from a single command.
+All experiments use fixed random seeds: NumPy ($\texttt{seed}=42$), PyTorch ($\texttt{seed}=42$), and MATLAB ($\texttt{rng(42)}$). The complete configuration is stored in a YAML file, enabling exact reproduction of all results from a single command.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Evaluation Framework}
@@ -467,7 +471,7 @@ Key training hyperparameters (learning rate, dropout \parencite{srivastava2014dr
 \subsection{Ethical Dimensions}
 \label{sec:method-ethics-ethical}
 
-This work uses exclusively synthetic data generated by physics-based simulation; no human participants, biological samples, or personal data are involved. Institutional ethics approval was therefore not required. However, the downstream application---prosthetic tactile sensing---has significant ethical implications. Classifiers that fail silently under noise could endanger users (e.g., failure to detect harmful contact). The robustness evaluation framework developed here directly addresses this concern by quantifying failure modes under degraded conditions.
+This work uses exclusively synthetic data generated by physics-based simulation; no human participants, biological samples, or personal data are involved. Ethics approval was therefore non-critical but still obtained. However, the downstream application has significant ethical implications. Classifiers that fail silently under noise could endanger users (e.g., failure to detect harmful contact). The robustness evaluation framework developed here directly addresses this concern by quantifying failure modes under degraded conditions.
 
 \subsection{Economic Implications}
 \label{sec:method-ethics-economic}
@@ -477,7 +481,7 @@ A simulation-first approach substantially reduces the cost barrier to \gls{eit} 
 \subsection{Environmental Sustainability}
 \label{sec:method-ethics-sustainability}
 
-The computational cost of this work is modest: dataset generation requires approximately 2--4 hours of single-core MATLAB computation (MATLAB R2024b, Intel Core i7-12700H, 16\,GB RAM); model training completes in under 1 hour on a consumer GPU (NVIDIA RTX 3060, 6\,GB VRAM) running Python 3.11 with PyTorch 2.12. The carbon footprint is negligible compared to large-scale deep learning research. More importantly, the simulation-first methodology reduces the need for iterative physical prototyping, thus avoiding material waste from fabrication of multiple sensor variants and electronic waste from discarded hardware iterations.
+The computational cost of this work is modest. Dataset generation requires approximately 10-20 mins of single-core MATLAB computation (MATLAB R2024b, Intel Core i7-12700H, 16\,GB RAM); model training completes in under 1 hour on a consumer GPU (NVIDIA RTX 3060, 6\,GB VRAM) running Python 3.11 with PyTorch 2.12. The carbon footprint is negligible compared to large-scale deep learning research. More importantly, the simulation-first methodology reduces the need for iterative physical prototyping, thus avoiding material waste from fabrication of multiple sensor variants and electronic waste from discarded hardware iterations.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 %% ─────────────────────────────────────────────────────────────────────────────
