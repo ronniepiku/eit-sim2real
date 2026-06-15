@@ -21,13 +21,35 @@ __all__ = [
 ]
 
 
+_device_logged = False
+
+
 def get_device() -> str:
-    """Return the best available compute device."""
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    logger.info(
-        "Using device: %s",
-        torch.cuda.get_device_name(0) if device == "cuda" else "CPU",
-    )
+    """Return the best available compute device.
+
+    Selects ``cuda`` when available, otherwise ``cpu``. The selection
+    decision is logged exactly once per process so callers in tight
+    inference loops do not spam the log.
+    """
+    global _device_logged
+    if torch.cuda.is_available():
+        device = "cuda"
+        if not _device_logged:
+            logger.info(
+                "CUDA available: using GPU '%s' (CUDA %s, %d device(s))",
+                torch.cuda.get_device_name(0),
+                torch.version.cuda,
+                torch.cuda.device_count(),
+            )
+            _device_logged = True
+    else:
+        device = "cpu"
+        if not _device_logged:
+            logger.warning(
+                "CUDA not available: falling back to CPU "
+                "(install a CUDA-enabled PyTorch build for GPU acceleration)"
+            )
+            _device_logged = True
     return device
 
 

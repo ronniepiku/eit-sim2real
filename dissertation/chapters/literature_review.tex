@@ -82,7 +82,7 @@ Among these, \gls{eit} and fibre-optic approaches stand out for large-area prost
 \subsection{Bio-inspired Signal Encoding and Multimodal Perception}
 \label{sec:lit-eskin-bioinspired}
 
-\textcite{osborn2016} proposed a biomimetic circuit mimicking afferent mechanoreceptor firing patterns (8--64~Hz response band), using \gls{pca}-reduced features classified by k-NN ($k$=5) and \gls{svm} (RBF kernel) across 19 touch classes with 5-fold cross-validation. Near-perfect accuracy was reported, but under highly controlled laboratory conditions with no environmental variability---demonstrating that even well-chosen representations do not guarantee robustness when evaluated only in-distribution. \textcite{lee2020} additionally highlight that next-generation e-skins increasingly use recurrent architectures for sequential contact dynamics, a temporal dimension largely absent from \gls{eit} tactile studies and identified here as future work (Chapter~\ref{ch:conclusions}).
+\textcite{osborn2016} proposed a biomimetic circuit mimicking afferent mechanoreceptor firing patterns and reported near-perfect accuracy under controlled laboratory conditions---a result revisited as a methodological exemplar in Section~\ref{sec:lit-ml-concerns}, since even well-chosen representations do not guarantee robustness when evaluated only in-distribution. \textcite{lee2020} additionally highlight the increasing use of recurrent architectures for sequential contact dynamics, a temporal dimension largely absent from \gls{eit} tactile studies and identified here as future work (Chapter~\ref{ch:conclusions}).
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Electrical Impedance Tomography for Tactile Sensing}
@@ -171,7 +171,7 @@ CNNs have become the dominant architecture for tactile classification due to the
 
 \textcite{yao2022} employed a CNN for 5-class touch classification on \gls{eit} voltage vectors, reporting 98.7\% accuracy with early stopping but without hyperparameter optimisation, k-fold validation, or noise robustness testing. The high accuracy likely reflects the well-separated nature of the classes rather than genuine model robustness.
 
-For 1D voltage difference vectors, 1D CNNs are architecturally natural, treating the measurement vector as a single-channel signal where convolutional kernels learn local patterns in the voltage response corresponding to spatial contact features. Residual connections \parencite{he2016} can mitigate the vanishing gradient problem in deeper architectures which should be investigated further in future work.
+For 1D voltage difference vectors, 1D-CNNs are architecturally natural, treating the measurement vector as a single-channel signal where convolutional kernels learn local patterns in the voltage response corresponding to spatial contact features. Residual connections \parencite{he2016} can mitigate the vanishing gradient problem in deeper architectures and are identified as a candidate extension for future work.
 
 \subsection{Deep Learning for EIT Reconstruction}
 \label{sec:lit-ml-dl-eit}

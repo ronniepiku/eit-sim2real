@@ -130,13 +130,105 @@ def train_and_evaluate(
     }
 
 
-def main() -> None:
+def run(
+    data_path: Path | None = None,
+    dev_fraction: float = 0.1,
+    output_dir: Path = Path("results"),
+    seed: int = 42,
+) -> Path:
+    """Execute the architecture sweep and return the path to the saved CSV."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+    # Trigger the centralised device banner up front so the user can see
+    # whether the run will use GPU or fall back to CPU before any work starts.
+    get_device()
+
+    cfg = load_config()
+    resolved_data_path = data_path or Path(cfg["data"]["path"])
+
+    set_seeds(seed)
+
+    # Load and split data
+    X, y = load_mat_dataset(resolved_data_path, use_noisy=True)
+    dataset = prepare_splits(X, y, random_state=seed)
+
+    # Use development subset for efficient sweep
+    n_dev = int(len(dataset.X_train) * dev_fraction)
+    indices = np.random.permutation(len(dataset.X_train))[:n_dev]
+    X_train_dev = dataset.X_train[indices]
+    y_train_dev = dataset.y_train[indices]
+
+    logger.info(
+        "Architecture sweep: %d training samples, full validation set (%d samples)",
+        n_dev,
+        len(dataset.X_val),
+    )
+
+    # Sweep over block counts
+    block_counts = [2, 3, 4, 5]
+    results = []
+
+    for n_blocks in block_counts:
+        logger.info(
+            "\n--- %d conv blocks (channels: %s) ---",
+            n_blocks,
+            build_channel_list(n_blocks),
+        )
+        result = train_and_evaluate(
+            n_blocks=n_blocks,
+            X_train=X_train_dev,
+            y_train=y_train_dev,
+            X_val=dataset.X_val,
+            y_val=dataset.y_val,
+            seed=seed,
+        )
+        results.append(result)
+        logger.info(
+            "  Val acc: %.4f | Val loss: %.4f | Params: %s | Best epoch: %d",
+            result["best_val_acc"],
+            result["best_val_loss"],
+            f"{result['n_params']:,}",
+            result["best_epoch"],
+        )
+
+    # Save results
+    df = pd.DataFrame(results)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = (output_dir / "architecture_sweep.csv").resolve()
+    df.to_csv(output_path, index=False)
+    logger.info("Results saved to %s", output_path)
+
+    # Print a compact summary table for quick inspection.
+    summary = df[
+        [
+            "n_blocks",
+            "channels",
+            "n_params",
+            "best_val_acc",
+            "best_val_loss",
+            "best_epoch",
+        ]
+    ].copy()
+    logger.info("\nArchitecture sweep summary:\n%s", summary.to_string(index=False))
+
+    # Report best
+    best = df.loc[df["best_val_acc"].idxmax()]
+    logger.info(
+        "Best architecture: %d blocks (val acc: %.4f, params: %s)",
+        int(best["n_blocks"]),
+        best["best_val_acc"],
+        f"{int(best['n_params']):,}",
+    )
+
+    return output_path
+
+
+def main(argv: list[str] | None = None) -> None:
+    """argparse entry point for direct ``python -m`` invocation."""
     parser = argparse.ArgumentParser(description="CNN architecture depth sweep.")
     parser.add_argument("--data-path", type=Path, default=None)
     parser.add_argument(
@@ -147,64 +239,13 @@ def main() -> None:
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results"))
     parser.add_argument("--seed", type=int, default=42)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
-    cfg = load_config()
-    data_path = args.data_path or Path(cfg["data"]["path"])
-
-    set_seeds(args.seed)
-
-    # Load and split data
-    X, y = load_mat_dataset(data_path, use_noisy=True)
-    dataset = prepare_splits(X, y, random_state=args.seed)
-
-    # Use development subset for efficient sweep
-    n_dev = int(len(dataset.X_train) * args.dev_fraction)
-    indices = np.random.permutation(len(dataset.X_train))[:n_dev]
-    X_train_dev = dataset.X_train[indices]
-    y_train_dev = dataset.y_train[indices]
-
-    logger.info(
-        f"Architecture sweep: {n_dev} training samples, "
-        f"full validation set ({len(dataset.X_val)} samples)"
-    )
-
-    # Sweep over block counts
-    block_counts = [2, 3, 4, 5]
-    results = []
-
-    for n_blocks in block_counts:
-        logger.info(
-            f"\n--- {n_blocks} conv blocks (channels: {build_channel_list(n_blocks)}) ---"
-        )
-        result = train_and_evaluate(
-            n_blocks=n_blocks,
-            X_train=X_train_dev,
-            y_train=y_train_dev,
-            X_val=dataset.X_val,
-            y_val=dataset.y_val,
-            seed=args.seed,
-        )
-        results.append(result)
-        logger.info(
-            f"  Val acc: {result['best_val_acc']:.4f} | "
-            f"Val loss: {result['best_val_loss']:.4f} | "
-            f"Params: {result['n_params']:,} | "
-            f"Best epoch: {result['best_epoch']}"
-        )
-
-    # Save results
-    df = pd.DataFrame(results)
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = args.output_dir / "architecture_sweep.csv"
-    df.to_csv(output_path, index=False)
-    logger.info(f"\nResults saved to {output_path}")
-
-    # Report best
-    best = df.loc[df["best_val_acc"].idxmax()]
-    logger.info(
-        f"\nBest architecture: {int(best['n_blocks'])} blocks "
-        f"(val acc: {best['best_val_acc']:.4f})"
+    run(
+        data_path=args.data_path,
+        dev_fraction=args.dev_fraction,
+        output_dir=args.output_dir,
+        seed=args.seed,
     )
 
 
