@@ -148,6 +148,88 @@ Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy f
 \end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────
+\chapter{Exploratory Data Analysis}
+\label{app:eda}
+
+This appendix reports the empirical evidence underpinning the preprocessing decisions documented in Section~\ref{sec:method-eda}: choice of feature scaler, decision to retain the full 208-dimensional voltage vector, and decision not to deduplicate the no-contact class. All results were produced by the notebook \texttt{notebooks/eda\_analysis.ipynb}; the complete machine-readable decision log is supplied in \texttt{data/cleaned/eda\_decision\_log.json}.
+
+\section{Comparison Protocol}
+\label{app:eda-protocol}
+
+Seven candidate preprocessing pipelines were compared using a logistic-regression probe under a \texttt{RepeatedStratifiedKFold} cross-validation design ($k=5$, $n_{\text{repeats}} = 3$, fixed seed $42$), yielding 15 paired evaluations per pipeline. The probe is deliberately simple: its purpose is to provide a fast, model-agnostic surface on which to compare \emph{preprocessing} effects without confounding from architecture tuning. The leakage-safe protocol fits the scaler and any reduction transform on the training partition of each fold and applies the fitted transform to the held-out partition.
+
+\section{Pipeline Comparison}
+\label{app:eda-pipelines}
+
+Table~\ref{tab:eda-pipelines} reports the cross-validated macro-F1 and balanced accuracy for each candidate pipeline.
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-validated comparison of preprocessing pipelines (15 paired folds, logistic-regression probe). \texttt{robust\_lr} = \texttt{RobustScaler} + full 208 features; \texttt{standard\_lr} = \texttt{StandardScaler} + full features; \texttt{corr$\rho$} = correlation-based feature pruning at threshold $\rho$; \texttt{pca95} = \gls{pca} retaining 95\% variance (7 components); \texttt{lda\_classifier} = \gls{lda}-transformed features (4 components).}
+\label{tab:eda-pipelines}
+\small
+\begin{tabularx}{\textwidth}{@{}l r r X@{}}
+\toprule
+\textbf{Pipeline} & \textbf{Macro-F1 (mean$\pm$std)} & \textbf{Bal.\ Acc.} & \textbf{Notes} \\
+\midrule
+\texttt{robust\_lr}        & $\mathbf{0.718 \pm 0.004}$ & $\mathbf{0.721}$ & Selected baseline. \\
+\midrule
+\texttt{standard\_lr}      & $0.713 \pm 0.004$ & $0.717$ & $-0.5$\,pp vs.\ robust. \\
+\midrule
+\texttt{corr090\_f\_lr}    & $0.704 \pm 0.004$ & $0.709$ & Prune at $\rho = 0.90$. \\
+\midrule
+\texttt{lda\_classifier}   & $0.683 \pm 0.110$ & $0.700$ & High variance across folds. \\
+\midrule
+\texttt{corr075\_f\_lr}    & $0.683 \pm 0.007$ & $0.688$ & Prune at $\rho = 0.75$. \\
+\midrule
+\texttt{pca95\_lr}         & $0.673 \pm 0.005$ & $0.678$ & 7 components retain 95.3\% variance. \\
+\midrule
+\texttt{corr075\_pca95\_lr} & $0.672 \pm 0.007$ & $0.677$ & Combined reduction. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Statistical Significance}
+\label{app:eda-stats}
+
+Paired Wilcoxon signed-rank tests across the 15 folds confirm that the differences in Table~\ref{tab:eda-pipelines} are statistically meaningful despite their small absolute magnitude (Table~\ref{tab:eda-wilcoxon}). The very large effect sizes ($d > 2$ in all comparisons) reflect the fold-by-fold consistency of the ranking rather than the headline F1 gap.
+
+\begin{table}[htbp]
+\centering
+\caption{Paired Wilcoxon signed-rank tests comparing preprocessing pipelines across 15 cross-validation folds. Cohen's $d$ computed on paired fold-wise F1 differences.}
+\label{tab:eda-wilcoxon}
+\small
+\begin{tabularx}{\textwidth}{@{}l l r r r X@{}}
+\toprule
+\textbf{Pipeline A} & \textbf{Pipeline B} & \textbf{$\Delta$F1} & \textbf{Cohen's $d$} & \textbf{$p$-value} & \textbf{Conclusion} \\
+\midrule
+\texttt{robust\_lr} & \texttt{standard\_lr}   & $+0.005$ & $2.29$ & $< 0.001$ & Robust scaling preferred. \\
+\midrule
+\texttt{robust\_lr} & \texttt{corr090\_f\_lr} & $+0.014$ & $3.86$ & $< 0.001$ & Pruning hurts F1. \\
+\midrule
+\texttt{standard\_lr} & \texttt{corr090\_f\_lr} & $+0.009$ & $2.94$ & $< 0.001$ & Pruning hurts F1 under both scalers. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Held-out Confirmation}
+\label{app:eda-holdout}
+
+Figure~\ref{fig:app-eda-holdout} confirms the cross-validation ranking on a stratified held-out set. The \texttt{RobustScaler} + full-features pipeline is the only configuration to combine the highest macro-F1 with low variance, which is the basis for adopting it as the default preprocessing path for all subsequent experiments in Chapter~\ref{ch:results}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{../results/eda/final_pipeline_holdout.png}
+\caption{Held-out macro-F1 and balanced accuracy for all seven candidate preprocessing pipelines, evaluated on a stratified test partition disjoint from the cross-validation folds. The selected pipeline (\texttt{robust\_lr}) is highlighted; results match the cross-validation ranking in Table~\ref{tab:eda-pipelines}.}
+\label{fig:app-eda-holdout}
+\end{figure}
+
+\section{Duplicate Audit}
+\label{app:eda-duplicates}
+
+An exact-row duplicate audit on the full 25{,}000-sample dataset identified 4{,}999 duplicates within the no-contact class (Class~0) and zero duplicates across all four contact classes. The class-0 duplicates are a physically correct consequence of the homogeneous-baseline definition: every no-contact sample produces an identical conductivity image, and---in the clean (pre-noise) representation---an identical voltage difference vector of $\mathbf{0}$. Deduplication is therefore not applied. After noise injection, the class-0 samples become distinguishable through the Gaussian noise floor of Component~1 (Section~\ref{sec:method-noise-components}), so no clustering pathology arises during training.
+
+%% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Code Repository}
 \label{app:code}
 
