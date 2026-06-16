@@ -171,6 +171,35 @@ def prepare_splits(
     )
 
 
+def prepare_splits_from_config(
+    X: np.ndarray,
+    y: np.ndarray,
+    cfg: dict,
+    random_state: int = 42,
+    normalize: bool | None = None,
+) -> EITDataset:
+    """Build train/val/test splits using the project ``config.yaml`` ``data`` block.
+
+    Reads ``test_size``, ``val_size``, ``normalize`` and ``scaler`` from
+    ``cfg['data']`` (with conservative fallbacks). This is the preferred
+    constructor for code that already loads the project config; pass
+    ``normalize=False`` explicitly to override (e.g. for already-reduced
+    PCA/LDA datasets).
+    """
+    data_cfg = cfg.get("data", {})
+    return prepare_splits(
+        X,
+        y,
+        test_size=float(data_cfg.get("test_size", 0.15)),
+        val_size=float(data_cfg.get("val_size", 0.15)),
+        random_state=random_state,
+        normalize=(
+            bool(data_cfg.get("normalize", True)) if normalize is None else normalize
+        ),
+        scaler_type=str(data_cfg.get("scaler", "robust")),
+    )
+
+
 def get_cv_splits(
     X: np.ndarray,
     y: np.ndarray,

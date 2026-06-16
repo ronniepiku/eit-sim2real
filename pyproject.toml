@@ -5,7 +5,7 @@ description = "Noise-robust classification of simulated touch for EIT-based elec
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
-authors = [{ name = "Ronald P" }]
+authors = [{ name = "Ronald Piku" }]
 dependencies = [
     "click>=8.1.0",
     "joblib>=1.4.0",

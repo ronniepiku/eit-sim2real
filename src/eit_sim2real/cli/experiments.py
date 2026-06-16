@@ -9,26 +9,174 @@ def experiments() -> None:
 
 
 @experiments.command("run-all")
-@click.option("--config", type=click.Path(exists=True), help="Path to config YAML.")
+@click.option(
+    "--datasets",
+    type=str,
+    default="raw,pca,lda",
+    show_default=True,
+    help="Comma-separated list of datasets (raw,pca,lda).",
+)
+@click.option(
+    "--seeds",
+    type=int,
+    default=5,
+    show_default=True,
+    help="Number of random seeds for uncertainty estimation.",
+)
+@click.option(
+    "--epochs",
+    type=int,
+    default=200,
+    show_default=True,
+    help="Max CNN training epochs.",
+)
+@click.option(
+    "--early-stopping-patience",
+    type=int,
+    default=40,
+    show_default=True,
+    help="CNN early stopping patience.",
+)
 @click.option(
     "--output-dir",
-    type=click.Path(),
-    default="results",
-    help="Results output directory.",
+    type=click.Path(file_okay=False),
+    default="results/reports",
+    show_default=True,
+    help="Directory for report and tables.",
 )
-def run_all(config: str | None, output_dir: str) -> None:
-    """Run the full Model x Dataset x Condition experiment grid."""
+@click.option(
+    "--figures-dir",
+    type=click.Path(file_okay=False),
+    default="results/figures",
+    show_default=True,
+    help="Directory for figure outputs.",
+)
+@click.option(
+    "--skip-ablation",
+    is_flag=True,
+    help="Skip the ablation study.",
+)
+@click.option(
+    "--skip-extended",
+    is_flag=True,
+    help="Skip extended experiments (stats, ensemble, t-SNE, etc.).",
+)
+@click.option(
+    "--skip-additional",
+    is_flag=True,
+    help="Skip additional memorisation experiments (fixed-bias, different-draw).",
+)
+def run_all(
+    datasets: str,
+    seeds: int,
+    epochs: int,
+    early_stopping_patience: int,
+    output_dir: str,
+    figures_dir: str,
+    skip_ablation: bool,
+    skip_extended: bool,
+    skip_additional: bool,
+) -> None:
+    """Run the full Model x Dataset x Condition experiment grid.
+
+    Also triggers the ablation study, extended experiments (statistical
+    tests, learning curves, ensembles, calibration, ...) and the
+    additional memorisation experiments (fixed-bias, different-draw),
+    each over the same seed sequence so that all reported numbers share
+    the same statistical protocol.
+    """
     from eit_sim2real.experiments.grid import main as grid_main
 
-    grid_main()
+    argv: list[str] = [
+        "--datasets",
+        *[d.strip() for d in datasets.split(",") if d.strip()],
+        "--seeds",
+        str(seeds),
+        "--epochs",
+        str(epochs),
+        "--early-stopping-patience",
+        str(early_stopping_patience),
+        "--output-dir",
+        output_dir,
+        "--figures-dir",
+        figures_dir,
+    ]
+    if skip_ablation:
+        argv.append("--skip-ablation")
+    if skip_extended:
+        argv.append("--skip-extended")
+    if skip_additional:
+        argv.append("--skip-additional")
+
+    grid_main(argv)
 
 
 @experiments.command("additional")
-def additional() -> None:
-    """Run additional memorisation experiments (fixed-bias, different-draw)."""
-    from eit_sim2real.experiments.additional import main as additional_main
+@click.option(
+    "--seeds",
+    type=int,
+    default=5,
+    show_default=True,
+    help="Number of random seeds (matches the headline 5-seed protocol).",
+)
+@click.option(
+    "--epochs",
+    type=int,
+    default=200,
+    show_default=True,
+    help="Max CNN training epochs (used by the fixed-bias retrain).",
+)
+@click.option(
+    "--early-stopping-patience",
+    type=int,
+    default=40,
+    show_default=True,
+)
+@click.option(
+    "--output-dir",
+    type=click.Path(file_okay=False),
+    default="results/reports/additional",
+    show_default=True,
+)
+@click.option(
+    "--models-dir",
+    type=click.Path(file_okay=False),
+    default="results/models",
+    show_default=True,
+    help="Directory containing the headline cnn1d_noisy_best.pt checkpoint.",
+)
+def additional(
+    seeds: int,
+    epochs: int,
+    early_stopping_patience: int,
+    output_dir: str,
+    models_dir: str,
+) -> None:
+    """Run the additional memorisation experiments under the 5-seed protocol.
 
-    additional_main()
+    Includes:
+      * Fixed-bias augmentation: noise sampled once per training instance and
+        held fixed across epochs (mimics persistent per-device characteristics).
+      * Different-draw evaluation: re-evaluates the noisy-trained CNN on test
+        sets generated from independent noise realisations.
+    """
+    from pathlib import Path
+
+    from eit_sim2real.configs import load_config
+    from eit_sim2real.experiments.additional import run_additional_experiments
+
+    cfg = load_config()
+    seed_list = list(range(int(cfg.get("seed", 42)), int(cfg.get("seed", 42)) + seeds))
+    data_path = Path(cfg["data"]["path"])
+
+    run_additional_experiments(
+        data_path=data_path,
+        seeds=seed_list,
+        epochs=epochs,
+        early_stopping_patience=early_stopping_patience,
+        output_dir=Path(output_dir),
+        models_dir=Path(models_dir),
+    )
 
 
 @experiments.command("ablation")

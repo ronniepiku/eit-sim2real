@@ -39,6 +39,7 @@ def train_cnn(
     label_smoothing: float = 0.0,
     dropout: float = 0.3,
     channels: list[int] | None = None,
+    seed: int | None = None,
 ) -> tuple[EITConv1D, dict[str, list[float]]]:
     """Train 1D-CNN with optional online noise augmentation and early stopping.
 
@@ -61,6 +62,9 @@ def train_cnn(
         label_smoothing: CrossEntropyLoss label smoothing.
         dropout: Dropout probability.
         channels: Conv block channel sizes.
+        seed: Explicit seed for the augmentation RNG. If None, falls back to
+            ``torch.initial_seed()`` (legacy behaviour). Prefer providing an
+            explicit seed for reproducible noise-augmented training runs.
 
     Returns:
         Tuple of (best model, training history dict).
@@ -77,8 +81,13 @@ def train_cnn(
     ).to(device)
 
     augment = noise_config is not None and noise_config.enabled
-    # Derive augmentation RNG from the training seed (passed via torch manual_seed)
-    aug_rng = np.random.default_rng(torch.initial_seed() % 2**32) if augment else None
+    # Derive augmentation RNG from the explicit `seed` argument when provided;
+    # otherwise fall back to torch.initial_seed() for backward compatibility.
+    if augment:
+        rng_seed = seed if seed is not None else (torch.initial_seed() % 2**32)
+        aug_rng: np.random.Generator | None = np.random.default_rng(rng_seed)
+    else:
+        aug_rng = None
 
     train_loader = DataLoader(
         TensorDataset(
@@ -206,6 +215,7 @@ def train_cnn_mixed(
     label_smoothing: float = 0.05,
     dropout: float = 0.4,
     channels: list[int] | None = None,
+    seed: int | None = None,
 ) -> tuple[EITConv1D, dict[str, list[float]]]:
     """Train CNN with mixed clean + noise-augmented batches.
 
@@ -250,7 +260,8 @@ def train_cnn_mixed(
     ).to(device)
 
     augment = noise_config is not None and noise_config.enabled
-    aug_rng = np.random.default_rng(torch.initial_seed() % 2**32)
+    rng_seed = seed if seed is not None else (torch.initial_seed() % 2**32)
+    aug_rng = np.random.default_rng(rng_seed)
 
     clean_loader = DataLoader(
         TensorDataset(

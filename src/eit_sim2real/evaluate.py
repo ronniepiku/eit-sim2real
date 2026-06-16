@@ -6,6 +6,7 @@ Provides model evaluation, robustness sweeps, and visualization generation.
 from __future__ import annotations
 
 import logging
+from dataclasses import replace as dataclass_replace
 from pathlib import Path
 from typing import Any
 
@@ -73,6 +74,7 @@ def evaluate_severity_sweep(
     device: str = "auto",
     seed: int = 42,
     X_noisy: np.ndarray | None = None,
+    noise_config: NoiseConfig | None = None,
 ) -> dict[str, list[float] | dict[str, float]]:
     """Evaluate model robustness under varying noise severity.
 
@@ -87,12 +89,18 @@ def evaluate_severity_sweep(
         device: Device for CNN inference.
         seed: Random seed for noise generation.
         X_noisy: Optional noisy test features at 1.0x severity.
+        noise_config: Base noise configuration to scale. If None, uses the
+            project default :class:`NoiseConfig`. The ``severity`` field of the
+            base config is overwritten per multiplier; all other parameters
+            (component flags, SNR, max_bias, etc.) are preserved.
 
     Returns:
         Dictionary with multipliers, accuracies, F1 scores, and degradation metrics.
     """
     if severity_multipliers is None:
         severity_multipliers = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+
+    base_cfg = noise_config if noise_config is not None else NoiseConfig()
 
     accuracies: list[float] = []
     f1_scores_list: list[float] = []
@@ -106,7 +114,7 @@ def evaluate_severity_sweep(
         elif noise_delta is not None:
             X_test = X_clean + mult * noise_delta
         else:
-            noise_cfg = NoiseConfig(severity=mult)
+            noise_cfg = dataclass_replace(base_cfg, severity=mult)
             rng = np.random.default_rng(seed)
             X_test = apply_noise_batch_vectorised(X_clean, noise_cfg, rng=rng)
 

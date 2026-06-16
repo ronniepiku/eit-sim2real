@@ -71,9 +71,20 @@ class NoiseConfig:
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "NoiseConfig":
-        """Load noise configuration from YAML file."""
+        """Load noise configuration from the MATLAB-style YAML schema.
+
+        Used for compatibility with ``matlab/configs/noise_params.yaml``.
+        For the project-level ``config.yaml`` (``noise_augmentation`` block),
+        use :meth:`from_config_dict` instead.
+        """
         with open(path) as f:
             raw = yaml.safe_load(f)
+
+        component_order = raw.get("component_order")
+        if component_order is not None:
+            component_order = tuple(component_order)
+        else:
+            component_order = DEFAULT_COMPONENT_ORDER
 
         return cls(
             enabled=raw.get("enabled", True),
@@ -92,6 +103,42 @@ class NoiseConfig:
             quantisation_enabled=raw.get("quantisation", {}).get("enabled", True),
             adc_bits=raw.get("quantisation", {}).get("adc_bits", 16),
             voltage_range=raw.get("quantisation", {}).get("voltage_range", 1.0),
+            severity=float(raw.get("severity", 1.0)),
+            component_order=component_order,
+        )
+
+    @classmethod
+    def from_config_dict(cls, cfg: dict) -> "NoiseConfig":
+        """Build a NoiseConfig from a project ``config.yaml`` ``noise_augmentation``
+        sub-dictionary.
+
+        This is the preferred constructor for code that already loads
+        ``src/eit_sim2real/configs/config.yaml`` via
+        :func:`eit_sim2real.configs.load_config`.
+        """
+        component_order = cfg.get("component_order")
+        if component_order is not None:
+            component_order = tuple(component_order)
+        else:
+            component_order = DEFAULT_COMPONENT_ORDER
+
+        return cls(
+            enabled=bool(cfg.get("enabled", True)),
+            gaussian_enabled=bool(cfg.get("gaussian_enabled", True)),
+            snr_db=float(cfg.get("snr_db", 40.0)),
+            noise_floor=float(cfg.get("noise_floor", 1e-4)),
+            contact_impedance_enabled=bool(cfg.get("contact_impedance_enabled", True)),
+            contact_impedance_std_percent=float(
+                cfg.get("contact_impedance_std_percent", 10.0)
+            ),
+            n_electrodes=int(cfg.get("n_electrodes", 16)),
+            electrode_bias_enabled=bool(cfg.get("electrode_bias_enabled", True)),
+            max_bias=float(cfg.get("max_bias", 0.02)),
+            quantisation_enabled=bool(cfg.get("quantisation_enabled", True)),
+            adc_bits=int(cfg.get("adc_bits", 16)),
+            voltage_range=float(cfg.get("voltage_range", 1.0)),
+            severity=float(cfg.get("severity", 1.0)),
+            component_order=component_order,
         )
 
     @classmethod
@@ -211,7 +258,14 @@ def apply_noise(
     severity = config.severity
 
     n_elec = config.n_electrodes
-    meas_per_elec = n_meas / n_elec
+    if n_meas % n_elec != 0:
+        raise ValueError(
+            f"n_features ({n_meas}) must be an integer multiple of n_electrodes "
+            f"({n_elec}). EIT measurements are organised in per-electrode blocks; "
+            "a non-divisible feature count would silently truncate the per-"
+            "electrode bias / impedance pattern."
+        )
+    meas_per_elec = n_meas // n_elec
 
     for component in config.resolved_component_order():
         if component == "gaussian":
@@ -237,29 +291,13 @@ def apply_noise(
             effective_std = (config.contact_impedance_std_percent / 100.0) * severity
             for i in range(n_samples):
                 elec_factors = np.exp(effective_std * rng.standard_normal(n_elec))
-                impedance_vec = np.repeat(elec_factors, int(np.round(meas_per_elec)))
-                if len(impedance_vec) > n_meas:
-                    impedance_vec = impedance_vec[:n_meas]
-                elif len(impedance_vec) < n_meas:
-                    impedance_vec = np.pad(
-                        impedance_vec,
-                        (0, n_meas - len(impedance_vec)),
-                        constant_values=1.0,
-                    )
+                impedance_vec = np.repeat(elec_factors, meas_per_elec)
                 X_noisy[i] *= impedance_vec
         elif component == "electrode_bias":
             effective_bias = config.max_bias * severity
             for i in range(n_samples):
                 elec_bias = effective_bias * (2 * rng.random(n_elec) - 1)
-                bias_vec = np.repeat(elec_bias, int(np.round(meas_per_elec)))
-                if len(bias_vec) > n_meas:
-                    bias_vec = bias_vec[:n_meas]
-                elif len(bias_vec) < n_meas:
-                    bias_vec = np.pad(
-                        bias_vec,
-                        (0, n_meas - len(bias_vec)),
-                        constant_values=0.0,
-                    )
+                bias_vec = np.repeat(elec_bias, meas_per_elec)
                 X_noisy[i] += bias_vec
         elif component == "quantisation":
             lsb = config.voltage_range / (2**config.adc_bits)
@@ -300,7 +338,14 @@ def apply_noise_batch_vectorised(
     n_samples, n_meas = X_noisy.shape
     severity = config.severity
     n_elec = config.n_electrodes
-    meas_per_elec = int(np.round(n_meas / n_elec))
+    if n_meas % n_elec != 0:
+        raise ValueError(
+            f"n_features ({n_meas}) must be an integer multiple of n_electrodes "
+            f"({n_elec}). EIT measurements are organised in per-electrode blocks; "
+            "a non-divisible feature count would silently truncate the per-"
+            "electrode bias / impedance pattern."
+        )
+    meas_per_elec = n_meas // n_elec
 
     for component in config.resolved_component_order():
         if component == "gaussian":
@@ -323,24 +368,12 @@ def apply_noise_batch_vectorised(
             elec_factors = np.exp(
                 effective_std * rng.standard_normal((n_samples, n_elec))
             )
-            impedance_matrix = np.repeat(elec_factors, meas_per_elec, axis=1)[
-                :, :n_meas
-            ]
-            if impedance_matrix.shape[1] < n_meas:
-                pad_width = n_meas - impedance_matrix.shape[1]
-                impedance_matrix = np.pad(
-                    impedance_matrix, ((0, 0), (0, pad_width)), constant_values=1.0
-                )
+            impedance_matrix = np.repeat(elec_factors, meas_per_elec, axis=1)
             X_noisy *= impedance_matrix
         elif component == "electrode_bias":
             effective_bias = config.max_bias * severity
             elec_bias = effective_bias * (2 * rng.random((n_samples, n_elec)) - 1)
-            bias_matrix = np.repeat(elec_bias, meas_per_elec, axis=1)[:, :n_meas]
-            if bias_matrix.shape[1] < n_meas:
-                pad_width = n_meas - bias_matrix.shape[1]
-                bias_matrix = np.pad(
-                    bias_matrix, ((0, 0), (0, pad_width)), constant_values=0.0
-                )
+            bias_matrix = np.repeat(elec_bias, meas_per_elec, axis=1)
             X_noisy += bias_matrix
         elif component == "quantisation":
             lsb = config.voltage_range / (2**config.adc_bits)

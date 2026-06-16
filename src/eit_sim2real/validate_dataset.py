@@ -213,11 +213,26 @@ def compute_noise_characterisation(
     X_noisy: np.ndarray,
     y: np.ndarray,
     name_by_label: dict[int, str],
+    n_elec: int = 16,
 ) -> dict:
-    """Characterise the noise model's impact on the measurement vectors."""
+    """Characterise the noise model's impact on the measurement vectors.
+
+    Args:
+        X_clean: Clean voltage measurements ``(n_samples, n_features)``.
+        X_noisy: Noisy voltage measurements (same shape as ``X_clean``).
+        y: Class labels.
+        name_by_label: Map from integer label → class name.
+        n_elec: Number of electrodes (``n_features`` must be an integer
+            multiple of ``n_elec``). Defaults to 16 for the project rig.
+    """
+    if X_clean.shape[1] % n_elec != 0:
+        raise ValueError(
+            f"n_features ({X_clean.shape[1]}) must be an integer multiple of "
+            f"n_elec ({n_elec}); per-electrode bias decomposition would otherwise "
+            "silently truncate."
+        )
     labels = np.unique(y)
     noise_delta = X_noisy - X_clean
-    n_elec = 16
     meas_per_elec = X_clean.shape[1] // n_elec
 
     noise_l2 = np.linalg.norm(noise_delta, axis=1)

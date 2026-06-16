@@ -2438,9 +2438,30 @@ def run_all_extended_experiments(
     output_dir: Path = Path("results/reports"),
     figures_dir: Path = Path("results/figures"),
 ) -> dict:
-    """Run all extended experiments and generate the consolidated report.
+    """Run all extended experiments under the headline multi-seed protocol.
 
-    Returns dict with all result objects for programmatic access.
+    Multi-seed (mean ± std reported across all ``seeds``):
+      * Statistical testing  — paired tests across the full seed list.
+
+    Single-representative-seed (``seeds[0]``, with the seed recorded in the
+    JSON output) for visual or computationally-heavy diagnostics where
+    seed-averaging would obscure rather than clarify:
+      * Dataset size effects (learning curve)
+      * Ensemble / model combination
+      * t-SNE feature-space visualisation
+      * Per-component severity sweep
+      * Gaussian-only literature comparison
+      * Confidence calibration analysis
+      * Per-class robustness profiles
+      * Domain-gap quantification
+      * Noise parameter / hyperparameter sensitivities
+
+    The 5-seed model×condition grid (Table 4.1) and the ablation /
+    additional experiments are run separately by
+    :func:`eit_sim2real.experiments.grid.main`.
+
+    Returns:
+        Dict with all result objects for programmatic access.
     """
     start = time.time()
     all_results: dict = {}

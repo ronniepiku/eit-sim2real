@@ -68,9 +68,14 @@ function dv_noisy = add_noise(dv, params)
         % Generate per-electrode impedance factors (log-normal)
         elec_factors = exp(std_frac * randn(n_elec, 1));
 
-        % Map to measurements: each block of (n_meas/n_elec) measurements
-        % is associated with a drive electrode pair. Apply the mean of the
-        % two electrodes involved in each drive pattern.
+        % Map to measurements: each electrode is mapped to a contiguous
+        % block of (n_meas/n_elec) measurements via REPELEM, so every
+        % measurement participating in a given electrode block is multiplied
+        % by that electrode's single impedance factor. (Earlier docstrings
+        % described this as a 'mean of the two drive electrodes' — that was
+        % a description of an alternative scheme that was never implemented;
+        % the per-electrode block mapping is what the dissertation §3
+        % methodology describes and what the Python noise model mirrors.)
         impedance_factor = repelem(elec_factors, round(meas_per_elec));
         % Trim or pad to match n_meas exactly
         if length(impedance_factor) > n_meas

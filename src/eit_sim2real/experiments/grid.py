@@ -50,9 +50,15 @@ from sklearn.metrics import (
     recall_score,
 )
 
+from eit_sim2real.constants import (
+    DEFAULT_SEVERITY_RANGE,
+    MIXED_CNN_PARAMS,
+    NOISY_CNN_PARAMS,
+)
 from eit_sim2real.data import load_mat_dataset, prepare_splits
 from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
 from eit_sim2real.experiments.ablation import generate_ablation_report, run_ablation
+from eit_sim2real.experiments.additional import run_additional_experiments
 from eit_sim2real.experiments.extended import run_all_extended_experiments
 from eit_sim2real.models import get_baseline, train_baseline
 from eit_sim2real.train import train_cnn, train_cnn_mixed
@@ -87,21 +93,10 @@ CNN_EXTENDED_CONDITIONS = [
     ("mixed_train_clean_eval", "mixed", "clean"),
 ]
 
-# Training hyperparameters for noisy/augmented/mixed conditions
-NOISY_CNN_PARAMS = {
-    "weight_decay": 1e-3,
-    "dropout": 0.4,
-    "label_smoothing": 0.05,
-}
-
-MIXED_CNN_PARAMS = {
-    "weight_decay": 1e-3,
-    "dropout": 0.4,
-    "label_smoothing": 0.05,
-    "clean_ratio": 0.3,
-}
-
-DEFAULT_SEVERITY_RANGE = (0.5, 2.0)
+# Training hyperparameters for noisy/augmented/mixed conditions are imported
+# from ``eit_sim2real.constants`` (NOISY_CNN_PARAMS, MIXED_CNN_PARAMS,
+# DEFAULT_SEVERITY_RANGE) to avoid the previous duplication between this
+# module, ``cli/train.py`` and ``configs/config.yaml``.
 
 
 # ── Helpers ───────────────────────────────────────────────────────────
@@ -348,6 +343,7 @@ def run_experiments(
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
                             severity_range=DEFAULT_SEVERITY_RANGE,
+                            seed=seed,
                             weight_decay=NOISY_CNN_PARAMS["weight_decay"],
                             dropout=NOISY_CNN_PARAMS["dropout"],
                             label_smoothing=NOISY_CNN_PARAMS["label_smoothing"],
@@ -364,6 +360,7 @@ def run_experiments(
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
                             severity_range=DEFAULT_SEVERITY_RANGE,
+                            seed=seed,
                             **MIXED_CNN_PARAMS,
                         )
                     else:
@@ -551,6 +548,7 @@ def _generate_all_figures(
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
                             severity_range=DEFAULT_SEVERITY_RANGE,
+                            seed=seed,
                             **MIXED_CNN_PARAMS,
                         )
                     elif train_key == "augmented":
@@ -563,6 +561,7 @@ def _generate_all_figures(
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
                             severity_range=DEFAULT_SEVERITY_RANGE,
+                            seed=seed,
                             weight_decay=NOISY_CNN_PARAMS["weight_decay"],
                             dropout=NOISY_CNN_PARAMS["dropout"],
                             label_smoothing=NOISY_CNN_PARAMS["label_smoothing"],
@@ -874,7 +873,7 @@ def generate_report(df: pd.DataFrame, output_dir: Path, runtime_s: float) -> Non
 # ── CLI ───────────────────────────────────────────────────────────────
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run all EIT classification experiments with uncertainty."
     )
@@ -930,17 +929,22 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Skip extended experiments (stats, ensemble, t-SNE, etc.).",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--skip-additional",
+        action="store_true",
+        help="Skip additional memorisation experiments (fixed-bias, different-draw).",
+    )
+    return parser.parse_args(argv)
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    args = parse_args()
+    args = parse_args(argv)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     args.figures_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1058,6 +1062,22 @@ def main() -> None:
             figures_dir=args.figures_dir,
         )
 
+    # ── Additional memorisation experiments ──
+    if not args.skip_additional:
+        logger.info("\n" + "=" * 70)
+        logger.info(
+            "ADDITIONAL EXPERIMENTS — fixed-bias augmentation & different-draw test"
+        )
+        logger.info("=" * 70)
+        run_additional_experiments(
+            data_path=DATASETS["raw"],
+            seeds=seeds,
+            epochs=args.epochs,
+            early_stopping_patience=args.early_stopping_patience,
+            output_dir=args.output_dir / "additional",
+            models_dir=Path("results/models"),
+        )
+
     # Generate report
     total_time = time.time() - start_time
     generate_report(df, args.output_dir, total_time)
@@ -1123,6 +1143,7 @@ def _run_severity_sweeps(
             early_stopping_patience=early_stopping_patience,
             noise_config=noise_cfg,
             severity_range=DEFAULT_SEVERITY_RANGE,
+            seed=seed,
             **NOISY_CNN_PARAMS,
         ),
         "mixed": lambda: train_cnn_mixed(
@@ -1135,6 +1156,7 @@ def _run_severity_sweeps(
             early_stopping_patience=early_stopping_patience,
             noise_config=noise_cfg,
             severity_range=DEFAULT_SEVERITY_RANGE,
+            seed=seed,
             **MIXED_CNN_PARAMS,
         ),
     }

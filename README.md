@@ -142,12 +142,20 @@ eit train baselines
 eit evaluate --model-path results/models/cnn1d_noisy_best.pt
 
 # Run the full experiment grid (all models × datasets × conditions)
+# Includes ablation, extended diagnostics, and additional (memorisation) experiments
 eit experiments run-all
+
+# Skip individual phases when needed
+eit experiments run-all --skip-ablation --skip-extended --skip-additional
+
+# Override seed and dataset selection (defaults: seeds=42-46, datasets=raw,pca,lda,umap)
+eit experiments run-all --seeds 42 --seeds 43 --datasets raw
 
 # Run noise component ablation
 eit experiments ablation
 
-# Run memorisation experiments
+# Run memorisation / robustness experiments (fixed-bias and different-draw)
+# Now uses the same 5-seed protocol (seeds 42-46) as the main grid for parity
 eit experiments additional
 
 # Hyperparameter optimisation
@@ -223,6 +231,8 @@ See [`docs/NOISE_MODEL.md`](docs/NOISE_MODEL.md) for detailed derivations.
 ## Reproducibility
 
 - All random seeds fixed (`seed: 42` in `config.yaml`, MATLAB `rng(42)`)
+- The full experiment grid (`eit experiments run-all`) repeats every condition over **5 seeds** (42, 43, 44, 45, 46) for the main, ablation, and additional (fixed-bias / different-draw) experiments — all reported metrics include mean ± std across seeds for matched statistical significance
+- Extended diagnostics (t-SNE, calibration, severity sweep, sensitivity analyses) deliberately use a single representative seed (`seeds[0]`) because seed-averaging would obscure their visual / per-run signal; statistical tests within `extended.py` still use the full seed set
 - Dataset generation is deterministic given same EIDORS version
 - Noise parameters stored in version-controlled YAML (`matlab/configs/noise_params.yaml`)
 - Python noise model mirrors MATLAB implementation for consistency

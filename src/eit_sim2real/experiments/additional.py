@@ -1,199 +1,240 @@
-"""Additional experiments for dissertation: fixed-bias augmentation & different-draw test.
+"""Additional dissertation experiments — fixed-bias augmentation & different-draw test.
 
-Experiment 1: Fixed-Bias Augmentation
+Both experiments are run under the same 5-seed stratified protocol as the
+main grid (see :mod:`eit_sim2real.experiments.grid`) so that the reported
+numbers share the same statistical significance. Mean ± std across seeds
+is recorded and a single JSON results file is emitted per experiment.
+
+Experiment 1 — Fixed-Bias Augmentation
 --------------------------------------
-Samples noise ONCE per training instance (using sample index as seed) and holds
-it fixed across all epochs. This mimics having many different physical devices
-in the training set, where each device has its own persistent electrode bias.
+Samples noise ONCE per training instance (using ``base_seed + sample_index``)
+and holds it fixed across all epochs. This mimics the deployment scenario
+where each physical device has persistent per-electrode characteristics.
 
-Hypothesis: This should combine the clean-domain awareness of online augmentation
-(many different noise patterns) with the noise-persistence that enables learning
-noise-accommodation (fixed per sample across epochs).
+Hypothesis: combining the clean-domain awareness of online augmentation
+(many different noise patterns) with the noise-persistence that enables
+learning noise-accommodation (fixed per sample across epochs).
 
-Experiment 2: Different Noise Draw Test
------------------------------------------
-Evaluates the existing noisy-trained CNN on a NEW noisy test set generated with
-a different random seed. If accuracy holds (~76%), this provides strong evidence
-against pure noise memorisation. If it drops substantially, the model has
-memorised distributional statistics rather than learning robust features.
+Important — feature spaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+The MATLAB noise model parameters (``max_bias=0.02 V``, ``noise_floor=1e-4``,
+``adc_bits=16``) are calibrated for *raw* voltage difference vectors, not
+for RobustScaler-transformed features. To remain consistent with both the
+MATLAB-generated test set and the §3 methodology, this module always:
 
-Usage:
-    cd python
-    python run_additional_experiments.py
+1. Splits raw clean/noisy data into train/val/test indices,
+2. Applies fixed-bias noise to *raw* training voltages,
+3. Then transforms with a scaler fit on raw clean training data.
 
-    # Or run individually:
-    python run_additional_experiments.py --experiment fixed_bias
-    python run_additional_experiments.py --experiment different_draw
+Earlier revisions of this experiment applied noise in scaled feature space,
+which silently rescaled the noise distribution by ``1/IQR(raw)``. That
+behaviour is fixed here.
+
+Experiment 2 — Different Noise Draw
+-----------------------------------
+Re-evaluates the existing noisy-trained CNN checkpoint on test sets generated
+from independent random draws of the parametric noise model. If accuracy
+holds, this provides evidence against pure noise memorisation. Multi-seed
+aggregation reports the alternative-draw accuracy distribution alongside
+the original noise-test sanity check.
+
+Usage
+-----
+::
+
+    eit experiments additional                   # 5-seed default
+    eit experiments additional --seeds 3         # quick sanity check
+
+Or as part of the master pipeline::
+
+    eit experiments run-all                      # runs all 5-seed experiments
+
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import logging
-import sys
 from pathlib import Path
 
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, Dataset
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import RobustScaler
+from torch.utils.data import DataLoader, Dataset, TensorDataset
 
 from eit_sim2real.configs import load_config
-from eit_sim2real.data import load_mat_dataset, prepare_splits
+from eit_sim2real.constants import NOISY_CNN_PARAMS
+from eit_sim2real.data import load_mat_dataset
 from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
 from eit_sim2real.evaluate import evaluate_model
 from eit_sim2real.models.cnn1d import EITConv1D
-from eit_sim2real.utils import get_device, set_seeds
+from eit_sim2real.utils import get_device
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s",
-    datefmt="%H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Output directory
-# ─────────────────────────────────────────────────────────────────────────────
-RESULTS_DIR = Path(__file__).parent.parent / "results" / "additional_experiments"
-
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Experiment 1: Fixed-Bias Augmentation Dataset
+# Fixed-bias augmentation Dataset
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 class FixedBiasDataset(Dataset):
     """PyTorch Dataset that applies noise ONCE per sample and caches it.
 
-    Each sample gets a unique noise realisation (seeded by sample index),
-    which remains fixed across all epochs. This mimics the deployment scenario
-    where each physical device has persistent per-electrode characteristics.
+    Noise is sampled in **raw voltage space** (not scaled feature space) so
+    that ``max_bias``, ``noise_floor`` and ``adc_bits`` retain their physical
+    meaning, then the cached samples are scaled with the supplied
+    ``RobustScaler``.
+
+    Parameters
+    ----------
+    X_clean_raw:
+        Clean training features in **raw voltage space**, before scaling.
+    y:
+        Training labels.
+    noise_config:
+        Noise configuration to apply once per sample.
+    scaler:
+        Fitted scaler used to project the cached raw-noisy voltages into the
+        model's feature space (the same scaler used at evaluation time).
+    base_seed:
+        Per-sample noise seed; sample ``i`` uses ``base_seed + i``.
     """
 
     def __init__(
         self,
-        X_clean: np.ndarray,
+        X_clean_raw: np.ndarray,
         y: np.ndarray,
         noise_config: NoiseConfig,
+        scaler: RobustScaler,
         base_seed: int = 123,
     ):
-        """
-        Args:
-            X_clean: Clean (pre-noise) features, shape (n_samples, n_features).
-            y: Labels, shape (n_samples,).
-            noise_config: Noise configuration to apply.
-            base_seed: Base seed; each sample i uses seed = base_seed + i.
-        """
         self.y = torch.from_numpy(y).long()
         self.noise_config = noise_config
-        self.n_samples = X_clean.shape[0]
+        self.n_samples = X_clean_raw.shape[0]
 
-        # Apply noise ONCE per sample with a deterministic per-sample seed
         logger.info(
-            f"Generating fixed-bias noisy dataset ({self.n_samples} samples)..."
+            "Generating fixed-bias noisy dataset (%d samples, base_seed=%d)...",
+            self.n_samples,
+            base_seed,
         )
-        self.X_noisy = np.empty_like(X_clean, dtype=np.float32)
+        X_noisy_raw = np.empty_like(X_clean_raw, dtype=np.float32)
         for i in range(self.n_samples):
             rng = np.random.default_rng(base_seed + i)
             noisy_sample = apply_noise_batch_vectorised(
-                X_clean[i : i + 1], noise_config, rng=rng
+                X_clean_raw[i : i + 1], noise_config, rng=rng
             )
-            self.X_noisy[i] = noisy_sample[0]
+            X_noisy_raw[i] = noisy_sample[0]
 
-        self.X_noisy = torch.from_numpy(self.X_noisy).float()
+        # Project into the scaler's feature space (identical to test pipeline)
+        X_noisy_scaled = scaler.transform(X_noisy_raw).astype(np.float32)
+        self.X_noisy = torch.from_numpy(X_noisy_scaled).float()
         logger.info("Fixed-bias dataset generation complete.")
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.n_samples
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):  # noqa: ANN201 — Dataset protocol
         return self.X_noisy[idx], self.y[idx]
 
 
-def train_fixed_bias_cnn(
-    X_clean_train: np.ndarray,
+# ─────────────────────────────────────────────────────────────────────────────
+# Helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _make_indices(
+    y: np.ndarray, seed: int
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (train, val, test) indices for the canonical 70/15/15 split."""
+    n = len(y)
+    indices = np.arange(n)
+    idx_trainval, idx_test = train_test_split(
+        indices, test_size=0.15, random_state=seed, stratify=y
+    )
+    idx_train, idx_val = train_test_split(
+        idx_trainval,
+        test_size=0.15 / 0.85,
+        random_state=seed,
+        stratify=y[idx_trainval],
+    )
+    return idx_train, idx_val, idx_test
+
+
+def _build_noise_config(cfg: dict | None = None) -> NoiseConfig:
+    """Construct the headline 4-component NoiseConfig from project config.yaml."""
+    if cfg is None:
+        cfg = load_config()
+    aug = cfg.get("noise_augmentation", {})
+    return NoiseConfig.from_config_dict(aug)
+
+
+def _train_fixed_bias_cnn(
+    X_clean_train_raw: np.ndarray,
     y_train: np.ndarray,
-    X_val_noisy: np.ndarray,
+    X_val_scaled: np.ndarray,
     y_val: np.ndarray,
     noise_config: NoiseConfig,
-    epochs: int = 200,
+    scaler: RobustScaler,
+    n_features: int,
+    epochs: int,
+    early_stopping_patience: int,
     batch_size: int = 64,
     lr: float = 1e-3,
-    weight_decay: float = 1e-4,
-    scheduler_patience: int = 10,
-    scheduler_factor: float = 0.5,
-    early_stopping_patience: int = 40,
-    label_smoothing: float = 0.05,
-    dropout: float = 0.4,
-    device: str = "auto",
     base_seed: int = 123,
-) -> tuple[EITConv1D, dict]:
-    """Train CNN on fixed-bias augmented data.
-
-    The key difference from online augmentation: noise is sampled ONCE per
-    training sample and held constant across all epochs. Each sample gets
-    a different noise draw (simulating different devices), but the same sample
-    always has the same noise (simulating per-device persistence).
-
-    Args:
-        X_clean_train: Clean training features.
-        y_train: Training labels.
-        X_val_noisy: Noisy validation features (for monitoring).
-        y_val: Validation labels.
-        noise_config: Noise configuration.
-        epochs: Max training epochs.
-        batch_size: Batch size.
-        lr: Learning rate.
-        weight_decay: L2 regularisation.
-        scheduler_patience: LR scheduler patience.
-        scheduler_factor: LR reduction factor.
-        early_stopping_patience: Early stopping patience.
-        label_smoothing: Label smoothing epsilon.
-        dropout: Dropout rate.
-        device: Compute device.
-        base_seed: Base seed for per-sample noise generation.
-
-    Returns:
-        Tuple of (best model, training history).
-    """
-    if device == "auto":
+    device: str | None = None,
+) -> tuple[EITConv1D, dict[str, list[float]]]:
+    """Train a CNN on the fixed-bias augmented dataset (noise sampled once per sample)."""
+    if device is None:
         device = get_device()
 
-    n_features = X_clean_train.shape[1]
-    model = EITConv1D(n_features=n_features, n_classes=5, dropout=dropout).to(device)
+    model = EITConv1D(
+        n_features=n_features,
+        n_classes=5,
+        dropout=float(NOISY_CNN_PARAMS["dropout"]),
+    ).to(device)
 
-    # Create fixed-bias dataset (noise applied once, cached)
     train_dataset = FixedBiasDataset(
-        X_clean_train, y_train, noise_config, base_seed=base_seed
+        X_clean_train_raw, y_train, noise_config, scaler, base_seed=base_seed
     )
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     val_loader = DataLoader(
-        torch.utils.data.TensorDataset(
-            torch.from_numpy(X_val_noisy).float(),
+        TensorDataset(
+            torch.from_numpy(X_val_scaled).float(),
             torch.from_numpy(y_val).long(),
         ),
         batch_size=batch_size,
         shuffle=False,
     )
 
-    criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    criterion = nn.CrossEntropyLoss(
+        label_smoothing=float(NOISY_CNN_PARAMS["label_smoothing"])
+    )
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=lr,
+        weight_decay=float(NOISY_CNN_PARAMS["weight_decay"]),
+    )
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", patience=scheduler_patience, factor=scheduler_factor
+        optimizer, mode="min", patience=10, factor=0.5
     )
 
-    history = {"train_loss": [], "val_loss": [], "train_acc": [], "val_acc": []}
+    history: dict[str, list[float]] = {
+        "train_loss": [],
+        "val_loss": [],
+        "train_acc": [],
+        "val_acc": [],
+    }
     best_val_loss = float("inf")
-    best_state = None
+    best_state: dict | None = None
     epochs_no_improve = 0
 
     for epoch in range(epochs):
         model.train()
         train_loss = train_correct = train_total = 0
-
         for X_batch, y_batch in train_loader:
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
             optimizer.zero_grad()
@@ -201,12 +242,10 @@ def train_fixed_bias_cnn(
             loss = criterion(logits, y_batch)
             loss.backward()
             optimizer.step()
-
             train_loss += loss.item() * X_batch.size(0)
             train_correct += (logits.argmax(1) == y_batch).sum().item()
             train_total += X_batch.size(0)
 
-        # Validation
         model.eval()
         val_loss = val_correct = val_total = 0
         with torch.no_grad():
@@ -220,14 +259,10 @@ def train_fixed_bias_cnn(
 
         ep_train_loss = train_loss / train_total
         ep_val_loss = val_loss / val_total
-        ep_train_acc = train_correct / train_total
-        ep_val_acc = val_correct / val_total
-
         history["train_loss"].append(ep_train_loss)
         history["val_loss"].append(ep_val_loss)
-        history["train_acc"].append(ep_train_acc)
-        history["val_acc"].append(ep_val_acc)
-
+        history["train_acc"].append(train_correct / train_total)
+        history["val_acc"].append(val_correct / val_total)
         scheduler.step(ep_val_loss)
 
         if ep_val_loss < best_val_loss:
@@ -239,384 +274,409 @@ def train_fixed_bias_cnn(
 
         if (epoch + 1) % 10 == 0:
             logger.info(
-                f"[Fixed-Bias] Epoch {epoch + 1}/{epochs} | "
-                f"Train Loss: {ep_train_loss:.4f} | Val Loss: {ep_val_loss:.4f} | "
-                f"Val Acc: {ep_val_acc:.4f}"
+                "[Fixed-Bias] Epoch %d/%d | Train Loss: %.4f | Val Loss: %.4f | Val Acc: %.4f",
+                epoch + 1,
+                epochs,
+                ep_train_loss,
+                ep_val_loss,
+                val_correct / val_total,
             )
 
         if epochs_no_improve >= early_stopping_patience:
-            logger.info(
-                f"Early stopping at epoch {epoch + 1} "
-                f"(no improvement for {early_stopping_patience} epochs)."
-            )
+            logger.info("Early stopping at epoch %d.", epoch + 1)
             break
 
     if best_state is not None:
         model.load_state_dict(best_state)
-
     return model, history
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Main Experiment Runner
+# Experiment 1: Fixed-bias augmentation (multi-seed)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def run_experiment_1_fixed_bias():
-    """Experiment 1: Fixed-bias augmentation training and evaluation."""
+def run_experiment_fixed_bias(
+    data_path: Path,
+    seeds: list[int],
+    epochs: int,
+    early_stopping_patience: int,
+    output_dir: Path,
+) -> dict:
+    """Multi-seed fixed-bias augmentation experiment.
+
+    Across each seed, fits a fresh scaler on raw clean training data, samples
+    a per-sample fixed bias in raw voltage space, scales, and trains a CNN
+    with NOISY_CNN_PARAMS regularisation. Reports clean / MATLAB-noisy /
+    alt-draw test accuracy aggregated over seeds.
+    """
     logger.info("=" * 70)
-    logger.info("EXPERIMENT 1: Fixed-Bias Augmentation")
+    logger.info("EXPERIMENT (5-seed): Fixed-Bias Augmentation")
     logger.info("=" * 70)
 
-    set_seeds(42)
     cfg = load_config()
-    data_path = Path(__file__).parent.parent / cfg["data"]["path"]
+    noise_config = _build_noise_config(cfg)
 
-    # Load CLEAN data
-    X_clean, y = load_mat_dataset(data_path, use_noisy=False)
-    logger.info(f"Loaded clean dataset: {X_clean.shape}")
-
-    # Load NOISY data (for test evaluation)
-    X_noisy, _ = load_mat_dataset(data_path, use_noisy=True)
-    logger.info(f"Loaded noisy dataset: {X_noisy.shape}")
-
-    # Prepare splits (normalise based on clean training data)
-    splits = prepare_splits(X_clean, y, normalize=True, scaler_type="robust")
-    X_train_clean = splits.X_train
-    _X_val_clean = splits.X_val  # noqa: F841
-    X_test_clean = splits.X_test
-    y_train = splits.y_train
-    y_val = splits.y_val
-    y_test = splits.y_test
-    scaler = splits.scaler
-
-    # Apply same scaler to noisy data
-    X_noisy_scaled = scaler.transform(X_noisy)
-    # Get test split indices by re-splitting
-    from sklearn.model_selection import train_test_split
-
-    n = len(y)
-    indices = np.arange(n)
-    idx_trainval, idx_test = train_test_split(
-        indices, test_size=0.15, random_state=42, stratify=y
-    )
-    idx_train, idx_val = train_test_split(
-        idx_trainval, test_size=0.15 / 0.85, random_state=42, stratify=y[idx_trainval]
-    )
-    X_test_noisy = X_noisy_scaled[idx_test]
-    X_val_noisy = X_noisy_scaled[idx_val]
-
-    # Configure noise model (same as main experiments)
-    noise_config = NoiseConfig(
-        enabled=True,
-        snr_db=cfg["noise_augmentation"]["snr_db"],
-        noise_floor=cfg["noise_augmentation"]["noise_floor"],
-        contact_impedance_std_percent=cfg["noise_augmentation"][
-            "contact_impedance_std_percent"
-        ],
-        max_bias=cfg["noise_augmentation"]["max_bias"],
-        adc_bits=cfg["noise_augmentation"]["adc_bits"],
-        voltage_range=cfg["noise_augmentation"]["voltage_range"],
-        n_electrodes=cfg["noise_augmentation"]["n_electrodes"],
-        severity=1.0,
-    )
-
-    # Train with fixed-bias augmentation
-    model, history = train_fixed_bias_cnn(
-        X_clean_train=X_train_clean,
-        y_train=y_train,
-        X_val_noisy=X_val_noisy,
-        y_val=y_val,
-        noise_config=noise_config,
-        epochs=cfg["training"]["epochs"],
-        batch_size=cfg["training"]["batch_size"],
-        lr=cfg["training"]["learning_rate"],
-        weight_decay=cfg["training_noisy"]["weight_decay"],
-        scheduler_patience=cfg["training"]["scheduler_patience"],
-        scheduler_factor=cfg["training"]["scheduler_factor"],
-        early_stopping_patience=cfg["training"]["early_stopping_patience"],
-        label_smoothing=cfg["training_noisy"]["label_smoothing"],
-        dropout=cfg["training_noisy"]["dropout"],
-    )
-
-    # Evaluate on BOTH clean and noisy test sets
-    logger.info("\n--- Evaluation: Fixed-Bias Model ---")
-
-    results_clean = evaluate_model(model, X_test_clean, y_test)
-    logger.info(f"  Clean test accuracy:  {results_clean['accuracy']:.4f}")
-    logger.info(f"  Clean test F1 macro:  {results_clean['f1_macro']:.4f}")
-
-    results_noisy = evaluate_model(model, X_test_noisy, y_test)
-    logger.info(f"  Noisy test accuracy:  {results_noisy['accuracy']:.4f}")
-    logger.info(f"  Noisy test F1 macro:  {results_noisy['f1_macro']:.4f}")
-
-    # Also evaluate on a DIFFERENT noise draw (seed 999)
-    rng_alt = np.random.default_rng(999)
-    X_test_clean_unscaled = scaler.inverse_transform(X_test_clean)
-    X_test_alt_noisy = apply_noise_batch_vectorised(
-        X_test_clean_unscaled, noise_config, rng=rng_alt
-    )
-    X_test_alt_noisy_scaled = scaler.transform(X_test_alt_noisy)
-
-    results_alt_noisy = evaluate_model(model, X_test_alt_noisy_scaled, y_test)
-    logger.info(f"  Alt-noise test accuracy: {results_alt_noisy['accuracy']:.4f}")
-    logger.info(f"  Alt-noise test F1 macro: {results_alt_noisy['f1_macro']:.4f}")
-
-    # Save results
-    output_dir = RESULTS_DIR / "fixed_bias"
+    X_clean_raw, y = load_mat_dataset(data_path, use_noisy=False)
+    X_noisy_matlab, _ = load_mat_dataset(data_path, use_noisy=True)
+    n_features = X_clean_raw.shape[1]
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    torch.save(model.state_dict(), output_dir / "cnn1d_fixed_bias_best.pt")
+    per_seed: list[dict] = []
 
-    results_summary = {
-        "experiment": "fixed_bias_augmentation",
-        "description": (
-            "Noise sampled ONCE per training sample, held fixed across epochs. "
-            "Mimics per-device persistent noise characteristics."
-        ),
-        "clean_accuracy": results_clean["accuracy"],
-        "clean_f1": results_clean["f1_macro"],
-        "noisy_accuracy": results_noisy["accuracy"],
-        "noisy_f1": results_noisy["f1_macro"],
-        "alt_noise_accuracy": results_alt_noisy["accuracy"],
-        "alt_noise_f1": results_alt_noisy["f1_macro"],
-        "epochs_trained": len(history["train_loss"]),
-        "best_val_loss": float(min(history["val_loss"])),
-        "comparison": {
-            "online_augmentation_noisy_acc": 0.198,
-            "fixed_noisy_dataset_noisy_acc": 0.761,
-            "clean_trained_noisy_acc": 0.194,
-        },
-    }
+    for seed in seeds:
+        logger.info("--- Fixed-bias | seed=%d ---", seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
 
-    with open(output_dir / "results.json", "w") as f:
-        json.dump(results_summary, f, indent=2)
+        idx_train, idx_val, idx_test = _make_indices(y, seed)
+        X_train_raw = X_clean_raw[idx_train]
+        X_val_raw = X_clean_raw[idx_val]
+        X_test_raw = X_clean_raw[idx_test]
+        y_train, y_val, y_test = y[idx_train], y[idx_val], y[idx_test]
 
-    # Save training history
-    history_serializable = {k: [float(v) for v in vals] for k, vals in history.items()}
-    with open(output_dir / "training_history.json", "w") as f:
-        json.dump(history_serializable, f, indent=2)
-
-    logger.info(f"\nResults saved to: {output_dir}")
-    logger.info(
-        f"\nSUMMARY — Fixed-Bias Augmentation:\n"
-        f"  Clean accuracy:     {results_clean['accuracy']:.1%}\n"
-        f"  Noisy accuracy:     {results_noisy['accuracy']:.1%}\n"
-        f"  Alt-noise accuracy: {results_alt_noisy['accuracy']:.1%}\n"
-        f"  (Compare: Online aug = 19.8%, Fixed dataset = 76.1%)"
-    )
-
-    return results_summary
-
-
-def run_experiment_2_different_draw():
-    """Experiment 2: Evaluate existing noisy-trained CNN on different noise draws."""
-    logger.info("=" * 70)
-    logger.info("EXPERIMENT 2: Different Noise Draw Test (Memorisation Check)")
-    logger.info("=" * 70)
-
-    set_seeds(42)
-    cfg = load_config()
-    data_path = Path(__file__).parent.parent / cfg["data"]["path"]
-
-    # Load clean data and original noisy data
-    X_clean, y = load_mat_dataset(data_path, use_noisy=False)
-    X_noisy_original, _ = load_mat_dataset(data_path, use_noisy=True)
-
-    # Prepare splits for NOISY data (this is what the model was trained on)
-    # The model was trained on noisy data, normalised with a scaler fit on noisy training data
-    splits_noisy = prepare_splits(
-        X_noisy_original, y, normalize=True, scaler_type="robust"
-    )
-    noisy_scaler = splits_noisy.scaler
-    X_test_noisy_original = splits_noisy.X_test
-    y_test = splits_noisy.y_test
-
-    # Get the corresponding clean test samples (same indices)
-    # We need to re-split clean data with same random_state to get matching indices
-    from sklearn.model_selection import train_test_split
-
-    n = len(y)
-    indices = np.arange(n)
-    idx_trainval, idx_test = train_test_split(
-        indices, test_size=0.15, random_state=42, stratify=y
-    )
-    X_test_clean_raw = X_clean[idx_test]  # UN-normalised clean test data
-
-    # Noise config (same parameters as MATLAB generation)
-    noise_config = NoiseConfig(
-        enabled=True,
-        snr_db=cfg["noise_augmentation"]["snr_db"],
-        noise_floor=cfg["noise_augmentation"]["noise_floor"],
-        contact_impedance_std_percent=cfg["noise_augmentation"][
-            "contact_impedance_std_percent"
-        ],
-        max_bias=cfg["noise_augmentation"]["max_bias"],
-        adc_bits=cfg["noise_augmentation"]["adc_bits"],
-        voltage_range=cfg["noise_augmentation"]["voltage_range"],
-        n_electrodes=cfg["noise_augmentation"]["n_electrodes"],
-        severity=1.0,
-    )
-
-    # Load the existing noisy-trained CNN
-    model_path = (
-        Path(__file__).parent.parent / "results" / "models" / "cnn1d_noisy_best.pt"
-    )
-    if not model_path.exists():
-        logger.error(
-            f"Model not found at {model_path}. "
-            "Please ensure the main experiments have been run first."
+        # Scaler fit on RAW clean training data — same convention as
+        # ``prepare_splits(normalize=True, scaler='robust')`` in the main grid.
+        scaler = RobustScaler().fit(X_train_raw)
+        X_val_scaled = scaler.transform(X_val_raw).astype(np.float32)
+        X_test_clean_scaled = scaler.transform(X_test_raw).astype(np.float32)
+        X_test_noisy_matlab_scaled = scaler.transform(X_noisy_matlab[idx_test]).astype(
+            np.float32
         )
-        sys.exit(1)
 
-    n_features = X_clean.shape[1]
-    model = EITConv1D(n_features=n_features, n_classes=5)
-    model.load_state_dict(torch.load(model_path, weights_only=True))
-    logger.info(f"Loaded model from: {model_path}")
+        model, _history = _train_fixed_bias_cnn(
+            X_clean_train_raw=X_train_raw,
+            y_train=y_train,
+            X_val_scaled=X_val_scaled,
+            y_val=y_val,
+            noise_config=noise_config,
+            scaler=scaler,
+            n_features=n_features,
+            epochs=epochs,
+            early_stopping_patience=early_stopping_patience,
+            base_seed=seed * 1000,
+        )
 
-    # Evaluate on original noisy test set (sanity check — should be ~76%)
-    results_original = evaluate_model(model, X_test_noisy_original, y_test)
-    logger.info(
-        f"\nOriginal noisy test (sanity check): {results_original['accuracy']:.4f}"
-    )
+        clean_metrics = evaluate_model(model, X_test_clean_scaled, y_test)
+        noisy_metrics = evaluate_model(model, X_test_noisy_matlab_scaled, y_test)
 
-    # Generate MULTIPLE different noise draws and evaluate
-    # Apply noise to raw clean test data, then normalise with the NOISY scaler
-    different_seeds = [100, 200, 300, 500, 777, 999, 1234, 2024, 5555, 9999]
-    alt_results = []
-
-    for seed in different_seeds:
-        rng = np.random.default_rng(seed)
+        # Alternative noise draw: apply noise to RAW clean test, then scale.
+        rng_alt = np.random.default_rng(seed + 9999)
         X_test_alt_raw = apply_noise_batch_vectorised(
-            X_test_clean_raw, noise_config, rng=rng
+            X_test_raw, noise_config, rng=rng_alt
         )
-        # Normalise with the SAME scaler that was used for model training
-        X_test_alt_scaled = noisy_scaler.transform(X_test_alt_raw)
-        result = evaluate_model(model, X_test_alt_scaled, y_test)
-        alt_results.append(
+        X_test_alt_scaled = scaler.transform(X_test_alt_raw).astype(np.float32)
+        alt_metrics = evaluate_model(model, X_test_alt_scaled, y_test)
+
+        per_seed.append(
             {
-                "seed": seed,
-                "accuracy": result["accuracy"],
-                "f1_macro": result["f1_macro"],
+                "seed": int(seed),
+                "clean_accuracy": clean_metrics["accuracy"],
+                "clean_f1": clean_metrics["f1_macro"],
+                "noisy_accuracy": noisy_metrics["accuracy"],
+                "noisy_f1": noisy_metrics["f1_macro"],
+                "alt_noise_accuracy": alt_metrics["accuracy"],
+                "alt_noise_f1": alt_metrics["f1_macro"],
             }
         )
-        logger.info(f"  Seed {seed:>5d}: accuracy = {result['accuracy']:.4f}")
-
-    # Summary statistics
-    alt_accuracies = [r["accuracy"] for r in alt_results]
-    mean_acc = np.mean(alt_accuracies)
-    std_acc = np.std(alt_accuracies)
-    min_acc = np.min(alt_accuracies)
-    max_acc = np.max(alt_accuracies)
-
-    logger.info("\n--- Different-Draw Results (10 seeds) ---")
-    logger.info(f"  Original noise test: {results_original['accuracy']:.4f}")
-    logger.info(f"  Alt-draw mean:       {mean_acc:.4f} ± {std_acc:.4f}")
-    logger.info(f"  Alt-draw range:      [{min_acc:.4f}, {max_acc:.4f}]")
-
-    drop = results_original["accuracy"] - mean_acc
-    logger.info(f"  Drop from original:  {drop:+.4f}")
-    logger.info("")
-
-    if drop < 0.05:
         logger.info(
-            "  INTERPRETATION: Minimal drop (<5pp) — model generalises across "
-            "noise instances. Evidence AGAINST pure noise memorisation."
-        )
-    elif drop < 0.15:
-        logger.info(
-            "  INTERPRETATION: Moderate drop (5-15pp) — partial memorisation "
-            "of specific noise statistics. Model has learned some distributional "
-            "regularities but retains partial noise-invariant features."
-        )
-    else:
-        logger.info(
-            "  INTERPRETATION: Large drop (>15pp) — model has substantially "
-            "memorised the training noise distribution. Evidence FOR noise "
-            "memorisation over genuine robustness."
+            "  seed=%d | clean=%.4f | noisy=%.4f | alt=%.4f",
+            seed,
+            clean_metrics["accuracy"],
+            noisy_metrics["accuracy"],
+            alt_metrics["accuracy"],
         )
 
-    # Save results
-    output_dir = RESULTS_DIR / "different_draw"
-    output_dir.mkdir(parents=True, exist_ok=True)
+    summary = _aggregate_runs(per_seed)
+    summary["experiment"] = "fixed_bias_augmentation"
+    summary["n_seeds"] = len(seeds)
+    summary["seeds"] = list(map(int, seeds))
+    summary["per_seed"] = per_seed
 
-    results_summary = {
-        "experiment": "different_noise_draw_test",
-        "description": (
-            "Evaluate existing noisy-trained CNN on test sets generated with "
-            "different random seeds (same parametric noise distribution, "
-            "different realisations). Tests memorisation vs accommodation."
-        ),
-        "original_noisy_accuracy": results_original["accuracy"],
-        "original_noisy_f1": results_original["f1_macro"],
-        "alt_draw_results": alt_results,
-        "alt_draw_mean_accuracy": float(mean_acc),
-        "alt_draw_std_accuracy": float(std_acc),
-        "alt_draw_min_accuracy": float(min_acc),
-        "alt_draw_max_accuracy": float(max_acc),
-        "accuracy_drop_from_original": float(drop),
-        "n_seeds_tested": len(different_seeds),
-    }
+    out_path = output_dir / "fixed_bias_results.json"
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+    logger.info("Fixed-bias results saved to %s", out_path)
 
-    with open(output_dir / "results.json", "w") as f:
-        json.dump(results_summary, f, indent=2)
-
-    logger.info(f"\nResults saved to: {output_dir}")
-    return results_summary
+    return summary
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# CLI
+# Experiment 2: Different noise draw test (multi-seed)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Run additional dissertation experiments (fixed-bias & different-draw)."
-    )
-    parser.add_argument(
-        "--experiment",
-        choices=["fixed_bias", "different_draw", "both"],
-        default="both",
-        help="Which experiment(s) to run. Default: both.",
-    )
-    args = parser.parse_args()
+def run_experiment_different_draw(
+    data_path: Path,
+    seeds: list[int],
+    output_dir: Path,
+    models_dir: Path,
+    n_alt_draws: int = 10,
+) -> dict:
+    """Multi-seed evaluation of the headline noisy CNN on independent noise draws.
 
-    results = {}
+    For each seed:
+      * Re-derives the canonical 70/15/15 indices,
+      * Re-fits a RobustScaler on the noisy training fold (matching the
+        scaler under which the saved checkpoint was trained),
+      * Generates ``n_alt_draws`` independent noise realisations on the raw
+        clean test fold and evaluates the saved model on each.
 
-    if args.experiment in ("fixed_bias", "both"):
-        results["fixed_bias"] = run_experiment_1_fixed_bias()
-
-    if args.experiment in ("different_draw", "both"):
-        results["different_draw"] = run_experiment_2_different_draw()
-
-    # Print final summary
-    logger.info("\n" + "=" * 70)
-    logger.info("ALL EXPERIMENTS COMPLETE")
+    Args:
+        data_path: Path to the .mat dataset.
+        seeds: List of seeds (matches the headline grid sequence).
+        output_dir: Directory for JSON results.
+        models_dir: Directory containing ``cnn1d_noisy_best.pt``.
+        n_alt_draws: Number of alternative draws per seed.
+    """
+    logger.info("=" * 70)
+    logger.info("EXPERIMENT (5-seed): Different Noise Draw Test")
     logger.info("=" * 70)
 
-    if "fixed_bias" in results:
-        r = results["fixed_bias"]
+    model_path = Path(models_dir) / "cnn1d_noisy_best.pt"
+    if not model_path.exists():
+        logger.warning(
+            "Model not found at %s — skipping different-draw experiment. "
+            "Train it first via `eit train cnn` or `eit experiments run-all`.",
+            model_path,
+        )
+        return {
+            "experiment": "different_noise_draw_test",
+            "skipped": True,
+            "reason": f"missing checkpoint: {model_path}",
+        }
+
+    cfg = load_config()
+    noise_config = _build_noise_config(cfg)
+
+    X_clean_raw, y = load_mat_dataset(data_path, use_noisy=False)
+    X_noisy_matlab, _ = load_mat_dataset(data_path, use_noisy=True)
+    n_features = X_clean_raw.shape[1]
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    device = get_device()
+
+    per_seed: list[dict] = []
+
+    for seed in seeds:
+        logger.info("--- Different-draw | seed=%d ---", seed)
+        idx_train, _idx_val, idx_test = _make_indices(y, seed)
+
+        # The saved checkpoint was trained against the noisy-fold scaler.
+        scaler = RobustScaler().fit(X_noisy_matlab[idx_train])
+        X_test_noisy_matlab_scaled = scaler.transform(X_noisy_matlab[idx_test]).astype(
+            np.float32
+        )
+        y_test = y[idx_test]
+        X_test_clean_raw = X_clean_raw[idx_test]
+
+        model = EITConv1D(n_features=n_features, n_classes=5)
+        model.load_state_dict(torch.load(model_path, weights_only=True))
+        model.to(device)
+
+        original = evaluate_model(model, X_test_noisy_matlab_scaled, y_test)
+
+        alt_accs: list[float] = []
+        alt_f1s: list[float] = []
+        # Use deterministic per-seed alternative draws.
+        for k, draw_seed in enumerate(
+            range(seed * 10_000 + 1, seed * 10_000 + 1 + n_alt_draws)
+        ):
+            rng = np.random.default_rng(draw_seed)
+            X_alt_raw = apply_noise_batch_vectorised(
+                X_test_clean_raw, noise_config, rng=rng
+            )
+            X_alt_scaled = scaler.transform(X_alt_raw).astype(np.float32)
+            metrics = evaluate_model(model, X_alt_scaled, y_test)
+            alt_accs.append(metrics["accuracy"])
+            alt_f1s.append(metrics["f1_macro"])
+            logger.debug(
+                "    draw %d (seed=%d): acc=%.4f", k, draw_seed, metrics["accuracy"]
+            )
+
+        per_seed.append(
+            {
+                "seed": int(seed),
+                "original_noisy_accuracy": original["accuracy"],
+                "original_noisy_f1": original["f1_macro"],
+                "alt_draw_mean_accuracy": float(np.mean(alt_accs)),
+                "alt_draw_std_accuracy": float(np.std(alt_accs)),
+                "alt_draw_min_accuracy": float(np.min(alt_accs)),
+                "alt_draw_max_accuracy": float(np.max(alt_accs)),
+                "alt_draw_mean_f1": float(np.mean(alt_f1s)),
+                "alt_draw_std_f1": float(np.std(alt_f1s)),
+                "n_alt_draws": int(n_alt_draws),
+            }
+        )
         logger.info(
-            f"\nExp 1 (Fixed-Bias Augmentation):\n"
-            f"  Clean: {r['clean_accuracy']:.1%} | "
-            f"Noisy: {r['noisy_accuracy']:.1%} | "
-            f"Alt-noise: {r['alt_noise_accuracy']:.1%}\n"
-            f"  Compare: Online-aug=19.8% | Fixed-dataset=76.1%"
+            "  seed=%d | original=%.4f | alt-mean=%.4f ± %.4f",
+            seed,
+            original["accuracy"],
+            np.mean(alt_accs),
+            np.std(alt_accs),
         )
 
-    if "different_draw" in results:
-        r = results["different_draw"]
+    # Cross-seed summary
+    flat_orig = [r["original_noisy_accuracy"] for r in per_seed]
+    flat_alt = [r["alt_draw_mean_accuracy"] for r in per_seed]
+    summary = {
+        "experiment": "different_noise_draw_test",
+        "n_seeds": len(seeds),
+        "seeds": list(map(int, seeds)),
+        "n_alt_draws_per_seed": int(n_alt_draws),
+        "original_noisy_accuracy_mean": float(np.mean(flat_orig)),
+        "original_noisy_accuracy_std": float(np.std(flat_orig)),
+        "alt_draw_accuracy_mean": float(np.mean(flat_alt)),
+        "alt_draw_accuracy_std": float(np.std(flat_alt)),
+        "accuracy_drop_mean": float(np.mean(flat_orig) - np.mean(flat_alt)),
+        "per_seed": per_seed,
+    }
+
+    out_path = output_dir / "different_draw_results.json"
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+    logger.info("Different-draw results saved to %s", out_path)
+    return summary
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Aggregation helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _aggregate_runs(per_seed: list[dict]) -> dict:
+    """Compute mean ± std across seeds for every numeric field."""
+    summary: dict = {}
+    if not per_seed:
+        return summary
+    keys = [
+        k for k, v in per_seed[0].items() if isinstance(v, (int, float)) and k != "seed"
+    ]
+    for key in keys:
+        values = [r[key] for r in per_seed]
+        summary[f"{key}_mean"] = float(np.mean(values))
+        summary[f"{key}_std"] = float(np.std(values))
+    return summary
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Top-level driver
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def run_additional_experiments(
+    data_path: Path,
+    seeds: list[int],
+    epochs: int = 200,
+    early_stopping_patience: int = 40,
+    output_dir: Path = Path("results/reports/additional"),
+    models_dir: Path = Path("results/models"),
+) -> dict:
+    """Run all additional experiments under the same multi-seed protocol.
+
+    Mirrors the API of :func:`run_all_extended_experiments` so it can slot
+    into ``eit experiments run-all``.
+    """
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    results: dict = {}
+    results["fixed_bias"] = run_experiment_fixed_bias(
+        data_path=data_path,
+        seeds=seeds,
+        epochs=epochs,
+        early_stopping_patience=early_stopping_patience,
+        output_dir=output_dir,
+    )
+    results["different_draw"] = run_experiment_different_draw(
+        data_path=data_path,
+        seeds=seeds,
+        output_dir=output_dir,
+        models_dir=models_dir,
+    )
+
+    combined_path = output_dir / "additional_results.json"
+    with open(combined_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    logger.info("Combined additional-experiments summary saved to %s", combined_path)
+
+    logger.info("=" * 70)
+    logger.info("ALL ADDITIONAL EXPERIMENTS COMPLETE")
+    logger.info("=" * 70)
+    fb = results["fixed_bias"]
+    logger.info(
+        "Fixed-bias  | clean=%.4f ± %.4f | noisy=%.4f ± %.4f | alt=%.4f ± %.4f",
+        fb["clean_accuracy_mean"],
+        fb["clean_accuracy_std"],
+        fb["noisy_accuracy_mean"],
+        fb["noisy_accuracy_std"],
+        fb["alt_noise_accuracy_mean"],
+        fb["alt_noise_accuracy_std"],
+    )
+    dd = results["different_draw"]
+    if not dd.get("skipped"):
         logger.info(
-            f"\nExp 2 (Different Noise Draw):\n"
-            f"  Original: {r['original_noisy_accuracy']:.1%} | "
-            f"Alt-draws: {r['alt_draw_mean_accuracy']:.1%} ± "
-            f"{r['alt_draw_std_accuracy']:.1%}\n"
-            f"  Drop: {r['accuracy_drop_from_original']:+.1%}"
+            "Different-draw | original=%.4f ± %.4f | alt=%.4f ± %.4f | drop=%+.4f",
+            dd["original_noisy_accuracy_mean"],
+            dd["original_noisy_accuracy_std"],
+            dd["alt_draw_accuracy_mean"],
+            dd["alt_draw_accuracy_std"],
+            dd["accuracy_drop_mean"],
         )
 
-    logger.info(f"\nAll results saved to: {RESULTS_DIR}")
+    return results
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Run the additional dissertation experiments under the 5-seed protocol."
+    )
+    parser.add_argument(
+        "--seeds",
+        type=int,
+        default=5,
+        help="Number of seeds (default: 5, matching the headline protocol).",
+    )
+    parser.add_argument("--epochs", type=int, default=200)
+    parser.add_argument("--early-stopping-patience", type=int, default=40)
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("results/reports/additional"),
+    )
+    parser.add_argument(
+        "--models-dir",
+        type=Path,
+        default=Path("results/models"),
+    )
+    parser.add_argument(
+        "--data-path",
+        type=Path,
+        default=None,
+        help="Override path to the .mat dataset (defaults to data.path in config).",
+    )
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)s | %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
+    cfg_local = load_config()
+    seed0 = int(cfg_local.get("seed", 42))
+    seed_list = list(range(seed0, seed0 + args.seeds))
+    data_path = args.data_path or Path(cfg_local["data"]["path"])
+
+    run_additional_experiments(
+        data_path=data_path,
+        seeds=seed_list,
+        epochs=args.epochs,
+        early_stopping_patience=args.early_stopping_patience,
+        output_dir=args.output_dir,
+        models_dir=args.models_dir,
+    )

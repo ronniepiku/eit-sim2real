@@ -143,3 +143,108 @@ class TestApplyNoiseBatchVectorised:
             clean_signal, cfg, rng=np.random.default_rng(0)
         )
         assert not np.allclose(result, clean_signal)
+
+
+# ---------------------------------------------------------------------------
+# Extra coverage added during the codebase audit
+# ---------------------------------------------------------------------------
+
+
+class TestAssertions:
+    """The 4-component noise model requires n_features % n_electrodes == 0."""
+
+    def test_apply_noise_rejects_non_divisible(self) -> None:
+        rng = np.random.default_rng(0)
+        X = rng.standard_normal((4, 207)).astype(np.float32)
+        cfg = NoiseConfig()
+        with pytest.raises(ValueError, match="integer multiple"):
+            apply_noise(X, cfg, rng=rng)
+
+    def test_apply_noise_batch_rejects_non_divisible(self) -> None:
+        rng = np.random.default_rng(0)
+        X = rng.standard_normal((4, 207)).astype(np.float32)
+        cfg = NoiseConfig()
+        with pytest.raises(ValueError, match="integer multiple"):
+            apply_noise_batch_vectorised(X, cfg, rng=rng)
+
+
+class TestEquivalence:
+    """Reference (per-sample) and vectorised paths produce comparable
+    overall noise magnitudes (independent RNG draws — distributions match)."""
+
+    def test_quantisation_only_matches_in_magnitude(
+        self, clean_signal: np.ndarray
+    ) -> None:
+        cfg = NoiseConfig.only("quantisation")
+        ref = apply_noise(clean_signal, cfg, rng=np.random.default_rng(7))
+        vec = apply_noise_batch_vectorised(
+            clean_signal, cfg, rng=np.random.default_rng(7)
+        )
+        assert ref.shape == vec.shape
+        ref_diff = np.abs(ref - clean_signal).mean()
+        vec_diff = np.abs(vec - clean_signal).mean()
+        assert np.isclose(ref_diff, vec_diff, rtol=0.3, atol=1e-6)
+
+
+class TestFromYamlAndConfig:
+    """``from_yaml`` and ``from_config_dict`` honour every field."""
+
+    def test_from_yaml_round_trip(self, tmp_path) -> None:
+        import yaml
+
+        path = tmp_path / "noise.yaml"
+        cfg_dict = {
+            "enabled": True,
+            "gaussian": {
+                "enabled": True,
+                "snr_db": 35.0,
+                "noise_floor": 5e-5,
+            },
+            "contact_impedance": {
+                "enabled": True,
+                "std_percent": 12.5,
+                "n_electrodes": 16,
+            },
+            "electrode_bias": {"enabled": False, "max_bias": 0.05},
+            "quantisation": {
+                "enabled": True,
+                "adc_bits": 14,
+                "voltage_range": 2.0,
+            },
+            "severity": 1.7,
+            "component_order": [
+                "quantisation",
+                "gaussian",
+                "contact_impedance",
+                "electrode_bias",
+            ],
+        }
+        path.write_text(yaml.safe_dump(cfg_dict))
+
+        cfg = NoiseConfig.from_yaml(path)
+        assert cfg.snr_db == 35.0
+        assert cfg.noise_floor == 5e-5
+        assert cfg.contact_impedance_std_percent == 12.5
+        assert cfg.adc_bits == 14
+        assert cfg.voltage_range == 2.0
+        assert not cfg.electrode_bias_enabled
+        assert cfg.severity == 1.7
+        assert cfg.component_order[0] == "quantisation"
+
+    def test_from_config_dict_uses_project_schema(self) -> None:
+        cfg = NoiseConfig.from_config_dict(
+            {
+                "enabled": True,
+                "snr_db": 30.0,
+                "noise_floor": 1e-3,
+                "contact_impedance_std_percent": 5.0,
+                "max_bias": 0.01,
+                "adc_bits": 12,
+                "voltage_range": 0.5,
+                "n_electrodes": 16,
+                "severity": 2.3,
+            }
+        )
+        assert cfg.snr_db == 30.0
+        assert cfg.severity == 2.3
+        assert cfg.adc_bits == 12
