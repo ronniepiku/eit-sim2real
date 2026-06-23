@@ -72,7 +72,7 @@ class NoiseConfig:
     @classmethod
     def from_yaml(cls, path: str | Path) -> "NoiseConfig":
         """Load noise configuration from YAML file."""
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             raw = yaml.safe_load(f)
 
         return cls(
@@ -92,6 +92,30 @@ class NoiseConfig:
             quantisation_enabled=raw.get("quantisation", {}).get("enabled", True),
             adc_bits=raw.get("quantisation", {}).get("adc_bits", 16),
             voltage_range=raw.get("quantisation", {}).get("voltage_range", 1.0),
+            severity=raw.get("severity", 1.0),
+            component_order=tuple(raw.get("component_order", DEFAULT_COMPONENT_ORDER)),
+        )
+
+    @classmethod
+    def from_config_dict(cls, cfg: dict) -> "NoiseConfig":
+        """Build NoiseConfig from the project's flattened config schema."""
+        return cls(
+            enabled=cfg.get("enabled", True),
+            gaussian_enabled=cfg.get("gaussian_enabled", True),
+            snr_db=cfg.get("snr_db", 40.0),
+            noise_floor=cfg.get("noise_floor", 1e-4),
+            contact_impedance_enabled=cfg.get("contact_impedance_enabled", True),
+            contact_impedance_std_percent=cfg.get(
+                "contact_impedance_std_percent", 10.0
+            ),
+            n_electrodes=cfg.get("n_electrodes", 16),
+            electrode_bias_enabled=cfg.get("electrode_bias_enabled", True),
+            max_bias=cfg.get("max_bias", 0.02),
+            quantisation_enabled=cfg.get("quantisation_enabled", True),
+            adc_bits=cfg.get("adc_bits", 16),
+            voltage_range=cfg.get("voltage_range", 1.0),
+            severity=cfg.get("severity", 1.0),
+            component_order=tuple(cfg.get("component_order", DEFAULT_COMPONENT_ORDER)),
         )
 
     @classmethod
@@ -211,6 +235,11 @@ def apply_noise(
     severity = config.severity
 
     n_elec = config.n_electrodes
+    if n_meas % n_elec != 0:
+        raise ValueError(
+            f"n_features ({n_meas}) must be an integer multiple of "
+            f"n_electrodes ({n_elec})"
+        )
     meas_per_elec = n_meas / n_elec
 
     for component in config.resolved_component_order():
@@ -300,6 +329,11 @@ def apply_noise_batch_vectorised(
     n_samples, n_meas = X_noisy.shape
     severity = config.severity
     n_elec = config.n_electrodes
+    if n_meas % n_elec != 0:
+        raise ValueError(
+            f"n_features ({n_meas}) must be an integer multiple of "
+            f"n_electrodes ({n_elec})"
+        )
     meas_per_elec = int(np.round(n_meas / n_elec))
 
     for component in config.resolved_component_order():

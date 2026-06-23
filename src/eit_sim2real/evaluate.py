@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import matplotlib
 import numpy as np
@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
 
-from eit_sim2real.constants import CLASS_NAMES, COMPONENT_LABELS
+from eit_sim2real.constants import CLASS_NAMES
 from eit_sim2real.data import prepare_splits
 from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
 from eit_sim2real.models.cnn1d import EITConv1D
@@ -460,7 +460,9 @@ def run_calibration_analysis(
             logits = model(X_t)
             return torch.softmax(logits, dim=1).cpu().numpy()
 
-    def _compute_calibration(probs: np.ndarray, y_true: np.ndarray, n_bins: int = 10):
+    def _compute_calibration(
+        probs: np.ndarray, y_true: np.ndarray, n_bins: int = 10
+    ) -> dict[str, Any]:
         """Compute binned calibration metrics."""
         confidences = np.max(probs, axis=1)
         predictions = np.argmax(probs, axis=1)
@@ -528,7 +530,7 @@ def run_calibration_analysis(
         ),
     }
 
-    results = {}
+    results: dict[str, dict[str, Any]] = {}
     for cond_name, (model, X_te, y_te) in conditions.items():
         probs = _get_probs(model, X_te)
         cal = _compute_calibration(probs, y_te, n_bins=n_bins)
@@ -539,7 +541,6 @@ def run_calibration_analysis(
         )
 
     fig, axes = plt.subplots(1, 4, figsize=(18, 4.5))
-    colors = sns.color_palette("colorblind", 4)
 
     for idx, (cond_name, cal) in enumerate(results.items()):
         ax = axes[idx]
@@ -651,7 +652,7 @@ def run_per_class_robustness(
     )
 
     n_classes = len(CLASS_NAMES)
-    results = {"severity_levels": severity_levels, "classes": {}}
+    results: dict[str, Any] = {"severity_levels": severity_levels, "classes": {}}
 
     for cls_idx, cls_name in enumerate(CLASS_NAMES):
         cls_mask = ds.y_test == cls_idx
@@ -821,7 +822,7 @@ def run_noise_parameter_sensitivity(
         label_smoothing=0.05,
     )
 
-    results = {}
+    results: dict[str, dict[str, Any]] = {}
 
     sweeps = {
         "snr_db": {
@@ -851,9 +852,11 @@ def run_noise_parameter_sensitivity(
     }
 
     for param_name, sweep_info in sweeps.items():
+        sweep_values = cast(list[float | int], sweep_info["values"])
+        sweep_label = cast(str, sweep_info["label"])
         accs = []
         f1s = []
-        for val in sweep_info["values"]:
+        for val in sweep_values:
             cfg = NoiseConfig()
             setattr(cfg, param_name, val)
             rng = np.random.default_rng(seed + 400)
@@ -866,53 +869,59 @@ def run_noise_parameter_sensitivity(
             f1s.append(f1_val)
 
         results[param_name] = {
-            "values": sweep_info["values"],
+            "values": sweep_values,
             "accuracies": accs,
             "f1_scores": f1s,
-            "label": sweep_info["label"],
+            "label": sweep_label,
             "unit": sweep_info["unit"],
             "default": sweep_info["default"],
         }
         logger.info(
-            f"  {sweep_info['label']}: "
-            f"{accs[0]:.3f}@{sweep_info['values'][0]} → {accs[-1]:.3f}@{sweep_info['values'][-1]}"
+            f"  {sweep_label}: "
+            f"{accs[0]:.3f}@{sweep_values[0]} → {accs[-1]:.3f}@{sweep_values[-1]}"
         )
 
     fig, axes = plt.subplots(2, 2, figsize=(12, 9))
     colors = sns.color_palette("colorblind", 4)
 
     for idx, (param_name, data) in enumerate(results.items()):
+        values = cast(list[float | int], data["values"])
+        accuracies = cast(list[float], data["accuracies"])
+        default_value = cast(float | int, data["default"])
+        label = cast(str, data["label"])
+        unit = cast(str, data["unit"])
+
         ax = axes[idx // 2, idx % 2]
         ax.plot(
-            data["values"],
-            data["accuracies"],
+            values,
+            accuracies,
             "o-",
             color=colors[idx],
             linewidth=2,
             markersize=8,
         )
 
-        default_idx = data["values"].index(data["default"])
+        default_idx = values.index(default_value)
         ax.axvline(
-            data["default"],
+            default_value,
             color="red",
             linestyle="--",
             alpha=0.5,
-            label=f"Default ({data['default']})",
+            label=f"Default ({default_value})",
         )
         ax.scatter(
-            [data["default"]],
-            [data["accuracies"][default_idx]],
+            [default_value],
+            [accuracies[default_idx]],
             color="red",
             s=100,
             zorder=5,
             marker="*",
         )
 
-        unit_str = f" ({data['unit']})" if data["unit"] else ""
-        ax.set_xlabel(f"{data['label']}{unit_str}")
+        unit_str = f" ({unit})" if unit else ""
+        ax.set_xlabel(f"{label}{unit_str}")
         ax.set_ylabel("Test Accuracy")
-        ax.set_title(f"Sensitivity: {data['label']}")
+        ax.set_title(f"Sensitivity: {label}")
         ax.grid(True, alpha=0.3)
         ax.legend()
         ax.set_ylim(0, 1.05)

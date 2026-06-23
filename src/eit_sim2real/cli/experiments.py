@@ -228,7 +228,7 @@ def run_all(
     if experiments_failed:
         logger.error(f"Failed: {', '.join(experiments_failed)}")
         sys.exit(1)
-    logger.info(f"Total time: {total_time/60:.1f} minutes")
+    logger.info(f"Total time: {total_time / 60:.1f} minutes")
     logger.info("=" * 70)
 
 
@@ -523,7 +523,7 @@ def extended_cmd(
     # generate_extended_report(...)
 
     logger.info("\n" + "=" * 70)
-    logger.info(f"Extended experiments complete — {runtime/60:.1f} minutes total")
+    logger.info(f"Extended experiments complete — {runtime / 60:.1f} minutes total")
     logger.info("=" * 70)
 
 
@@ -706,8 +706,6 @@ def mesh_refinement(
             cd matlab
             generate_mesh_refinement_testset()
     """
-    import logging
-
     from eit_sim2real.experiments.mesh_refinement import main as mesh_main
 
     mesh_main(

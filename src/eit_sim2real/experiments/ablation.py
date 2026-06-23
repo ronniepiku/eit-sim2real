@@ -190,7 +190,7 @@ def _evaluate_sklearn(
     y_val: np.ndarray,
     X_test: np.ndarray,
     y_test: np.ndarray,
-) -> tuple[Float, Float, Float, Float]:
+) -> tuple[float, float, float, float]:
     """Return (train_acc, val_acc, test_acc, test_f1) for an sklearn model."""
     train_acc = accuracy_score(y_train, model.predict(X_train))
     val_acc = accuracy_score(y_val, model.predict(X_val))
@@ -751,9 +751,9 @@ def run_ablation(
     all_seed_severity: dict[str, list[dict]] = {c: [] for c in NOISE_COMPONENTS}
 
     for seed_idx, current_seed in enumerate(seeds):
-        logger.info(f"\n{'='*60}")
+        logger.info(f"\n{'=' * 60}")
         logger.info(f"  SEED {seed_idx + 1}/{n_seeds} (seed={current_seed})")
-        logger.info(f"{'='*60}")
+        logger.info(f"{'=' * 60}")
 
         np.random.seed(current_seed)
         torch.manual_seed(current_seed)
@@ -769,6 +769,9 @@ def run_ablation(
             eval_data: str,
             noise_cfg: NoiseConfig | None,
             description: str,
+            dataset_clean=dataset_clean,
+            dataset_noisy=dataset_noisy,
+            current_seed=current_seed,
         ) -> AblationResult:
             """Train and evaluate a single ablation experiment."""
             if train_data == "clean":
@@ -946,9 +949,9 @@ def run_ablation(
                 )
 
     # ── Aggregate results across seeds ────────────────────────────────
-    logger.info(f"\n{'='*60}")
+    logger.info(f"\n{'=' * 60}")
     logger.info(f"  AGGREGATING {n_seeds} SEEDS")
-    logger.info(f"{'='*60}")
+    logger.info(f"{'=' * 60}")
 
     study = AblationStudy()
 

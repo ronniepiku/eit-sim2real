@@ -53,7 +53,16 @@ from sklearn.metrics import (
     recall_score,
 )
 
-from eit_sim2real.data import load_mat_dataset, prepare_splits
+from eit_sim2real.data import NoiseConfig, load_mat_dataset, prepare_splits
+from eit_sim2real.data.noise import apply_noise_batch_vectorised
+from eit_sim2real.evaluate import (
+    run_calibration_analysis,
+    run_gaussian_only_evaluation,
+    run_noise_parameter_sensitivity,
+    run_per_class_robustness,
+)
+from eit_sim2real.experiments.ablation import generate_ablation_report, run_ablation
+from eit_sim2real.experiments.hyperopt import run_hyperparameter_sensitivity
 from eit_sim2real.models import get_baseline, train_baseline
 from eit_sim2real.train import train_cnn, train_cnn_mixed
 from eit_sim2real.utils import get_device, predict_cnn, rescale_cross_condition
@@ -1290,6 +1299,114 @@ def run_dataset_size_experiment(
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     logger.info(f"  Results saved to {out_path}")
+    return results
+
+
+def run_noise_type_severity_sweep(
+    data_path: Path,
+    seed: int = 42,
+    epochs: int = 200,
+    early_stopping_patience: int = 40,
+    output_dir: Path = Path("results/reports"),
+    figures_dir: Path = Path("results/figures"),
+) -> dict:
+    """Run CNN severity sweeps by training regime on a specific dataset path.
+
+    This is kept as a public entry point for the extended experiment CLI.
+    """
+    _ = (output_dir, figures_dir)
+    severity_multipliers = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+    results: dict = {}
+
+    if not data_path.exists():
+        logger.warning(f"Severity sweep dataset not found: {data_path}")
+        return results
+
+    X_clean, y = load_mat_dataset(data_path, use_noisy=False)
+    X_noisy, _ = load_mat_dataset(data_path, use_noisy=True)
+
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+    ds_clean = prepare_splits(X_clean, y, random_state=seed)
+    ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
+    noise_cfg = _get_noise_config()
+
+    regimes = {
+        "noisy_fixed": lambda: train_cnn(
+            ds_noisy.X_train,
+            ds_noisy.y_train,
+            ds_noisy.X_val,
+            ds_noisy.y_val,
+            epochs=epochs,
+            early_stopping_patience=early_stopping_patience,
+            **NOISY_CNN_PARAMS,
+        ),
+        "augmented": lambda: train_cnn(
+            ds_clean.X_train,
+            ds_clean.y_train,
+            ds_clean.X_val,
+            ds_clean.y_val,
+            epochs=epochs,
+            early_stopping_patience=early_stopping_patience,
+            noise_config=noise_cfg,
+            severity_range=DEFAULT_SEVERITY_RANGE,
+            **NOISY_CNN_PARAMS,
+        ),
+        "mixed": lambda: train_cnn_mixed(
+            ds_clean.X_train,
+            ds_noisy.X_train,
+            ds_clean.y_train,
+            ds_clean.X_val,
+            ds_clean.y_val,
+            epochs=epochs,
+            early_stopping_patience=early_stopping_patience,
+            noise_config=noise_cfg,
+            severity_range=DEFAULT_SEVERITY_RANGE,
+            **MIXED_CNN_PARAMS,
+        ),
+    }
+
+    for regime_name, train_fn in regimes.items():
+        logger.info(f"  Training CNN ({regime_name}) for severity sweep...")
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+
+        model, _ = train_fn()
+
+        if regime_name == "noisy_fixed":
+            base_test = rescale_cross_condition(
+                ds_clean.X_test, ds_clean.scaler, ds_noisy.scaler
+            )
+        else:
+            base_test = ds_clean.X_test
+
+        accuracies = []
+        f1_scores = []
+        for mult in severity_multipliers:
+            if mult == 0.0:
+                X_test = base_test
+            else:
+                sweep_cfg = NoiseConfig(severity=mult)
+                rng = np.random.default_rng(seed)
+                X_test = apply_noise_batch_vectorised(base_test, sweep_cfg, rng=rng)
+
+            y_pred = predict_cnn(model, X_test)
+            acc = float(accuracy_score(ds_clean.y_test, y_pred))
+            f1 = float(f1_score(ds_clean.y_test, y_pred, average="macro"))
+            accuracies.append(acc)
+            f1_scores.append(f1)
+
+            logger.info(f"    {regime_name} @ {mult:.1f}x: Acc={acc:.4f}, F1={f1:.4f}")
+
+        results[regime_name] = {
+            "severity_multipliers": severity_multipliers,
+            "accuracies": accuracies,
+            "f1_scores": f1_scores,
+        }
+
     return results
 
 
