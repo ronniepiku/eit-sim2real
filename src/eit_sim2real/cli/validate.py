@@ -11,7 +11,7 @@ import click
     default="results/dataset_validation",
     help="Output directory.",
 )
-def validate_dataset(config: str | None, output_dir: str) -> None:
+def validate_dataset() -> None:
     """Run dataset validation and generate report."""
     from eit_sim2real.validate_dataset import main as validate_main
 

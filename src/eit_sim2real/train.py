@@ -304,10 +304,12 @@ def train_cnn_mixed(
             if X_noisy_src.shape[0] > 0:
                 X_noisy_np = X_noisy_src.numpy()
                 if augment:
+                    if noise_config is None:
+                        raise ValueError(
+                            "noise_config must be provided when augment=True"
+                        )
                     if severity_range is not None:
-                        assert noise_config is not None
                         noise_config.severity = float(aug_rng.uniform(*severity_range))  # type: ignore[union-attr]
-                    assert noise_config is not None
                     X_noisy_np = apply_noise_batch_vectorised(
                         X_noisy_np,
                         noise_config,

@@ -4,13 +4,13 @@ Systematically trains and evaluates models with different noise component
 combinations to identify which noise sources most impact robustness.
 
 Experiments:
-1. **Core mismatch** – 4 conditions: clean→clean, clean→noisy, noisy→noisy,
+1. **Core mismatch** - 4 conditions: clean→clean, clean→noisy, noisy→noisy,
    noisy→clean (baseline comparisons).
-2. **Single-component isolation** – Train/evaluate with only ONE noise type
+2. **Single-component isolation** - Train/evaluate with only ONE noise type
    active at a time to measure individual component impact.
-3. **Exhaustive subset/order ablation** – All non-empty component subsets
+3. **Exhaustive subset/order ablation** - All non-empty component subsets
    with physically-constrained orderings (optional, expensive).
-4. **Per-component severity sweep** – For each noise type, sweep severity
+4. **Per-component severity sweep** - For each noise type, sweep severity
    [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0] while others stay at 1.0.
 
 Outputs:
@@ -584,12 +584,12 @@ def generate_ablation_report(
             worst_degrader = max(degradation_rates, key=degradation_rates.get)
             lines.append(
                 f"\n**Fastest degradation**: {COMPONENT_LABELS[worst_degrader]} "
-                f"(Δacc = -{degradation_rates[worst_degrader]:.4f} from 0× to 3×)"
+                f"(Δacc = -{degradation_rates[worst_degrader]:.4f} from 0x to 3x)"
             )
             best_degrader = min(degradation_rates, key=degradation_rates.get)
             lines.append(
                 f"**Most robust to**: {COMPONENT_LABELS[best_degrader]} "
-                f"(Δacc = -{degradation_rates[best_degrader]:.4f} from 0× to 3×)"
+                f"(Δacc = -{degradation_rates[best_degrader]:.4f} from 0x to 3x)"
             )
 
     # ── 4. Best ordering analysis ──
@@ -751,9 +751,9 @@ def run_ablation(
     all_seed_severity: dict[str, list[dict]] = {c: [] for c in NOISE_COMPONENTS}
 
     for seed_idx, current_seed in enumerate(seeds):
-        logger.info(f"\n{'='*60}")
+        logger.info(f"\n{'=' * 60}")
         logger.info(f"  SEED {seed_idx + 1}/{n_seeds} (seed={current_seed})")
-        logger.info(f"{'='*60}")
+        logger.info(f"{'=' * 60}")
 
         np.random.seed(current_seed)
         torch.manual_seed(current_seed)
@@ -769,6 +769,9 @@ def run_ablation(
             eval_data: str,
             noise_cfg: NoiseConfig | None,
             description: str,
+            dataset_clean=dataset_clean,
+            dataset_noisy=dataset_noisy,
+            current_seed=current_seed,
         ) -> AblationResult:
             """Train and evaluate a single ablation experiment."""
             if train_data == "clean":
@@ -946,9 +949,9 @@ def run_ablation(
                 )
 
     # ── Aggregate results across seeds ────────────────────────────────
-    logger.info(f"\n{'='*60}")
+    logger.info(f"\n{'=' * 60}")
     logger.info(f"  AGGREGATING {n_seeds} SEEDS")
-    logger.info(f"{'='*60}")
+    logger.info(f"{'=' * 60}")
 
     study = AblationStudy()
 

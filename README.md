@@ -49,11 +49,10 @@ All contact classes satisfy σ < σ₀, consistent with the positive piezoresist
 │   │   └── baselines.py            # SVM, RF, MLP wrappers
 │   ├── experiments/
 │   │   ├── grid.py                 # Model × Dataset × Condition grid
-│   │   ├── extended.py             # Extended experiments (t-SNE, calibration, etc.)
-│   │   ├── additional.py           # Memorisation experiments (fixed-bias, different-draw)
 │   │   ├── ablation.py             # Noise component ablation study
-│   │   ├── hyperopt.py             # Hyperparameter grid search
-│   │   └── architecture_sweep.py   # CNN depth/width sweep
+│   │   ├── hyperopt.py             # Hyperparameter grid search & architecture sweep
+│   │   ├── additional.py           # Memorisation experiments (fixed-bias, different-draw)
+│   │   └── mesh_refinement.py      # Cross-mesh evaluation study
 │   ├── constants.py                # Shared constants (classes, noise components)
 │   ├── utils.py                    # Device, seeds, prediction helpers
 │   ├── train.py                    # CNN training logic
@@ -141,17 +140,25 @@ eit train baselines
 # Evaluate a trained model
 eit evaluate --model-path results/models/cnn1d_noisy_best.pt
 
-# Run the full experiment grid (all models × datasets × conditions)
+# Run the full experiment suite (grid, ablation, hyperopt, architecture-sweep, extended, additional)
 eit experiments run-all
 
-# Run noise component ablation
-eit experiments ablation
+# Run all experiments except grid
+eit experiments run-all --skip-grid
 
-# Run memorisation experiments
-eit experiments additional
+# Run only grid and ablation
+eit experiments run-all --skip-hyperopt --skip-architecture-sweep --skip-extended --skip-additional
 
-# Hyperparameter optimisation
-eit experiments hyperopt
+# Include mesh refinement study (requires fine-mesh dataset)
+eit experiments run-all --include-mesh-refinement
+
+# Run individual experiment types
+eit experiments ablation                     # Noise component ablation
+eit experiments additional                   # Memorisation experiments
+eit experiments hyperopt --mode=grid-search  # Full hyperparameter grid search
+eit experiments hyperopt --mode=arch-sweep   # Quick architecture depth sweep
+eit experiments extended                     # All extended analyses (calibration, robustness, etc.)
+eit experiments mesh-refinement              # Cross-mesh evaluation
 
 # Validate dataset integrity
 eit validate-dataset

@@ -238,7 +238,7 @@ def plot_pca(
     X: np.ndarray,
     y: np.ndarray,
     class_names: list[str] | None = None,
-    title: str = "PCA – EIT Feature Space",
+    title: str = "PCA - EIT Feature Space",
 ) -> plt.Figure:
     """2D PCA scatter plot coloured by class."""
     if class_names is None:
@@ -268,7 +268,7 @@ def plot_tsne(
     class_names: list[str] | None = None,
     perplexity: float = 30.0,
     seed: int = 42,
-    title: str = "t-SNE – EIT Feature Space",
+    title: str = "t-SNE - EIT Feature Space",
 ) -> plt.Figure:
     """2D t-SNE scatter plot coloured by class."""
     if class_names is None:
@@ -319,7 +319,7 @@ def plot_robustness(
 def plot_ablation_heatmap(
     csv_path: Path | str,
     metric: str = "test_acc",
-    title: str = "Ablation Study – Test Accuracy",
+    title: str = "Ablation Study - Test Accuracy",
 ) -> plt.Figure:
     """Heatmap of ablation study results from CSV."""
     import pandas as pd

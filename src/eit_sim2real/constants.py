@@ -1,7 +1,4 @@
-"""Project-wide constants — single source of truth.
-
-All modules should import constants from here rather than defining locally.
-"""
+"""Project-wide constants"""
 
 NUM_CLASSES: int = 5
 

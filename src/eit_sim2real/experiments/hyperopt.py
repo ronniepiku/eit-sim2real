@@ -1,17 +1,23 @@
-"""Hyperparameter optimisation for the 1D-CNN via grid search.
+"""Unified hyperparameter optimisation and architecture search for EIT 1D-CNN.
 
-Optimises for **robustness**: the model must perform well on both clean and
-noisy EIT measurements.  The primary objective is the harmonic mean of
-clean-test macro-F1 and noisy-test macro-F1 (robustness score), which
-penalises models that sacrifice one condition for the other.
+Supports two modes:
+  1. Architecture sweep (--mode=arch-sweep): Quick focused depth search with dev subset.
+     Justifies the 3-block design choice. Uses single train/val split.
+  2. Full grid search (--mode=grid-search, default): Comprehensive hyperparameter grid
+     with k-fold CV, optimises for robustness (harmonic mean of clean & noisy F1).
 
-Grid search is used (rather than random/Bayesian) per the user's compute
-budget.  Results are saved incrementally so partial runs can be resumed.
+Results are saved to results/hyperparameter_optimisation/ or results/architecture_sweep/.
 
 Usage:
-    eit experiments hyperopt
-    uv run python -m eit_sim2real.experiments.hyperopt --resume
-    uv run python -m eit_sim2real.experiments.hyperopt --config src/eit_sim2real/configs/config.yaml
+    # Architecture sweep (fast, exploratory)
+    eit experiments hyperopt --mode=arch-sweep
+
+    # Full grid search (comprehensive)
+    eit experiments hyperopt --mode=grid-search
+    eit experiments hyperopt --mode=grid-search --resume
+
+    # Train final model with best config
+    eit experiments hyperopt --mode=grid-search --final-only
 """
 
 from __future__ import annotations
@@ -25,12 +31,16 @@ from dataclasses import asdict, dataclass, field
 from itertools import product
 from pathlib import Path
 
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from sklearn.metrics import f1_score
-from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score, f1_score
+from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.preprocessing import RobustScaler
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -38,15 +48,23 @@ from eit_sim2real.configs import load_config
 from eit_sim2real.data import load_mat_dataset, prepare_splits
 from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
 from eit_sim2real.models.cnn1d import EITConv1D
-from eit_sim2real.utils import count_parameters, get_device, set_seeds
+from eit_sim2real.train import train_cnn
+from eit_sim2real.utils import (
+    count_parameters,
+    get_device,
+    predict_cnn,
+    rescale_cross_condition,
+    set_seeds,
+)
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Hyperparameter search space
+# Search space definitions
 # ---------------------------------------------------------------------------
 
-SEARCH_SPACE = {
+# Full grid search space
+FULL_SEARCH_SPACE = {
     "channels": [
         [32, 64, 128],  # Default (3 blocks)
         [64, 128, 256],  # Wider
@@ -60,6 +78,27 @@ SEARCH_SPACE = {
     "weight_decay": [1e-4, 1e-3],
     "noise_augmentation": [False, True],
 }
+
+# Architecture sweep space (focused depth search with fixed other hyperparameters)
+ARCH_SWEEP_SPACE = {
+    "channels": [
+        [32, 64],  # 2 blocks
+        [32, 64, 128],  # 3 blocks (default)
+        [32, 64, 128, 256],  # 4 blocks
+        [32, 64, 128, 256, 512],  # 5 blocks
+    ],
+    "fc_dim": [128],  # Fixed
+    "dropout": [0.3],  # Fixed
+    "learning_rate": [1e-3],  # Fixed
+    "batch_size": [64],  # Fixed
+    "weight_decay": [1e-4],  # Fixed
+    "noise_augmentation": [False],  # No augmentation for clean-data search
+}
+
+
+# ---------------------------------------------------------------------------
+# Data structures
+# ---------------------------------------------------------------------------
 
 
 @dataclass
@@ -100,9 +139,24 @@ class TrialResult:
     def compute_aggregates(self) -> None:
         """Compute mean/std from per-fold scores."""
         self.mean_clean_f1 = float(np.mean(self.fold_clean_f1))
-        self.mean_noisy_f1 = float(np.mean(self.fold_noisy_f1))
-        self.mean_robustness = float(np.mean(self.fold_robustness))
-        self.std_robustness = float(np.std(self.fold_robustness))
+        self.mean_noisy_f1 = (
+            float(np.mean(self.fold_noisy_f1)) if self.fold_noisy_f1 else 0.0
+        )
+        self.mean_robustness = (
+            float(np.mean(self.fold_robustness))
+            if self.fold_robustness
+            else self.mean_clean_f1
+        )
+        self.std_robustness = (
+            float(np.std(self.fold_robustness))
+            if len(self.fold_robustness) > 1
+            else 0.0
+        )
+
+
+# ---------------------------------------------------------------------------
+# Utility functions
+# ---------------------------------------------------------------------------
 
 
 def harmonic_mean(a: float, b: float) -> float:
@@ -112,24 +166,20 @@ def harmonic_mean(a: float, b: float) -> float:
     return 2 * a * b / (a + b)
 
 
+def generate_grid(search_space: dict) -> list[HParamConfig]:
+    """Generate all combinations from a search space."""
+    keys = list(search_space.keys())
+    values = [search_space[k] for k in keys]
+    configs = []
+    for combo in product(*values):
+        params = dict(zip(keys, combo, strict=True))
+        configs.append(HParamConfig(**params))
+    return configs
+
+
 # ---------------------------------------------------------------------------
-# Training utilities
+# Training functions (shared by both modes)
 # ---------------------------------------------------------------------------
-
-
-def _get_device() -> torch.device:
-    """Select the best available device."""
-    return torch.device(get_device())
-
-
-def _set_seeds(seed: int) -> None:
-    """Set all random seeds for reproducibility."""
-    set_seeds(seed)
-
-
-def _count_parameters(model: nn.Module) -> int:
-    """Count trainable parameters."""
-    return count_parameters(model)
 
 
 def train_fold(
@@ -137,7 +187,7 @@ def train_fold(
     X_train: np.ndarray,
     y_train: np.ndarray,
     X_val_clean: np.ndarray,
-    X_val_noisy: np.ndarray,
+    X_val_noisy: np.ndarray | None,
     y_val: np.ndarray,
     n_classes: int,
     epochs: int,
@@ -156,7 +206,7 @@ def train_fold(
         X_train: Training features (scaled, clean).
         y_train: Training labels.
         X_val_clean: Validation features (clean, scaled).
-        X_val_noisy: Validation features (noisy, scaled).
+        X_val_noisy: Validation features (noisy, scaled). If None, uses X_val_clean.
         y_val: Validation labels.
         n_classes: Number of output classes.
         epochs: Maximum training epochs.
@@ -171,7 +221,7 @@ def train_fold(
     Returns:
         Tuple of (clean_macro_f1, noisy_macro_f1, epochs_trained, n_params).
     """
-    _set_seeds(seed)
+    set_seeds(seed)
     n_features = X_train.shape[1]
 
     model = EITConv1D(
@@ -182,7 +232,7 @@ def train_fold(
         dropout=hparams.dropout,
     ).to(device)
 
-    n_params = _count_parameters(model)
+    n_params = count_parameters(model)
 
     # Data loaders
     train_ds = TensorDataset(
@@ -269,28 +319,146 @@ def train_fold(
         preds_clean = model(X_clean_t).argmax(dim=1).cpu().numpy()
         clean_f1 = f1_score(y_val, preds_clean, average="macro")
 
-        # Noisy evaluation
-        X_noisy_t = torch.from_numpy(X_val_noisy).float().to(device)
-        preds_noisy = model(X_noisy_t).argmax(dim=1).cpu().numpy()
-        noisy_f1 = f1_score(y_val, preds_noisy, average="macro")
+        # Noisy evaluation (if provided, else same as clean)
+        if X_val_noisy is not None:
+            X_noisy_t = torch.from_numpy(X_val_noisy).float().to(device)
+            preds_noisy = model(X_noisy_t).argmax(dim=1).cpu().numpy()
+            noisy_f1 = f1_score(y_val, preds_noisy, average="macro")
+        else:
+            noisy_f1 = clean_f1
 
     return float(clean_f1), float(noisy_f1), epochs_trained, n_params
 
 
 # ---------------------------------------------------------------------------
-# Grid search orchestrator
+# Architecture sweep mode
 # ---------------------------------------------------------------------------
 
 
-def generate_grid() -> list[HParamConfig]:
-    """Generate all combinations from the search space."""
-    keys = list(SEARCH_SPACE.keys())
-    values = [SEARCH_SPACE[k] for k in keys]
-    configs = []
-    for combo in product(*values):
-        params = dict(zip(keys, combo, strict=True))
-        configs.append(HParamConfig(**params))
-    return configs
+def run_architecture_sweep(
+    X: np.ndarray,
+    y: np.ndarray,
+    dev_fraction: float = 0.1,
+    epochs: int = 50,
+    early_stopping_patience: int = 20,
+    scheduler_patience: int = 10,
+    scheduler_factor: float = 0.5,
+    seed: int = 42,
+    output_dir: Path = Path("results/architecture_sweep"),
+) -> Path:
+    """Run architecture sweep (focused depth search with fixed other hyperparameters).
+
+    Uses a dev subset for efficiency and single train/val split (no k-fold).
+    Only evaluates on clean data (no noise augmentation).
+
+    Args:
+        X: Feature matrix.
+        y: Label vector.
+        dev_fraction: Fraction of training data to use (development subset).
+        epochs: Max epochs per trial.
+        early_stopping_patience: Early stopping patience.
+        scheduler_patience: LR scheduler patience.
+        scheduler_factor: LR scheduler factor.
+        seed: Random seed.
+        output_dir: Directory for saving results.
+
+    Returns:
+        Path to the saved CSV with results.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    device = torch.device(get_device())
+    logger.info(f"Using device: {device}")
+    if device.type == "cuda":
+        logger.info(f"GPU: {torch.cuda.get_device_name(0)}")
+
+    set_seeds(seed)
+
+    # Load and split data
+    dataset = prepare_splits(X, y, random_state=seed)
+
+    # Use development subset for efficient sweep
+    n_dev = int(len(dataset.X_train) * dev_fraction)
+    indices = np.random.permutation(len(dataset.X_train))[:n_dev]
+    X_train_dev = dataset.X_train[indices]
+    y_train_dev = dataset.y_train[indices]
+
+    logger.info(
+        "Architecture sweep: %d training samples, full validation set (%d samples)",
+        n_dev,
+        len(dataset.X_val),
+    )
+
+    # Generate grid and run trials
+    grid = generate_grid(ARCH_SWEEP_SPACE)
+    n_classes = len(np.unique(y))
+    results = []
+
+    for trial_idx, hparams in enumerate(grid):
+        logger.info(
+            f"[{trial_idx + 1}/{len(grid)}] "
+            f"channels={hparams.channels} ({len(hparams.channels)} blocks)"
+        )
+
+        clean_f1, _, epochs_used, n_params = train_fold(
+            hparams=hparams,
+            X_train=X_train_dev,
+            y_train=y_train_dev,
+            X_val_clean=dataset.X_val,
+            X_val_noisy=None,
+            y_val=dataset.y_val,
+            n_classes=n_classes,
+            epochs=epochs,
+            early_stopping_patience=early_stopping_patience,
+            scheduler_patience=scheduler_patience,
+            scheduler_factor=scheduler_factor,
+            noise_config=None,
+            severity_range=None,
+            device=device,
+            seed=seed,
+        )
+
+        results.append(
+            {
+                "n_blocks": len(hparams.channels),
+                "channels": str(hparams.channels),
+                "n_params": n_params,
+                "clean_f1": clean_f1,
+                "epochs_used": epochs_used,
+            }
+        )
+
+        logger.info(
+            "  Val F1: %.4f | Params: %s | Epochs: %d",
+            clean_f1,
+            f"{n_params:,}",
+            epochs_used,
+        )
+
+    # Save results
+    df = pd.DataFrame(results)
+    output_path = (output_dir / "architecture_sweep.csv").resolve()
+    df.to_csv(output_path, index=False)
+    logger.info("Results saved to %s", output_path)
+
+    # Print summary
+    summary = df[["n_blocks", "channels", "n_params", "clean_f1", "epochs_used"]].copy()
+    logger.info("\nArchitecture sweep summary:\n%s", summary.to_string(index=False))
+
+    # Report best
+    best = df.loc[df["clean_f1"].idxmax()]
+    logger.info(
+        "Best architecture: %d blocks (F1: %.4f, params: %s)",
+        int(best["n_blocks"]),
+        best["clean_f1"],
+        f"{int(best['n_params']):,}",
+    )
+
+    return output_path
+
+
+# ---------------------------------------------------------------------------
+# Full grid search mode
+# ---------------------------------------------------------------------------
 
 
 def run_grid_search(
@@ -298,8 +466,8 @@ def run_grid_search(
     X_noisy: np.ndarray,
     y: np.ndarray,
     n_folds: int = 3,
-    epochs: int = 100,
-    early_stopping_patience: int = 20,
+    epochs: int = 200,
+    early_stopping_patience: int = 40,
     scheduler_patience: int = 10,
     scheduler_factor: float = 0.5,
     noise_config: NoiseConfig | None = None,
@@ -334,12 +502,12 @@ def run_grid_search(
     results_path = output_dir / "grid_search_results.csv"
     checkpoint_path = output_dir / "grid_search_checkpoint.json"
 
-    device = _get_device()
+    device = torch.device(get_device())
     logger.info(f"Using device: {device}")
     if device.type == "cuda":
         logger.info(f"GPU: {torch.cuda.get_device_name(0)}")
 
-    grid = generate_grid()
+    grid = generate_grid(FULL_SEARCH_SPACE)
     n_total = len(grid)
     logger.info(f"Grid search: {n_total} configurations x {n_folds} folds")
 
@@ -380,7 +548,9 @@ def run_grid_search(
             scaler = RobustScaler()
             X_train_fold = scaler.fit_transform(X_clean[train_idx])
             X_val_clean_fold = scaler.transform(X_clean[val_idx])
-            X_val_noisy_fold = scaler.transform(X_noisy[val_idx])
+            X_val_noisy_fold = (
+                scaler.transform(X_noisy[val_idx]) if X_noisy is not None else None
+            )
             y_train_fold = y[train_idx]
             y_val_fold = y[val_idx]
 
@@ -498,8 +668,8 @@ def train_final_model(
     X_clean: np.ndarray,
     X_noisy: np.ndarray,
     y: np.ndarray,
-    epochs: int = 150,
-    early_stopping_patience: int = 30,
+    epochs: int = 200,
+    early_stopping_patience: int = 40,
     scheduler_patience: int = 10,
     scheduler_factor: float = 0.5,
     noise_config: NoiseConfig | None = None,
@@ -516,16 +686,13 @@ def train_final_model(
         Path to the saved model checkpoint.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
-    device = _get_device()
-    _set_seeds(seed)
+    device = torch.device(get_device())
+    set_seeds(seed)
 
     # Prepare train/val/test splits
     dataset = prepare_splits(X_clean, y, random_state=seed, scaler_type="robust")
 
     # Reconstruct full index mapping for noisy test set
-    # Use same split logic to get matching noisy test samples
-    from sklearn.model_selection import train_test_split
-
     _, X_noisy_test_split, _, _ = train_test_split(
         X_noisy, y, test_size=0.15, random_state=seed, stratify=y
     )
@@ -693,7 +860,7 @@ def train_final_model(
             "robustness_score": robustness,
         },
         "model_info": {
-            "n_parameters": _count_parameters(model),
+            "n_parameters": count_parameters(model),
             "n_features": n_features,
             "n_classes": n_classes,
             "architecture": f"EITConv1D(channels={best_config.channels}, "
@@ -722,7 +889,20 @@ def train_final_model(
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Hyperparameter optimisation for EIT 1D-CNN (grid search)."
+        description="Unified hyperparameter optimisation and architecture search for EIT 1D-CNN."
+    )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Path to YAML config file (matches train.py).",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["arch-sweep", "grid-search"],
+        default="grid-search",
+        help="Search mode: 'arch-sweep' for focused depth search, "
+        "'grid-search' for comprehensive tuning (default: grid-search).",
     )
     parser.add_argument(
         "--data-path",
@@ -731,38 +911,52 @@ def parse_args() -> argparse.Namespace:
         help="Path to dataset .mat file (default: from config.yaml).",
     )
     parser.add_argument(
-        "--config",
-        type=Path,
-        default=None,
-        help="Path to YAML config file.",
+        "--noise/--no-noise",
+        dest="noise",
+        action="store_true",
+        default=True,
+        help="Train with noise augmentation (matches train.py, default: True).",
+    )
+    parser.add_argument(
+        "--no-noise",
+        dest="noise",
+        action="store_false",
+        help="Train without noise augmentation.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/hyperparameter_optimisation"),
-        help="Output directory for results.",
+        default=None,
+        help="Output directory for results (default: results/architecture_sweep or "
+        "results/hyperparameter_optimisation based on mode).",
+    )
+    parser.add_argument(
+        "--dev-fraction",
+        type=float,
+        default=0.1,
+        help="Fraction of training data for architecture sweep dev subset (default: 0.1).",
     )
     parser.add_argument(
         "--n-folds",
         type=int,
         default=3,
-        help="Number of CV folds (default: 3).",
+        help="Number of CV folds for grid search (default: 3).",
     )
     parser.add_argument(
         "--epochs",
         type=int,
-        default=100,
-        help="Max epochs per trial (default: 100).",
+        default=None,
+        help="Override epochs (default: from training.epochs in config for grid-search).",
     )
     parser.add_argument(
         "--resume",
         action="store_true",
-        help="Resume from checkpoint (skip completed trials).",
+        help="Resume grid search from checkpoint (skip completed trials).",
     )
     parser.add_argument(
         "--final-only",
         action="store_true",
-        help="Skip grid search, train final model from existing results.",
+        help="Skip search, train final model from existing results.",
     )
     parser.add_argument(
         "--seed",
@@ -773,8 +967,184 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def run_hyperparameter_sensitivity(
+    data_path: Path,
+    seed: int = 42,
+    epochs: int = 200,
+    early_stopping_patience: int = 40,
+    output_dir: Path = Path("results/reports"),
+    figures_dir: Path = Path("results/figures"),
+) -> dict:
+    """Evaluate CNN sensitivity to key training hyperparameters.
+
+    Tests that results aren't artefacts of specific hyperparameter choices
+    by sweeping: learning rate, dropout, weight decay, severity range.
+    """
+    logger.info("── Hyperparameter Sensitivity ──")
+    device = get_device()
+    noise_cfg = NoiseConfig()
+
+    X_clean, y = load_mat_dataset(data_path, use_noisy=False)
+    X_noisy, _ = load_mat_dataset(data_path, use_noisy=True)
+
+    ds_clean = prepare_splits(X_clean, y, random_state=seed)
+    ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
+
+    # Noisy test data rescaled into clean-scaler space for cross-condition eval
+    X_noisy_test_clean_space = rescale_cross_condition(
+        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+    )
+
+    results = {}
+
+    # Define sweeps: (param_name, values, default, label)
+    hp_sweeps = {
+        "learning_rate": {
+            "values": [5e-4, 1e-3, 2e-3, 5e-3],
+            "default": 1e-3,
+            "label": "Learning Rate",
+        },
+        "dropout": {
+            "values": [0.1, 0.2, 0.3, 0.4, 0.5],
+            "default": 0.4,
+            "label": "Dropout",
+        },
+        "weight_decay": {
+            "values": [1e-5, 1e-4, 1e-3, 1e-2],
+            "default": 1e-3,
+            "label": "Weight Decay",
+        },
+        "severity_range_max": {
+            "values": [1.0, 1.5, 2.0, 2.5, 3.0],
+            "default": 2.0,
+            "label": "Max Severity (training)",
+        },
+    }
+
+    for param_name, sweep_info in hp_sweeps.items():
+        accs_noisy = []
+        accs_clean = []
+
+        for val in sweep_info["values"]:
+            torch.manual_seed(seed)
+            np.random.seed(seed)
+            if device == "cuda":
+                torch.cuda.manual_seed_all(seed)
+
+            # Build training kwargs
+            train_kwargs = {
+                "epochs": epochs,
+                "early_stopping_patience": early_stopping_patience,
+                "device": device,
+                "noise_config": noise_cfg,
+                "severity_range": (0.5, 2.0),
+                "weight_decay": 1e-3,
+                "dropout": 0.4,
+                "label_smoothing": 0.05,
+            }
+
+            # Override the swept parameter
+            if param_name == "learning_rate":
+                train_kwargs["lr"] = val
+            elif param_name == "dropout":
+                train_kwargs["dropout"] = val
+            elif param_name == "weight_decay":
+                train_kwargs["weight_decay"] = val
+            elif param_name == "severity_range_max":
+                train_kwargs["severity_range"] = (0.5, val)
+
+            model, _ = train_cnn(
+                ds_clean.X_train,
+                ds_clean.y_train,
+                ds_clean.X_val,
+                ds_clean.y_val,
+                **train_kwargs,
+            )
+
+            y_pred_noisy = predict_cnn(model, X_noisy_test_clean_space, device)
+            y_pred_clean = predict_cnn(model, ds_clean.X_test, device)
+            accs_noisy.append(float(accuracy_score(ds_noisy.y_test, y_pred_noisy)))
+            accs_clean.append(float(accuracy_score(ds_clean.y_test, y_pred_clean)))
+
+        results[param_name] = {
+            "values": sweep_info["values"],
+            "accuracies_noisy": accs_noisy,
+            "accuracies_clean": accs_clean,
+            "label": sweep_info["label"],
+            "default": sweep_info["default"],
+        }
+        logger.info(
+            f"  {sweep_info['label']}: noisy range "
+            f"[{min(accs_noisy):.3f}, {max(accs_noisy):.3f}]"
+        )
+
+    # Generate figure
+    fig, axes = plt.subplots(2, 2, figsize=(12, 9))
+
+    for idx, (param_name, data) in enumerate(results.items()):
+        ax = axes[idx // 2, idx % 2]
+        values = data["values"]
+        x_pos = range(len(values))
+
+        ax.plot(
+            x_pos,
+            data["accuracies_noisy"],
+            "o-",
+            label="Noisy eval",
+            linewidth=2,
+            color="tab:blue",
+        )
+        ax.plot(
+            x_pos,
+            data["accuracies_clean"],
+            "s--",
+            label="Clean eval",
+            linewidth=2,
+            color="tab:green",
+        )
+
+        # Mark default
+        if data["default"] in values:
+            def_idx = values.index(data["default"])
+            ax.axvline(def_idx, color="red", linestyle=":", alpha=0.5)
+            ax.scatter(
+                [def_idx],
+                [data["accuracies_noisy"][def_idx]],
+                color="red",
+                s=80,
+                zorder=5,
+                marker="*",
+            )
+
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels([f"{v}" for v in values], fontsize=9)
+        ax.set_xlabel(data["label"])
+        ax.set_ylabel("Test Accuracy")
+        ax.set_title(f"Sensitivity: {data['label']}")
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3)
+        ax.set_ylim(0, 1.05)
+
+    fig.suptitle(
+        "CNN Hyperparameter Sensitivity (Augmented Training)", fontsize=13, y=1.01
+    )
+    fig.tight_layout()
+    fig_path = figures_dir / "hyperparameter_sensitivity.png"
+    fig_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(fig_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    logger.info(f"  Saved: {fig_path}")
+
+    out_path = output_dir / "hyperparameter_sensitivity.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    logger.info(f"  Results saved to {out_path}")
+    return results
+
+
 def main() -> None:
-    """Main entry point for hyperparameter optimisation."""
+    """Main entry point for unified hyperparameter optimisation."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
@@ -782,99 +1152,150 @@ def main() -> None:
     )
 
     args = parse_args()
+
+    # Determine output directory based on mode
+    if args.output_dir is None:
+        if args.mode == "arch-sweep":
+            args.output_dir = Path("results/architecture_sweep")
+        else:
+            args.output_dir = Path("results/hyperparameter_optimisation")
+
     cfg = load_config(args.config)
     seed = args.seed if args.seed is not None else cfg["seed"]
     data_path = args.data_path or Path(cfg["data"]["path"])
-    output_dir = args.output_dir
 
-    # Load both clean and noisy data
-    logger.info(f"Loading dataset from {data_path}")
-    X_clean, y = load_mat_dataset(data_path, use_noisy=False)
-    X_noisy, _ = load_mat_dataset(data_path, use_noisy=True)
-    logger.info(f"Dataset: {X_clean.shape[0]} samples, {X_clean.shape[1]} features")
+    # Trigger device banner early
+    get_device()
 
-    # Setup noise config for augmentation trials
-    noise_cfg_section = cfg.get("noise_augmentation", {})
-    noise_config = NoiseConfig(
-        enabled=True,
-        snr_db=noise_cfg_section.get("snr_db", 40.0),
-        noise_floor=noise_cfg_section.get("noise_floor", 1e-4),
-        contact_impedance_std_percent=noise_cfg_section.get(
-            "contact_impedance_std_percent", 10.0
-        ),
-        max_bias=noise_cfg_section.get("max_bias", 0.02),
-        adc_bits=noise_cfg_section.get("adc_bits", 16),
-        voltage_range=noise_cfg_section.get("voltage_range", 1.0),
-        n_electrodes=noise_cfg_section.get("n_electrodes", 16),
-    )
-    severity_range_cfg = noise_cfg_section.get("severity_range")
-    severity_range = tuple(severity_range_cfg) if severity_range_cfg else (0.5, 2.0)
+    logger.info(f"Mode: {args.mode}")
+    logger.info(f"Noise augmentation: {'enabled' if args.noise else 'disabled'}")
+    logger.info(f"Data: {data_path}")
+    logger.info(f"Output: {args.output_dir}")
 
-    if not args.final_only:
-        # Run grid search
-        results_df, best_config, best_result = run_grid_search(
-            X_clean=X_clean,
-            X_noisy=X_noisy,
+    if args.mode == "arch-sweep":
+        # --- Architecture Sweep Mode ---
+        logger.info("Running architecture sweep (focused depth search)...")
+        X, y = load_mat_dataset(data_path, use_noisy=args.noise)
+
+        epochs = args.epochs or 50
+        run_architecture_sweep(
+            X=X,
             y=y,
-            n_folds=args.n_folds,
-            epochs=args.epochs,
+            dev_fraction=args.dev_fraction,
+            epochs=epochs,
             early_stopping_patience=cfg["training"]["early_stopping_patience"],
             scheduler_patience=cfg["training"]["scheduler_patience"],
             scheduler_factor=cfg["training"]["scheduler_factor"],
-            noise_config=noise_config,
-            severity_range=severity_range,
             seed=seed,
-            output_dir=output_dir,
-            resume=args.resume,
+            output_dir=args.output_dir,
         )
 
-        logger.info(f"\n{'=' * 60}")
-        logger.info("GRID SEARCH COMPLETE")
-        logger.info(f"{'=' * 60}")
-        logger.info(f"Best config: {asdict(best_config)}")
-        logger.info(
-            f"Best robustness: {best_result.mean_robustness:.4f} "
-            f"(clean={best_result.mean_clean_f1:.4f}, noisy={best_result.mean_noisy_f1:.4f})"
-        )
-    else:
-        # Load best config from existing results
-        results_path = output_dir / "grid_search_results.csv"
-        if not results_path.exists():
-            raise FileNotFoundError(
-                f"No results found at {results_path}. Run grid search first."
+    else:  # grid-search
+        # --- Grid Search Mode ---
+        logger.info("Running full grid search (comprehensive hyperparameter tuning)...")
+
+        # Load data
+        X_clean, y = load_mat_dataset(data_path, use_noisy=False)
+        if args.noise:
+            X_noisy, _ = load_mat_dataset(data_path, use_noisy=True)
+        else:
+            X_noisy = None  # Will skip noise augmentation in grid search
+
+        logger.info(f"Dataset: {X_clean.shape[0]} samples, {X_clean.shape[1]} features")
+
+        # Setup noise config only if noise is enabled
+        if args.noise:
+            noise_cfg_section = cfg.get("noise_augmentation", {})
+            noise_config = NoiseConfig(
+                enabled=True,
+                snr_db=noise_cfg_section.get("snr_db", 40.0),
+                noise_floor=noise_cfg_section.get("noise_floor", 1e-4),
+                contact_impedance_std_percent=noise_cfg_section.get(
+                    "contact_impedance_std_percent", 10.0
+                ),
+                max_bias=noise_cfg_section.get("max_bias", 0.02),
+                adc_bits=noise_cfg_section.get("adc_bits", 16),
+                voltage_range=noise_cfg_section.get("voltage_range", 1.0),
+                n_electrodes=noise_cfg_section.get("n_electrodes", 16),
             )
-        results_df = pd.read_csv(results_path)
-        best_row = results_df.iloc[0]
-        best_config = HParamConfig(
-            channels=json.loads(best_row["channels"].replace("'", '"')),
-            fc_dim=int(best_row["fc_dim"]),
-            dropout=float(best_row["dropout"]),
-            learning_rate=float(best_row["learning_rate"]),
-            batch_size=int(best_row["batch_size"]),
-            weight_decay=float(best_row["weight_decay"]),
-            noise_augmentation=bool(best_row["noise_augmentation"]),
-        )
-        logger.info(f"Loaded best config from {results_path}")
+            severity_range_cfg = noise_cfg_section.get("severity_range")
+            severity_range = (
+                tuple(severity_range_cfg) if severity_range_cfg else (0.5, 2.0)
+            )
+        else:
+            noise_config = None
+            severity_range = None
 
-    # Train final model with best hyperparameters
-    logger.info("\nTraining final optimised model...")
-    model_path = train_final_model(
-        best_config=best_config,
-        X_clean=X_clean,
-        X_noisy=X_noisy,
-        y=y,
-        epochs=150,
-        early_stopping_patience=30,
-        scheduler_patience=cfg["training"]["scheduler_patience"],
-        scheduler_factor=cfg["training"]["scheduler_factor"],
-        noise_config=noise_config,
-        severity_range=severity_range,
-        seed=seed,
-        output_dir=output_dir,
-    )
+        if not args.final_only:
+            # Run grid search
+            epochs = args.epochs or cfg["training"]["epochs"]
+            results_df, best_config, best_result = run_grid_search(
+                X_clean=X_clean,
+                X_noisy=X_noisy,
+                y=y,
+                n_folds=args.n_folds,
+                epochs=epochs,
+                early_stopping_patience=cfg["training"]["early_stopping_patience"],
+                scheduler_patience=cfg["training"]["scheduler_patience"],
+                scheduler_factor=cfg["training"]["scheduler_factor"],
+                noise_config=noise_config,
+                severity_range=severity_range,
+                seed=seed,
+                output_dir=args.output_dir,
+                resume=args.resume,
+            )
 
-    logger.info(f"\nOptimised model saved to: {model_path}")
-    logger.info("Run `python evaluate.py` with this model for full evaluation.")
+            logger.info(f"\n{'=' * 60}")
+            logger.info("GRID SEARCH COMPLETE")
+            logger.info(f"{'=' * 60}")
+            logger.info(f"Best config: {asdict(best_config)}")
+            if args.noise:
+                logger.info(
+                    f"Best robustness: {best_result.mean_robustness:.4f} "
+                    f"(clean={best_result.mean_clean_f1:.4f}, noisy={best_result.mean_noisy_f1:.4f})"
+                )
+            else:
+                logger.info(f"Best clean F1: {best_result.mean_clean_f1:.4f}")
+        else:
+            # Load best config from existing results
+            results_path = args.output_dir / "grid_search_results.csv"
+            if not results_path.exists():
+                raise FileNotFoundError(
+                    f"No results found at {results_path}. Run grid search first."
+                )
+            results_df = pd.read_csv(results_path)
+            best_row = results_df.iloc[0]
+            best_config = HParamConfig(
+                channels=json.loads(best_row["channels"].replace("'", '"')),
+                fc_dim=int(best_row["fc_dim"]),
+                dropout=float(best_row["dropout"]),
+                learning_rate=float(best_row["learning_rate"]),
+                batch_size=int(best_row["batch_size"]),
+                weight_decay=float(best_row["weight_decay"]),
+                noise_augmentation=bool(best_row["noise_augmentation"]),
+            )
+            logger.info(f"Loaded best config from {results_path}")
+
+        # Train final model only if noise is enabled
+        if args.noise:
+            logger.info("\nTraining final optimised model...")
+            model_path = train_final_model(
+                best_config=best_config,
+                X_clean=X_clean,
+                X_noisy=X_noisy,
+                y=y,
+                epochs=cfg["training"]["epochs"],
+                early_stopping_patience=cfg["training"]["early_stopping_patience"],
+                scheduler_patience=cfg["training"]["scheduler_patience"],
+                scheduler_factor=cfg["training"]["scheduler_factor"],
+                noise_config=noise_config,
+                severity_range=severity_range,
+                seed=seed,
+                output_dir=args.output_dir,
+            )
+
+            logger.info(f"\nOptimised model saved to: {model_path}")
+            logger.info("Run `python evaluate.py` with this model for full evaluation.")
 
 
 if __name__ == "__main__":
