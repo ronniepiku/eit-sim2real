@@ -49,11 +49,10 @@ All contact classes satisfy σ < σ₀, consistent with the positive piezoresist
 │   │   └── baselines.py            # SVM, RF, MLP wrappers
 │   ├── experiments/
 │   │   ├── grid.py                 # Model × Dataset × Condition grid
-│   │   ├── extended.py             # Extended experiments (t-SNE, calibration, etc.)
-│   │   ├── additional.py           # Memorisation experiments (fixed-bias, different-draw)
 │   │   ├── ablation.py             # Noise component ablation study
-│   │   ├── hyperopt.py             # Hyperparameter grid search
-│   │   └── architecture_sweep.py   # CNN depth/width sweep
+│   │   ├── hyperopt.py             # Hyperparameter grid search & architecture sweep
+│   │   ├── additional.py           # Memorisation experiments (fixed-bias, different-draw)
+│   │   └── mesh_refinement.py      # Cross-mesh evaluation study
 │   ├── constants.py                # Shared constants (classes, noise components)
 │   ├── utils.py                    # Device, seeds, prediction helpers
 │   ├── train.py                    # CNN training logic
@@ -141,25 +140,25 @@ eit train baselines
 # Evaluate a trained model
 eit evaluate --model-path results/models/cnn1d_noisy_best.pt
 
-# Run the full experiment grid (all models × datasets × conditions)
-# Includes ablation, extended diagnostics, and additional (memorisation) experiments
+# Run the full experiment suite (grid, ablation, hyperopt, architecture-sweep, extended, additional)
 eit experiments run-all
 
-# Skip individual phases when needed
-eit experiments run-all --skip-ablation --skip-extended --skip-additional
+# Run all experiments except grid
+eit experiments run-all --skip-grid
 
-# Override seed and dataset selection (defaults: seeds=42-46, datasets=raw,pca,lda,umap)
-eit experiments run-all --seeds 42 --seeds 43 --datasets raw
+# Run only grid and ablation
+eit experiments run-all --skip-hyperopt --skip-architecture-sweep --skip-extended --skip-additional
 
-# Run noise component ablation
-eit experiments ablation
+# Include mesh refinement study (requires fine-mesh dataset)
+eit experiments run-all --include-mesh-refinement
 
-# Run memorisation / robustness experiments (fixed-bias and different-draw)
-# Now uses the same 5-seed protocol (seeds 42-46) as the main grid for parity
-eit experiments additional
-
-# Hyperparameter optimisation
-eit experiments hyperopt
+# Run individual experiment types
+eit experiments ablation                     # Noise component ablation
+eit experiments additional                   # Memorisation experiments
+eit experiments hyperopt --mode=grid-search  # Full hyperparameter grid search
+eit experiments hyperopt --mode=arch-sweep   # Quick architecture depth sweep
+eit experiments extended                     # All extended analyses (calibration, robustness, etc.)
+eit experiments mesh-refinement              # Cross-mesh evaluation
 
 # Validate dataset integrity
 eit validate-dataset
@@ -231,8 +230,6 @@ See [`docs/NOISE_MODEL.md`](docs/NOISE_MODEL.md) for detailed derivations.
 ## Reproducibility
 
 - All random seeds fixed (`seed: 42` in `config.yaml`, MATLAB `rng(42)`)
-- The full experiment grid (`eit experiments run-all`) repeats every condition over **5 seeds** (42, 43, 44, 45, 46) for the main, ablation, and additional (fixed-bias / different-draw) experiments — all reported metrics include mean ± std across seeds for matched statistical significance
-- Extended diagnostics (t-SNE, calibration, severity sweep, sensitivity analyses) deliberately use a single representative seed (`seeds[0]`) because seed-averaging would obscure their visual / per-run signal; statistical tests within `extended.py` still use the full seed set
 - Dataset generation is deterministic given same EIDORS version
 - Noise parameters stored in version-controlled YAML (`matlab/configs/noise_params.yaml`)
 - Python noise model mirrors MATLAB implementation for consistency

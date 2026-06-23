@@ -40,9 +40,12 @@ import matplotlib
 
 matplotlib.use("Agg")
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import torch
+from scipy import stats
 from sklearn.metrics import (
     accuracy_score,
     f1_score,
@@ -50,19 +53,10 @@ from sklearn.metrics import (
     recall_score,
 )
 
-from eit_sim2real.constants import (
-    DEFAULT_SEVERITY_RANGE,
-    MIXED_CNN_PARAMS,
-    NOISY_CNN_PARAMS,
-)
 from eit_sim2real.data import load_mat_dataset, prepare_splits
-from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
-from eit_sim2real.experiments.ablation import generate_ablation_report, run_ablation
-from eit_sim2real.experiments.additional import run_additional_experiments
-from eit_sim2real.experiments.extended import run_all_extended_experiments
 from eit_sim2real.models import get_baseline, train_baseline
 from eit_sim2real.train import train_cnn, train_cnn_mixed
-from eit_sim2real.utils import predict_cnn, rescale_cross_condition
+from eit_sim2real.utils import get_device, predict_cnn, rescale_cross_condition
 
 logger = logging.getLogger(__name__)
 
@@ -93,10 +87,21 @@ CNN_EXTENDED_CONDITIONS = [
     ("mixed_train_clean_eval", "mixed", "clean"),
 ]
 
-# Training hyperparameters for noisy/augmented/mixed conditions are imported
-# from ``eit_sim2real.constants`` (NOISY_CNN_PARAMS, MIXED_CNN_PARAMS,
-# DEFAULT_SEVERITY_RANGE) to avoid the previous duplication between this
-# module, ``cli/train.py`` and ``configs/config.yaml``.
+# Training hyperparameters for noisy/augmented/mixed conditions
+NOISY_CNN_PARAMS = {
+    "weight_decay": 1e-3,
+    "dropout": 0.4,
+    "label_smoothing": 0.05,
+}
+
+MIXED_CNN_PARAMS = {
+    "weight_decay": 1e-3,
+    "dropout": 0.4,
+    "label_smoothing": 0.05,
+    "clean_ratio": 0.3,
+}
+
+DEFAULT_SEVERITY_RANGE = (0.5, 2.0)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────
@@ -343,7 +348,6 @@ def run_experiments(
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
                             severity_range=DEFAULT_SEVERITY_RANGE,
-                            seed=seed,
                             weight_decay=NOISY_CNN_PARAMS["weight_decay"],
                             dropout=NOISY_CNN_PARAMS["dropout"],
                             label_smoothing=NOISY_CNN_PARAMS["label_smoothing"],
@@ -360,7 +364,6 @@ def run_experiments(
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
                             severity_range=DEFAULT_SEVERITY_RANGE,
-                            seed=seed,
                             **MIXED_CNN_PARAMS,
                         )
                     else:
@@ -548,7 +551,6 @@ def _generate_all_figures(
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
                             severity_range=DEFAULT_SEVERITY_RANGE,
-                            seed=seed,
                             **MIXED_CNN_PARAMS,
                         )
                     elif train_key == "augmented":
@@ -561,7 +563,6 @@ def _generate_all_figures(
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
                             severity_range=DEFAULT_SEVERITY_RANGE,
-                            seed=seed,
                             weight_decay=NOISY_CNN_PARAMS["weight_decay"],
                             dropout=NOISY_CNN_PARAMS["dropout"],
                             label_smoothing=NOISY_CNN_PARAMS["label_smoothing"],
@@ -873,7 +874,7 @@ def generate_report(df: pd.DataFrame, output_dir: Path, runtime_s: float) -> Non
 # ── CLI ───────────────────────────────────────────────────────────────
 
 
-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run all EIT classification experiments with uncertainty."
     )
@@ -927,24 +928,373 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--skip-extended",
         action="store_true",
-        help="Skip extended experiments (stats, ensemble, t-SNE, etc.).",
+        help="Skip extended experiments (stats, dataset size, severity, etc.).",
     )
-    parser.add_argument(
-        "--skip-additional",
-        action="store_true",
-        help="Skip additional memorisation experiments (fixed-bias, different-draw).",
-    )
-    return parser.parse_args(argv)
+    return parser.parse_args()
 
 
-def main(argv: list[str] | None = None) -> None:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+def run_statistical_tests(
+    data_path: Path,
+    seeds: list[int],
+    epochs: int = 200,
+    early_stopping_patience: int = 40,
+    output_dir: Path = Path("results/reports"),
+    figures_dir: Path = Path("results/figures"),
+) -> dict:
+    """Run statistical tests comparing training conditions.
+
+    Uses multiple seeds to get score distributions, then performs paired
+    t-tests with Bonferroni correction between key condition pairs.
+    """
+    logger.info("── Statistical Testing ──")
+    device = get_device()
+
+    X_clean, y = load_mat_dataset(data_path, use_noisy=False)
+    X_noisy, _ = load_mat_dataset(data_path, use_noisy=True)
+    noise_cfg = NoiseConfig()
+
+    conditions = {
+        "clean_train_clean_eval": ("clean", "clean"),
+        "clean_train_noisy_eval": ("clean", "noisy"),
+        "noisy_train_noisy_eval": ("noisy", "noisy"),
+        "noisy_train_clean_eval": ("noisy", "clean"),
+        "augmented_train_noisy_eval": ("augmented", "noisy"),
+    }
+
+    # Collect per-seed accuracies for each condition
+    condition_scores: dict[str, list[float]] = {c: [] for c in conditions}
+    condition_f1s: dict[str, list[float]] = {c: [] for c in conditions}
+
+    for seed in seeds:
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        if device == "cuda":
+            torch.cuda.manual_seed_all(seed)
+
+        ds_clean = prepare_splits(X_clean, y, random_state=seed)
+        ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
+
+        for cond_name, (train_key, eval_key) in conditions.items():
+            if train_key == "clean":
+                model, _ = train_cnn(
+                    ds_clean.X_train,
+                    ds_clean.y_train,
+                    ds_clean.X_val,
+                    ds_clean.y_val,
+                    epochs=epochs,
+                    early_stopping_patience=early_stopping_patience,
+                    device=device,
+                )
+            elif train_key == "noisy":
+                model, _ = train_cnn(
+                    ds_noisy.X_train,
+                    ds_noisy.y_train,
+                    ds_noisy.X_val,
+                    ds_noisy.y_val,
+                    epochs=epochs,
+                    early_stopping_patience=early_stopping_patience,
+                    device=device,
+                    weight_decay=1e-3,
+                    dropout=0.4,
+                    label_smoothing=0.05,
+                )
+            elif train_key == "augmented":
+                model, _ = train_cnn(
+                    ds_clean.X_train,
+                    ds_clean.y_train,
+                    ds_clean.X_val,
+                    ds_clean.y_val,
+                    epochs=epochs,
+                    early_stopping_patience=early_stopping_patience,
+                    device=device,
+                    noise_config=noise_cfg,
+                    severity_range=(0.5, 2.0),
+                    weight_decay=1e-3,
+                    dropout=0.4,
+                    label_smoothing=0.05,
+                )
+
+            if eval_key == "clean":
+                if train_key == "noisy":
+                    # Model trained in noisy-scaler space, eval on clean data
+                    X_te = rescale_cross_condition(
+                        ds_clean.X_test, ds_clean.scaler, ds_noisy.scaler
+                    )
+                else:
+                    X_te = ds_clean.X_test
+                y_te = ds_clean.y_test
+            else:
+                # eval_key == "noisy": rescale into training feature space
+                if train_key in ("clean", "augmented"):
+                    # Model trained in clean-scaler space
+                    X_te = rescale_cross_condition(
+                        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+                    )
+                elif train_key == "noisy":
+                    # Model trained in noisy-scaler space (same space)
+                    X_te = ds_noisy.X_test
+                else:
+                    X_te = ds_noisy.X_test
+                y_te = ds_noisy.y_test
+
+            y_pred = predict_cnn(model, X_te, device)
+            condition_scores[cond_name].append(float(accuracy_score(y_te, y_pred)))
+            condition_f1s[cond_name].append(
+                float(f1_score(y_te, y_pred, average="macro"))
+            )
+
+        logger.info(f"  Seed {seed} complete")
+
+    # Paired t-tests with Bonferroni correction
+    comparisons = [
+        ("clean_train_noisy_eval", "noisy_train_noisy_eval"),
+        ("clean_train_noisy_eval", "augmented_train_noisy_eval"),
+        ("noisy_train_noisy_eval", "augmented_train_noisy_eval"),
+        ("clean_train_clean_eval", "clean_train_noisy_eval"),
+        ("noisy_train_noisy_eval", "noisy_train_clean_eval"),
+    ]
+    n_tests = len(comparisons)
+    alpha = 0.05
+
+    test_results = []
+    for cond_a, cond_b in comparisons:
+        scores_a = np.array(condition_scores[cond_a])
+        scores_b = np.array(condition_scores[cond_b])
+        t_stat, p_val = stats.ttest_rel(scores_a, scores_b)
+        diff = scores_a - scores_b
+        cohens_d = float(np.mean(diff) / (np.std(diff, ddof=1) + 1e-10))
+        p_corrected = min(float(p_val) * n_tests, 1.0)
+
+        test_results.append(
+            {
+                "comparison": f"{cond_a} vs {cond_b}",
+                "t_statistic": float(t_stat),
+                "p_value": float(p_val),
+                "p_corrected": p_corrected,
+                "cohens_d": cohens_d,
+                "significant": p_corrected < alpha,
+                "mean_diff": float(np.mean(diff)),
+            }
+        )
+        logger.info(
+            f"  {cond_a} vs {cond_b}: t={t_stat:.3f}, "
+            f"p_corr={p_corrected:.4f}, d={cohens_d:.3f}"
+        )
+
+    # Generate figure
+    fig, ax = plt.subplots(figsize=(10, 5))
+    cond_names = list(conditions.keys())
+    means = [np.mean(condition_scores[c]) for c in cond_names]
+    stds = [np.std(condition_scores[c]) for c in cond_names]
+    x_labels = [c.replace("_", "\n") for c in cond_names]
+
+    bars = ax.bar(
+        x_labels,
+        means,
+        yerr=stds,
+        capsize=5,
+        color=sns.color_palette("colorblind", len(cond_names)),
+        edgecolor="black",
+        linewidth=0.5,
+    )
+    for bar, m in zip(bars, means):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.01,
+            f"{m:.3f}",
+            ha="center",
+            fontsize=9,
+        )
+    ax.set_ylabel("Test Accuracy")
+    ax.set_title(f"CNN Accuracy by Training Condition ({len(seeds)} seeds, mean ± std)")
+    ax.set_ylim(0, 1.05)
+    fig.tight_layout()
+    fig_path = figures_dir / "statistical_tests_conditions.png"
+    fig.savefig(fig_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    logger.info(f"  Saved: {fig_path}")
+
+    results = {
+        "n_seeds": len(seeds),
+        "condition_accuracies": {k: v for k, v in condition_scores.items()},
+        "condition_f1s": {k: v for k, v in condition_f1s.items()},
+        "tests": test_results,
+    }
+
+    out_path = output_dir / "statistical_tests.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    logger.info(f"  Statistical tests saved to {out_path}")
+    return results
+
+
+def run_dataset_size_experiment(
+    data_path: Path,
+    seed: int = 42,
+    epochs: int = 200,
+    early_stopping_patience: int = 40,
+    output_dir: Path = Path("results/reports"),
+    figures_dir: Path = Path("results/figures"),
+) -> dict:
+    """Train CNN at varying dataset fractions to produce learning curves.
+
+    Tests fractions: [0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0]
+    For each fraction, trains with and without noise augmentation.
+    """
+    logger.info("── Dataset Size Experiment ──")
+    device = get_device()
+    fractions = [0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0]
+    noise_cfg = NoiseConfig()
+
+    X_clean, y = load_mat_dataset(data_path, use_noisy=False)
+    X_noisy, _ = load_mat_dataset(data_path, use_noisy=True)
+
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if device == "cuda":
+        torch.cuda.manual_seed_all(seed)
+
+    ds_clean = prepare_splits(X_clean, y, random_state=seed)
+    ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
+
+    # Noisy test data rescaled into clean-scaler space for cross-condition eval
+    X_noisy_test_in_clean_space = rescale_cross_condition(
+        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
     )
 
-    args = parse_args(argv)
+    results = {"fractions": fractions, "clean": [], "augmented": []}
+
+    for frac in fractions:
+        n_train = int(len(ds_clean.X_train) * frac)
+        if n_train < 10:
+            n_train = 10
+
+        # Stratified subset selection
+        rng = np.random.default_rng(seed)
+        indices = []
+        unique_classes = np.unique(ds_clean.y_train)
+        for cls in unique_classes:
+            cls_idx = np.where(ds_clean.y_train == cls)[0]
+            n_cls = max(2, int(len(cls_idx) * frac))
+            chosen = rng.choice(cls_idx, size=min(n_cls, len(cls_idx)), replace=False)
+            indices.extend(chosen)
+        indices = np.array(indices)
+
+        X_sub = ds_clean.X_train[indices]
+        y_sub = ds_clean.y_train[indices]
+
+        logger.info(f"  Fraction {frac:.0%}: {len(indices)} samples")
+
+        # Clean training → noisy eval
+        torch.manual_seed(seed)
+        model_clean, _ = train_cnn(
+            X_sub,
+            y_sub,
+            ds_clean.X_val,
+            ds_clean.y_val,
+            epochs=epochs,
+            early_stopping_patience=early_stopping_patience,
+            device=device,
+        )
+        y_pred_clean = predict_cnn(model_clean, X_noisy_test_in_clean_space, device)
+        acc_clean = float(accuracy_score(ds_noisy.y_test, y_pred_clean))
+        f1_clean = float(f1_score(ds_noisy.y_test, y_pred_clean, average="macro"))
+
+        # Augmented training → noisy eval
+        torch.manual_seed(seed)
+        model_aug, _ = train_cnn(
+            X_sub,
+            y_sub,
+            ds_clean.X_val,
+            ds_clean.y_val,
+            epochs=epochs,
+            early_stopping_patience=early_stopping_patience,
+            device=device,
+            noise_config=noise_cfg,
+            severity_range=(0.5, 2.0),
+            weight_decay=1e-3,
+            dropout=0.4,
+            label_smoothing=0.05,
+        )
+        y_pred_aug = predict_cnn(model_aug, X_noisy_test_in_clean_space, device)
+        acc_aug = float(accuracy_score(ds_noisy.y_test, y_pred_aug))
+        f1_aug = float(f1_score(ds_noisy.y_test, y_pred_aug, average="macro"))
+
+        results["clean"].append(
+            {"accuracy": acc_clean, "f1": f1_clean, "n_samples": len(indices)}
+        )
+        results["augmented"].append(
+            {"accuracy": acc_aug, "f1": f1_aug, "n_samples": len(indices)}
+        )
+
+        logger.info(
+            f"    Clean→Noisy: {acc_clean:.4f} | Augmented→Noisy: {acc_aug:.4f}"
+        )
+
+    # Generate figure
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    n_samples = [r["n_samples"] for r in results["clean"]]
+
+    ax1.plot(
+        n_samples,
+        [r["accuracy"] for r in results["clean"]],
+        "o-",
+        label="Clean training",
+        linewidth=2,
+    )
+    ax1.plot(
+        n_samples,
+        [r["accuracy"] for r in results["augmented"]],
+        "s-",
+        label="Noise-augmented training",
+        linewidth=2,
+    )
+    ax1.set_xlabel("Training Samples")
+    ax1.set_ylabel("Test Accuracy (noisy eval)")
+    ax1.set_title("Learning Curve: Accuracy")
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    ax1.set_xscale("log")
+
+    ax2.plot(
+        n_samples,
+        [r["f1"] for r in results["clean"]],
+        "o-",
+        label="Clean training",
+        linewidth=2,
+    )
+    ax2.plot(
+        n_samples,
+        [r["f1"] for r in results["augmented"]],
+        "s-",
+        label="Noise-augmented training",
+        linewidth=2,
+    )
+    ax2.set_xlabel("Training Samples")
+    ax2.set_ylabel("Test F1 (macro, noisy eval)")
+    ax2.set_title("Learning Curve: F1 Score")
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    ax2.set_xscale("log")
+
+    fig.suptitle("Effect of Dataset Size on Noise Robustness", fontsize=13, y=1.01)
+    fig.tight_layout()
+    fig_path = figures_dir / "dataset_size_learning_curve.png"
+    fig.savefig(fig_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    logger.info(f"  Saved: {fig_path}")
+
+    out_path = output_dir / "dataset_size_results.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    logger.info(f"  Results saved to {out_path}")
+    return results
+
+
+def main() -> None:
+    args = parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     args.figures_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1049,34 +1399,101 @@ def main(argv: list[str] | None = None) -> None:
     # ── Extended experiments ──
     if not args.skip_extended:
         logger.info("\n" + "=" * 70)
-        logger.info(
-            "EXTENDED EXPERIMENTS — stats, dataset size, ensemble, t-SNE, severity, Gaussian"
-        )
+        logger.info("EXTENDED EXPERIMENTS — stats, dataset size, severity, Gaussian")
         logger.info("=" * 70)
-        run_all_extended_experiments(
-            data_path=DATASETS["raw"],
-            seeds=seeds,
-            epochs=args.epochs,
-            early_stopping_patience=args.early_stopping_patience,
-            output_dir=args.output_dir,
-            figures_dir=args.figures_dir,
-        )
+        # Run all extended experiments
+        all_results = {}
 
-    # ── Additional memorisation experiments ──
-    if not args.skip_additional:
-        logger.info("\n" + "=" * 70)
-        logger.info(
-            "ADDITIONAL EXPERIMENTS — fixed-bias augmentation & different-draw test"
+        # 1. Statistical testing
+        stat_results = run_statistical_tests(
+            DATASETS["raw"],
+            seeds,
+            args.epochs,
+            args.early_stopping_patience,
+            args.output_dir,
+            args.figures_dir,
         )
-        logger.info("=" * 70)
-        run_additional_experiments(
-            data_path=DATASETS["raw"],
-            seeds=seeds,
-            epochs=args.epochs,
-            early_stopping_patience=args.early_stopping_patience,
-            output_dir=args.output_dir / "additional",
-            models_dir=Path("results/models"),
+        all_results["statistical_tests"] = stat_results
+
+        # 2. Dataset size effects
+        size_results = run_dataset_size_experiment(
+            DATASETS["raw"],
+            seeds[0],
+            args.epochs,
+            args.early_stopping_patience,
+            args.output_dir,
+            args.figures_dir,
         )
+        all_results["dataset_size"] = size_results
+
+        # 3. Noise-type severity sweep
+        severity_results = run_noise_type_severity_sweep(
+            DATASETS["raw"],
+            seeds[0],
+            args.epochs,
+            args.early_stopping_patience,
+            args.output_dir,
+            args.figures_dir,
+        )
+        all_results["noise_type_severity"] = severity_results
+
+        # 4. Gaussian-only evaluation
+        gaussian_results = run_gaussian_only_evaluation(
+            DATASETS["raw"],
+            seeds[0],
+            args.epochs,
+            args.early_stopping_patience,
+            args.output_dir,
+            args.figures_dir,
+        )
+        all_results["gaussian_only"] = gaussian_results
+
+        # 5. Confidence calibration
+        calibration_results = run_calibration_analysis(
+            DATASETS["raw"],
+            seeds[0],
+            args.epochs,
+            args.early_stopping_patience,
+            args.output_dir,
+            args.figures_dir,
+        )
+        all_results["calibration"] = calibration_results
+
+        # 6. Per-class robustness
+        per_class_results = run_per_class_robustness(
+            DATASETS["raw"],
+            seeds[0],
+            args.epochs,
+            args.early_stopping_patience,
+            args.output_dir,
+            args.figures_dir,
+        )
+        all_results["per_class_robustness"] = per_class_results
+
+        # 7. Noise parameter sensitivity
+        noise_param_results = run_noise_parameter_sensitivity(
+            DATASETS["raw"],
+            seeds[0],
+            args.epochs,
+            args.early_stopping_patience,
+            args.output_dir,
+            args.figures_dir,
+        )
+        all_results["noise_parameter_sensitivity"] = noise_param_results
+
+        # 8. Hyperparameter sensitivity
+        hp_results = run_hyperparameter_sensitivity(
+            DATASETS["raw"],
+            seeds[0],
+            args.epochs,
+            args.early_stopping_patience,
+            args.output_dir,
+            args.figures_dir,
+        )
+        all_results["hyperparameter_sensitivity"] = hp_results
+
+        # TODO: Implement extended report generation (was in deleted extended.py)
+        # generate_extended_report(...)
 
     # Generate report
     total_time = time.time() - start_time
@@ -1143,7 +1560,6 @@ def _run_severity_sweeps(
             early_stopping_patience=early_stopping_patience,
             noise_config=noise_cfg,
             severity_range=DEFAULT_SEVERITY_RANGE,
-            seed=seed,
             **NOISY_CNN_PARAMS,
         ),
         "mixed": lambda: train_cnn_mixed(
@@ -1156,7 +1572,6 @@ def _run_severity_sweeps(
             early_stopping_patience=early_stopping_patience,
             noise_config=noise_cfg,
             severity_range=DEFAULT_SEVERITY_RANGE,
-            seed=seed,
             **MIXED_CNN_PARAMS,
         ),
     }
@@ -1206,6 +1621,4 @@ def _run_severity_sweeps(
 
     return results
 
-
-if __name__ == "__main__":
     main()

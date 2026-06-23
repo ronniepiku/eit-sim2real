@@ -5,9 +5,11 @@
 \section{Background and Motivation}
 \label{sec:intro-background}
 
-The sense of touch underpins safe manipulation, environmental hazard detection, and social communication. Biological skin integrates four principal mechanoreceptor types---Merkel cells, Meissner corpuscles, Ruffini endings, and Pacinian corpuscles---providing distributed multimodal sensing across pressure, texture, and temperature \parencite{chortos2016, hammock2013, lee2020}. For the estimated 57.7 million people worldwide living with upper-limb loss \parencite{mcdonald2021}, the absence of tactile sensation in prosthetic devices is a primary driver of device abandonment, with rejection rates exceeding 35\% for myoelectric prostheses \parencite{biddiss2007, fang2022}. Restoring functional touch is therefore both a clinical priority and an enabling technology for next-generation prosthetics, and electronic skin (e-skin) systems aim to replicate this distributed sensing in flexible, large-area substrates \parencite{hammock2013, chortos2016, lee2020}.
+The sense of touch underpins safe manipulation, environmental hazard detection, and social communication. Biological skin integrates four principal mechanoreceptor types---Merkel cells, Meissner corpuscles, Ruffini endings, and Pacinian corpuscles---providing distributed multimodal sensing across pressure, texture, and temperature \parencite{chortos2016, hammock2013, lee2020}. For the estimated 57.7 million people worldwide living with upper-limb loss \parencite{mcdonald2021}, the absence of tactile sensation in prosthetic devices is a primary driver of device abandonment, with rejection rates exceeding 35\% for myoelectric prostheses \parencite{biddiss2007, fang2022}. Restoring functional touch is therefore both a clinical priority and an enabling technology for next-generation prosthetics.
 
-Among candidate modalities, \gls{eit} has emerged as particularly attractive for prosthetic applications because a small number of boundary electrodes can interrogate the entire substrate, eliminating the dense internal wiring required by discrete sensor arrays \parencite{silvera-tawil2015, chen2023}. \gls{eit} reconstructs internal conductivity distributions from boundary voltage measurements \parencite{cheney1999, adler2006}; in ionic hydrogel substrates, applied force produces a characteristic perturbation in the measured voltage vector \parencite{lee2019, yao2022}. Recent machine learning work has demonstrated that direct classification of these voltage vectors can achieve high accuracy on simulated tactile tasks \parencite{yao2022, chen2023}, suggesting \gls{eit} skins could provide clinically meaningful tactile feedback. However, these accuracies are achieved under idealised conditions with single-component or no noise augmentation, leaving a substantial gap between controlled demonstrations and the conditions encountered in real prosthetic deployment \parencite{jiang2023}.
+Electronic skin (e-skin) systems aim to replicate this distributed sensing in flexible, large-area substrates \parencite{hammock2013, chortos2016, lee2020}. Among candidate modalities, \gls{eit} has emerged as particularly attractive for prosthetic applications because a small number of boundary electrodes can interrogate the entire substrate, eliminating the dense internal wiring required by discrete sensor arrays \parencite{silvera-tawil2015, chen2023}. \gls{eit} reconstructs internal conductivity distributions from boundary voltage measurements \parencite{cheney1999, adler2006}; in ionic hydrogel substrates, applied force produces a characteristic perturbation in the measured voltage vector \parencite{lee2019, yao2022}.
+
+Recent machine learning work has demonstrated that direct classification of these voltage vectors can achieve high accuracy on simulated tactile tasks \parencite{yao2022, chen2023}, suggesting \gls{eit} skins could provide clinically meaningful tactile feedback. However, these accuracies are achieved under idealised conditions with single-component or no noise augmentation, leaving a substantial gap between controlled demonstrations and the conditions encountered in real prosthetic deployment \parencite{jiang2023}.
 
 \section{The Simulation-to-Reality Challenge}
 \label{sec:intro-sim2real}
@@ -17,7 +19,7 @@ This deployment gap is the well-known \emph{simulation-to-reality} problem: mode
 \section{Research Gap}
 \label{sec:intro-gap}
 
-Chapter~\ref{ch:literature_review} identifies a set of interconnected gaps that collectively limit progress toward deployable \gls{eit} tactile systems---spanning simplistic noise models, the absence of systematic robustness evaluation, missing component-wise ablation, no calibration analysis, and the lack of a standardised benchmark (Table~\ref{tab:gaps-summary})---which no prior work addresses within a unified framework.
+Chapter~\ref{ch:literature_review} identifies five interconnected gaps that collectively limit progress toward deployable \gls{eit} tactile systems---spanning simplistic noise models, the absence of systematic robustness evaluation, missing component-wise ablation, no calibration or domain-gap quantification, and the lack of a standardised benchmark (Table~\ref{tab:gaps-summary})---which no prior work addresses within a unified framework.
 
 \section{Research Aims and Objectives}
 \label{sec:intro-aims}
@@ -29,41 +31,24 @@ This dissertation investigates whether incorporating a physically-motivated, mul
     
     \item \textbf{Generate a physics-informed synthetic \gls{eit} dataset} using the EIDORS forward modelling framework \parencite{adler2006}, simulating a 16-electrode ionic hydrogel prosthetic skin sensing five touch classes (no contact, light touch, firm press, point contact, and distributed contact). Conductivity parameters derive from a pressure-based piezoresistive model consistent with the positive piezoresistive response of ionic hydrogels \parencite{lee2019}, with contact geometry informed by Hertzian mechanics \parencite{kim2019}. \emph{Success criterion}: demonstrable class separation in feature space and balanced class distribution.
     
-    \item \textbf{Train and compare multiple classifiers}---a 1D-\gls{cnn}, \gls{svm} \parencite{cortes1995}, \gls{rf} \parencite{breiman2001}, and \gls{mlp}---on both clean and noise-augmented data, providing a systematic comparison of classical and deep approaches under identical noise conditions for \gls{eit} classification. \emph{Success criterion}: statistically significant performance differences established via paired testing \parencite{demsar2006statistical}.
+    \item \textbf{Train and compare multiple classifiers}---a 1D-\gls{cnn}, \gls{svm} \parencite{cortes1995}, \gls{rf} \parencite{breiman2001}, and \gls{mlp}---on both clean and noise-augmented data, providing the first systematic comparison of classical and deep approaches under identical noise conditions for \gls{eit} classification. \emph{Success criterion}: statistically significant performance differences established via paired testing \parencite{demsar2006statistical}.
     
-    \item \textbf{Evaluate robustness} by testing trained models under varying noise severity levels, following the multi-corruption, multi-severity paradigm of \textcite{hendrycks2019}. Extended analyses including confidence calibration \parencite{guo2017calibration} and per-class robustness profiling provide comprehensive robustness characterisation. \emph{Success criterion}: quantified robustness margins and graceful degradation rates demonstrating noise augmentation benefit.
+    \item \textbf{Evaluate robustness} by testing trained models under varying noise severity levels, following the multi-corruption, multi-severity paradigm of \textcite{hendrycks2019}. Extended analyses including confidence calibration \parencite{guo2017calibration}, per-class robustness profiling, and domain gap quantification \parencite{gretton2012kernel} provide comprehensive robustness characterisation. \emph{Success criterion}: quantified robustness margins and graceful degradation rates demonstrating noise augmentation benefit.
     
     \item \textbf{Conduct an ablation study} to identify which noise components contribute most to classifier degradation, informing priorities for noise mitigation in future hardware design. Noise parameter sensitivity and hyperparameter sensitivity analyses verify that conclusions generalise beyond specific modelling choices. \emph{Success criterion}: rank-ordering of component importance with supporting statistical evidence.
 \end{enumerate}
 
-\section{Scope and Limitations}
-\label{sec:intro-scope}
-
-Before turning to the contributions, it is important to delimit the boundaries of the investigation:
-
-\begin{itemize}
-    \item \textbf{Simulation-only.} All data are generated via forward modelling; no physical hardware validation is performed. This is deliberate: the research question (``does noise-augmented training improve robustness?'') can be rigorously answered in simulation by controlling test-time corruption, whereas hardware validation conflates noise model accuracy with classifier robustness. Hardware transfer is positioned as future work (Chapter~\ref{ch:conclusions}).
-    
-    \item \textbf{Static single-frame classification.} Each sample represents an instantaneous measurement frame, meaning temporal dynamics are not modelled. This bounds the problem to the most common formulation in the \gls{eit} classification literature \parencite{yao2022, chen2023}, while temporal extensions are identified as future work.
-    
-    \item \textbf{2D geometry.} The forward model uses a 2D circular cross-section rather than a 3D volume. This is computationally necessary for 25{,}000 forward solves and consistent with prior \gls{eit} classification work \parencite{chen2023, lee2019}, though it limits direct applicability to cylindrical prosthetic geometries.
-    
-    \item \textbf{Five-class taxonomy.} The class definitions represent archetypal prosthetic interactions but do not exhaustively cover all possible tactile events (e.g., shear, vibration, thermal contact). The taxonomy is informed by \textcite{silvera-tawil2012eit} and \textcite{yao2022}.
-\end{itemize}
-
-These boundaries ensure that any robustness improvement can be attributed to the noise augmentation strategy rather than confounded by hardware variability or temporal modelling.
-
 \section{Contributions}
 \label{sec:intro-contributions}
 
-Within this scope, the work makes the following contributions:
+Beyond achieving the research objectives, this work makes the following novel contributions:
 
 \begin{itemize}
     \item \textbf{A structured, per-electrode noise model.} The four-component noise model applies contact impedance and electrode bias \emph{per-electrode} rather than per-measurement, reflecting the physical electrode--substrate interface structure \parencite{vilhunen2002, kolehmainen1997}. This structural fidelity distinguishes the model from prior additive noise approaches \parencite{chen2023, yao2022}.
     
-    \item \textbf{A systematic investigation of fixed versus online noise augmentation} for sensor modalities with persistent per-device characteristics, identifying a failure mode of standard domain randomisation \parencite{tobin2017} for sensors with calibration-style offsets.
+    \item \textbf{A systematic investigation of fixed versus online noise augmentation} for sensor modalities with persistent per-device characteristics, exposing a previously undocumented failure mode of standard domain randomisation \parencite{tobin2017} for sensors with calibration-style offsets.
     
-    \item \textbf{Component-wise noise ablation} that empirically identifies electrode positioning bias as the dominant contributor to the simulation-to-reality gap (99.8\% of total noise L2 magnitude), converting a multi-source problem into a targeted engineering priority list and informing both downstream model design and hardware mitigation strategies.
+    \item \textbf{Component-wise domain-gap decomposition} using per-component Maximum Mean Discrepancy \parencite{gretton2012kernel} to identify which noise sources contribute most to the simulation-to-reality gap, converting a multi-source problem into a targeted engineering priority list.
     
     \item \textbf{The first paired comparison of classical and deep classifiers under matched multi-component noise} for \gls{eit} tactile sensing, including confidence calibration analysis \parencite{guo2017calibration} previously absent from the field.
     
@@ -86,3 +71,20 @@ The remainder of this dissertation is organised as follows:
     
     \item[Chapter~\ref{ch:conclusions}] summarises the key findings, evaluates the extent to which the research objectives were met, and identifies directions for future work including temporal modelling, domain-adversarial adaptation, and real-hardware validation.
 \end{description}
+
+\section{Scope and Limitations}
+\label{sec:intro-scope}
+
+The following scope constraints define the boundaries of this investigation:
+
+\begin{itemize}
+    \item \textbf{Simulation-only.} All data are generated via forward modelling; no physical hardware validation is performed. This is deliberate: the research question (``does noise-augmented training improve robustness?'') can be rigorously answered in simulation by controlling test-time corruption, whereas hardware validation conflates noise model accuracy with classifier robustness. Hardware transfer is positioned as future work (Chapter~\ref{ch:conclusions}).
+    
+    \item \textbf{Static single-frame classification.} Each sample represents an instantaneous measurement frame, meaning temporal dynamics are not modelled. This bounds the problem to the most common formulation in the \gls{eit} classification literature \parencite{yao2022, chen2023}, while temporal extensions are identified as future work.
+    
+    \item \textbf{2D geometry.} The forward model uses a 2D circular cross-section rather than a 3D volume. This is computationally necessary for 25{,}000 forward solves and consistent with prior \gls{eit} classification work \parencite{chen2023, lee2019}, though it limits direct applicability to cylindrical prosthetic geometries.
+    
+    \item \textbf{Five-class taxonomy.} The class definitions represent archetypal prosthetic interactions but do not exhaustively cover all possible tactile events (e.g., shear, vibration, thermal contact). The taxonomy is informed by \textcite{silvera-tawil2012eit} and \textcite{yao2022}.
+\end{itemize}
+
+These boundaries ensure that any robustness improvement can be attributed to the noise augmentation strategy rather than confounded by hardware variability or temporal modelling.

@@ -1,22 +1,6 @@
-"""Train commands.
-
-Protocol note
--------------
-The ``cnn`` and ``baselines`` subcommands here reproduce a *single seed* of
-the headline ``noisy_train_noisy_eval`` (or ``clean_train_clean_eval``)
-protocol used by :mod:`eit_sim2real.experiments.grid`. They load the
-pre-noised (or clean) split directly from the dataset and do **not** apply
-any additional online noise augmentation -- doing so would produce a hybrid
-"noisy + augmented" regime that matches no condition in the dissertation
-results tables. Use ``eit experiments run-all`` to reproduce the full
-5-seed mean used by Table 4.1; use these subcommands to materialise a
-single deployable checkpoint at a chosen seed (default ``--seed 42``,
-matching the first seed of the run-all sweep).
-"""
+"""Train commands."""
 
 import click
-
-from eit_sim2real.constants import NOISY_CNN_PARAMS
 
 
 @click.group()
@@ -26,61 +10,28 @@ def train() -> None:
 
 @train.command()
 @click.option("--config", type=click.Path(exists=True), help="Path to config YAML.")
-@click.option(
-    "--noise/--no-noise",
-    default=True,
-    help="Train on the pre-noised (default) or clean dataset split.",
-)
+@click.option("--noise/--no-noise", default=True, help="Train with noise augmentation.")
 @click.option("--epochs", type=int, default=None, help="Override number of epochs.")
-@click.option(
-    "--seed",
-    type=int,
-    default=None,
-    help="Random seed (defaults to config seed, typically 42 -- the first "
-    "seed used by `eit experiments run-all`).",
-)
 @click.option(
     "--output-dir",
     type=click.Path(),
     default="results/models",
     help="Model output directory.",
 )
-def cnn(
-    config: str | None,
-    noise: bool,
-    epochs: int | None,
-    seed: int | None,
-    output_dir: str,
-) -> None:
-    """Train the 1D-CNN model under the headline noisy/clean protocol.
-
-    With ``--noise`` (default) this reproduces a single seed of the
-    ``noisy_train_noisy_eval`` condition: pre-noised training data,
-    no online augmentation, with the stronger regularisation reported in
-    the dissertation methodology (weight_decay=1e-3, dropout=0.4,
-    label_smoothing=0.05). With ``--no-noise`` it reproduces the
-    ``clean_train_clean_eval`` ceiling.
-    """
+def cnn(config: str | None, noise: bool, epochs: int | None, output_dir: str) -> None:
+    """Train the 1D-CNN model."""
     from pathlib import Path
 
-    import numpy as np
-    import torch
-
     from eit_sim2real.configs import load_config
-    from eit_sim2real.data import load_mat_dataset, prepare_splits_from_config
+    from eit_sim2real.data import load_mat_dataset, prepare_splits
+    from eit_sim2real.data.noise import NoiseConfig
     from eit_sim2real.train import train_cnn
     from eit_sim2real.utils import get_device
 
     cfg = load_config(config)
-    seed = seed if seed is not None else cfg.get("seed", 42)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-
-    click.echo(f"Loading dataset from {cfg['data']['path']} (use_noisy={noise})...")
-    X, y = load_mat_dataset(cfg["data"]["path"], use_noisy=noise)
-    splits = prepare_splits_from_config(X, y, cfg, random_state=seed)
+    click.echo(f"Loading dataset from {cfg['data']['path']}...")
+    X, y = load_mat_dataset(cfg["data"]["path"])
+    splits = prepare_splits(X, y, random_state=cfg.get("seed", 42))
 
     device = get_device()
     out = Path(output_dir)
@@ -89,41 +40,43 @@ def cnn(
     train_cfg = cfg["training"]
     if epochs is not None:
         train_cfg["epochs"] = epochs
-    train_kwargs = {
-        k: v
-        for k, v in train_cfg.items()
-        if k in ("epochs", "batch_size", "early_stopping_patience")
-    }
-    train_kwargs["lr"] = train_cfg.get("learning_rate", 1e-3)
 
     if noise:
-        click.echo(
-            f"Training CNN on pre-noised split (seed={seed}, "
-            "no online augmentation, NOISY_CNN_PARAMS)..."
-        )
-        model, _ = train_cnn(
+        noise_cfg = NoiseConfig()
+        click.echo("Training CNN with noise augmentation...")
+        model, history = train_cnn(
             splits.X_train,
             splits.y_train,
             splits.X_val,
             splits.y_val,
+            noise_config=noise_cfg,
             device=device,
-            seed=seed,
-            **train_kwargs,
-            **NOISY_CNN_PARAMS,
+            **{
+                k: v
+                for k, v in train_cfg.items()
+                if k in ("epochs", "batch_size", "early_stopping_patience")
+            },
+            lr=train_cfg.get("learning_rate", 1e-3),
         )
         tag = "noisy"
     else:
-        click.echo(f"Training CNN on clean split (seed={seed})...")
-        model, _ = train_cnn(
+        click.echo("Training CNN on clean data...")
+        model, history = train_cnn(
             splits.X_train,
             splits.y_train,
             splits.X_val,
             splits.y_val,
             device=device,
-            seed=seed,
-            **train_kwargs,
+            **{
+                k: v
+                for k, v in train_cfg.items()
+                if k in ("epochs", "batch_size", "early_stopping_patience")
+            },
+            lr=train_cfg.get("learning_rate", 1e-3),
         )
         tag = "clean"
+
+    import torch
 
     save_path = out / f"cnn1d_{tag}_best.pt"
     torch.save(model.state_dict(), save_path)
@@ -132,56 +85,47 @@ def cnn(
 
 @train.command()
 @click.option("--config", type=click.Path(exists=True), help="Path to config YAML.")
-@click.option(
-    "--noise/--no-noise",
-    default=True,
-    help="Train on the pre-noised (default) or clean dataset split.",
-)
-@click.option(
-    "--seed",
-    type=int,
-    default=None,
-    help="Random seed (defaults to config seed, typically 42).",
-)
+@click.option("--noise/--no-noise", default=True, help="Train with noise augmentation.")
 @click.option(
     "--output-dir",
     type=click.Path(),
     default="results/models",
     help="Model output directory.",
 )
-def baselines(
-    config: str | None, noise: bool, seed: int | None, output_dir: str
-) -> None:
-    """Train all baseline models (SVM, RF, MLP) under the headline protocol.
-
-    Mirrors the ``noisy_train`` / ``clean_train`` baseline configuration in
-    :mod:`eit_sim2real.experiments.grid`: trains on the pre-noised (or
-    clean) split directly, with no further noise augmentation. ``--seed``
-    seeds both the train/val/test split and the model's ``random_state``.
-    """
+def baselines(config: str | None, noise: bool, output_dir: str) -> None:
+    """Train all baseline models (SVM, RF, MLP)."""
     from pathlib import Path
 
     import joblib
+    import numpy as np
 
     from eit_sim2real.configs import load_config
-    from eit_sim2real.data import load_mat_dataset, prepare_splits_from_config
+    from eit_sim2real.data import load_mat_dataset, prepare_splits
+    from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
     from eit_sim2real.models import get_baseline, train_baseline
 
     cfg = load_config(config)
-    seed = seed if seed is not None else cfg.get("seed", 42)
-
-    click.echo(f"Loading dataset from {cfg['data']['path']} (use_noisy={noise})...")
-    X, y = load_mat_dataset(cfg["data"]["path"], use_noisy=noise)
-    splits = prepare_splits_from_config(X, y, cfg, random_state=seed)
+    X, y = load_mat_dataset(cfg["data"]["path"])
+    splits = prepare_splits(X, y, random_state=cfg.get("seed", 42))
 
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    tag = "noisy" if noise else "clean"
+    X_train = splits.X_train
+    y_train = splits.y_train
+
+    if noise:
+        noise_cfg = NoiseConfig()
+        rng = np.random.default_rng(cfg.get("seed", 42))
+        X_train = apply_noise_batch_vectorised(X_train, noise_cfg, rng=rng)
+        tag = "noisy"
+    else:
+        tag = "clean"
+
     for name in ("svm", "random_forest", "mlp"):
-        click.echo(f"Training {name} ({tag}, seed={seed})...")
-        model = get_baseline(name, random_state=seed)
-        model = train_baseline(model, splits.X_train, splits.y_train)
+        click.echo(f"Training {name} ({tag})...")
+        model = get_baseline(name)
+        model = train_baseline(model, X_train, y_train)
         save_path = out / f"{name}_{tag}.joblib"
         joblib.dump(model, save_path)
         click.echo(f"  Saved to {save_path}")

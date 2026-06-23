@@ -21,7 +21,7 @@ Figures~\ref{fig:app-training-noisy}--\ref{fig:app-training-augmented} show the 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{../results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_training_curves.png}
-\caption{CNN training curves: online noise augmentation, evaluated on noisy test data (Augmented$\to$Noisy condition). Despite stable convergence and low training loss, the model achieves only 19.8\% test accuracy---demonstrating that the augmentation paradox arises from what the model \emph{learns}, not from training instability.}
+\caption{CNN training curves: online noise augmentation, evaluated on noisy test data (Augmented$\to$Noisy condition). Despite stable convergence and low training loss, the model achieves only 19.4\% test accuracy---demonstrating that the augmentation paradox arises from what the model \emph{learns}, not from training instability.}
 \label{fig:app-training-augmented}
 \end{figure}
 
@@ -41,7 +41,7 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.65\textwidth]{../results/figures/raw/cnn1d/noisy_train_noisy_eval/cnn1d_noisy_train_noisy_eval_cm_test.png}
-\caption{Confusion matrix: CNN trained on noisy data, evaluated on noisy data (Noisy$\to$Noisy, 76.1\%). Principal confusions occur between light touch and point contact, and between firm press and distributed contact---classes with similar voltage magnitude but different spatial extent.}
+\caption{Confusion matrix: CNN trained on noisy data, evaluated on noisy data (Noisy$\to$Noisy, 75.7\%). Principal confusions occur between light touch and point contact, and between firm press and distributed contact---classes with similar voltage magnitude but different spatial extent.}
 \label{fig:app-cm-noisy}
 \end{figure}
 
@@ -55,7 +55,7 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.65\textwidth]{../results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_cm_test.png}
-\caption{Confusion matrix: CNN with online noise augmentation, evaluated on noisy data (Augmented$\to$Noisy, 19.8\%). The failure pattern closely mirrors Clean$\to$Noisy, confirming the model has learned a clean-signal extractor that cannot accommodate fixed test-time noise.}
+\caption{Confusion matrix: CNN with online noise augmentation, evaluated on noisy data (Augmented$\to$Noisy, 19.4\%). The failure pattern closely mirrors Clean$\to$Noisy, confirming the model has learned a clean-signal extractor that cannot accommodate fixed test-time noise.}
 \label{fig:app-cm-augmented}
 \end{figure}
 
@@ -63,7 +63,7 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \section{Domain Shift Visualisation}
 \label{app:tsne}
 
-Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy feature spaces, providing qualitative insight into the distributional divergence introduced by the multi-component noise model and complementing the quantitative ablation reported in Section~\ref{sec:res-ablation}.
+Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy feature spaces, providing qualitative insight into the distributional divergence quantified by MMD in Section~\ref{sec:res-extended}.
 
 \begin{figure}[htbp]
 \centering
@@ -75,7 +75,7 @@ Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy f
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{../results/figures/tsne_per_component.png}
-\caption{t-SNE visualisation of per-component noise effects. Electrode bias (top-right) causes the most severe cluster disruption, consistent with its dominant contribution to total noise L2 magnitude (99.8\%). Gaussian noise and quantisation produce minimal visible effect on cluster structure.}
+\caption{t-SNE visualisation of per-component noise effects. Electrode bias (top-right) causes the most severe cluster disruption, consistent with its dominant contribution to MMD (0.387). Gaussian noise and quantisation produce minimal visible effect on cluster structure.}
 \label{fig:app-tsne-components}
 \end{figure}
 
@@ -86,7 +86,7 @@ Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy f
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{../results/figures/ablation/single_component_impact.png}
-\caption{Single-component ablation: accuracy when training with only one noise component active, evaluated against the full 4-component noise. Quantisation-only training produces the lowest accuracy, indicating it provides the least transferable noise representation.}
+\caption{Single-component ablation: accuracy when training with only one noise component active, evaluated against the full 4-component noise. Gaussian-only training produces the lowest transfer accuracy (95.4\%) while electrode-bias-only transfers best (98.0\%); all single components nonetheless remain within a narrow band, indicating no individual component is catastrophic in isolation.}
 \label{fig:app-ablation-single}
 \end{figure}
 
@@ -100,7 +100,7 @@ Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy f
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{../results/figures/ablation/ordering_impact.png}
-\caption{Component ordering impact on final accuracy. The minimal spread (0.37pp between best and worst permutation) confirms that the noise components contribute approximately independently, validating the compositional noise model design.}
+\caption{Component ordering impact on final accuracy. The minimal spread (0.25pp between best and worst permutation) confirms that the noise components contribute approximately independently, validating the compositional noise model design.}
 \label{fig:app-ablation-ordering}
 \end{figure}
 
@@ -111,7 +111,7 @@ Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy f
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{../results/figures/calibration_reliability_diagrams.png}
-\caption{Reliability diagrams for the CNN under clean and noisy evaluation. Under domain shift (Clean$\to$Noisy), predicted confidences cluster near 1.0 regardless of actual accuracy, producing ECE = 0.795. Matched-distribution training reduces ECE to 0.053.}
+\caption{Reliability diagrams for the CNN under clean and noisy evaluation. Under domain shift (Clean$\to$Noisy), predicted confidences cluster near 1.0 regardless of actual accuracy, producing ECE = 0.796. Matched-distribution training reduces ECE to 0.051.}
 \label{fig:app-reliability}
 \end{figure}
 
@@ -129,7 +129,7 @@ Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy f
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{../results/figures/noise_parameter_sensitivity.png}
-\caption{Noise parameter sensitivity: CNN accuracy as each noise parameter is swept independently while others are held at default values. Accuracy remains above 97.5\% across all physically plausible ranges except extreme Gaussian noise (20\,dB SNR: 88.9\%).}
+\caption{Noise parameter sensitivity: CNN accuracy as each noise parameter is swept independently while others are held at default values. Accuracy remains above 97\% across all physically plausible ranges except extreme Gaussian noise (20\,dB SNR: 87.7\%).}
 \label{fig:app-noise-sensitivity}
 \end{figure}
 
@@ -138,6 +138,13 @@ Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy f
 \includegraphics[width=0.8\textwidth]{../results/figures/hyperparameter_sensitivity.png}
 \caption{Hyperparameter sensitivity: CNN accuracy under sweeps of learning rate, dropout, weight decay, and severity range. Narrow accuracy ranges ($\pm$2pp) confirm that the noise augmentation benefit is robust to hyperparameter choices.}
 \label{fig:app-hp-sensitivity}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{../results/figures/domain_gap_analysis.png}
+\caption{Domain gap analysis: per-feature MMD contributions and distributional divergence decomposition. Electrode bias dominates the gap structure, with clear block-periodic patterns corresponding to the 13 measurements per electrode.}
+\label{fig:app-domain-gap}
 \end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────

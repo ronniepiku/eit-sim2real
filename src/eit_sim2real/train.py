@@ -39,7 +39,6 @@ def train_cnn(
     label_smoothing: float = 0.0,
     dropout: float = 0.3,
     channels: list[int] | None = None,
-    seed: int | None = None,
 ) -> tuple[EITConv1D, dict[str, list[float]]]:
     """Train 1D-CNN with optional online noise augmentation and early stopping.
 
@@ -62,9 +61,6 @@ def train_cnn(
         label_smoothing: CrossEntropyLoss label smoothing.
         dropout: Dropout probability.
         channels: Conv block channel sizes.
-        seed: Explicit seed for the augmentation RNG. If None, falls back to
-            ``torch.initial_seed()`` (legacy behaviour). Prefer providing an
-            explicit seed for reproducible noise-augmented training runs.
 
     Returns:
         Tuple of (best model, training history dict).
@@ -81,13 +77,8 @@ def train_cnn(
     ).to(device)
 
     augment = noise_config is not None and noise_config.enabled
-    # Derive augmentation RNG from the explicit `seed` argument when provided;
-    # otherwise fall back to torch.initial_seed() for backward compatibility.
-    if augment:
-        rng_seed = seed if seed is not None else (torch.initial_seed() % 2**32)
-        aug_rng: np.random.Generator | None = np.random.default_rng(rng_seed)
-    else:
-        aug_rng = None
+    # Derive augmentation RNG from the training seed (passed via torch manual_seed)
+    aug_rng = np.random.default_rng(torch.initial_seed() % 2**32) if augment else None
 
     train_loader = DataLoader(
         TensorDataset(
@@ -215,7 +206,6 @@ def train_cnn_mixed(
     label_smoothing: float = 0.05,
     dropout: float = 0.4,
     channels: list[int] | None = None,
-    seed: int | None = None,
 ) -> tuple[EITConv1D, dict[str, list[float]]]:
     """Train CNN with mixed clean + noise-augmented batches.
 
@@ -260,8 +250,7 @@ def train_cnn_mixed(
     ).to(device)
 
     augment = noise_config is not None and noise_config.enabled
-    rng_seed = seed if seed is not None else (torch.initial_seed() % 2**32)
-    aug_rng = np.random.default_rng(rng_seed)
+    aug_rng = np.random.default_rng(torch.initial_seed() % 2**32)
 
     clean_loader = DataLoader(
         TensorDataset(
@@ -315,10 +304,12 @@ def train_cnn_mixed(
             if X_noisy_src.shape[0] > 0:
                 X_noisy_np = X_noisy_src.numpy()
                 if augment:
+                    if noise_config is None:
+                        raise ValueError(
+                            "noise_config must be provided when augment=True"
+                        )
                     if severity_range is not None:
-                        assert noise_config is not None
                         noise_config.severity = float(aug_rng.uniform(*severity_range))  # type: ignore[union-attr]
-                    assert noise_config is not None
                     X_noisy_np = apply_noise_batch_vectorised(
                         X_noisy_np,
                         noise_config,

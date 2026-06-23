@@ -80,12 +80,10 @@
 \newacronym{pca}{PCA}{Principal Component Analysis}
 \newacronym{lda}{LDA}{Linear Discriminant Analysis}
 \newacronym{dnn}{DNN}{Deep Neural Network}
-\newacronym{cem}{CEM}{Complete Electrode Model}
-\newacronym{ece}{ECE}{Expected Calibration Error}
 
 %% ─── Document Metadata ────────────────────────────────────────────────────────
 \title{Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach}
-\author{Ronald Piku}
+\author{Ronald P}
 \date{September 2026}
 
 %% ═══════════════════════════════════════════════════════════════════════════════
@@ -96,7 +94,7 @@
     \centering
     \vspace*{2cm}
     
-    {\Large\bfseries Ronald Piku\par}
+    {\Large\bfseries Ronald P\par}
     \vspace{1cm}
     
     {\LARGE\bfseries Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach\par}
@@ -108,7 +106,7 @@
     \vspace{2cm}
     
     {\large\textbf{Supervisor}\par}
-    {\large Professor Manuchehr Soleimani\par}
+    {\large Name Surname\par}
     \vspace{2cm}
     
     {\large The University of Bath\par}
@@ -143,9 +141,9 @@ Signed on behalf of the Department of Electronic and Electrical Engineering
 
 Electrical Impedance Tomography (EIT) offers a promising sensing modality for prosthetic electronic skin, enabling large-area tactile perception from few boundary electrodes. However, classifiers trained on idealised simulation data fail catastrophically when confronted with the multi-source noise encountered in physical hardware---the simulation-to-reality gap. This dissertation investigates whether a physically-motivated, four-component noise model (Gaussian measurement noise, contact impedance variation, electrode positioning bias, and quantisation) can bridge this gap through noise-augmented training.
 
-A synthetic dataset of 25,000 EIT voltage measurements across five touch classes was generated using the EIDORS forward modelling framework, simulating a 16-electrode ionic hydrogel prosthetic skin. Four classifiers (1D-CNN, MLP, SVM, Random Forest) were evaluated under systematic noise conditions across five independent stratified splits.
+A synthetic dataset of 25,000 EIT voltage measurements across five touch classes was generated using the EIDORS forward modelling framework, simulating a 16-electrode ionic hydrogel prosthetic skin. Four classifiers (1D-CNN, MLP, SVM, Random Forest) were evaluated under systematic noise conditions with 5-fold cross-validation.
 
-Results demonstrate that all models collapse to chance level ($\approx$20\%) under domain mismatch, but noise-matched training recovers substantial performance: the 1D-CNN achieves 76.1\% accuracy on noisy data (+56.7 percentage points over clean-trained). The standard Gaussian-only noise assumption produces artificially inflated results ($>$99\%), confirming that multi-component modelling is essential. Ablation reveals electrode bias dominates the noise structure (99.8\% of total noise L2 magnitude), while contact impedance causes the fastest degradation under severity scaling. Confidence calibration analysis identifies catastrophic overconfidence (\gls{ece} $= 0.795$) under domain shift, highlighting the need for uncertainty quantification in safety-critical deployment. Online noise augmentation paradoxically fails on fixed-noise evaluation, revealing that domain randomisation strategies require modification for sensor modalities with fixed per-device characteristics.
+Results demonstrate that all models collapse to chance level ($\approx$20\%) under domain mismatch, but noise-matched training recovers substantial performance: the 1D-CNN achieves 75.7\% accuracy on noisy data (+55.5 percentage points over clean-trained). The standard Gaussian-only noise assumption produces artificially inflated results ($>$99\%), confirming that multi-component modelling is essential. Ablation reveals electrode bias dominates the domain gap (99.8\% of noise energy), while contact impedance causes the fastest degradation under severity scaling. Confidence calibration analysis identifies catastrophic overconfidence (ECE = 0.796) under domain shift, highlighting the need for uncertainty quantification in safety-critical deployment. Online noise augmentation paradoxically fails on fixed-noise evaluation, yet noise that persists per sample across epochs recovers performance even when drawn as an independent realisation---revealing that domain randomisation strategies require per-device noise persistence for sensor modalities with fixed per-device characteristics.
 
 These findings provide the first systematic evidence that multi-component noise augmentation enables meaningful sim-to-real transfer for EIT tactile classification, offering actionable guidance for both noise model design and hardware prioritisation.
 
@@ -154,7 +152,7 @@ These findings provide the first systematic evidence that multi-component noise 
 \chapter*{Acknowledgements}
 \addcontentsline{toc}{chapter}{Acknowledgements}
 
-I am grateful to my supervisor, Professor Manuchehr Soleimani, for his guidance and constructive feedback throughout this dissertation. I would also like to thank the staff of the Department of Electronic and Electrical Engineering at the University of Bath for their support during the MSc programme, and the developers of EIDORS, PyTorch, and the wider open-source scientific Python stack, without whose tools this work would not have been possible. Finally, I thank my family and friends for their patience and encouragement over the course of the project.
+% TODO: Write acknowledgements.
 
 %% ─── Table of Contents ────────────────────────────────────────────────────────
 \tableofcontents

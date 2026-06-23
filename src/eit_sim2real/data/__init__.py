@@ -5,7 +5,6 @@ from eit_sim2real.data.load_dataset import (
     get_cv_splits,
     load_mat_dataset,
     prepare_splits,
-    prepare_splits_from_config,
 )
 from eit_sim2real.data.noise import (
     NoiseConfig,
@@ -21,5 +20,4 @@ __all__ = [
     "get_cv_splits",
     "load_mat_dataset",
     "prepare_splits",
-    "prepare_splits_from_config",
 ]

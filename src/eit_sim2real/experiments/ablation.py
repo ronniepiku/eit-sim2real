@@ -4,13 +4,13 @@ Systematically trains and evaluates models with different noise component
 combinations to identify which noise sources most impact robustness.
 
 Experiments:
-1. **Core mismatch** – 4 conditions: clean→clean, clean→noisy, noisy→noisy,
+1. **Core mismatch** - 4 conditions: clean→clean, clean→noisy, noisy→noisy,
    noisy→clean (baseline comparisons).
-2. **Single-component isolation** – Train/evaluate with only ONE noise type
+2. **Single-component isolation** - Train/evaluate with only ONE noise type
    active at a time to measure individual component impact.
-3. **Exhaustive subset/order ablation** – All non-empty component subsets
+3. **Exhaustive subset/order ablation** - All non-empty component subsets
    with physically-constrained orderings (optional, expensive).
-4. **Per-component severity sweep** – For each noise type, sweep severity
+4. **Per-component severity sweep** - For each noise type, sweep severity
    [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0] while others stay at 1.0.
 
 Outputs:
@@ -190,7 +190,7 @@ def _evaluate_sklearn(
     y_val: np.ndarray,
     X_test: np.ndarray,
     y_test: np.ndarray,
-) -> tuple[float, float, float, float]:
+) -> tuple[Float, Float, Float, Float]:
     """Return (train_acc, val_acc, test_acc, test_f1) for an sklearn model."""
     train_acc = accuracy_score(y_train, model.predict(X_train))
     val_acc = accuracy_score(y_val, model.predict(X_val))
@@ -584,12 +584,12 @@ def generate_ablation_report(
             worst_degrader = max(degradation_rates, key=degradation_rates.get)
             lines.append(
                 f"\n**Fastest degradation**: {COMPONENT_LABELS[worst_degrader]} "
-                f"(Δacc = -{degradation_rates[worst_degrader]:.4f} from 0× to 3×)"
+                f"(Δacc = -{degradation_rates[worst_degrader]:.4f} from 0x to 3x)"
             )
             best_degrader = min(degradation_rates, key=degradation_rates.get)
             lines.append(
                 f"**Most robust to**: {COMPONENT_LABELS[best_degrader]} "
-                f"(Δacc = -{degradation_rates[best_degrader]:.4f} from 0× to 3×)"
+                f"(Δacc = -{degradation_rates[best_degrader]:.4f} from 0x to 3x)"
             )
 
     # ── 4. Best ordering analysis ──
