@@ -1738,4 +1738,6 @@ def _run_severity_sweeps(
 
     return results
 
+
+if __name__ == "__main__":
     main()
