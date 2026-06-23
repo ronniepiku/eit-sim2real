@@ -471,7 +471,7 @@ def _generate_all_figures(
     figures_dir: Path,
 ) -> None:
     """Generate confusion matrices, training curves, and per-class metrics."""
-    from visualisation import (
+    from eit_sim2real.visualisation import (
         plot_confusion_matrix_and_save,
         plot_per_class_metrics_and_save,
         plot_training_curves,
