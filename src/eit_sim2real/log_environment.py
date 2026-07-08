@@ -8,9 +8,12 @@ Usage:
     uv run python/log_environment.py --output results/environment.json
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import platform
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -99,7 +102,7 @@ def get_environment_info() -> dict:
     return info
 
 
-def main() -> None:
+def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Log environment for reproducibility.")
     parser.add_argument(
         "--output",
@@ -107,7 +110,7 @@ def main() -> None:
         default=Path("results/environment.json"),
         help="Output path for environment JSON.",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(list(argv) if argv is not None else None)
 
     info = get_environment_info()
 

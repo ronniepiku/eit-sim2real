@@ -13,7 +13,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
+from eit_sim2real.data.noise import (
+    NoiseConfig,
+    apply_noise_batch_vectorised,
+    apply_noise_in_scaled_space,
+)
 from eit_sim2real.models.cnn1d import EITConv1D
 from eit_sim2real.utils import get_device
 
@@ -35,6 +39,7 @@ def train_cnn(
     early_stopping_patience: int = 40,
     device: str = "auto",
     noise_config: NoiseConfig | None = None,
+    input_scaler: object | None = None,
     severity_range: tuple[float, float] | None = None,
     label_smoothing: float = 0.0,
     dropout: float = 0.3,
@@ -57,6 +62,9 @@ def train_cnn(
         early_stopping_patience: Epochs without improvement before stopping.
         device: Compute device ('cpu', 'cuda', or 'auto').
         noise_config: If provided, apply online noise augmentation to training batches.
+        input_scaler: Scaler that maps training features to and from raw voltage
+            space. When provided, augmentation is applied in raw space before
+            transforming back into the model's input space.
         severity_range: If provided with noise_config, sample severity per batch.
         label_smoothing: CrossEntropyLoss label smoothing.
         dropout: Dropout probability.
@@ -125,7 +133,19 @@ def train_cnn(
                 X_np = X_batch.numpy()
                 if severity_range is not None:
                     noise_config.severity = float(aug_rng.uniform(*severity_range))  # type: ignore[union-attr]
-                X_np = apply_noise_batch_vectorised(X_np, noise_config, rng=aug_rng)  # type: ignore[arg-type]
+                if input_scaler is not None:
+                    X_np = apply_noise_in_scaled_space(
+                        X_np,
+                        input_scaler,
+                        noise_config,
+                        rng=aug_rng,
+                    )
+                else:
+                    X_np = apply_noise_batch_vectorised(
+                        X_np,
+                        noise_config,
+                        rng=aug_rng,
+                    )  # type: ignore[arg-type]
                 X_batch = torch.from_numpy(X_np).float()
 
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
@@ -201,6 +221,7 @@ def train_cnn_mixed(
     early_stopping_patience: int = 40,
     device: str = "auto",
     noise_config: NoiseConfig | None = None,
+    clean_input_scaler: object | None = None,
     severity_range: tuple[float, float] | None = None,
     clean_ratio: float = 0.3,
     label_smoothing: float = 0.05,
@@ -229,6 +250,9 @@ def train_cnn_mixed(
         early_stopping_patience: Epochs without improvement before stopping.
         device: Compute device.
         noise_config: If provided, apply online noise augmentation.
+        clean_input_scaler: Scaler for the clean training space. When provided,
+            augmented samples are perturbed in raw voltage space before being
+            transformed back into the clean feature space.
         severity_range: Severity sampling range for augmentation.
         clean_ratio: Fraction of each batch that is clean.
         label_smoothing: CrossEntropyLoss label smoothing.
@@ -310,11 +334,19 @@ def train_cnn_mixed(
                         )
                     if severity_range is not None:
                         noise_config.severity = float(aug_rng.uniform(*severity_range))  # type: ignore[union-attr]
-                    X_noisy_np = apply_noise_batch_vectorised(
-                        X_noisy_np,
-                        noise_config,
-                        rng=aug_rng,  # type: ignore[arg-type]
-                    )
+                    if clean_input_scaler is not None:
+                        X_noisy_np = apply_noise_in_scaled_space(
+                            X_noisy_np,
+                            clean_input_scaler,
+                            noise_config,
+                            rng=aug_rng,
+                        )
+                    else:
+                        X_noisy_np = apply_noise_batch_vectorised(
+                            X_noisy_np,
+                            noise_config,
+                            rng=aug_rng,  # type: ignore[arg-type]
+                        )
                 else:
                     indices = aug_rng.integers(
                         0, len(X_noisy_train), size=X_noisy_src.shape[0]

@@ -27,7 +27,7 @@ SVM  & 83.4 $\pm$ 0.4 & 20.0 $\pm$ 0.0 & 50.9 $\pm$ 0.7 & 51.7 $\pm$ 0.4 \\
 \end{tabular}
 \end{table}
 
-Three findings emerge immediately. First, all models achieve strong clean-domain performance (83--99\%), confirming the forward model produces well-separated class representations amenable to both classical and deep learning approaches. Second, all models collapse to approximately chance level ($\approx$20\%) under the Clean$\to$Noisy condition demonstrating that the multi-component domain gap is a \emph{distributional} problem rather than a capacity problem. Third, noise-aware training substantially recovers performance. The CNN achieves 75.7\% on Noisy$\to$Noisy, representing a +55.5 percentage point (pp) improvement over Clean$\to$Noisy ($p < 0.0001$, Cohen's $d = -56.7$). This constitutes the primary evidence that the multi-component noise model enables effective noise-matched training, directly addressing Research Objective~3.
+Three findings emerge immediately. First, all models achieve strong clean-domain performance (83--99\%), confirming the forward model produces well-separated class representations amenable to both classical and deep learning approaches. Second, all models collapse to approximately chance level ($\approx$20\%) under the Clean$\to$Noisy condition demonstrating that the multi-component domain gap is a \emph{distributional} problem rather than a capacity problem. Third, noise-aware training substantially recovers performance. The CNN achieves 75.7\% on Noisy$\to$Noisy, representing a +55.5 percentage point (pp) improvement over Clean$\to$Noisy ($p < 0.0001$, Cohen's $d = -56.7$). This constitutes the primary evidence that foundational-mode training on the joint multi-error distribution enables effective noise-matched transfer, directly addressing Research Objective~3.
 
 The CNN significantly outperforms all baselines on noisy data (+17.8pp over the next-best RF at 57.9\%), demonstrating that convolutional architectures exploit the structured, per-electrode nature of the noise through learned local filters that span adjacent measurements within the same electrode block. Conversely, on clean data the MLP achieves the highest accuracy (98.8\%), while the CNN exhibits training instability (std = 4.2\%) manifesting as oscillating validation loss across seeds---suggesting over-parameterisation for the simpler, noise-free discrimination task where all classes are linearly separable in the raw feature space. This inverted architecture ranking between clean and noisy conditions reveals that the inductive biases conferring noise robustness (local receptive fields, weight sharing) impose a small accuracy cost when noise structure is absent.
 
@@ -84,27 +84,27 @@ On clean data, LDA features preserve discriminability surprisingly well (91.4\% 
 \section{Noise Component Ablation}
 \label{sec:res-ablation}
 
-Table~\ref{tab:ablation-single} presents the single-component isolation results from the ablation study. Note that the ablation experiments employ a dedicated single-seed protocol with extended training budget (200 epochs, patience 30) to maximise per-condition convergence, explaining the higher absolute accuracies compared to the main 5-fold cross-validated results in Table~\ref{tab:main-results-raw}. Crucially, both training \emph{and} evaluation use full 4-component noise, so the high accuracies (95--99\%) reflect the matched-distribution ceiling for this specific training configuration rather than contradicting the main experiment's 75.7\%---which averages over 5 random seeds with different data splits and a 100-epoch budget.
+Table~\ref{tab:ablation-single} presents the single-component isolation results from the ablation study, aggregated over five seeds. In the final ablation code path, each single-component model is trained and evaluated under the same active component configuration, while the full four-component model remains the reference point for relative comparison. The high absolute accuracies in this section therefore reflect matched-distribution performance within the dedicated ablation protocol, while preserving seed-level uncertainty through multi-seed aggregation.
 
 \begin{table}[htbp]
 \centering
-\caption{CNN accuracy (\%) when trained with individual noise components and evaluated on the full noise model. All models are evaluated against the complete 4-component noise.}
+\caption{CNN accuracy (\%) when trained and evaluated with individual noise components. The full 4-component model is retained as the relative reference condition.}
 \label{tab:ablation-single}
 \small
 \begin{tabular}{@{}lcc@{}}
 \toprule
 \textbf{Training Noise} & \textbf{Test Accuracy} & \textbf{$\Delta$ vs Full Model} \\
 \midrule
-Full 4-component & 99.2 & --- \\
-Electrode bias only & 98.0 & $-$1.2 \\
-Contact impedance only & 96.9 & $-$2.3 \\
-Quantisation only & 95.8 & $-$3.4 \\
-Gaussian only & 95.4 & $-$3.8 \\
+Full 4-component & 99.0 & --- \\
+Electrode bias only & 98.3 & $-$0.7 \\
+Contact impedance only & 97.9 & $-$0.9 \\
+Quantisation only & 95.4 & $-$3.6 \\
+Gaussian only & 94.2 & $-$4.8 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Gaussian noise produces the most harmful isolated impact (95.4\%), as broadband additive perturbation most directly degrades the per-measurement signal; however, all single-component conditions remain within a narrow 95.4--98.0\% band, indicating that no individual component is catastrophic in isolation and that the model accommodates each when it is the sole corruption. Electrode bias is the least harmful in isolation (98.0\%), reflecting its highly structured, learnable per-electrode form. The severity sweep (Figure~\ref{fig:severity-sweep}) reveals that within the full noise model, quantisation contributes negligibly---its effects are masked by the dominant structured components.
+Gaussian noise produces the most harmful isolated impact (94.2\%), as broadband additive perturbation most directly degrades the per-measurement signal; however, all single-component conditions remain within a 94.2--98.3\% band, indicating that no individual component is catastrophic in isolation and that the model accommodates each when it is the sole active corruption. Electrode bias is the least harmful in isolation (98.3\%), reflecting its highly structured, learnable per-electrode form. The severity sweep (Figure~\ref{fig:severity-sweep}) reveals that within the full noise model, quantisation contributes negligibly---its effects are masked by the dominant structured components.
 
 \begin{figure}[htbp]
 \centering
@@ -113,7 +113,7 @@ Gaussian noise produces the most harmful isolated impact (95.4\%), as broadband 
 \label{fig:severity-sweep}
 \end{figure}
 
-The component ordering analysis reveals negligible effect size: the optimal ordering (contact impedance $\to$ electrode bias $\to$ Gaussian $\to$ quantisation) achieves 99.2\%, only 0.25pp above the worst permutation. Incrementally adding components yields diminishing returns beyond three: 96.9\% (1 component) $\to$ 98.8\% (2) $\to$ 99.2\% (3) $\to$ 99.2\% (4).
+The component ordering analysis reveals a small effect size: the optimal ordering (Gaussian $\to$ contact impedance $\to$ electrode bias $\to$ quantisation) achieves 99.3\%, 0.27pp above the worst permutation. Incrementally adding components yields diminishing returns beyond three: 98.0\% (1 component) $\to$ 99.1\% (2) $\to$ 99.3\% (3) $\to$ 99.3\% (4).
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Robustness Under Severity Scaling}

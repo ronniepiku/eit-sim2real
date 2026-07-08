@@ -26,7 +26,11 @@ import torch
 
 from eit_sim2real.constants import CLASS_NAMES
 from eit_sim2real.data import prepare_splits
-from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
+from eit_sim2real.data.noise import (
+    NoiseConfig,
+    apply_noise_batch_vectorised,
+    apply_noise_in_scaled_space,
+)
 from eit_sim2real.models.cnn1d import EITConv1D
 from eit_sim2real.train import train_cnn
 from eit_sim2real.utils import (
@@ -87,6 +91,7 @@ def evaluate_severity_sweep(
     device: str = "auto",
     seed: int = 42,
     X_noisy: np.ndarray | None = None,
+    scaler: object | None = None,
 ) -> dict[str, list[float] | dict[str, float]]:
     """Evaluate model robustness under varying noise severity.
 
@@ -101,6 +106,8 @@ def evaluate_severity_sweep(
         device: Device for CNN inference.
         seed: Random seed for noise generation.
         X_noisy: Optional noisy test features at 1.0x severity.
+        scaler: Optional scaler for applying synthetic noise in raw voltage
+            space before transforming back into the model input space.
 
     Returns:
         Dictionary with multipliers, accuracies, F1 scores, and degradation metrics.
@@ -122,7 +129,15 @@ def evaluate_severity_sweep(
         else:
             noise_cfg = NoiseConfig(severity=mult)
             rng = np.random.default_rng(seed)
-            X_test = apply_noise_batch_vectorised(X_clean, noise_cfg, rng=rng)
+            if scaler is not None:
+                X_test = apply_noise_in_scaled_space(
+                    X_clean,
+                    scaler,
+                    noise_cfg,
+                    rng=rng,
+                )
+            else:
+                X_test = apply_noise_batch_vectorised(X_clean, noise_cfg, rng=rng)
 
         results = evaluate_model(model, X_test, y_test, device=device)
         accuracies.append(results["accuracy"])
@@ -300,8 +315,9 @@ def run_gaussian_only_evaluation(
     logger.info("  Training RF baseline...")
     rng_train = np.random.default_rng(seed)
     X_train_gauss = apply_noise_batch_vectorised(
-        ds.X_train, noise_cfg_gauss, rng=rng_train
+        ds.scaler.inverse_transform(ds.X_train), noise_cfg_gauss, rng=rng_train
     )
+    X_train_gauss = ds.scaler.transform(X_train_gauss)
     rf = get_baseline("random_forest", random_state=seed)
     rf = train_baseline(rf, X_train_gauss, ds.y_train)
 
@@ -322,7 +338,7 @@ def run_gaussian_only_evaluation(
             cfg = NoiseConfig.only("gaussian")
             cfg.severity = severity
             rng = np.random.default_rng(seed + 500)
-            X_te = apply_noise_batch_vectorised(ds.X_test, cfg, rng=rng)
+            X_te = apply_noise_in_scaled_space(ds.X_test, ds.scaler, cfg, rng=rng)
 
             if isinstance(model, EITConv1D):
                 y_pred = predict_cnn(model, X_te, device)
@@ -447,6 +463,7 @@ def run_calibration_analysis(
         early_stopping_patience=early_stopping_patience,
         device=device,
         noise_config=noise_cfg,
+        input_scaler=ds_clean.scaler,
         severity_range=(0.5, 2.0),
         weight_decay=1e-3,
         dropout=0.4,
@@ -645,6 +662,7 @@ def run_per_class_robustness(
         early_stopping_patience=early_stopping_patience,
         device=device,
         noise_config=noise_cfg,
+        input_scaler=ds.scaler,
         severity_range=(0.5, 2.0),
         weight_decay=1e-3,
         dropout=0.4,
@@ -665,7 +683,7 @@ def run_per_class_robustness(
             else:
                 cfg = NoiseConfig(severity=sev)
                 rng = np.random.default_rng(seed + 300)
-                X_te = apply_noise_batch_vectorised(ds.X_test, cfg, rng=rng)
+                X_te = apply_noise_in_scaled_space(ds.X_test, ds.scaler, cfg, rng=rng)
 
             y_pred = predict_cnn(model, X_te, device)
 
@@ -690,7 +708,7 @@ def run_per_class_robustness(
         else:
             cfg = NoiseConfig(severity=sev)
             rng = np.random.default_rng(seed + 300)
-            X_te = apply_noise_batch_vectorised(ds.X_test, cfg, rng=rng)
+            X_te = apply_noise_in_scaled_space(ds.X_test, ds.scaler, cfg, rng=rng)
         y_pred = predict_cnn(model, X_te, device)
         overall_accs.append(float(accuracy_score(ds.y_test, y_pred)))
     results["overall"] = overall_accs
@@ -816,6 +834,7 @@ def run_noise_parameter_sensitivity(
         early_stopping_patience=early_stopping_patience,
         device=device,
         noise_config=noise_cfg,
+        input_scaler=ds.scaler,
         severity_range=(0.5, 2.0),
         weight_decay=1e-3,
         dropout=0.4,
@@ -860,7 +879,7 @@ def run_noise_parameter_sensitivity(
             cfg = NoiseConfig()
             setattr(cfg, param_name, val)
             rng = np.random.default_rng(seed + 400)
-            X_te = apply_noise_batch_vectorised(ds.X_test, cfg, rng=rng)
+            X_te = apply_noise_in_scaled_space(ds.X_test, ds.scaler, cfg, rng=rng)
 
             y_pred = predict_cnn(model, X_te, device)
             acc = float(accuracy_score(ds.y_test, y_pred))

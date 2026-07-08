@@ -41,7 +41,11 @@ from torch.utils.data import DataLoader, Dataset
 
 from eit_sim2real.configs import load_config
 from eit_sim2real.data import load_mat_dataset, prepare_splits
-from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
+from eit_sim2real.data.noise import (
+    NoiseConfig,
+    apply_noise_batch_vectorised,
+    apply_noise_in_scaled_space,
+)
 from eit_sim2real.evaluate import evaluate_model
 from eit_sim2real.models.cnn1d import EITConv1D
 from eit_sim2real.utils import get_device, set_seeds
@@ -77,6 +81,7 @@ class FixedBiasDataset(Dataset):
         X_clean: np.ndarray,
         y: np.ndarray,
         noise_config: NoiseConfig,
+        scaler: object | None = None,
         base_seed: int = 123,
     ):
         """
@@ -84,6 +89,8 @@ class FixedBiasDataset(Dataset):
             X_clean: Clean (pre-noise) features, shape (n_samples, n_features).
             y: Labels, shape (n_samples,).
             noise_config: Noise configuration to apply.
+            scaler: Optional scaler for applying noise in raw voltage space and
+                restoring the model input space.
             base_seed: Base seed; each sample i uses seed = base_seed + i.
         """
         self.y = torch.from_numpy(y).long()
@@ -97,9 +104,17 @@ class FixedBiasDataset(Dataset):
         self.X_noisy = np.empty_like(X_clean, dtype=np.float32)
         for i in range(self.n_samples):
             rng = np.random.default_rng(base_seed + i)
-            noisy_sample = apply_noise_batch_vectorised(
-                X_clean[i : i + 1], noise_config, rng=rng
-            )
+            if scaler is not None:
+                noisy_sample = apply_noise_in_scaled_space(
+                    X_clean[i : i + 1],
+                    scaler,
+                    noise_config,
+                    rng=rng,
+                )
+            else:
+                noisy_sample = apply_noise_batch_vectorised(
+                    X_clean[i : i + 1], noise_config, rng=rng
+                )
             self.X_noisy[i] = noisy_sample[0]
 
         self.X_noisy = torch.from_numpy(self.X_noisy).float()
@@ -128,6 +143,7 @@ def train_fixed_bias_cnn(
     label_smoothing: float = 0.05,
     dropout: float = 0.4,
     device: str = "auto",
+    input_scaler: object | None = None,
     base_seed: int = 123,
 ) -> tuple[EITConv1D, dict]:
     """Train CNN on fixed-bias augmented data.
@@ -153,6 +169,7 @@ def train_fixed_bias_cnn(
         label_smoothing: Label smoothing epsilon.
         dropout: Dropout rate.
         device: Compute device.
+        input_scaler: Optional scaler for applying noise in raw voltage space.
         base_seed: Base seed for per-sample noise generation.
 
     Returns:
@@ -166,7 +183,11 @@ def train_fixed_bias_cnn(
 
     # Create fixed-bias dataset (noise applied once, cached)
     train_dataset = FixedBiasDataset(
-        X_clean_train, y_train, noise_config, base_seed=base_seed
+        X_clean_train,
+        y_train,
+        noise_config,
+        scaler=input_scaler,
+        base_seed=base_seed,
     )
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
@@ -337,6 +358,7 @@ def run_experiment_1_fixed_bias():
         early_stopping_patience=cfg["training"]["early_stopping_patience"],
         label_smoothing=cfg["training_noisy"]["label_smoothing"],
         dropout=cfg["training_noisy"]["dropout"],
+        input_scaler=scaler,
     )
 
     # Evaluate on BOTH clean and noisy test sets
@@ -382,11 +404,6 @@ def run_experiment_1_fixed_bias():
         "alt_noise_f1": results_alt_noisy["f1_macro"],
         "epochs_trained": len(history["train_loss"]),
         "best_val_loss": float(min(history["val_loss"])),
-        "comparison": {
-            "online_augmentation_noisy_acc": 0.198,
-            "fixed_noisy_dataset_noisy_acc": 0.761,
-            "clean_trained_noisy_acc": 0.194,
-        },
     }
 
     with open(output_dir / "results.json", "w") as f:
@@ -402,8 +419,7 @@ def run_experiment_1_fixed_bias():
         f"\nSUMMARY — Fixed-Bias Augmentation:\n"
         f"  Clean accuracy:     {results_clean['accuracy']:.1%}\n"
         f"  Noisy accuracy:     {results_noisy['accuracy']:.1%}\n"
-        f"  Alt-noise accuracy: {results_alt_noisy['accuracy']:.1%}\n"
-        f"  (Compare: Online aug = 19.8%, Fixed dataset = 76.1%)"
+        f"  Alt-noise accuracy: {results_alt_noisy['accuracy']:.1%}"
     )
 
     return results_summary
@@ -601,8 +617,7 @@ def main():
             f"\nExp 1 (Fixed-Bias Augmentation):\n"
             f"  Clean: {r['clean_accuracy']:.1%} | "
             f"Noisy: {r['noisy_accuracy']:.1%} | "
-            f"Alt-noise: {r['alt_noise_accuracy']:.1%}\n"
-            f"  Compare: Online-aug=19.8% | Fixed-dataset=76.1%"
+            f"Alt-noise: {r['alt_noise_accuracy']:.1%}"
         )
 
     if "different_draw" in results:

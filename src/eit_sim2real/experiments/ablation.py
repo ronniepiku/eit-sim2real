@@ -42,7 +42,11 @@ from sklearn.metrics import accuracy_score, f1_score
 from eit_sim2real.configs import load_config
 from eit_sim2real.constants import COMPONENT_LABELS, NOISE_COMPONENTS
 from eit_sim2real.data import load_mat_dataset, prepare_splits
-from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
+from eit_sim2real.data.noise import (
+    NoiseConfig,
+    apply_noise_batch_vectorised,
+    apply_noise_in_scaled_space,
+)
 from eit_sim2real.models import get_baseline, train_baseline
 from eit_sim2real.models.cnn1d import EITConv1D
 from eit_sim2real.train import train_cnn
@@ -503,6 +507,11 @@ def generate_ablation_report(
     lines.append(f"**Model**: {model_name}")
     lines.append(f"**Total runtime**: {runtime_s / 60:.1f} minutes")
     lines.append(f"**Total experiments**: {len(df)}")
+    lines.append(
+        "**Metric provenance**: Accuracy and F1 values below are held-out test "
+        "metrics from the ablation runs; validation accuracy is used only during "
+        "training and is not the headline result."
+    )
 
     # ── 1. Core mismatch ──
     lines.append("\n---\n## 1. Core Mismatch Conditions\n")
@@ -800,8 +809,12 @@ def run_ablation(
                 y_te = dataset_clean.y_test
             elif eval_data == "noisy":
                 eval_rng = np.random.default_rng(current_seed + 999)
-                X_te = apply_noise_batch_vectorised(
-                    dataset_clean.X_test, full_noise, rng=eval_rng
+                eval_noise_cfg = noise_cfg if noise_cfg is not None else full_noise
+                X_te = apply_noise_in_scaled_space(
+                    dataset_clean.X_test,
+                    dataset_clean.scaler,
+                    eval_noise_cfg,
+                    rng=eval_rng,
                 )
                 y_te = dataset_clean.y_test
             else:
@@ -818,6 +831,9 @@ def run_ablation(
                     early_stopping_patience=early_stopping_patience,
                     device=device,
                     noise_config=train_noise_cfg,
+                    input_scaler=(
+                        dataset_clean.scaler if train_noise_cfg is not None else None
+                    ),
                 )
                 train_acc, _ = _evaluate_cnn(model, X_tr, y_tr, device=device)
                 val_acc, _ = _evaluate_cnn(model, X_v, y_v, device=device)
@@ -825,8 +841,11 @@ def run_ablation(
             else:
                 if train_noise_cfg is not None and train_noise_cfg.enabled:
                     aug_rng = np.random.default_rng(current_seed)
-                    X_tr = apply_noise_batch_vectorised(
-                        X_tr, train_noise_cfg, rng=aug_rng
+                    X_tr = apply_noise_in_scaled_space(
+                        X_tr,
+                        dataset_clean.scaler,
+                        train_noise_cfg,
+                        rng=aug_rng,
                     )
 
                 model = get_baseline(model_name, random_state=current_seed)
@@ -912,6 +931,7 @@ def run_ablation(
                 early_stopping_patience=early_stopping_patience,
                 device=device,
                 noise_config=full_noise,
+                input_scaler=dataset_clean.scaler,
             )
 
             for comp in NOISE_COMPONENTS:
@@ -930,8 +950,11 @@ def run_ablation(
                             severity=sev,
                         )
                         rng = np.random.default_rng(current_seed + 777)
-                        X_te = apply_noise_batch_vectorised(
-                            dataset_clean.X_test, sweep_cfg, rng=rng
+                        X_te = apply_noise_in_scaled_space(
+                            dataset_clean.X_test,
+                            dataset_clean.scaler,
+                            sweep_cfg,
+                            rng=rng,
                         )
 
                     y_pred = predict_cnn(sweep_model, X_te, device=device)

@@ -7,6 +7,7 @@ from eit_sim2real.data.noise import (
     NoiseConfig,
     apply_noise,
     apply_noise_batch_vectorised,
+    apply_noise_in_scaled_space,
 )
 
 
@@ -143,6 +144,52 @@ class TestApplyNoiseBatchVectorised:
             clean_signal, cfg, rng=np.random.default_rng(0)
         )
         assert not np.allclose(result, clean_signal)
+
+
+class TestApplyNoiseInScaledSpace:
+    """Tests for raw-space noise application with scaler round-tripping."""
+
+    def test_matches_manual_inverse_noise_transform(
+        self, clean_signal: np.ndarray
+    ) -> None:
+        from sklearn.preprocessing import RobustScaler
+
+        scaler = RobustScaler().fit(clean_signal)
+        X_scaled = scaler.transform(clean_signal)
+        cfg = NoiseConfig.only("gaussian")
+
+        manual = scaler.transform(
+            apply_noise_batch_vectorised(
+                scaler.inverse_transform(X_scaled),
+                cfg,
+                rng=np.random.default_rng(7),
+            )
+        )
+        helper = apply_noise_in_scaled_space(
+            X_scaled,
+            scaler,
+            cfg,
+            rng=np.random.default_rng(7),
+        )
+
+        np.testing.assert_allclose(helper, manual)
+
+    def test_disabled_returns_original_scaled_values(
+        self, clean_signal: np.ndarray
+    ) -> None:
+        from sklearn.preprocessing import RobustScaler
+
+        scaler = RobustScaler().fit(clean_signal)
+        X_scaled = scaler.transform(clean_signal)
+
+        result = apply_noise_in_scaled_space(
+            X_scaled,
+            scaler,
+            NoiseConfig.all_off(),
+            rng=np.random.default_rng(0),
+        )
+
+        np.testing.assert_allclose(result, X_scaled)
 
 
 # ---------------------------------------------------------------------------

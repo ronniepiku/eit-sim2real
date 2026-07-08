@@ -56,7 +56,7 @@ def evaluate(
 
     from eit_sim2real.configs import load_config
     from eit_sim2real.data import load_mat_dataset, prepare_splits
-    from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
+    from eit_sim2real.data.noise import NoiseConfig, apply_noise_in_scaled_space
     from eit_sim2real.evaluate import (
         evaluate_model,
         load_model,
@@ -88,13 +88,18 @@ def evaluate(
             "--model-path is required unless --gaussian-only is used."
         )
 
-    X, y = load_mat_dataset(cfg["data"]["path"])
+    X, y = load_mat_dataset(cfg["data"]["path"], use_noisy=False)
     splits = prepare_splits(X, y, random_state=cfg.get("seed", 42))
 
     X_test = splits.X_test
     if noise:
         rng = np.random.default_rng(cfg.get("seed", 42))
-        X_test = apply_noise_batch_vectorised(X_test, NoiseConfig(), rng=rng)
+        X_test = apply_noise_in_scaled_space(
+            X_test,
+            splits.scaler,
+            NoiseConfig(),
+            rng=rng,
+        )
 
     model = load_model(Path(model_path), n_features=splits.X_test.shape[1])
     results = evaluate_model(model, X_test, splits.y_test)
