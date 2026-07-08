@@ -115,6 +115,8 @@ Several limitations bound the generalisability of these findings and must be ack
     \item \textbf{No hardware validation.} All results are simulation-based; the noise model is literature-justified but not empirically calibrated against a specific physical system. The assumed Gaussian distribution for electrode bias is a modelling choice---real bias distributions may be multimodal or heavy-tailed.
     
     \item \textbf{Ablation protocol mismatch with main grid.} Although the ablation is now aggregated across five seeds and the Python-side noise path is physics-consistent, it still uses a dedicated protocol and condition set optimised for component analysis rather than the full main-grid evaluation matrix. Consequently, ablation values should be interpreted primarily for relative component ranking and mechanism diagnosis, not as direct substitutes for the main-condition performance figures.
+
+    \item \textbf{Exploratory memorisation diagnostics.} The different-draw and fixed-bias analyses are currently exploratory and not yet repeated under the same full multi-seed protocol used for the primary condition matrix. Their qualitative conclusions are informative for mechanism, but the quantitative effect sizes should be treated as provisional until multi-seed replication is completed.
 \end{enumerate}
 
 These limitations are inherent to the simulation-first research design chosen to isolate the noise augmentation effect under controlled conditions. They do not invalidate the core findings---which demonstrate the \emph{principle} of noise-matched training and identify electrode bias as the dominant gap component---but constrain the quantitative confidence with which specific accuracy figures can be projected onto real hardware deployment.
