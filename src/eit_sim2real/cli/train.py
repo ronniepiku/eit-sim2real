@@ -30,7 +30,7 @@ def cnn(config: str | None, noise: bool, epochs: int | None, output_dir: str) ->
 
     cfg = load_config(config)
     click.echo(f"Loading dataset from {cfg['data']['path']}...")
-    X, y = load_mat_dataset(cfg["data"]["path"])
+    X, y = load_mat_dataset(cfg["data"]["path"], use_noisy=False)
     splits = prepare_splits(X, y, random_state=cfg.get("seed", 42))
 
     device = get_device()
@@ -50,6 +50,7 @@ def cnn(config: str | None, noise: bool, epochs: int | None, output_dir: str) ->
             splits.X_val,
             splits.y_val,
             noise_config=noise_cfg,
+            input_scaler=splits.scaler,
             device=device,
             **{
                 k: v
@@ -101,11 +102,11 @@ def baselines(config: str | None, noise: bool, output_dir: str) -> None:
 
     from eit_sim2real.configs import load_config
     from eit_sim2real.data import load_mat_dataset, prepare_splits
-    from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
+    from eit_sim2real.data.noise import NoiseConfig, apply_noise_in_scaled_space
     from eit_sim2real.models import get_baseline, train_baseline
 
     cfg = load_config(config)
-    X, y = load_mat_dataset(cfg["data"]["path"])
+    X, y = load_mat_dataset(cfg["data"]["path"], use_noisy=False)
     splits = prepare_splits(X, y, random_state=cfg.get("seed", 42))
 
     out = Path(output_dir)
@@ -117,7 +118,12 @@ def baselines(config: str | None, noise: bool, output_dir: str) -> None:
     if noise:
         noise_cfg = NoiseConfig()
         rng = np.random.default_rng(cfg.get("seed", 42))
-        X_train = apply_noise_batch_vectorised(X_train, noise_cfg, rng=rng)
+        X_train = apply_noise_in_scaled_space(
+            X_train,
+            splits.scaler,
+            noise_cfg,
+            rng=rng,
+        )
         tag = "noisy"
     else:
         tag = "clean"

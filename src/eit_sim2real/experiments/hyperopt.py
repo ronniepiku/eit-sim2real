@@ -46,7 +46,11 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from eit_sim2real.configs import load_config
 from eit_sim2real.data import load_mat_dataset, prepare_splits
-from eit_sim2real.data.noise import NoiseConfig, apply_noise_batch_vectorised
+from eit_sim2real.data.noise import (
+    NoiseConfig,
+    apply_noise_batch_vectorised,
+    apply_noise_in_scaled_space,
+)
 from eit_sim2real.models.cnn1d import EITConv1D
 from eit_sim2real.train import train_cnn
 from eit_sim2real.utils import (
@@ -195,6 +199,7 @@ def train_fold(
     scheduler_patience: int,
     scheduler_factor: float,
     noise_config: NoiseConfig | None,
+    input_scaler: object | None,
     severity_range: tuple[float, float] | None,
     device: torch.device,
     seed: int,
@@ -214,6 +219,7 @@ def train_fold(
         scheduler_patience: LR scheduler patience.
         scheduler_factor: LR scheduler reduction factor.
         noise_config: Noise config for online augmentation (if enabled).
+        input_scaler: Scaler mapping the model input space to raw voltage space.
         severity_range: Severity range for domain randomisation.
         device: Torch device.
         seed: Random seed.
@@ -273,7 +279,19 @@ def train_fold(
                     noise_config.severity = float(
                         aug_rng.uniform(severity_range[0], severity_range[1])
                     )
-                X_np = apply_noise_batch_vectorised(X_np, noise_config, rng=aug_rng)
+                if input_scaler is not None:
+                    X_np = apply_noise_in_scaled_space(
+                        X_np,
+                        input_scaler,
+                        noise_config,
+                        rng=aug_rng,
+                    )
+                else:
+                    X_np = apply_noise_batch_vectorised(
+                        X_np,
+                        noise_config,
+                        rng=aug_rng,
+                    )
                 X_batch = torch.from_numpy(X_np).float()
 
             X_batch = X_batch.to(device, non_blocking=True)
@@ -569,6 +587,7 @@ def run_grid_search(
                 scheduler_patience=scheduler_patience,
                 scheduler_factor=scheduler_factor,
                 noise_config=noise_config,
+                input_scaler=scaler,
                 severity_range=severity_range,
                 device=device,
                 seed=fold_seed,
@@ -754,7 +773,12 @@ def train_final_model(
                     noise_config.severity = float(
                         aug_rng.uniform(severity_range[0], severity_range[1])
                     )
-                X_np = apply_noise_batch_vectorised(X_np, noise_config, rng=aug_rng)
+                X_np = apply_noise_in_scaled_space(
+                    X_np,
+                    dataset.scaler,
+                    noise_config,
+                    rng=aug_rng,
+                )
                 X_batch = torch.from_numpy(X_np).float()
 
             X_batch = X_batch.to(device, non_blocking=True)
@@ -1059,6 +1083,7 @@ def run_hyperparameter_sensitivity(
                 ds_clean.X_val,
                 ds_clean.y_val,
                 **train_kwargs,
+                input_scaler=ds_clean.scaler,
             )
 
             y_pred_noisy = predict_cnn(model, X_noisy_test_clean_space, device)
@@ -1175,7 +1200,7 @@ def main() -> None:
     if args.mode == "arch-sweep":
         # --- Architecture Sweep Mode ---
         logger.info("Running architecture sweep (focused depth search)...")
-        X, y = load_mat_dataset(data_path, use_noisy=args.noise)
+        X, y = load_mat_dataset(data_path, use_noisy=False)
 
         epochs = args.epochs or 50
         run_architecture_sweep(

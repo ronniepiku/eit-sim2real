@@ -54,7 +54,10 @@ from sklearn.metrics import (
 )
 
 from eit_sim2real.data import NoiseConfig, load_mat_dataset, prepare_splits
-from eit_sim2real.data.noise import apply_noise_batch_vectorised
+from eit_sim2real.data.noise import (
+    apply_noise_batch_vectorised,
+    apply_noise_in_scaled_space,
+)
 from eit_sim2real.evaluate import (
     run_calibration_analysis,
     run_gaussian_only_evaluation,
@@ -356,6 +359,7 @@ def run_experiments(
                             epochs=epochs,
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
+                            input_scaler=ds_clean.scaler,
                             severity_range=DEFAULT_SEVERITY_RANGE,
                             weight_decay=NOISY_CNN_PARAMS["weight_decay"],
                             dropout=NOISY_CNN_PARAMS["dropout"],
@@ -372,6 +376,7 @@ def run_experiments(
                             epochs=epochs,
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
+                            clean_input_scaler=ds_clean.scaler,
                             severity_range=DEFAULT_SEVERITY_RANGE,
                             **MIXED_CNN_PARAMS,
                         )
@@ -559,6 +564,7 @@ def _generate_all_figures(
                             epochs=epochs,
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
+                            clean_input_scaler=ds_clean.scaler,
                             severity_range=DEFAULT_SEVERITY_RANGE,
                             **MIXED_CNN_PARAMS,
                         )
@@ -571,6 +577,7 @@ def _generate_all_figures(
                             epochs=epochs,
                             early_stopping_patience=early_stopping_patience,
                             noise_config=noise_cfg,
+                            input_scaler=ds_clean.scaler,
                             severity_range=DEFAULT_SEVERITY_RANGE,
                             weight_decay=NOISY_CNN_PARAMS["weight_decay"],
                             dropout=NOISY_CNN_PARAMS["dropout"],
@@ -641,6 +648,11 @@ def generate_report(df: pd.DataFrame, output_dir: Path, runtime_s: float) -> Non
     report_lines.append(f"**Models**: {', '.join(df['model'].unique())}")
     report_lines.append(f"**Conditions**: {len(df['condition'].unique())}")
     report_lines.append(f"**Total experiments**: {len(df)}")
+    report_lines.append(
+        "**Metric provenance**: Accuracy and F1 values in this report are "
+        "held-out test metrics aggregated across seeds; validation metrics are "
+        "used only for model selection and early stopping."
+    )
 
     # ── Summary: Best models per condition ──
     report_lines.append("\n---\n## 1. Best Models by Condition\n")
@@ -1017,6 +1029,7 @@ def run_statistical_tests(
                     early_stopping_patience=early_stopping_patience,
                     device=device,
                     noise_config=noise_cfg,
+                    input_scaler=ds_clean.scaler,
                     severity_range=(0.5, 2.0),
                     weight_decay=1e-3,
                     dropout=0.4,
@@ -1221,6 +1234,7 @@ def run_dataset_size_experiment(
             early_stopping_patience=early_stopping_patience,
             device=device,
             noise_config=noise_cfg,
+            input_scaler=ds_clean.scaler,
             severity_range=(0.5, 2.0),
             weight_decay=1e-3,
             dropout=0.4,
@@ -1352,6 +1366,7 @@ def run_noise_type_severity_sweep(
             epochs=epochs,
             early_stopping_patience=early_stopping_patience,
             noise_config=noise_cfg,
+            input_scaler=ds_clean.scaler,
             severity_range=DEFAULT_SEVERITY_RANGE,
             **NOISY_CNN_PARAMS,
         ),
@@ -1364,6 +1379,7 @@ def run_noise_type_severity_sweep(
             epochs=epochs,
             early_stopping_patience=early_stopping_patience,
             noise_config=noise_cfg,
+            clean_input_scaler=ds_clean.scaler,
             severity_range=DEFAULT_SEVERITY_RANGE,
             **MIXED_CNN_PARAMS,
         ),
@@ -1391,7 +1407,13 @@ def run_noise_type_severity_sweep(
             else:
                 sweep_cfg = NoiseConfig(severity=mult)
                 rng = np.random.default_rng(seed)
-                X_test = apply_noise_batch_vectorised(base_test, sweep_cfg, rng=rng)
+                sweep_scaler = ds_noisy.scaler if regime_name == "noisy_fixed" else ds_clean.scaler
+                X_test = apply_noise_in_scaled_space(
+                    base_test,
+                    sweep_scaler,
+                    sweep_cfg,
+                    rng=rng,
+                )
 
             y_pred = predict_cnn(model, X_test)
             acc = float(accuracy_score(ds_clean.y_test, y_pred))
@@ -1676,6 +1698,7 @@ def _run_severity_sweeps(
             epochs=epochs,
             early_stopping_patience=early_stopping_patience,
             noise_config=noise_cfg,
+            input_scaler=ds_clean.scaler,
             severity_range=DEFAULT_SEVERITY_RANGE,
             **NOISY_CNN_PARAMS,
         ),
@@ -1688,6 +1711,7 @@ def _run_severity_sweeps(
             epochs=epochs,
             early_stopping_patience=early_stopping_patience,
             noise_config=noise_cfg,
+            clean_input_scaler=ds_clean.scaler,
             severity_range=DEFAULT_SEVERITY_RANGE,
             **MIXED_CNN_PARAMS,
         ),
@@ -1720,7 +1744,13 @@ def _run_severity_sweeps(
             else:
                 sweep_cfg = NoiseConfig(severity=mult)
                 rng = np.random.default_rng(seed)
-                X_test = apply_noise_batch_vectorised(base_test, sweep_cfg, rng=rng)
+                sweep_scaler = ds_noisy.scaler if regime_name == "noisy_fixed" else ds_clean.scaler
+                X_test = apply_noise_in_scaled_space(
+                    base_test,
+                    sweep_scaler,
+                    sweep_cfg,
+                    rng=rng,
+                )
 
             y_pred = predict_cnn(model, X_test)
             acc = float(accuracy_score(ds_clean.y_test, y_pred))

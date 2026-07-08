@@ -384,3 +384,29 @@ def apply_noise_batch_vectorised(
             raise ValueError(f"Unknown noise component in order: {component}")
 
     return X_noisy.astype(np.float32)
+
+
+def apply_noise_in_scaled_space(
+    X_scaled: np.ndarray,
+    scaler: object,
+    config: NoiseConfig,
+    rng: np.random.Generator | None = None,
+) -> np.ndarray:
+    """Apply physics noise in raw measurement space, then re-scale.
+
+    This helper is for pipelines that keep model inputs in a scaled feature
+    space but want the noise model to operate on the underlying clean voltage
+    vectors, consistent with the MATLAB generation path and methodology.
+
+    Args:
+        X_scaled: Input features already transformed by ``scaler``.
+        scaler: Fitted scaler with ``inverse_transform`` and ``transform``.
+        config: Noise configuration.
+        rng: NumPy random generator for reproducibility.
+
+    Returns:
+        Noisy features transformed back into the same scaled feature space.
+    """
+    X_raw = scaler.inverse_transform(X_scaled)  # type: ignore[attr-defined]
+    X_noisy_raw = apply_noise_batch_vectorised(X_raw, config, rng=rng)
+    return scaler.transform(X_noisy_raw)  # type: ignore[attr-defined]

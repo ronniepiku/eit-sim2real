@@ -177,6 +177,8 @@ The noise model comprises four independently-configurable components, each captu
 
 The noise model is motivated by the observation that real \gls{eit} hardware produces measurements corrupted by multiple concurrent, statistically distinct processes \parencite{adler2006, vilhunen2002, boone1996}. Prior work has modelled at most one component (invariably Gaussian noise) during augmentation \parencite{chen2023, yao2022}. The present model captures the four dominant per-frame distortions identified in Chapter~\ref{ch:literature_review}, each parameterised from values reported in the experimental literature.
 
+In this dissertation, training with all four error sources active simultaneously is termed the \emph{foundational mode}. Formally, the classifier is optimised on the joint corruption distribution rather than on isolated component distributions, so a single model is exposed to the co-occurring error sources expected at deployment. This differs from component-wise training strategies (e.g., train first for contact-impedance effects, then for geometric bias), which can be useful diagnostically but do not by themselves guarantee performance when all errors act together.
+
 Note that temporal drift is deliberately excluded from this model. Drift is a \emph{sequential} phenomenon (baseline shift across measurement frames over minutes to hours) that cannot be meaningfully represented within a single-frame static measurement. Modelling drift as a spatial random walk across channels within one frame (as some prior work has done) is physically incorrect and introduces structured artefacts that do not correspond to real hardware behaviour. Addressing temporal drift requires sequential data and temporal models (e.g., RNNs, online adaptation), which is identified as future work in Chapter~\ref{ch:conclusions}.
 
 The noise model \emph{structure} is material-agnostic: the functional forms---additive Gaussian, multiplicative log-normal per-electrode, additive per-electrode uniform, and uniform quantisation---derive from the physics of the measurement chain and the electrode--substrate interface, not from the specific substrate chemistry. What changes between material platforms is the \emph{parametric magnitude} of each component (e.g.\ $\sigma_z \approx 5\%$ for a rigid elastomer, $>20\%$ for a textile electrode), not the distributional form, so the framework generalises directly to other \gls{eit} substrates with only YAML parameter changes. The sensitivity analysis in Section~\ref{sec:method-noise-sensitivity} validates that classifier conclusions hold across the full physically plausible range for common e-skin materials ($\sigma_z \in [5\%, 25\%]$, $b_{\max} \in [0.005, 0.08]$, SNR $\in [20, 60]$\,dB).
@@ -251,13 +253,16 @@ Quantisation & bits / $V_{\text{range}}$ & 16 / 1.0\,V & Typical EIT ADC specifi
 \end{tabularx}
 \end{table}
 
-The ablation study systematically evaluates three configurations:
+The ablation study systematically evaluates four complementary configurations:
 
 \begin{itemize}
     \item \textbf{Single-component:} Each noise source enabled individually (4 experiments), revealing the isolated contribution of each component.
-    \item \textbf{Leave-one-out:} All components enabled except one (4 experiments), revealing the marginal value of each component when others are present.
     \item \textbf{Full model:} All four components active simultaneously.
+    \item \textbf{Exhaustive subset ablation:} Every non-empty component subset is enumerated, exposing pairwise and higher-order interactions beyond marginal single-component comparisons.
+    \item \textbf{Component-order analysis:} For each subset, all physically admissible orderings are tested subject to the signal-chain constraints described in Section~\ref{sec:method-noise-components}.
 \end{itemize}
+
+The full-model condition is the foundational training regime used for the primary robustness claims; the single-component, subset, and ordering settings are diagnostic experiments used to interpret mechanism, component importance, and interaction effects.
 
 Additionally, a \emph{severity sweep} scales all parameters by multiplicative factors of $0.5$, $1.0$, $1.5$, $2.0$, $2.5$, and $3.0$ to test generalisation beyond training-time noise levels, following the multi-severity paradigm of \textcite{hendrycks2019}.
 
@@ -293,7 +298,7 @@ This fixed 70/15/15 split is used for all primary results (Tables and figures in
 
 Three preprocessing decisions---feature scaling, dimensionality reduction, and duplicate handling---were determined empirically rather than assumed, using a leakage-safe \texttt{RepeatedStratifiedKFold} ($k=5$, $n_{\text{repeats}}=3$) protocol that yields 15 paired evaluations per pipeline. The analysis is implemented in \texttt{notebooks/eda\_analysis.ipynb}; the full decision log (\texttt{data/cleaned/eda\_decision\_log.json}) and supporting tables and figures are reported in Appendix~\ref{app:eda}.
 
-\paragraph{Feature scaling.} All features are normalised using \texttt{RobustScaler} (median subtraction, interquartile-range scaling), fitted \emph{exclusively} on the training split and applied to the validation and test sets to prevent information leakage. \texttt{RobustScaler} was preferred over \texttt{StandardScaler} on empirical grounds: across the 15 paired folds, it achieved a macro-F1 of $0.718 \pm 0.004$ versus $0.713 \pm 0.004$ for \texttt{StandardScaler}---a small absolute gain but \emph{consistent} across every fold, yielding a large effect size (Cohen's $d = 2.29$, Wilcoxon signed-rank $p < 0.001$). This consistency reflects the heavy-tailed feature distributions produced by the multiplicative contact-impedance and per-electrode bias components of the noise model, against which median-based statistics are more stable than mean/standard-deviation estimates.
+\paragraph{Feature scaling.} All features are normalised using \texttt{RobustScaler} (median subtraction, interquartile-range scaling), fitted \emph{exclusively} on the training split and applied to the validation and test sets to prevent information leakage. \texttt{RobustScaler} was preferred over \texttt{StandardScaler} on empirical grounds: across the 15 paired folds, it achieved a macro-F1 of $0.718 \pm 0.004$ versus $0.713 \pm 0.004$ for \texttt{StandardScaler}---a small absolute gain but \emph{consistent} across every fold, yielding a large effect size (Cohen's $d = 2.29$, Wilcoxon signed-rank $p < 0.001$). This consistency reflects the heavy-tailed feature distributions produced by the multiplicative contact-impedance and per-electrode bias components of the noise model, against which median-based statistics are more stable than mean/standard-deviation estimates. When synthetic noise is injected on the Python side (for augmentation, ablation, and robustness sweeps), perturbations are applied in the underlying raw voltage space and the result is then re-transformed with the training-fitted scaler, preserving the physical interpretation of the noise model while keeping all model inputs in a consistent feature space.
 
 \paragraph{Dimensionality reduction.} The full 208-dimensional voltage vector is retained for all primary experiments. Two reduction strategies were tested and rejected: correlation pruning at $\rho = 0.75$ reduced macro-F1 by 3.5\,pp ($0.683 \pm 0.007$, $p < 0.001$ vs.\ baseline), and \gls{pca} retaining 95.3\% variance (7~components) reduced macro-F1 by 4.5\,pp ($0.673 \pm 0.005$). The penalty arises because adjacent entries of the voltage vector correspond to spatially neighbouring electrode pairs; the 1D-CNN's convolutional filters exploit this spatial adjacency, and any aggressive reduction destroys the local structure on which it relies. Pre-computed \gls{pca}, \gls{lda}, and UMAP exports are nevertheless retained in \texttt{data/cleaned/} for comparison and visualisation purposes.
 
@@ -366,7 +371,7 @@ The CNN is trained using the Adam optimiser \parencite{kingma2015adam} with lear
     \item \textbf{Early stopping.} Training halts after 40 consecutive epochs without validation loss improvement \parencite{prechelt1998early}. The best model (minimum validation loss) is always retained.
 \end{enumerate}
 
-For noise-augmented training, label smoothing ($\epsilon = 0.05$) \parencite{muller2019labelsmooth} and increased dropout ($p = 0.4$) \parencite{srivastava2014dropout} are additionally applied to complement noise augmentation as a regularisation strategy. Online domain randomisation \parencite{tobin2017} is implemented by sampling new noise at each epoch, on the hypothesis that exposure to diverse noise realisations during training should improve generalisation to fixed noise at test time.
+For noise-augmented training, label smoothing ($\epsilon = 0.05$) \parencite{muller2019labelsmooth} and increased dropout ($p = 0.4$) \parencite{srivastava2014dropout} are additionally applied to complement noise augmentation as a regularisation strategy. Online domain randomisation \parencite{tobin2017} is implemented by sampling fresh noise draws throughout training (at batch granularity in the final code path), with perturbations applied in raw voltage space before re-scaling into the model input space. The hypothesis remains that exposure to diverse noise realisations during training should improve generalisation to fixed noise at test time.
 
 The loss function is cross-entropy over the five classes:
 \begin{equation}
@@ -428,6 +433,8 @@ Two primary metrics are reported:
 
 Per-class precision, recall, and F1 are additionally reported in confusion matrices to identify class-specific vulnerabilities (e.g., whether noise disproportionately affects classes with small spatial footprint).
 
+Unless explicitly stated otherwise, the headline values reported in Chapter~\ref{ch:results} are computed on the held-out test split; validation metrics are used only for learning-rate scheduling, early stopping, and model selection.
+
 \subsection{Statistical Testing}
 \label{sec:method-stats}
 
@@ -451,16 +458,16 @@ Following the multi-severity paradigm of \textcite{hendrycks2019}, trained model
 The ablation study isolates the contribution of each noise component, and the sensitivity of the conclusions to component ordering, through four complementary designs:
 
 \begin{enumerate}
+    \item \textbf{Core mismatch conditions}: the same clean$\to$clean, clean$\to$noisy, noisy$\to$noisy, and noisy$\to$clean matrix used in the main experiments, but instantiated within the Python-side ablation pipeline so that the full multi-component configuration can be compared directly against the ablation variants.
+
     \item \textbf{Single-component training}: four experiments, each training with only one noise component active. This isolates the standalone robustness benefit of each component.
 
-    \item \textbf{Leave-one-out training}: four experiments, each training with all components except one. This reveals which component is most \emph{missed} when removed from the full ensemble.
-
-    \item \textbf{Exhaustive subset ablation}: every non-empty subset of the four components is enumerated, covering all $2^4 - 1 = 15$ combinations (single-component, pairs, leave-one-out, and the full model). This exposes interactions between components that neither marginal design captures, e.g.\ whether two components together produce more (or less) robustness than the sum of their individual effects.
+    \item \textbf{Exhaustive subset ablation}: every non-empty subset of the four components is enumerated, covering all $2^4 - 1 = 15$ combinations (single-component, pairs, triples, and the full model). This exposes interactions between components that marginal single-component analysis cannot capture, e.g.\ whether two components together produce more (or less) robustness than the sum of their individual effects.
 
     \item \textbf{Component-order ablation}: within each subset, the application order is varied across all physically admissible permutations under two constraints---quantisation is always applied last (it represents \gls{adc} digitisation, which terminates the signal chain), and contact-impedance precedes electrode-bias (the multiplicative interface effect physically precedes additive geometric error). This tests whether the conclusions are sensitive to the ordering choice fixed in Section~\ref{sec:method-noise-components}.
 \end{enumerate}
 
-All ablation experiments are evaluated on test data corrupted with the \emph{full} four-component noise model, ensuring that robustness is assessed against the most realistic degradation scenario. This design choice means that single-component and partial-subset models face a domain mismatch at test time---directly measuring whether exposure to a \emph{subset} of real-world noise provides partial protection against the full distribution.
+For the core mismatch conditions, noisy evaluation uses the full four-component corruption to preserve comparability with the main robustness matrix. For single-component, subset, and ordering studies, training and evaluation use the same active component configuration, isolating the contribution of that component set without introducing an additional full-noise test mismatch. Comparisons to the full four-component model are therefore interpreted as \emph{relative} diagnostics of mechanism and interaction rather than as direct substitutes for the headline main-grid figures.
 
 Beyond accuracy and macro-F1 under the four-condition matrix, five further analyses interrogate \emph{how} and \emph{why} the augmentation effect arises and \emph{whether} it survives perturbations to the design choices: confidence calibration (Section~\ref{sec:method-calibration}), per-class robustness profiling (Section~\ref{sec:method-perclass}), formal domain-gap quantification (Section~\ref{sec:method-domaingap}), and sensitivity to both noise (Section~\ref{sec:method-noise-sensitivity}) and training (Section~\ref{sec:method-hp-sensitivity}) hyperparameters. The latter two in particular underwrite the methodological claims made earlier in this chapter: that the literature-derived noise parameters (Section~\ref{sec:method-noise-summary}) and fixed training hyperparameters (Section~\ref{sec:method-training-baselines}) are not load-bearing to the conclusions.
 

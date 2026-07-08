@@ -9,6 +9,8 @@ The sense of touch underpins safe manipulation, environmental hazard detection, 
 
 Electronic skin (e-skin) systems aim to replicate this distributed sensing in flexible, large-area substrates \parencite{hammock2013, chortos2016, lee2020}. Among candidate modalities, \gls{eit} has emerged as particularly attractive for prosthetic applications because a small number of boundary electrodes can interrogate the entire substrate, eliminating the dense internal wiring required by discrete sensor arrays \parencite{silvera-tawil2015, chen2023}. \gls{eit} reconstructs internal conductivity distributions from boundary voltage measurements \parencite{cheney1999, adler2006}; in ionic hydrogel substrates, applied force produces a characteristic perturbation in the measured voltage vector \parencite{lee2019, yao2022}.
 
+Hydrogel layers used in isolation are mechanically fragile and can degrade rapidly under repeated loading. Recent work shows that silicone-encapsulated, lattice-structured hydrogel \gls{eit} skins can improve short-horizon durability and sensitivity by protecting the conductive medium while concentrating current flow through designed channels \parencite{dong2025lattice}. However, these structural changes also modify baseline electric-field distributions, meaning hardware-driven gains can be confounded with algorithmic gains unless sensor morphology is controlled.
+
 Recent machine learning work has demonstrated that direct classification of these voltage vectors can achieve high accuracy on simulated tactile tasks \parencite{yao2022, chen2023}, suggesting \gls{eit} skins could provide clinically meaningful tactile feedback. However, these accuracies are achieved under idealised conditions with single-component or no noise augmentation, leaving a substantial gap between controlled demonstrations and the conditions encountered in real prosthetic deployment \parencite{jiang2023}.
 
 \section{The Simulation-to-Reality Challenge}
@@ -19,7 +21,9 @@ This deployment gap is the well-known \emph{simulation-to-reality} problem: mode
 \section{Research Gap}
 \label{sec:intro-gap}
 
-Chapter~\ref{ch:literature_review} identifies five interconnected gaps that collectively limit progress toward deployable \gls{eit} tactile systems---spanning simplistic noise models, the absence of systematic robustness evaluation, missing component-wise ablation, no calibration or domain-gap quantification, and the lack of a standardised benchmark (Table~\ref{tab:gaps-summary})---which no prior work addresses within a unified framework.
+Chapter~\ref{ch:literature_review} identifies several interconnected gaps that collectively limit progress toward deployable \gls{eit} tactile systems---spanning simplistic noise models, the absence of systematic robustness evaluation, missing component-wise ablation, no calibration or domain-gap quantification, and the lack of a standardised benchmark (Table~\ref{tab:gaps-summary})---which no prior work addresses within a unified framework.
+
+A further methodological gap concerns \emph{training regime design}: existing studies either use single-noise augmentation or analyse components in isolation, but do not treat simultaneous multi-error training as the primary benchmark. This dissertation addresses that gap by adopting a foundational mode in which all dominant error sources are present jointly during training, with component-wise experiments retained for diagnostic ablation only.
 
 \section{Research Aims and Objectives}
 \label{sec:intro-aims}
@@ -83,6 +87,8 @@ The following scope constraints define the boundaries of this investigation:
     \item \textbf{Static single-frame classification.} Each sample represents an instantaneous measurement frame, meaning temporal dynamics are not modelled. This bounds the problem to the most common formulation in the \gls{eit} classification literature \parencite{yao2022, chen2023}, while temporal extensions are identified as future work.
     
     \item \textbf{2D geometry.} The forward model uses a 2D circular cross-section rather than a 3D volume. This is computationally necessary for 25{,}000 forward solves and consistent with prior \gls{eit} classification work \parencite{chen2023, lee2019}, though it limits direct applicability to cylindrical prosthetic geometries.
+
+    \item \textbf{No sensor morphology optimisation.} This dissertation intentionally uses a conventional hydrogel geometry rather than lattice-structured silicone encapsulation designs \parencite{dong2025lattice}. The rationale is methodological: keeping hardware morphology fixed isolates robustness improvements attributable to noise-aware learning, instead of conflating them with sensor-structure effects.
     
     \item \textbf{Five-class taxonomy.} The class definitions represent archetypal prosthetic interactions but do not exhaustively cover all possible tactile events (e.g., shear, vibration, thermal contact). The taxonomy is informed by \textcite{silvera-tawil2012eit} and \textcite{yao2022}.
 \end{itemize}

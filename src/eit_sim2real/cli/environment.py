@@ -10,8 +10,8 @@ import click
     default="results/environment.json",
     help="Output JSON path.",
 )
-def log_environment() -> None:
+def log_environment(output: str) -> None:
     """Log current environment details to JSON."""
     from eit_sim2real.log_environment import main as log_main
 
-    log_main()
+    log_main(["--output", output])
