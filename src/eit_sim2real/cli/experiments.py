@@ -85,6 +85,8 @@ def run_all(
         logger.info("1. GRID EXPERIMENTS - Model x Dataset x Condition")
         logger.info("=" * 70)
         try:
+            old_argv = sys.argv
+            sys.argv = [sys.argv[0]]
             from eit_sim2real.experiments.grid import main as grid_main
 
             grid_main()
@@ -92,6 +94,8 @@ def run_all(
         except Exception:
             logger.exception("Grid experiments failed")
             experiments_failed.append("grid")
+        finally:
+            sys.argv = old_argv
 
     # 2. Ablation study
     if not skip_ablation:
