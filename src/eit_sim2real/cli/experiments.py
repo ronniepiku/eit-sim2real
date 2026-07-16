@@ -50,6 +50,11 @@ def experiments() -> None:
     is_flag=True,
     help="Include mesh refinement study (requires fine-mesh dataset).",
 )
+@click.option(
+    "--skip-consistency-gate",
+    is_flag=True,
+    help="Skip cross-report benchmark consistency validation.",
+)
 def run_all(
     config: str | None,
     skip_grid: bool,
@@ -59,6 +64,7 @@ def run_all(
     skip_extended: bool,
     skip_additional: bool,
     include_mesh_refinement: bool,
+    skip_consistency_gate: bool,
 ) -> None:
     """Run all experiments in the project.\n\n
     By default, runs: grid, ablation, hyperopt, architecture-sweep, and extended.
@@ -87,6 +93,8 @@ def run_all(
         try:
             old_argv = sys.argv
             sys.argv = [sys.argv[0]]
+            if skip_consistency_gate:
+                sys.argv.append("--skip-consistency-gate")
             from eit_sim2real.experiments.grid import main as grid_main
 
             grid_main()
@@ -194,7 +202,7 @@ def run_all(
         try:
             from eit_sim2real.experiments.additional import main as additional_main
 
-            additional_main()
+            additional_main([])
             experiments_run.append("additional")
         except Exception:
             logger.exception("Additional experiments failed")
@@ -297,7 +305,7 @@ def additional() -> None:
     """Run additional memorisation experiments (fixed-bias, different-draw)."""
     from eit_sim2real.experiments.additional import main as additional_main
 
-    additional_main()
+    additional_main([])
 
 
 @experiments.command("architecture-sweep")
@@ -579,6 +587,12 @@ def extended_cmd(
     help="Override epochs (default: from training.epochs in config for grid-search).",
 )
 @click.option(
+    "--objective",
+    type=click.Choice(["noisy_f1", "noisy_accuracy", "robustness"]),
+    default=None,
+    help="Grid-search optimisation objective (default: from config).",
+)
+@click.option(
     "--resume",
     is_flag=True,
     help="Resume grid search from checkpoint (grid-search only).",
@@ -597,6 +611,7 @@ def hyperopt(
     output_dir: str | None,
     n_folds: int,
     epochs: int | None,
+    objective: str | None,
     resume: bool,
     final_only: bool,
     seed: int | None,
@@ -627,6 +642,8 @@ def hyperopt(
         sys_argv.extend(["--n-folds", str(n_folds)])
     if epochs is not None:
         sys_argv.extend(["--epochs", str(epochs)])
+    if objective is not None:
+        sys_argv.extend(["--objective", objective])
     if resume:
         sys_argv.append("--resume")
     if final_only:

@@ -586,7 +586,7 @@ def run_experiment_2_different_draw():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def main():
+def main(argv: list[str] | None = None):
     parser = argparse.ArgumentParser(
         description="Run additional dissertation experiments (fixed-bias & different-draw)."
     )
@@ -596,7 +596,7 @@ def main():
         default="both",
         help="Which experiment(s) to run. Default: both.",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     results = {}
 

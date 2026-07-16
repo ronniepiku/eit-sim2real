@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import json
 import logging
+from csv import DictReader
 from pathlib import Path
 from typing import Any
 
@@ -98,9 +99,35 @@ def _load_cnn(model_path: Path, n_features: int) -> EITConv1D:
             "Run the main experiment grid first to produce trained CNNs."
         )
     model = EITConv1D(n_features=n_features, n_classes=NUM_CLASSES)
-    model.load_state_dict(torch.load(model_path, weights_only=True))
+    checkpoint = torch.load(model_path, weights_only=True)
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        state_dict = checkpoint["model_state_dict"]
+    else:
+        state_dict = checkpoint
+    model.load_state_dict(state_dict)
     model.eval()
     return model
+
+
+def _load_reference_noisy_accuracy(report_dir: Path) -> float | None:
+    """Load raw/cnn1d noisy->noisy reference accuracy from all_results.csv."""
+    csv_path = report_dir / "all_results.csv"
+    if not csv_path.exists():
+        return None
+
+    with open(csv_path, encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            if (
+                row.get("dataset") == "raw"
+                and row.get("model") == "cnn1d"
+                and row.get("condition") == "noisy_train_noisy_eval"
+            ):
+                try:
+                    return float(row["accuracy_mean"])
+                except (TypeError, ValueError, KeyError):
+                    return None
+    return None
 
 
 def run_mesh_refinement_evaluation(
@@ -264,6 +291,23 @@ def run_mesh_refinement_evaluation(
             ),
         },
     }
+
+    reference_acc = _load_reference_noisy_accuracy(Path("results/reports"))
+    if reference_acc is not None:
+        delta = float(in_mesh_noisy["accuracy"] - reference_acc)
+        summary["protocol_consistency"] = {
+            "reference_report": "results/reports/all_results.csv",
+            "reference_metric": "raw/cnn1d/noisy_train_noisy_eval accuracy_mean",
+            "reference_accuracy": reference_acc,
+            "mesh_in_mesh_accuracy": float(in_mesh_noisy["accuracy"]),
+            "delta_in_mesh_minus_reference": delta,
+        }
+        logger.info(
+            "Protocol consistency check: in-mesh noisy accuracy %.4f vs report reference %.4f (delta %+0.4f)",
+            in_mesh_noisy["accuracy"],
+            reference_acc,
+            delta,
+        )
 
     # Optional control: clean CNN on the fine-mesh noisy test set.
     if clean_model_path is not None and X_fine_clean is not None:

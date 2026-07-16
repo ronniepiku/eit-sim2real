@@ -47,6 +47,7 @@ from eit_sim2real.data.noise import (
     apply_noise_batch_vectorised,
     apply_noise_in_scaled_space,
 )
+from eit_sim2real.experiments.protocols import NOISY_CNN_PARAMS
 from eit_sim2real.models import get_baseline, train_baseline
 from eit_sim2real.models.cnn1d import EITConv1D
 from eit_sim2real.train import train_cnn
@@ -512,6 +513,11 @@ def generate_ablation_report(
         "metrics from the ablation runs; validation accuracy is used only during "
         "training and is not the headline result."
     )
+    lines.append(
+        "**Evidence tiering**: Core mismatch conditions are confirmatory and are "
+        "aligned to the main grid protocol. Component isolation, ordering, and "
+        "severity sweeps are exploratory mechanism analyses."
+    )
 
     # ── 1. Core mismatch ──
     lines.append("\n---\n## 1. Core Mismatch Conditions\n")
@@ -807,6 +813,9 @@ def run_ablation(
             if eval_data == "clean":
                 X_te = dataset_clean.X_test
                 y_te = dataset_clean.y_test
+            elif eval_data == "noisy_matlab":
+                X_te = dataset_noisy.X_test
+                y_te = dataset_noisy.y_test
             elif eval_data == "noisy":
                 eval_rng = np.random.default_rng(current_seed + 999)
                 eval_noise_cfg = noise_cfg if noise_cfg is not None else full_noise
@@ -831,6 +840,21 @@ def run_ablation(
                     early_stopping_patience=early_stopping_patience,
                     device=device,
                     noise_config=train_noise_cfg,
+                    weight_decay=(
+                        NOISY_CNN_PARAMS["weight_decay"]
+                        if description in ("train_noisy_eval_noisy", "train_noisy_eval_clean")
+                        else 1e-4
+                    ),
+                    dropout=(
+                        NOISY_CNN_PARAMS["dropout"]
+                        if description in ("train_noisy_eval_noisy", "train_noisy_eval_clean")
+                        else 0.3
+                    ),
+                    label_smoothing=(
+                        NOISY_CNN_PARAMS["label_smoothing"]
+                        if description in ("train_noisy_eval_noisy", "train_noisy_eval_clean")
+                        else 0.0
+                    ),
                     input_scaler=(
                         dataset_clean.scaler if train_noise_cfg is not None else None
                     ),
@@ -884,8 +908,8 @@ def run_ablation(
         for train_data, eval_data, noise_cfg, desc in [
             ("clean", "clean", None, "train_clean_eval_clean"),
             ("clean", "noisy", None, "train_clean_eval_noisy"),
-            ("noisy_python", "noisy", full_noise, "train_noisy_eval_noisy"),
-            ("noisy_python", "clean", full_noise, "train_noisy_eval_clean"),
+            ("noisy_matlab", "noisy_matlab", None, "train_noisy_eval_noisy"),
+            ("noisy_matlab", "clean", None, "train_noisy_eval_clean"),
         ]:
             r = _run_experiment(train_data, eval_data, noise_cfg, desc)
             all_seed_results.setdefault(desc, []).append(r)
