@@ -231,21 +231,28 @@ Includes:
 - Fixed-bias experiment (memorization when class distribution is biased)
 - Different-draw experiment (out-of-distribution test)
 
-##### `mesh-refinement` — Cross-Mesh Evaluation
+##### `mesh-refinement` — Mesh Training + Cross-Evaluation
 
-Evaluate models trained on one mesh on data from a finer mesh.
+Train one noisy CNN on each of the c/d/f mesh datasets using the same
+protocol, then evaluate all trained models on all three test splits.
 
 ```bash
-# Requires fine-mesh dataset
+# Default datasets: c = data/eit_dataset_mesh_c.mat,
+# d = data/eit_dataset.mat, f = data/eit_dataset_mesh_f.mat
 eit experiments mesh-refinement
 
 # Custom paths
 eit experiments mesh-refinement \
-  --baseline-dataset data/eit_dataset.mat \
-  --fine-mesh-dataset data/eit_dataset_mesh_f.mat \
-  --noisy-model results/models/cnn1d_noisy_best.pt \
-  --clean-model results/models/cnn1d_clean_best.pt
+   --coarse-dataset data/eit_dataset_mesh_c.mat \
+   --baseline-dataset data/eit_dataset.mat \
+   --fine-mesh-dataset data/eit_dataset_mesh_f.mat
 ```
+
+Outputs:
+- `results/additional_experiments/mesh_refinement/results.json`
+- `results/additional_experiments/mesh_refinement/tables/mesh_study_summary.csv`
+- `results/additional_experiments/mesh_refinement/figures/`
+- `results/models/mesh_refinement/`
 
 ### `eit validate-dataset` — Dataset Validation
 

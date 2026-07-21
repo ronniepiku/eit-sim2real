@@ -431,7 +431,7 @@ def run_architecture_sweep(
             f"channels={hparams.channels} ({len(hparams.channels)} blocks)"
         )
 
-        clean_f1, _, epochs_used, n_params = train_fold(
+        clean_f1, _, _, epochs_used, n_params = train_fold(
             hparams=hparams,
             X_train=X_train_dev,
             y_train=y_train_dev,
@@ -444,7 +444,9 @@ def run_architecture_sweep(
             scheduler_patience=scheduler_patience,
             scheduler_factor=scheduler_factor,
             noise_config=None,
+            input_scaler=None,
             severity_range=None,
+            early_stopping_on_noisy=False,
             device=device,
             seed=seed,
         )

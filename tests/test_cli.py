@@ -86,6 +86,15 @@ class TestExperimentsCLI:
         assert "additional" in result.output
         assert "hyperopt" in result.output
         assert "architecture-sweep" in result.output
+        assert "mesh-refinement" in result.output
+
+    def test_mesh_refinement_help(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(cli, ["experiments", "mesh-refinement", "--help"])
+        assert result.exit_code == 0
+        assert "--coarse-dataset" in result.output
+        assert "--baseline-dataset" in result.output
+        assert "--fine-mesh-dataset" in result.output
 
     def test_ablation_help(self) -> None:
         runner = CliRunner()
