@@ -84,10 +84,10 @@ architecture_sweep:
 # Hyperparameter optimisation uaing grid search
 hyperparameter_optimisation:
   n_folds: 3
-  epochs_per_trial: 100
-  final_model_epochs: 150
-  final_early_stopping_patience: 30
-  objective: "robustness"  # Harmonic mean of clean-F1 and noisy-F1
+  epochs_per_trial: 200
+  final_model_epochs: 200
+  final_early_stopping_patience: 40
+  objective: "noisy_accuracy"  # Primary protocol: optimise raw noisy->noisy accuracy
   search_space:
     channels:
       - [32, 64, 128]

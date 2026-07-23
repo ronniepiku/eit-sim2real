@@ -190,6 +190,7 @@ Noise parameter sensitivity testing (SNR: 20--60\,dB; contact impedance $\sigma$
 \label{sec:res-memorisation}
 
 Two additional experiments directly test whether the Noisy$\to$Noisy CNN has learned genuine noise accommodation or merely memorised the training-set noise distribution.
+These analyses should be interpreted as exploratory diagnostics rather than primary benchmark estimates, since they do not yet use the full multi-seed protocol applied to the main condition matrix and ablation tables.
 
 \paragraph{Different noise draw test.} The trained noisy-domain CNN was evaluated on multiple independently-generated noisy test sets (same parametric noise distribution, different random realisations). Accuracy remained highly stable at $75.8\% \pm 0.2\%$ across alternative noise draws, compared with $80.1\%$ on the original MATLAB-generated test set---a modest $-4.3$pp difference attributable to the slight distributional gap between the MATLAB and Python noise implementations rather than to memorisation. Since each alternative test set uses entirely different electrode bias realisations, contact impedance factors, and Gaussian noise instances, the negligible variance across draws (std $= 0.2\%$) provides direct empirical evidence that the model generalises across noise instances rather than memorising specific bias patterns from the training data. The model has learned distributional noise accommodation---recognising the \emph{statistical structure} of multi-component noise---rather than memorising particular noise vectors.
 

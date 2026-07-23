@@ -66,6 +66,7 @@ from eit_sim2real.evaluate import (
 )
 from eit_sim2real.experiments.ablation import generate_ablation_report, run_ablation
 from eit_sim2real.experiments.hyperopt import run_hyperparameter_sensitivity
+from eit_sim2real.experiments.protocols import MIXED_CNN_PARAMS, NOISY_CNN_PARAMS
 from eit_sim2real.models import get_baseline, train_baseline
 from eit_sim2real.train import train_cnn, train_cnn_mixed
 from eit_sim2real.utils import get_device, predict_cnn, rescale_cross_condition
@@ -98,20 +99,6 @@ CNN_EXTENDED_CONDITIONS = [
     ("mixed_train_noisy_eval", "mixed", "noisy"),
     ("mixed_train_clean_eval", "mixed", "clean"),
 ]
-
-# Training hyperparameters for noisy/augmented/mixed conditions
-NOISY_CNN_PARAMS = {
-    "weight_decay": 1e-3,
-    "dropout": 0.4,
-    "label_smoothing": 0.05,
-}
-
-MIXED_CNN_PARAMS = {
-    "weight_decay": 1e-3,
-    "dropout": 0.4,
-    "label_smoothing": 0.05,
-    "clean_ratio": 0.3,
-}
 
 DEFAULT_SEVERITY_RANGE = (0.5, 2.0)
 
@@ -653,6 +640,11 @@ def generate_report(df: pd.DataFrame, output_dir: Path, runtime_s: float) -> Non
         "held-out test metrics aggregated across seeds; validation metrics are "
         "used only for model selection and early stopping."
     )
+    report_lines.append(
+        "**Evidence tiering**: Sections 1-4 are confirmatory benchmarks under "
+        "the shared primary protocol. Extended analyses are exploratory and "
+        "should not replace headline benchmark values."
+    )
 
     # ── Summary: Best models per condition ──
     report_lines.append("\n---\n## 1. Best Models by Condition\n")
@@ -892,6 +884,61 @@ def generate_report(df: pd.DataFrame, output_dir: Path, runtime_s: float) -> Non
     logger.info(f"Report saved to {report_path}")
 
 
+def run_consistency_gate(output_dir: Path, tolerance_pp: float = 3.0) -> None:
+    """Check that overlapping benchmark metrics agree across report pipelines."""
+    all_results_path = output_dir / "all_results.csv"
+    ablation_seed_path = output_dir / "ablation_per_seed_results.csv"
+
+    if not all_results_path.exists() or not ablation_seed_path.exists():
+        logger.warning(
+            "Consistency gate skipped: required report artifacts are missing."
+        )
+        return
+
+    df_main = pd.read_csv(all_results_path)
+    df_ablation = pd.read_csv(ablation_seed_path)
+
+    main_row = df_main[
+        (df_main["dataset"] == "raw")
+        & (df_main["model"] == "cnn1d")
+        & (df_main["condition"] == "noisy_train_noisy_eval")
+    ]
+    ablation_rows = df_ablation[df_ablation["description"] == "train_noisy_eval_noisy"]
+
+    if main_row.empty or ablation_rows.empty:
+        logger.warning(
+            "Consistency gate skipped: comparison rows are not present in outputs."
+        )
+        return
+
+    main_acc = float(main_row.iloc[0]["accuracy_mean"])
+    main_std = float(main_row.iloc[0]["accuracy_std"])
+    main_n = int(main_row.iloc[0].get("n_seeds", 1))
+
+    abl_acc = float(ablation_rows["test_acc"].mean())
+    abl_std = float(ablation_rows["test_acc"].std(ddof=0))
+    abl_n = int(len(ablation_rows))
+
+    main_ci_half = 1.96 * (main_std / max(main_n, 1) ** 0.5)
+    abl_ci_half = 1.96 * (abl_std / max(abl_n, 1) ** 0.5)
+    main_ci = (main_acc - main_ci_half, main_acc + main_ci_half)
+    abl_ci = (abl_acc - abl_ci_half, abl_acc + abl_ci_half)
+
+    delta_pp = abs(main_acc - abl_acc) * 100.0
+    ci_overlap = not (main_ci[1] < abl_ci[0] or abl_ci[1] < main_ci[0])
+
+    logger.info(
+        "Consistency gate raw/cnn1d noisy->noisy: "
+        f"main={main_acc:.4f}, ablation={abl_acc:.4f}, |Δ|={delta_pp:.2f}pp"
+    )
+
+    if delta_pp > tolerance_pp and not ci_overlap:
+        raise RuntimeError(
+            "Consistency gate failed for raw/cnn1d noisy->noisy. "
+            "Benchmark mismatch suggests protocol drift or stale artifacts."
+        )
+
+
 # ── CLI ───────────────────────────────────────────────────────────────
 
 
@@ -950,6 +997,11 @@ def parse_args() -> argparse.Namespace:
         "--skip-extended",
         action="store_true",
         help="Skip extended experiments (stats, dataset size, severity, etc.).",
+    )
+    parser.add_argument(
+        "--skip-consistency-gate",
+        action="store_true",
+        help="Skip cross-report benchmark consistency validation.",
     )
     return parser.parse_args()
 
@@ -1015,9 +1067,9 @@ def run_statistical_tests(
                     epochs=epochs,
                     early_stopping_patience=early_stopping_patience,
                     device=device,
-                    weight_decay=1e-3,
-                    dropout=0.4,
-                    label_smoothing=0.05,
+                    weight_decay=NOISY_CNN_PARAMS["weight_decay"],
+                    dropout=NOISY_CNN_PARAMS["dropout"],
+                    label_smoothing=NOISY_CNN_PARAMS["label_smoothing"],
                 )
             elif train_key == "augmented":
                 model, _ = train_cnn(
@@ -1031,9 +1083,9 @@ def run_statistical_tests(
                     noise_config=noise_cfg,
                     input_scaler=ds_clean.scaler,
                     severity_range=(0.5, 2.0),
-                    weight_decay=1e-3,
-                    dropout=0.4,
-                    label_smoothing=0.05,
+                    weight_decay=NOISY_CNN_PARAMS["weight_decay"],
+                    dropout=NOISY_CNN_PARAMS["dropout"],
+                    label_smoothing=NOISY_CNN_PARAMS["label_smoothing"],
                 )
 
             if eval_key == "clean":
@@ -1236,9 +1288,9 @@ def run_dataset_size_experiment(
             noise_config=noise_cfg,
             input_scaler=ds_clean.scaler,
             severity_range=(0.5, 2.0),
-            weight_decay=1e-3,
-            dropout=0.4,
-            label_smoothing=0.05,
+            weight_decay=NOISY_CNN_PARAMS["weight_decay"],
+            dropout=NOISY_CNN_PARAMS["dropout"],
+            label_smoothing=NOISY_CNN_PARAMS["label_smoothing"],
         )
         y_pred_aug = predict_cnn(model_aug, X_noisy_test_in_clean_space, device)
         acc_aug = float(accuracy_score(ds_noisy.y_test, y_pred_aug))
@@ -1637,6 +1689,9 @@ def main() -> None:
     # Generate report
     total_time = time.time() - start_time
     generate_report(df, args.output_dir, total_time)
+
+    if not args.skip_consistency_gate:
+        run_consistency_gate(args.output_dir)
 
     logger.info("\n" + "=" * 70)
     logger.info(f"ALL EXPERIMENTS COMPLETE — {total_time / 60:.1f} minutes total")

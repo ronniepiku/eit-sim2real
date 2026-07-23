@@ -131,10 +131,13 @@ class TrialResult:
     config: HParamConfig
     fold_clean_f1: list[float] = field(default_factory=list)
     fold_noisy_f1: list[float] = field(default_factory=list)
+    fold_noisy_acc: list[float] = field(default_factory=list)
     fold_robustness: list[float] = field(default_factory=list)
     mean_clean_f1: float = 0.0
     mean_noisy_f1: float = 0.0
+    mean_noisy_acc: float = 0.0
     mean_robustness: float = 0.0
+    objective_score: float = 0.0
     std_robustness: float = 0.0
     training_time_s: float = 0.0
     n_params: int = 0
@@ -145,6 +148,9 @@ class TrialResult:
         self.mean_clean_f1 = float(np.mean(self.fold_clean_f1))
         self.mean_noisy_f1 = (
             float(np.mean(self.fold_noisy_f1)) if self.fold_noisy_f1 else 0.0
+        )
+        self.mean_noisy_acc = (
+            float(np.mean(self.fold_noisy_acc)) if self.fold_noisy_acc else 0.0
         )
         self.mean_robustness = (
             float(np.mean(self.fold_robustness))
@@ -201,9 +207,10 @@ def train_fold(
     noise_config: NoiseConfig | None,
     input_scaler: object | None,
     severity_range: tuple[float, float] | None,
+    early_stopping_on_noisy: bool,
     device: torch.device,
     seed: int,
-) -> tuple[float, float, int, int]:
+) -> tuple[float, float, float, int, int]:
     """Train a single fold and return (clean_f1, noisy_f1, epochs_used, n_params).
 
     Args:
@@ -225,7 +232,7 @@ def train_fold(
         seed: Random seed.
 
     Returns:
-        Tuple of (clean_macro_f1, noisy_macro_f1, epochs_trained, n_params).
+        Tuple of (clean_macro_f1, noisy_macro_f1, noisy_accuracy, epochs_trained, n_params).
     """
     set_seeds(seed)
     n_features = X_train.shape[1]
@@ -303,11 +310,16 @@ def train_fold(
             loss.backward()
             optimizer.step()
 
-        # --- Validation (on clean for early stopping) ---
+        # --- Validation (domain chosen by protocol for early stopping) ---
         model.eval()
         val_loss = 0.0
         with torch.no_grad():
-            X_val_t = torch.from_numpy(X_val_clean).float().to(device)
+            val_features = (
+                X_val_noisy
+                if (early_stopping_on_noisy and X_val_noisy is not None)
+                else X_val_clean
+            )
+            X_val_t = torch.from_numpy(val_features).float().to(device)
             y_val_t = torch.from_numpy(y_val).long().to(device)
             logits = model(X_val_t)
             val_loss = criterion(logits, y_val_t).item()
@@ -342,10 +354,12 @@ def train_fold(
             X_noisy_t = torch.from_numpy(X_val_noisy).float().to(device)
             preds_noisy = model(X_noisy_t).argmax(dim=1).cpu().numpy()
             noisy_f1 = f1_score(y_val, preds_noisy, average="macro")
+            noisy_acc = accuracy_score(y_val, preds_noisy)
         else:
             noisy_f1 = clean_f1
+            noisy_acc = accuracy_score(y_val, preds_clean)
 
-    return float(clean_f1), float(noisy_f1), epochs_trained, n_params
+    return float(clean_f1), float(noisy_f1), float(noisy_acc), epochs_trained, n_params
 
 
 # ---------------------------------------------------------------------------
@@ -417,7 +431,7 @@ def run_architecture_sweep(
             f"channels={hparams.channels} ({len(hparams.channels)} blocks)"
         )
 
-        clean_f1, _, epochs_used, n_params = train_fold(
+        clean_f1, _, _, epochs_used, n_params = train_fold(
             hparams=hparams,
             X_train=X_train_dev,
             y_train=y_train_dev,
@@ -430,7 +444,9 @@ def run_architecture_sweep(
             scheduler_patience=scheduler_patience,
             scheduler_factor=scheduler_factor,
             noise_config=None,
+            input_scaler=None,
             severity_range=None,
+            early_stopping_on_noisy=False,
             device=device,
             seed=seed,
         )
@@ -493,6 +509,7 @@ def run_grid_search(
     seed: int = 42,
     output_dir: Path = Path("results/hyperparameter_optimisation"),
     resume: bool = False,
+    objective: str = "noisy_f1",
 ) -> tuple[pd.DataFrame, HParamConfig, TrialResult]:
     """Run full grid search with cross-validation.
 
@@ -542,9 +559,15 @@ def run_grid_search(
     n_classes = len(np.unique(y))
 
     all_results: list[TrialResult] = []
-    best_robustness = -1.0
+    best_objective = -1.0
     best_result: TrialResult | None = None
     best_config: HParamConfig | None = None
+
+    if objective not in {"noisy_f1", "noisy_accuracy", "robustness"}:
+        raise ValueError(
+            f"Unsupported objective: {objective}. "
+            "Use one of: noisy_f1, noisy_accuracy, robustness."
+        )
 
     for trial_idx, hparams in enumerate(grid):
         if hparams.uid in completed_uids:
@@ -564,17 +587,21 @@ def run_grid_search(
         for fold_idx, (train_idx, val_idx) in enumerate(fold_indices):
             # Split and scale (fit scaler on train fold only)
             scaler = RobustScaler()
-            X_train_fold = scaler.fit_transform(X_clean[train_idx])
-            X_val_clean_fold = scaler.transform(X_clean[val_idx])
-            X_val_noisy_fold = (
-                scaler.transform(X_noisy[val_idx]) if X_noisy is not None else None
-            )
+            if X_noisy is not None:
+                # Primary protocol: noisy->noisy optimisation in noisy feature space.
+                X_train_fold = scaler.fit_transform(X_noisy[train_idx])
+                X_val_noisy_fold = scaler.transform(X_noisy[val_idx])
+                X_val_clean_fold = scaler.transform(X_clean[val_idx])
+            else:
+                X_train_fold = scaler.fit_transform(X_clean[train_idx])
+                X_val_clean_fold = scaler.transform(X_clean[val_idx])
+                X_val_noisy_fold = None
             y_train_fold = y[train_idx]
             y_val_fold = y[val_idx]
 
             fold_seed = seed + fold_idx
 
-            clean_f1, noisy_f1, epochs_used, n_params = train_fold(
+            clean_f1, noisy_f1, noisy_acc, epochs_used, n_params = train_fold(
                 hparams=hparams,
                 X_train=X_train_fold,
                 y_train=y_train_fold,
@@ -589,6 +616,7 @@ def run_grid_search(
                 noise_config=noise_config,
                 input_scaler=scaler,
                 severity_range=severity_range,
+                early_stopping_on_noisy=(X_noisy is not None),
                 device=device,
                 seed=fold_seed,
             )
@@ -596,6 +624,7 @@ def run_grid_search(
             robustness = harmonic_mean(clean_f1, noisy_f1)
             trial.fold_clean_f1.append(clean_f1)
             trial.fold_noisy_f1.append(noisy_f1)
+            trial.fold_noisy_acc.append(noisy_acc)
             trial.fold_robustness.append(robustness)
             trial.epochs_used.append(epochs_used)
             trial.n_params = n_params
@@ -609,21 +638,29 @@ def run_grid_search(
         trial.training_time_s = time.time() - t_start
         trial.compute_aggregates()
 
+        if objective == "noisy_accuracy":
+            trial.objective_score = trial.mean_noisy_acc
+        elif objective == "robustness":
+            trial.objective_score = trial.mean_robustness
+        else:
+            trial.objective_score = trial.mean_noisy_f1
+
         logger.info(
-            f"  → Mean robustness: {trial.mean_robustness:.4f} "
+            f"  → Objective({objective})={trial.objective_score:.4f}, "
+            f"mean robustness: {trial.mean_robustness:.4f} "
             f"(±{trial.std_robustness:.4f}), "
-            f"clean={trial.mean_clean_f1:.4f}, noisy={trial.mean_noisy_f1:.4f}, "
+            f"clean={trial.mean_clean_f1:.4f}, noisy_f1={trial.mean_noisy_f1:.4f}, noisy_acc={trial.mean_noisy_acc:.4f}, "
             f"time={trial.training_time_s:.1f}s"
         )
 
         all_results.append(trial)
 
         # Track best
-        if trial.mean_robustness > best_robustness:
-            best_robustness = trial.mean_robustness
+        if trial.objective_score > best_objective:
+            best_objective = trial.objective_score
             best_result = trial
             best_config = hparams
-            logger.info(f"  ★ New best robustness: {best_robustness:.4f}")
+            logger.info(f"  ★ New best objective score: {best_objective:.4f}")
 
         # Save checkpoint incrementally
         completed_uids.add(hparams.uid)
@@ -667,14 +704,17 @@ def _build_results_dataframe(results: list[TrialResult]) -> pd.DataFrame:
                 "n_params": trial.n_params,
                 "mean_clean_f1": trial.mean_clean_f1,
                 "mean_noisy_f1": trial.mean_noisy_f1,
+                "mean_noisy_accuracy": trial.mean_noisy_acc,
                 "mean_robustness": trial.mean_robustness,
+                "objective_score": trial.objective_score,
                 "std_robustness": trial.std_robustness,
                 "training_time_s": trial.training_time_s,
                 "mean_epochs": float(np.mean(trial.epochs_used)),
             }
         )
     df = pd.DataFrame(rows)
-    return df.sort_values("mean_robustness", ascending=False).reset_index(drop=True)
+    sort_key = "objective_score" if "objective_score" in df.columns else "mean_robustness"
+    return df.sort_values(sort_key, ascending=False).reset_index(drop=True)
 
 
 # ---------------------------------------------------------------------------
@@ -695,206 +735,185 @@ def train_final_model(
     severity_range: tuple[float, float] | None = None,
     seed: int = 42,
     output_dir: Path = Path("results/hyperparameter_optimisation"),
-) -> Path:
-    """Train the final model with the best hyperparameters on the full train split.
+    model_output_dir: Path = Path("results/models"),
+) -> dict[str, Path]:
+    """Train and save final noisy and clean CNNs from the best hyperparameters.
 
-    Uses a held-out test set for final evaluation. The model is saved along
-    with its configuration and evaluation metrics.
-
-    Returns:
-        Path to the saved model checkpoint.
+    The noisy model is trained/evaluated on the fixed noisy dataset
+    (noisy->noisy protocol). The clean model is trained/evaluated on the clean
+    dataset (clean->clean protocol). Both checkpoints are written to
+    results/models for downstream experiments.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
+    model_output_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device(get_device())
     set_seeds(seed)
 
-    # Prepare train/val/test splits
-    dataset = prepare_splits(X_clean, y, random_state=seed, scaler_type="robust")
-
-    # Reconstruct full index mapping for noisy test set
-    _, X_noisy_test_split, _, _ = train_test_split(
-        X_noisy, y, test_size=0.15, random_state=seed, stratify=y
-    )
-    X_test_noisy_scaled = dataset.scaler.transform(X_noisy_test_split)
+    ds_clean = prepare_splits(X_clean, y, random_state=seed, scaler_type="robust")
+    ds_noisy = prepare_splits(X_noisy, y, random_state=seed, scaler_type="robust")
 
     n_classes = len(np.unique(y))
-    n_features = dataset.X_train.shape[1]
 
-    logger.info(f"Training final model with config: {asdict(best_config)}")
-    logger.info(
-        f"Train: {len(dataset.y_train)}, Val: {len(dataset.y_val)}, Test: {len(dataset.y_test)}"
-    )
+    logger.info(f"Training final models with config: {asdict(best_config)}")
 
-    model = EITConv1D(
-        n_features=n_features,
-        n_classes=n_classes,
-        channels=best_config.channels,
-        fc_dim=best_config.fc_dim,
-        dropout=best_config.dropout,
-    ).to(device)
+    def _train_domain_model(
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_val: np.ndarray,
+        y_val: np.ndarray,
+        X_test: np.ndarray,
+        y_test: np.ndarray,
+        tag: str,
+    ) -> tuple[Path, dict[str, float]]:
+        n_features = X_train.shape[1]
+        model = EITConv1D(
+            n_features=n_features,
+            n_classes=n_classes,
+            channels=best_config.channels,
+            fc_dim=best_config.fc_dim,
+            dropout=best_config.dropout,
+        ).to(device)
 
-    # Data loaders
-    train_ds = TensorDataset(
-        torch.from_numpy(dataset.X_train).float(),
-        torch.from_numpy(dataset.y_train).long(),
-    )
-    train_loader = DataLoader(
-        train_ds, batch_size=best_config.batch_size, shuffle=True, pin_memory=True
-    )
+        train_ds = TensorDataset(
+            torch.from_numpy(X_train).float(),
+            torch.from_numpy(y_train).long(),
+        )
+        train_loader = DataLoader(
+            train_ds, batch_size=best_config.batch_size, shuffle=True, pin_memory=True
+        )
 
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(
-        model.parameters(),
-        lr=best_config.learning_rate,
-        weight_decay=best_config.weight_decay,
-    )
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", patience=scheduler_patience, factor=scheduler_factor
-    )
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(
+            model.parameters(),
+            lr=best_config.learning_rate,
+            weight_decay=best_config.weight_decay,
+        )
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", patience=scheduler_patience, factor=scheduler_factor
+        )
 
-    # Online augmentation
-    augment = best_config.noise_augmentation and noise_config is not None
-    aug_rng = np.random.default_rng(seed) if augment else None
+        augment = best_config.noise_augmentation and noise_config is not None and tag == "noisy"
+        aug_rng = np.random.default_rng(seed) if augment else None
 
-    best_val_loss = float("inf")
-    best_state = None
-    epochs_without_improvement = 0
-    history = {"train_loss": [], "val_loss": [], "val_clean_f1": [], "val_noisy_f1": []}
+        best_val_loss = float("inf")
+        best_state = None
+        epochs_without_improvement = 0
+        epochs_trained = 0
 
-    for epoch in range(epochs):
-        model.train()
-        epoch_loss = 0.0
-        n_batches = 0
+        for epoch in range(epochs):
+            model.train()
+            epoch_loss = 0.0
+            n_batches = 0
 
-        for X_batch, y_batch in train_loader:
-            if augment:
-                X_np = X_batch.numpy()
-                if severity_range is not None:
-                    noise_config.severity = float(
-                        aug_rng.uniform(severity_range[0], severity_range[1])
+            for X_batch, y_batch in train_loader:
+                if augment:
+                    X_np = X_batch.numpy()
+                    if severity_range is not None:
+                        noise_config.severity = float(
+                            aug_rng.uniform(severity_range[0], severity_range[1])
+                        )
+                    X_np = apply_noise_in_scaled_space(
+                        X_np,
+                        ds_noisy.scaler,
+                        noise_config,
+                        rng=aug_rng,
                     )
-                X_np = apply_noise_in_scaled_space(
-                    X_np,
-                    dataset.scaler,
-                    noise_config,
-                    rng=aug_rng,
+                    X_batch = torch.from_numpy(X_np).float()
+
+                X_batch = X_batch.to(device, non_blocking=True)
+                y_batch = y_batch.to(device, non_blocking=True)
+
+                optimizer.zero_grad()
+                logits = model(X_batch)
+                loss = criterion(logits, y_batch)
+                loss.backward()
+                optimizer.step()
+
+                epoch_loss += loss.item()
+                n_batches += 1
+
+            model.eval()
+            with torch.no_grad():
+                X_val_t = torch.from_numpy(X_val).float().to(device)
+                y_val_t = torch.from_numpy(y_val).long().to(device)
+                val_logits = model(X_val_t)
+                val_loss = criterion(val_logits, y_val_t).item()
+
+            scheduler.step(val_loss)
+            epochs_trained = epoch + 1
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+                epochs_without_improvement = 0
+            else:
+                epochs_without_improvement += 1
+
+            if (epoch + 1) % 10 == 0:
+                logger.info(
+                    f"[{tag}] Epoch {epoch + 1}/{epochs} | "
+                    f"Train Loss: {epoch_loss / n_batches:.4f} | "
+                    f"Val Loss: {val_loss:.4f}"
                 )
-                X_batch = torch.from_numpy(X_np).float()
 
-            X_batch = X_batch.to(device, non_blocking=True)
-            y_batch = y_batch.to(device, non_blocking=True)
+            if epochs_without_improvement >= early_stopping_patience:
+                logger.info(f"[{tag}] Early stopping at epoch {epoch + 1}")
+                break
 
-            optimizer.zero_grad()
-            logits = model(X_batch)
-            loss = criterion(logits, y_batch)
-            loss.backward()
-            optimizer.step()
+        if best_state is not None:
+            model.load_state_dict(best_state)
+            model.to(device)
 
-            epoch_loss += loss.item()
-            n_batches += 1
-
-        # Validation
         model.eval()
         with torch.no_grad():
-            X_val_t = torch.from_numpy(dataset.X_val).float().to(device)
-            y_val_t = torch.from_numpy(dataset.y_val).long().to(device)
-            val_logits = model(X_val_t)
-            val_loss = criterion(val_logits, y_val_t).item()
+            X_test_t = torch.from_numpy(X_test).float().to(device)
+            preds = model(X_test_t).argmax(dim=1).cpu().numpy()
 
-        history["train_loss"].append(epoch_loss / n_batches)
-        history["val_loss"].append(val_loss)
+        metrics = {
+            "accuracy": float(accuracy_score(y_test, preds)),
+            "f1_macro": float(f1_score(y_test, preds, average="macro")),
+            "epochs_trained": float(epochs_trained),
+            "best_val_loss": float(best_val_loss),
+        }
 
-        scheduler.step(val_loss)
+        save_path = model_output_dir / f"cnn1d_{tag}_best.pt"
+        torch.save(model.state_dict(), save_path)
+        logger.info(
+            f"Saved {tag} model to {save_path} "
+            f"(acc={metrics['accuracy']:.4f}, f1={metrics['f1_macro']:.4f})"
+        )
+        return save_path, metrics
 
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
-            epochs_without_improvement = 0
-        else:
-            epochs_without_improvement += 1
-
-        if (epoch + 1) % 10 == 0:
-            logger.info(
-                f"Epoch {epoch + 1}/{epochs} | "
-                f"Train Loss: {epoch_loss / n_batches:.4f} | "
-                f"Val Loss: {val_loss:.4f}"
-            )
-
-        if epochs_without_improvement >= early_stopping_patience:
-            logger.info(f"Early stopping at epoch {epoch + 1}")
-            break
-
-    # Restore best model
-    if best_state is not None:
-        model.load_state_dict(best_state)
-        model.to(device)
-
-    # Final evaluation
-    model.eval()
-    with torch.no_grad():
-        # Clean test
-        X_test_t = torch.from_numpy(dataset.X_test).float().to(device)
-        preds_clean = model(X_test_t).argmax(dim=1).cpu().numpy()
-        clean_f1 = f1_score(dataset.y_test, preds_clean, average="macro")
-
-        # Noisy test
-        X_noisy_t = torch.from_numpy(X_test_noisy_scaled).float().to(device)
-        preds_noisy = model(X_noisy_t).argmax(dim=1).cpu().numpy()
-        noisy_f1 = f1_score(dataset.y_test, preds_noisy, average="macro")
-
-    robustness = harmonic_mean(clean_f1, noisy_f1)
-    logger.info(
-        f"Final model: clean_F1={clean_f1:.4f}, noisy_F1={noisy_f1:.4f}, "
-        f"robustness={robustness:.4f}"
+    noisy_path, noisy_metrics = _train_domain_model(
+        ds_noisy.X_train,
+        ds_noisy.y_train,
+        ds_noisy.X_val,
+        ds_noisy.y_val,
+        ds_noisy.X_test,
+        ds_noisy.y_test,
+        tag="noisy",
     )
 
-    # Save model and metadata
-    model_path = output_dir / "cnn1d_optimised_best.pt"
-    torch.save(
-        {
-            "model_state_dict": model.state_dict(),
-            "config": asdict(best_config),
-            "n_features": n_features,
-            "n_classes": n_classes,
-            "metrics": {
-                "clean_f1": clean_f1,
-                "noisy_f1": noisy_f1,
-                "robustness": robustness,
-            },
-            "training": {
-                "epochs_trained": epoch + 1,
-                "best_val_loss": best_val_loss,
-            },
-        },
-        model_path,
+    clean_path, clean_metrics = _train_domain_model(
+        ds_clean.X_train,
+        ds_clean.y_train,
+        ds_clean.X_val,
+        ds_clean.y_val,
+        ds_clean.X_test,
+        ds_clean.y_test,
+        tag="clean",
     )
-    logger.info(f"Model saved to {model_path}")
 
-    # Save training history
-    history_path = output_dir / "final_model_history.json"
-    with open(history_path, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=2)
-
-    # Save comprehensive report
     report = {
         "best_hyperparameters": asdict(best_config),
-        "final_metrics": {
-            "clean_macro_f1": clean_f1,
-            "noisy_macro_f1": noisy_f1,
-            "robustness_score": robustness,
+        "protocol": "raw noisy->noisy optimisation with benchmark-matched training budget",
+        "noisy_model": {
+            "path": str(noisy_path),
+            **noisy_metrics,
         },
-        "model_info": {
-            "n_parameters": count_parameters(model),
-            "n_features": n_features,
-            "n_classes": n_classes,
-            "architecture": f"EITConv1D(channels={best_config.channels}, "
-            f"fc_dim={best_config.fc_dim}, dropout={best_config.dropout})",
-        },
-        "training_details": {
-            "epochs_trained": epoch + 1,
-            "best_val_loss": best_val_loss,
-            "early_stopping_patience": early_stopping_patience,
-            "noise_augmentation": best_config.noise_augmentation,
+        "clean_model": {
+            "path": str(clean_path),
+            **clean_metrics,
         },
     }
     report_path = output_dir / "optimisation_report.json"
@@ -902,7 +921,7 @@ def train_final_model(
         json.dump(report, f, indent=2, default=str)
     logger.info(f"Report saved to {report_path}")
 
-    return model_path
+    return {"noisy": noisy_path, "clean": clean_path}
 
 
 # ---------------------------------------------------------------------------
@@ -965,6 +984,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=3,
         help="Number of CV folds for grid search (default: 3).",
+    )
+    parser.add_argument(
+        "--objective",
+        choices=["noisy_f1", "noisy_accuracy", "robustness"],
+        default=None,
+        help="Optimisation objective for grid search (default: from config).",
     )
     parser.add_argument(
         "--epochs",
@@ -1186,6 +1211,7 @@ def main() -> None:
             args.output_dir = Path("results/hyperparameter_optimisation")
 
     cfg = load_config(args.config)
+    hp_cfg = cfg.get("hyperparameter_optimisation", {})
     seed = args.seed if args.seed is not None else cfg["seed"]
     data_path = args.data_path or Path(cfg["data"]["path"])
 
@@ -1228,6 +1254,17 @@ def main() -> None:
 
         logger.info(f"Dataset: {X_clean.shape[0]} samples, {X_clean.shape[1]} features")
 
+        objective = args.objective or hp_cfg.get("objective", "noisy_f1")
+        trial_epochs = args.epochs or hp_cfg.get("epochs_per_trial", cfg["training"]["epochs"])
+        final_epochs = hp_cfg.get("final_model_epochs", cfg["training"]["epochs"])
+        final_patience = hp_cfg.get(
+            "final_early_stopping_patience",
+            cfg["training"]["early_stopping_patience"],
+        )
+        logger.info(
+            f"Grid objective: {objective} | trial epochs: {trial_epochs} | final epochs: {final_epochs}"
+        )
+
         # Setup noise config only if noise is enabled
         if args.noise:
             noise_cfg_section = cfg.get("noise_augmentation", {})
@@ -1253,13 +1290,12 @@ def main() -> None:
 
         if not args.final_only:
             # Run grid search
-            epochs = args.epochs or cfg["training"]["epochs"]
             results_df, best_config, best_result = run_grid_search(
                 X_clean=X_clean,
                 X_noisy=X_noisy,
                 y=y,
                 n_folds=args.n_folds,
-                epochs=epochs,
+                epochs=trial_epochs,
                 early_stopping_patience=cfg["training"]["early_stopping_patience"],
                 scheduler_patience=cfg["training"]["scheduler_patience"],
                 scheduler_factor=cfg["training"]["scheduler_factor"],
@@ -1268,19 +1304,18 @@ def main() -> None:
                 seed=seed,
                 output_dir=args.output_dir,
                 resume=args.resume,
+                objective=objective,
             )
 
             logger.info(f"\n{'=' * 60}")
             logger.info("GRID SEARCH COMPLETE")
             logger.info(f"{'=' * 60}")
             logger.info(f"Best config: {asdict(best_config)}")
-            if args.noise:
-                logger.info(
-                    f"Best robustness: {best_result.mean_robustness:.4f} "
-                    f"(clean={best_result.mean_clean_f1:.4f}, noisy={best_result.mean_noisy_f1:.4f})"
-                )
-            else:
-                logger.info(f"Best clean F1: {best_result.mean_clean_f1:.4f}")
+            logger.info(
+                f"Best objective ({objective}): {best_result.objective_score:.4f} | "
+                f"noisy_acc={best_result.mean_noisy_acc:.4f}, noisy_f1={best_result.mean_noisy_f1:.4f}, "
+                f"robustness={best_result.mean_robustness:.4f}"
+            )
         else:
             # Load best config from existing results
             results_path = args.output_dir / "grid_search_results.csv"
@@ -1297,30 +1332,37 @@ def main() -> None:
                 learning_rate=float(best_row["learning_rate"]),
                 batch_size=int(best_row["batch_size"]),
                 weight_decay=float(best_row["weight_decay"]),
-                noise_augmentation=bool(best_row["noise_augmentation"]),
+                noise_augmentation=(
+                    str(best_row["noise_augmentation"]).strip().lower() == "true"
+                ),
             )
             logger.info(f"Loaded best config from {results_path}")
 
-        # Train final model only if noise is enabled
-        if args.noise:
-            logger.info("\nTraining final optimised model...")
-            model_path = train_final_model(
-                best_config=best_config,
-                X_clean=X_clean,
-                X_noisy=X_noisy,
-                y=y,
-                epochs=cfg["training"]["epochs"],
-                early_stopping_patience=cfg["training"]["early_stopping_patience"],
-                scheduler_patience=cfg["training"]["scheduler_patience"],
-                scheduler_factor=cfg["training"]["scheduler_factor"],
-                noise_config=noise_config,
-                severity_range=severity_range,
-                seed=seed,
-                output_dir=args.output_dir,
+        if X_noisy is None:
+            raise ValueError(
+                "Grid-search final model export requires noisy data. "
+                "Run without --no-noise for noisy->noisy optimisation."
             )
 
-            logger.info(f"\nOptimised model saved to: {model_path}")
-            logger.info("Run `python evaluate.py` with this model for full evaluation.")
+        logger.info("\nTraining final optimised noisy and clean models...")
+        model_paths = train_final_model(
+            best_config=best_config,
+            X_clean=X_clean,
+            X_noisy=X_noisy,
+            y=y,
+            epochs=final_epochs,
+            early_stopping_patience=final_patience,
+            scheduler_patience=cfg["training"]["scheduler_patience"],
+            scheduler_factor=cfg["training"]["scheduler_factor"],
+            noise_config=noise_config,
+            severity_range=severity_range,
+            seed=seed,
+            output_dir=args.output_dir,
+            model_output_dir=Path("results/models"),
+        )
+
+        logger.info(f"Optimised noisy model: {model_paths['noisy']}")
+        logger.info(f"Optimised clean model: {model_paths['clean']}")
 
 
 if __name__ == "__main__":

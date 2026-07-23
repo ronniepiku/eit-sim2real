@@ -7,8 +7,9 @@
 %% ─── Packages ─────────────────────────────────────────────────────────────────
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[scaled]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[left=3cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
 \usepackage{setspace}
 \onehalfspacing
 
@@ -56,9 +57,9 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\leftmark}
-\fancyhead[R]{\thepage}
-\renewcommand{\headrulewidth}{0.4pt}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
 
 % Appendix
 \usepackage[toc,page]{appendix}
@@ -83,7 +84,7 @@
 
 %% ─── Document Metadata ────────────────────────────────────────────────────────
 \title{Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach}
-\author{Ronald P}
+\author{Ronald Piku}
 \date{September 2026}
 
 %% ═══════════════════════════════════════════════════════════════════════════════
@@ -94,7 +95,7 @@
     \centering
     \vspace*{2cm}
     
-    {\Large\bfseries Ronald P\par}
+    {\Large\bfseries Ronald Piku\par}
     \vspace{1cm}
     
     {\LARGE\bfseries Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach\par}
@@ -115,7 +116,7 @@
     {\large September 2026\par}
     \vspace{2cm}
     
-    {\large Word Count (from introduction to conclusions): \par}
+    {\large Word Count (from introduction to conclusions): 14,469\par}
 \end{titlepage}
 
 %% ─── Copyright ────────────────────────────────────────────────────────────────
@@ -139,9 +140,9 @@ Signed on behalf of the Department of Electronic and Electrical Engineering
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-Electrical Impedance Tomography (EIT) offers a promising sensing modality for prosthetic electronic skin, enabling large-area tactile perception from few boundary electrodes. However, classifiers trained on idealised simulation data fail catastrophically when confronted with the multi-source noise encountered in physical hardware---the simulation-to-reality gap. This dissertation investigates whether a physically-motivated, four-component noise model (Gaussian measurement noise, contact impedance variation, electrode positioning bias, and quantisation) can bridge this gap through noise-augmented training.
+Electrical Impedance Tomography (EIT) offers a promising sensing modality for electronic prosthetic skin, enabling wide-area tactile perception from a few boundary electrodes. However, classifiers trained on idealised simulation data fail when deployed in the real world. This dissertation investigates whether a physically motivated multi-component noise model (Gaussian measurement noise, contact impedance variation, electrode positioning bias, and quantisation) can bridge this gap through noise-augmented training.
 
-A synthetic dataset of 25,000 EIT voltage measurements across five touch classes was generated using the EIDORS forward modelling framework, simulating a 16-electrode ionic hydrogel prosthetic skin. Four classifiers (1D-CNN, MLP, SVM, Random Forest) were evaluated under systematic noise conditions with 5-fold cross-validation.
+A synthetic data set of 25,000 EIT voltage measurements was generated in five touch classes using the EIDORS forward modelling framework, which simulates a 16-electrode ionic hydrogel prosthetic skin. Four classifiers (1D-CNN, MLP, SVM, Random Forest) were evaluated under systematic noise conditions with 5-fold cross-validation.
 
 Results demonstrate that all models collapse to chance level ($\approx$20\%) under domain mismatch, but noise-matched training recovers substantial performance: the 1D-CNN achieves 75.7\% accuracy on noisy data (+55.5 percentage points over clean-trained). The standard Gaussian-only noise assumption produces artificially inflated results ($>$99\%), confirming that multi-component modelling is essential. Ablation reveals electrode bias dominates the domain gap (99.8\% of noise energy), while contact impedance causes the fastest degradation under severity scaling. Confidence calibration analysis identifies catastrophic overconfidence (ECE = 0.796) under domain shift, highlighting the need for uncertainty quantification in safety-critical deployment. Online noise augmentation paradoxically fails on fixed-noise evaluation, yet noise that persists per sample across epochs recovers performance even when drawn as an independent realisation---revealing that domain randomisation strategies require per-device noise persistence for sensor modalities with fixed per-device characteristics.
 

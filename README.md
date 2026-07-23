@@ -149,7 +149,7 @@ eit experiments run-all --skip-grid
 # Run only grid and ablation
 eit experiments run-all --skip-hyperopt --skip-architecture-sweep --skip-extended --skip-additional
 
-# Include mesh refinement study (requires fine-mesh dataset)
+# Include mesh refinement study (requires c/d/f mesh datasets)
 eit experiments run-all --include-mesh-refinement
 
 # Run individual experiment types
@@ -158,7 +158,7 @@ eit experiments additional                   # Memorisation experiments
 eit experiments hyperopt --mode=grid-search  # Full hyperparameter grid search
 eit experiments hyperopt --mode=arch-sweep   # Quick architecture depth sweep
 eit experiments extended                     # All extended analyses (calibration, robustness, etc.)
-eit experiments mesh-refinement              # Cross-mesh evaluation
+eit experiments mesh-refinement              # Train/evaluate across c/d/f meshes
 
 # Validate dataset integrity
 eit validate-dataset
