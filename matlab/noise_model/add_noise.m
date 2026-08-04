@@ -45,7 +45,13 @@ function dv_noisy = add_noise(dv, params)
         snr_db = params.gaussian.snr_db;
         signal_power = norm(dv);
         noise = randn(n_meas, 1);
-        if signal_power > 0
+        % Zero-signal tolerance rather than an exact ">0" test, for parity with
+        % the Python implementation (src/eit_sim2real/data/noise.py). There the
+        % clean vector may carry a ~1e-10 float residual from a scaler
+        % round-trip, which an exact test would mistake for real signal and so
+        % skip the noise floor entirely for the "no contact" class. The margin
+        % is wide: the smallest genuine contact signal has norm ~7e-4.
+        if signal_power > 1e-6
             scale = signal_power / norm(noise) * 10^(-snr_db / 20);
         else
             % Baseline noise floor for zero-signal measurements

@@ -52,12 +52,17 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import RobustScaler
 
-from eit_sim2real.data import NoiseConfig, load_mat_dataset, prepare_splits
-from eit_sim2real.data.noise import (
-    apply_noise_batch_vectorised,
-    apply_noise_in_scaled_space,
+from eit_sim2real.data import (
+    NoiseConfig,
+    get_cv_splits,
+    load_mat_dataset,
+    prepare_splits,
 )
+from eit_sim2real.data.load_dataset import EITDataset
+from eit_sim2real.data.noise import apply_noise_in_scaled_space
 from eit_sim2real.evaluate import (
     run_calibration_analysis,
     run_gaussian_only_evaluation,
@@ -1006,6 +1011,32 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _make_fold_dataset(
+    X: np.ndarray,
+    y: np.ndarray,
+    train_idx: np.ndarray,
+    val_idx: np.ndarray,
+    test_idx: np.ndarray,
+) -> EITDataset:
+    """Build an EITDataset from explicit fold indices.
+
+    Mirrors ``prepare_splits`` (RobustScaler fitted on the training partition
+    only) but takes externally supplied indices so that cross-validation folds
+    can be shared across the clean and noisy views of the same samples.
+    """
+    scaler = RobustScaler()
+    X_train = scaler.fit_transform(X[train_idx])
+    return EITDataset(
+        X_train=X_train,
+        X_val=scaler.transform(X[val_idx]),
+        X_test=scaler.transform(X[test_idx]),
+        y_train=y[train_idx],
+        y_val=y[val_idx],
+        y_test=y[test_idx],
+        scaler=scaler,
+    )
+
+
 def run_statistical_tests(
     data_path: Path,
     seeds: list[int],
@@ -1016,10 +1047,16 @@ def run_statistical_tests(
 ) -> dict:
     """Run statistical tests comparing training conditions.
 
-    Uses multiple seeds to get score distributions, then performs paired
-    t-tests with Bonferroni correction between key condition pairs.
+    Uses stratified k-fold cross-validation to obtain paired score
+    distributions, then performs paired t-tests with Bonferroni correction
+    between key condition pairs.
+
+    Folds (not repeated random splits) are used here so that the test partitions
+    are disjoint and every sample is held out exactly once, which is the design
+    the methodology describes for the paired comparisons. The main results grid
+    separately reports mean +/- std over independent random splits.
     """
-    logger.info("── Statistical Testing ──")
+    logger.info("── Statistical Testing (stratified k-fold) ──")
     device = get_device()
 
     X_clean, y = load_mat_dataset(data_path, use_noisy=False)
@@ -1038,14 +1075,28 @@ def run_statistical_tests(
     condition_scores: dict[str, list[float]] = {c: [] for c in conditions}
     condition_f1s: dict[str, list[float]] = {c: [] for c in conditions}
 
-    for seed in seeds:
+    base_seed = seeds[0]
+    n_folds = len(seeds)
+    folds = get_cv_splits(X_clean, y, n_folds=n_folds, random_state=base_seed)
+
+    for fold_idx, (train_idx, test_idx) in enumerate(folds):
+        seed = base_seed + fold_idx
         np.random.seed(seed)
         torch.manual_seed(seed)
         if device == "cuda":
             torch.cuda.manual_seed_all(seed)
 
-        ds_clean = prepare_splits(X_clean, y, random_state=seed)
-        ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
+        # Carve a validation slice out of this fold's training partition so the
+        # fold's test partition stays untouched by early stopping.
+        tr_idx, val_idx = train_test_split(
+            train_idx,
+            test_size=0.1765,  # ~15% of the full dataset, matching the main grid
+            random_state=seed,
+            stratify=y[train_idx],
+        )
+
+        ds_clean = _make_fold_dataset(X_clean, y, tr_idx, val_idx, test_idx)
+        ds_noisy = _make_fold_dataset(X_noisy, y, tr_idx, val_idx, test_idx)
 
         for cond_name, (train_key, eval_key) in conditions.items():
             if train_key == "clean":
@@ -1117,7 +1168,7 @@ def run_statistical_tests(
                 float(f1_score(y_te, y_pred, average="macro"))
             )
 
-        logger.info(f"  Seed {seed} complete")
+        logger.info(f"  Fold {fold_idx + 1}/{n_folds} complete")
 
     # Paired t-tests with Bonferroni correction
     comparisons = [
@@ -1189,7 +1240,8 @@ def run_statistical_tests(
     logger.info(f"  Saved: {fig_path}")
 
     results = {
-        "n_seeds": len(seeds),
+        "validation_scheme": "stratified_k_fold",
+        "n_folds": n_folds,
         "condition_accuracies": {k: v for k, v in condition_scores.items()},
         "condition_f1s": {k: v for k, v in condition_f1s.items()},
         "tests": test_results,
@@ -1459,7 +1511,9 @@ def run_noise_type_severity_sweep(
             else:
                 sweep_cfg = NoiseConfig(severity=mult)
                 rng = np.random.default_rng(seed)
-                sweep_scaler = ds_noisy.scaler if regime_name == "noisy_fixed" else ds_clean.scaler
+                sweep_scaler = (
+                    ds_noisy.scaler if regime_name == "noisy_fixed" else ds_clean.scaler
+                )
                 X_test = apply_noise_in_scaled_space(
                     base_test,
                     sweep_scaler,
@@ -1799,7 +1853,9 @@ def _run_severity_sweeps(
             else:
                 sweep_cfg = NoiseConfig(severity=mult)
                 rng = np.random.default_rng(seed)
-                sweep_scaler = ds_noisy.scaler if regime_name == "noisy_fixed" else ds_clean.scaler
+                sweep_scaler = (
+                    ds_noisy.scaler if regime_name == "noisy_fixed" else ds_clean.scaler
+                )
                 X_test = apply_noise_in_scaled_space(
                     base_test,
                     sweep_scaler,

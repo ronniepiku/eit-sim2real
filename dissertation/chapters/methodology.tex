@@ -52,13 +52,9 @@ All code, configuration files, and trained models are made publicly available to
 
 The \gls{eit} forward problem is solved using EIDORS v3.12-ng \parencite{adler2006}, computing boundary voltages from a specified conductivity distribution via the \gls{fem}. The governing equation is the generalised Laplace equation (Equation~\ref{eq:eit-forward} in Chapter~\ref{ch:literature_review}), solved with Neumann boundary conditions and the Complete Electrode Model (CEM) to represent finite electrode area and contact impedance \parencite{cheney1999, somersalo1992}.
 
-The simulation domain is a 2D circular cross-section representing a transverse slice of a prosthetic forearm sensor, discretised using \texttt{mk\_common\_model('d2C', 16)}. The identifier decodes as \texttt{d}: medium refinement, \texttt{2}: two-dimensional geometry, and \texttt{C}: circular tank with CEM. This family of reference models was preferred over a custom mesh because it is canonical in EIDORS-based studies, provides physically appropriate boundary modelling, and isolates methodological contributions from bespoke meshing choices \parencite{adler2006, adler2009, cheney1999, somersalo1992}.
+The domain is a 2D circular cross-section representing a transverse slice of a prosthetic forearm sensor, discretised using \texttt{mk\_common\_model('d2C', 16)}---medium refinement, two-dimensional, circular tank with CEM. This canonical EIDORS reference family was preferred over a custom mesh so that methodological contributions are not confounded with bespoke meshing choices \parencite{adler2006, adler2009}. A 2D formulation was retained for tractability at dataset scale (25,000 forward solves per mesh) and for consistency with prior \gls{eit} classification work.
 
-A 2D formulation was retained for tractability at dataset scale (25,000 forward solves per mesh), consistency with prior \gls{eit} classification literature, and alignment with the central research question (noise robustness under controlled geometric assumptions). To make mesh selection evidence-based, an expanded mesh-refinement study was conducted in which three matched noisy datasets were generated with identical class definitions, noise model, train/validation/test split, and CNN hyperparameters. One model was trained per mesh and evaluated on all three test meshes.
-
-Table~\ref{tab:mesh-cross-matrix} shows the cross-mesh performance matrix. Two patterns are prominent. First, training on \texttt{c} yields the highest in-mesh score (83.92\%) and the highest mean accuracy across all test meshes (78.86\%), but with the largest cross-mesh variation (range 8.35 percentage points). Second, \texttt{d} and \texttt{f} show substantially tighter cross-mesh behaviour (ranges 4.37 and 3.47 percentage points respectively), indicating reduced mesh sensitivity. Given these results, \texttt{d} is retained as the primary mesh because it provides a compromise between literature comparability, stable cross-mesh behaviour, and competitive accuracy, while avoiding over-commitment to the mesh-specific peak of \texttt{c}. 
-
-Table~\ref{tab:mesh-compute} shows that model complexity is unchanged across meshes (69,189 parameters), and training/inference costs are of the same order. Thus, the mesh decision is driven principally by generalisation behaviour and methodological comparability rather than runtime constraints alone.
+Mesh selection was made evidence-based rather than assumed. Three matched noisy datasets were generated at coarse (\texttt{c}), medium (\texttt{d}) and fine (\texttt{f}) refinement with identical class definitions, noise model, splits and hyperparameters; one CNN was trained per mesh and evaluated on all three test meshes (Table~\ref{tab:mesh-cross-matrix}). Training on \texttt{c} gives the highest in-mesh score (83.92\%) but the largest cross-mesh variation (8.35\,pp), whereas \texttt{d} and \texttt{f} transfer more stably (4.37 and 3.47\,pp). Mesh \texttt{d} is therefore retained: it balances literature comparability against stable cross-mesh behaviour without over-fitting to the mesh-specific peak of \texttt{c}. Model complexity is identical across meshes (69,189 parameters) and runtimes are of the same order (Table~\ref{tab:mesh-compute}), so the decision rests on generalisation rather than cost.
 
 \begin{table}[htbp]
 \centering
@@ -107,17 +103,43 @@ Table~\ref{tab:mesh-compute} shows that model complexity is unchanged across mes
 \label{fig:mesh-cross-heatmap}
 \end{figure}
 
+\paragraph{Forward-model discretisation error.} The cross-mesh matrix measures how a \emph{classifier} transfers between discretisations; a separate question is how much the \emph{forward solution} itself changes with refinement, which bounds the discretisation component of the approximation error discussed in Section~\ref{sec:disc-approx-error}. The same 100 sampled contacts (20 per class, fixed seed) were solved on all three meshes and the resulting voltage-difference vectors compared (Table~\ref{tab:mesh-convergence}).
+
+\begin{table}[htbp]
+\centering
+\caption{Mesh convergence and contact resolution by touch class (20 samples per class). ``Rel.\ diff.'' is the mean relative $L_2$ difference between the coarse and fine forward solutions, $\|\Delta\mathbf{v}_c - \Delta\mathbf{v}_f\| / \|\Delta\mathbf{v}_f\|$. ``Elements perturbed'' counts mesh elements whose centroid falls inside the contact region. ``Under-res.'' counts samples in which at most one element is intersected on the fine mesh.}
+\label{tab:mesh-convergence}
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}l c c c c c@{}}
+\toprule
+& & \multicolumn{3}{c}{\textbf{Elements perturbed}} & \\
+\cmidrule(lr){3-5}
+\textbf{Class} & \textbf{Rel.\ diff.\ (\%)} & \texttt{c} & \texttt{d} & \texttt{f} & \textbf{Under-res.\ (\texttt{f})} \\
+\midrule
+No contact          & ---   & ---   & ---   & ---    & --- \\
+Light touch         & 18.28 & 3.65  & 6.40  & 14.55  & 0/20 \\
+Firm press          & 14.18 & 5.85  & 10.00 & 22.55  & 0/20 \\
+Point contact       & 77.14 & 0.55  & 1.15  & 2.45   & 4/20 \\
+Distributed contact & 8.47  & 26.05 & 46.40 & 103.30 & 0/20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For the three spatially extended classes the coarse-to-fine difference is 8--18\%, with perturbed-element counts growing roughly proportionally with refinement---the expected behaviour of a converging discretisation of a finite-area inclusion. Point contact behaves differently: its radius (0.02--0.05 on the unit disc) is intrinsically sub-mesh-scale, so even the fine mesh intersects only 2.45 elements on average and 4 of 20 samples intersect at most one. Its 77\% figure is therefore not a convergence statistic but a symptom of the contact being smaller than the discretisation can represent. Rather than refine indefinitely, the pipeline represents point contact through a nearest-element fallback (Section~\ref{sec:method-dataset-sampling}); the consequences are revisited in Section~\ref{sec:disc-limitations}. These figures are reproduced by \texttt{matlab/validate\_mesh\_convergence.m}.
+
 \subsection{Material Model: Ionic Hydrogel}
 \label{sec:method-material}
 
-The simulated substrate models an ionic hydrogel layer, following the material system demonstrated by \textcite{yao2022} and characterised by \textcite{lee2019}, exhibiting a positive piezoresistive response as described in Section~\ref{sec:lit-eskin-materials}.
+The simulated substrate models an ionic hydrogel layer, following the material system demonstrated by \textcite{park2022skin} and characterised by \textcite{costacornella2023}, exhibiting a positive piezoresistive response as described in Section~\ref{sec:lit-eskin-materials}.
 
 The forward model therefore assigns conductivity values $\sigma < \sigma_0$ within the contact region, with the magnitude of the decrease proportional to applied force. The background conductivity is normalised to $\sigma_0 = 1.0$\,S/m. This normalisation is standard in EIDORS-based studies \parencite{adler2006} and does not affect the voltage \emph{difference} vectors used for classification, which depend only on the contrast ratio $\sigma / \sigma_0$.
 
 \subsection{Touch Class Definitions}
 \label{sec:method-classes}
 
-Five touch classes are defined to represent the principal interaction modalities encountered in prosthetic use \parencite{yao2022, silvera-tawil2012eit}. Each class is parameterised by a conductivity range ($\sigma$) and a spatial radius ($r$), with random position constrained to the inner 40\% of the mesh boundary. Table~\ref{tab:class-params} presents the complete parameterisation with evidence basis.
+Five touch classes are defined to represent the principal interaction modalities encountered in prosthetic use \parencite{park2022skin, silvera-tawil2012eit}. Each class is parameterised by a conductivity range ($\sigma$) and a spatial radius ($r$), with random position constrained to the inner 40\% of the mesh boundary. Table~\ref{tab:class-params} presents the complete parameterisation with evidence basis.
 
 \begin{table}[htbp]
 \centering
@@ -142,16 +164,16 @@ Distributed  & [0.80, 0.92] & 8--20\%  & [0.15, 0.25] \\
 Three design principles govern this parametrisation:
 
 \begin{enumerate}
-    \item \textbf{Sign constraint.} All contact classes satisfy $\sigma < \sigma_0$, consistent with the positive piezoresistive response of ionic hydrogels \parencite{lee2019}.
+    \item \textbf{Sign constraint.} All contact classes satisfy $\sigma < \sigma_0$, consistent with the positive piezoresistive response of ionic hydrogels \parencite{costacornella2023}.
     
-    \item \textbf{Pressure-driven conductivity change.} The conductivity drop $\Delta\sigma/\sigma_0$ is proportional to local mechanical pressure $P = F/(\pi r^2)$, not force alone. This physical principle naturally separates the classes: point contact (tiny area, very high pressure) produces the largest per-element $\Delta\sigma$ (45--65\%), while distributed contact (large area, low pressure) produces the smallest (8--20\%). Firm press produces high $\Delta\sigma$ (25--45\%) due to high force on a medium area, and light touch produces low $\Delta\sigma$ (5--15\%) due to low force. This ensures that the classification task requires the model to jointly resolve both amplitude and spatial signatures---point and distributed contacts have similar total signal energy but distinct spatial distributions.
-    
-    \item \textbf{Contact geometry.} Radii are informed by Hertzian contact mechanics for soft elastomers. For a substrate with effective Young's modulus $E^* \approx 150$\,kPa \parencite{kim2019} and contact forces of 0.1--4\,N, the predicted contact radius ranges from approximately 2\,mm to 25\,mm on the unit-normalised mesh. This is consistent with the values in Table~\ref{tab:class-params}.
+    \item \textbf{Pressure-driven conductivity change.} The conductivity drop is proportional to local pressure $P = F/(\pi r^2)$, not force alone. This separates the classes physically: point contact (small area, high pressure) produces the largest per-element $\Delta\sigma$ (45--65\%) and distributed contact (large area, low pressure) the smallest (8--20\%). Crucially, point and distributed contacts have comparable total signal energy but different spatial distributions, so the task requires resolving both amplitude and spatial extent rather than amplitude alone.
+
+    \item \textbf{Contact geometry.} Radii follow Hertzian contact mechanics for soft elastomers: for $E^* \approx 150$\,kPa \parencite{kim2019} and forces of 0.1--4\,N, predicted contact radii span approximately 2--25\,mm on the unit-normalised mesh, consistent with Table~\ref{tab:class-params}.
 \end{enumerate}
 
-\paragraph{Position constraint.} Contact positions are constrained to the inner 40\% of the mesh boundary (i.e., $|x|, |y| \leq 0.4$ on the unit-radius disc). This constraint is physically motivated by two considerations: (1)~\gls{eit} has highly non-uniform spatial sensitivity, with measurements near boundary electrodes being orders of magnitude more sensitive than those in the centre \parencite{adler2006}; and (2)~in a prosthetic application, the sensing surface is the top of the sensor, not the electrode boundary. An earlier configuration permitting positions across the inner 70\% of the boundary was found during development to allow position-induced within-class variance to dominate the between-class variance from conductivity differences, motivating the revision to the 40\% support adopted here. The clean-domain classifier accuracies subsequently obtained on the final dataset (Chapter~\ref{ch:results}) are consistent with the chosen constraint retaining sufficient between-class signal for the five touch modalities to be discriminated.
+\paragraph{Position constraint.} Contact positions are restricted to $|x|, |y| \leq 0.4$ on the unit disc, for two reasons: \gls{eit} sensitivity is highly non-uniform, being far greater near the boundary electrodes than at the centre \parencite{adler2006}; and in a prosthetic the sensing surface is the top of the sensor rather than the electrode boundary. An earlier 70\% support allowed position-induced within-class variance to dominate the between-class conductivity differences, motivating the tighter constraint.
 
-It is emphasised that the precise conductivity magnitudes are \emph{physics-informed priors} rather than directly measured calibration constants. No published study provides a complete gauge-factor calibration for ionic hydrogel under the specific conditions modelled here \parencite{lee2019}. The chosen ranges are therefore best understood as literature-constrained assumptions that ensure physically plausible signal characteristics and class separability, following the defensibility framework recommended by \textcite{adler2006} for simulation-based \gls{eit} studies.
+The conductivity magnitudes are \emph{physics-informed priors} rather than measured calibration constants, since no published study provides a complete gauge-factor calibration for ionic hydrogel under these conditions \parencite{costacornella2023}. They are best understood as literature-constrained assumptions ensuring physically plausible signal characteristics and class separability.
 
 \subsection{Data Representation}
 \label{sec:method-representation}
@@ -173,13 +195,13 @@ The noise model comprises four independently configurable components, each captu
 \subsection{Design Rationale}
 \label{sec:method-noise-rationale}
 
-The noise model is motivated by the observation that real \gls{eit} hardware produces measurements corrupted by multiple concurrent, statistically distinct processes \parencite{adler2006, vilhunen2002, boone1996}. Prior work has modelled at most one component (invariably Gaussian noise) during augmentation \parencite{chen2023, yao2022}. The present model captures the four dominant per-frame distortions identified in Chapter~\ref{ch:literature_review}, each parameterised from values reported in the experimental literature.
+Real \gls{eit} hardware corrupts measurements through multiple concurrent, statistically distinct processes \parencite{adler2006, vilhunen2002, boone1996}, whereas prior work models at most one during augmentation---invariably Gaussian noise \parencite{chen2023, park2022skin}. The present model captures the four dominant per-frame distortions identified in Chapter~\ref{ch:literature_review}, each parameterised from experimental literature.
 
-In this dissertation, training with all four error sources active simultaneously is termed the \emph{foundational mode}. Formally, the classifier is optimised on the joint corruption distribution rather than on isolated component distributions, so a single model is exposed to the co-occurring error sources expected at deployment. This differs from component-wise training strategies (e.g., train first for contact-impedance effects, then for geometric bias), which can be useful diagnostically but do not by themselves guarantee performance when all errors act together.
+Training with all four sources active simultaneously is termed the \emph{foundational mode}: the classifier is optimised on the joint corruption distribution rather than on isolated component distributions, so a single model is exposed to the co-occurring errors expected at deployment. This contrasts with component-wise strategies (training first for contact impedance, then for geometric bias), which are diagnostically useful but do not guarantee performance when all errors act together.
 
-Note that temporal drift is deliberately excluded from this model. Drift is a \emph{sequential} phenomenon (baseline shift across measurement frames over minutes to hours) that cannot be meaningfully represented within a single-frame static measurement. Modelling drift as a spatial random walk across channels within one frame is physically incorrect and introduces structured artefacts that do not correspond to real hardware behaviour. Addressing temporal drift requires sequential data and temporal models (e.g., RNNs, online adaptation), which is identified as future work in Chapter~\ref{ch:conclusions}.
+Temporal drift is deliberately excluded. Drift is a \emph{sequential} phenomenon---baseline shift across frames over minutes to hours---that cannot be represented within a single static frame; modelling it as a spatial random walk across channels would introduce artefacts with no hardware counterpart. Addressing it requires sequential data and temporal models, identified as future work in Chapter~\ref{ch:conclusions}.
 
-The noise model \emph{structure} is material-agnostic: the functional forms---additive Gaussian, multiplicative log-normal per-electrode, additive per-electrode uniform, and uniform quantisation---derive from the physics of the measurement chain and the electrode--substrate interface, not from the specific substrate chemistry. What changes between material platforms is the \emph{parametric magnitude} of each component (e.g.\ $\sigma_z \approx 5\%$ for a rigid elastomer, $>20\%$ for a textile electrode), not the distributional form, so the framework generalises directly to other \gls{eit} substrates with only parameter changes. The sensitivity analysis in Section~\ref{sec:method-noise-sensitivity} validates that classifier conclusions hold across the full physically plausible range for common e-skin materials ($\sigma_z \in [5\%, 25\%]$, $b_{\max} \in [0.005, 0.08]$, SNR $\in [20, 60]$\,dB).
+The model \emph{structure} is material-agnostic: the functional forms derive from the physics of the measurement chain and electrode interface, not substrate chemistry. Between material platforms only the \emph{parametric magnitudes} change (e.g.\ $\sigma_z \approx 5\%$ for a rigid elastomer against $>20\%$ for a textile electrode), so the framework transfers to other \gls{eit} substrates through parameter changes alone---a claim tested by the sensitivity analysis of Section~\ref{sec:method-noise-sensitivity}.
 
 \subsection{Component Specifications}
 \label{sec:method-noise-components}
@@ -193,7 +215,7 @@ Each component is defined by its physical mechanism, mathematical formulation, p
 \label{eq:noise-gaussian}
 \end{equation}
 
-\noindent where $\hat{\mathbf{n}} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ is a unit-variance noise realisation, SNR~=~40\,dB, $n_{\text{floor}} = 10^{-4}$\,V is the baseline noise floor, and $N = 208$ is the number of measurements. The signal-dependent formulation ensures noise scales proportionally with measurement amplitude, consistent with the characterisation by \textcite{adler2006} who report SNR of 40--80\,dB for laboratory \gls{eit} instrumentation. The noise floor ensures that the ``no contact'' class receives realistic baseline noise rather than remaining as exact zeros, which would create an unrealistic deterministic cluster in feature space.
+\noindent where $\hat{\mathbf{n}} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, SNR~=~40\,dB, $n_{\text{floor}} = 10^{-4}$\,V and $N = 208$. The signal-dependent form scales noise with measurement amplitude, consistent with the 40--80\,dB reported by \textcite{adler2006} for laboratory instrumentation. The noise floor is essential rather than cosmetic: without it the no-contact class remains an exact zero vector, forming a deterministic cluster with no hardware counterpart---a choice whose consequences prove significant in Section~\ref{sec:res-ablation-minimal}.
 
 \paragraph{Component 2: Electrode contact impedance variation.} Models imperfect and spatially varying electrode--substrate contact, producing multiplicative per-electrode distortion.
 
@@ -202,9 +224,9 @@ Each component is defined by its physical mechanism, mathematical formulation, p
 \label{eq:noise-impedance}
 \end{equation}
 
-\noindent where $e(i)$ maps measurement $i$ to the electrode responsible for that measurement block ($e \in \{1, \ldots, 16\}$). Each electrode has a single impedance factor applied to all measurements it participates in, producing block-structured multiplicative distortion. The log-normal model ensures $z_e > 0$ and produces asymmetric variation consistent with the experimental findings of \textcite{vilhunen2002}, who demonstrated that contact impedance variations of 5--20\% significantly affect reconstruction quality.
+\noindent where $e(i)$ maps measurement $i$ to its electrode block ($e \in \{1, \ldots, 16\}$), so each electrode contributes a single factor to all measurements it participates in, producing block-structured multiplicative distortion. The log-normal form guarantees $z_e > 0$ and yields the asymmetric variation reported by \textcite{vilhunen2002}, who found 5--20\% variation materially affects reconstruction.
 
-The $\sigma_z = 10\%$ default derives from \textcite{vilhunen2002}, whose measurements characterise metal electrodes on saline phantoms and biological tissue. No published study provides quantitative electrode--hydrogel contact-impedance \emph{variation} data suitable for direct parametrisation \parencite{lee2019, yao2022}, but the physical analogy (metal electrode contacting an ionic conductor) supports the same order of magnitude as saline-based measurements, while the compliant hydrogel surface may produce higher variability than rigid phantoms. The sensitivity analysis (Section~\ref{sec:method-noise-sensitivity}) confirms that classifier performance remains robust across the physically plausible range $\sigma_z \in [5\%, 25\%]$, mitigating the impact of this parametric uncertainty on the reported findings.
+The $\sigma_z = 10\%$ default derives from \textcite{vilhunen2002}, characterising metal electrodes on saline phantoms. This is the least well-constrained parameter in the model: no published study provides electrode--hydrogel contact-impedance \emph{variation} data suitable for direct parametrisation \parencite{costacornella2023, park2022skin}, though the physical analogy of a metal electrode contacting an ionic conductor supports the same order of magnitude. The sensitivity analysis therefore sweeps $\sigma_z \in [5\%, 25\%]$ explicitly (Section~\ref{sec:method-noise-sensitivity}).
 
 \paragraph{Component 3: Electrode positioning bias.} Models systematic measurement error from imprecise electrode placement on the physical substrate.
 
@@ -213,7 +235,7 @@ The $\sigma_z = 10\%$ default derives from \textcite{vilhunen2002}, whose measur
 \label{eq:noise-bias}
 \end{equation}
 
-\noindent where $e(i)$ maps measurement $i$ to the responsible electrode. Each electrode receives a random fixed bias drawn independently from a uniform distribution, reflecting that each electrode site has its own positioning error independent of others. This per-electrode structure produces block-structured additive bias in the measurement vector. \textcite{kolehmainen1997} demonstrated that electrode positioning errors of 1--2\,mm produce structured bias in boundary voltages. The random per-electrode model captures this effect more faithfully than a linear gradient across measurements.
+\noindent where each electrode receives an independently drawn fixed offset, reflecting that placement error at one site is unrelated to the others, and producing block-structured additive bias. \textcite{kolehmainen1997} showed that positioning errors of 1--2\,mm produce exactly such structured bias in boundary voltages; an independent per-electrode draw captures this more faithfully than a linear gradient across measurements. The independence assumption is revisited as a limitation in Section~\ref{sec:disc-limitations}, since this component proves to dominate the domain gap.
 
 \paragraph{Component 4: Quantisation noise.} Models the finite precision of the analogue-to-digital converter (ADC) as additive uniform noise bounded by half the least-significant bit, which is the standard statistical model for a mid-tread uniform quantiser operating well above its noise floor \parencite{widrow1996quantization}.
 
@@ -262,7 +284,7 @@ The ablation study systematically evaluates four complementary configurations:
 
 The full-model condition is the foundational training regime used for the primary robustness claims; the single-component, subset, and ordering settings are diagnostic experiments used to interpret mechanism, component importance, and interaction effects.
 
-Additionally, a \emph{severity sweep} scales all parameters by multiplicative factors of $0.5$, $1.0$, $1.5$, $2.0$, $2.5$, and $3.0$ to test generalisation beyond training-time noise levels, following the multi-severity paradigm of \textcite{hendrycks2019}.
+Additionally, a \emph{severity sweep} scales all parameters by multiplicative factors of $0.0$ (a noise-free reference point), $0.5$, $1.0$, $1.5$, $2.0$, $2.5$, and $3.0$ to test generalisation beyond training-time noise levels, following the multi-severity paradigm of \textcite{hendrycks2019}.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Dataset Generation}
@@ -294,20 +316,18 @@ Both clean and noisy voltage vectors are stored in the same dataset file, which 
 \subsection{Train/Validation/Test Split}
 \label{sec:method-splits}
 
-The dataset is partitioned into training (70\%), validation (15\%), and test (15\%) sets using stratified random sampling to preserve class proportions across all splits. The split is performed with a fixed random state ($\texttt{seed} = 42$) to ensure that all models and conditions are evaluated on identical test samples. Stratification guarantees that each split contains equal representation of all five classes, preventing spurious performance differences due to class imbalance in evaluation sets.
-
-This fixed 70/15/15 split is used for all primary results (Tables and figures in Chapter~\ref{ch:results}). A separate 5-fold stratified cross-validation is additionally performed to enable paired statistical testing (Section~\ref{sec:method-stats}). The 5-fold procedure retrains models from scratch on each fold partition, providing five independent performance estimates that account for data split variability. The two approaches are complementary with the fixed split enabling fair model comparison under identical conditions, while cross-validation establishes statistical significance.
+The dataset is partitioned 70/15/15 into training, validation and test sets by stratified random sampling, preserving class proportions and preventing spurious differences from class imbalance in evaluation. A fixed random state ($\texttt{seed} = 42$) ensures all models and conditions are evaluated on identical samples. This split provides all primary results in Chapter~\ref{ch:results}, while a separate stratified 5-fold cross-validation supports paired significance testing (Section~\ref{sec:method-stats}); the two are complementary, the fixed split enabling like-for-like model comparison and the folds establishing significance.
 
 \subsection{Exploratory Data Analysis and Preprocessing}
 \label{sec:method-eda}
 
 Three preprocessing decisions were determined empirically rather than assumed, using a  \texttt{RepeatedStratifiedKFold} ($k=5$, $n_{\text{repeats}}=3$) protocol that yields 15 paired evaluations per pipeline. The full supporting tables and figures are reported in Appendix~\ref{app:eda}.
 
-\paragraph{Feature scaling.} All features are normalised using \texttt{RobustScaler} (median subtraction, interquartile-range scaling), fitted \emph{exclusively} on the training split and applied to the validation and test sets to prevent information leakage. \texttt{RobustScaler} was preferred over \texttt{StandardScaler} on empirical grounds. Across the 15 paired folds, it achieved a macro-F1 of $0.718 \pm 0.004$ versus $0.713 \pm 0.004$ for \texttt{StandardScaler}. When synthetic noise is injected on the Python side (for augmentation, ablation, and robustness sweeps), perturbations are applied in the underlying raw voltage space and the result is then re-transformed with the training-fitted scaler, preserving the physical interpretation of the noise model while keeping all model inputs in a consistent feature space.
+\paragraph{Feature scaling.} Features are normalised with \texttt{RobustScaler} (median subtraction, interquartile-range scaling), fitted \emph{exclusively} on the training split to prevent leakage. It was preferred over \texttt{StandardScaler} empirically, achieving macro-F1 $0.718 \pm 0.004$ against $0.713 \pm 0.004$ across the 15 paired folds. Where noise is injected on the Python side, perturbations are applied in raw voltage space and re-transformed with the training-fitted scaler, preserving the physical interpretation of the noise model while keeping inputs in a consistent feature space.
 
-\paragraph{Dimensionality reduction.} The full 208-dimensional voltage vector is retained for all primary experiments. Two reduction strategies were tested and rejected: correlation pruning at $\rho = 0.75$ reduced macro-F1 by 3.5\,pp ($0.683 \pm 0.007$, $p < 0.001$ vs.\ baseline), and \gls{pca} retaining 95.3\% variance (7~components) reduced macro-F1 by 4.5\,pp ($0.673 \pm 0.005$). The penalty arises because adjacent entries of the voltage vector correspond to spatially neighbouring electrode pairs; the 1D-CNN's convolutional filters exploit this spatial adjacency, and any aggressive reduction destroys the local structure on which it relies.
+\paragraph{Dimensionality reduction.} The full 208-dimensional vector is retained. Two reductions were tested and rejected: correlation pruning at $\rho = 0.75$ cost 3.5\,pp macro-F1 ($p < 0.001$), and \gls{pca} at 95.3\% variance (7 components) cost 4.5\,pp. Adjacent entries of the voltage vector correspond to spatially neighbouring electrode pairs, and aggressive reduction destroys the local structure the convolutional filters exploit---a decision Section~\ref{sec:res-features} shows to matter far more under noise than these clean-data margins suggest.
 
-The downstream effect of these decisions varies by architecture. Scaling is critical for the \gls{svm} (which is sensitive to feature scale) and the \gls{mlp} (whose convergence and final accuracy benefit from centred, comparably-scaled inputs that produce a better-conditioned loss surface and avoid zig-zag gradient updates \parencite{lecun1998efficient}), is invariant for the \gls{rf}, and is operationally neutral for the batch-normalised \gls{cnn} \parencite{ioffe2015batchnorm}. Retaining the full feature set is essential for the \gls{cnn} and modestly beneficial for the linear baselines.
+Scaling is critical for the \gls{svm} and \gls{mlp} \parencite{lecun1998efficient}, invariant for the \gls{rf}, and operationally neutral for the batch-normalised \gls{cnn} \parencite{ioffe2015batchnorm}.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Model Architectures}
@@ -318,7 +338,7 @@ Three classical ML baselines (\gls{svm}, \gls{rf}, \gls{mlp}) and a purpose-desi
 \subsection{Support Vector Machine}
 \label{sec:method-svm}
 
-The \gls{svm} classifier uses a Radial Basis Function (RBF) kernel with regularisation parameter $C = 10$ and kernel coefficient $\gamma = \text{scale}$ (i.e., $\gamma = 1 / (n_{\text{features}} \cdot \text{Var}(\mathbf{X}))$). Multi-class classification uses one-versus-rest decomposition. The relatively high $C$ value reflects the expectation of well-separated classes in the normalised feature space, penalising misclassification over margin maximisation \parencite{cortes1995}. Probability estimates are enabled to support calibration analysis.
+The \gls{svm} classifier uses a Radial Basis Function (RBF) kernel with regularisation parameter $C = 10$ and kernel coefficient $\gamma = \text{scale}$ (i.e., $\gamma = 1 / (n_{\text{features}} \cdot \text{Var}(\mathbf{X}))$). Multi-class classification uses the one-versus-one decomposition implemented by \texttt{scikit-learn}'s \texttt{SVC}, which fits $\binom{5}{2} = 10$ pairwise classifiers and aggregates them by voting. The relatively high $C$ value reflects the expectation of well-separated classes in the normalised feature space, penalising misclassification over margin maximisation \parencite{cortes1995}. Probability estimates are obtained by wrapping the classifier in \texttt{CalibratedClassifierCV} to support the calibration analysis.
 
 \subsection{Random Forest}
 \label{sec:method-rf}
@@ -328,7 +348,7 @@ The \gls{rf} ensemble comprises 500 decision trees with no maximum depth constra
 \subsection{Multi-Layer Perceptron}
 \label{sec:method-mlp}
 
-The \gls{mlp} uses two hidden layers of 128 units each (architecture: 208$\rightarrow$128$\rightarrow$128$\rightarrow$5) with ReLU activation, Adam optimiser ($\alpha_{\text{init}} = 10^{-3}$, adaptive learning rate), L2 regularisation ($\lambda = 10^{-4}$), and batch size 64. Early stopping on a 10\% internal validation split prevents overfitting, with a maximum of 500 iterations. This architecture matches the fully-connected capacity of the \gls{cnn}'s classification head, enabling direct comparison of the effect of convolutional feature extraction versus raw feature classification.
+The \gls{mlp} uses two hidden layers of 128 units each (architecture: 208$\rightarrow$128$\rightarrow$128$\rightarrow$5) with ReLU activation, Adam optimiser ($\alpha_{\text{init}} = 10^{-3}$, with Adam's own per-parameter adaptive step sizes), L2 regularisation ($\lambda = 10^{-4}$), and batch size 64. Early stopping on a 10\% internal validation split prevents overfitting, with a maximum of 500 iterations. This architecture matches the fully-connected capacity of the \gls{cnn}'s classification head, enabling direct comparison of the effect of convolutional feature extraction versus raw feature classification.
 
 \subsection{1D Convolutional Neural Network}
 \label{sec:method-cnn}
@@ -394,12 +414,12 @@ The loss function is cross-entropy over the five classes:
 
 Baseline models (\gls{svm}, \gls{rf}, \gls{mlp}) are trained on the same training split using scikit-learn \parencite{cortes1995, breiman2001}. The \gls{mlp} uses its own internal early stopping with the \gls{svm} and \gls{rf} models trained to convergence.
 
-Hyperparameters for all four model families are fixed \emph{a priori} rather than tuned per condition. This is a deliberate methodological choice. A condition-specific hyperparameter search would confound the estimated effect of noise augmentation with changes in model capacity and regularisation, and could bias comparisons toward conditions receiving greater search budget. Such budget asymmetry is a known source of inflated effect sizes and weak reproducibility in empirical machine learning \parencite{caruana2006empirical, henderson2018reproducibility}. Baseline architecture and regularisation settings are taken from canonical references for each model family \parencite{cortes1995, breiman2001, lecun1998efficient} and, for the \gls{cnn}, from the preliminary depth sweep in Section~\ref{sec:method-cnn}. To verify that the observed augmentation benefit is not a hyperparameter artefact, key \gls{cnn} training variables (learning rate, dropout \parencite{srivastava2014dropout}, weight decay, and severity range) are varied in dedicated sensitivity analyses. Each configuration is retrained from scratch and evaluated on both clean and noisy test splits, with performance reported as accuracy ranges. See Figure 3.4 for results of the severity sweep.
+Hyperparameters for all four families are fixed \emph{a priori} rather than tuned per condition. This is deliberate: a condition-specific search would confound the estimated effect of noise augmentation with changes in capacity and regularisation, and would bias comparisons toward whichever condition received the larger search budget---a known source of inflated effect sizes in empirical machine learning \parencite{caruana2006empirical, henderson2018reproducibility}. Settings follow canonical references for each family \parencite{cortes1995, breiman2001, lecun1998efficient} and, for the \gls{cnn}, the preliminary depth sweep of Section~\ref{sec:method-cnn}. To confirm the augmentation benefit is not a hyperparameter artefact, learning rate, dropout \parencite{srivastava2014dropout} and weight decay are swept in dedicated analyses, each retrained from scratch and evaluated on both splits (Figure~\ref{fig:cnn-hyperparameter-sensitivity}). The training-time severity range is swept separately and reported against the augmented regime, since it is defined only where a fresh severity is drawn per batch.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.82\textwidth]{results/figures/hyperparameter_sensitivity.png}
-\caption{CNN hyperparameter sensitivity analysis. The retained defaults (Shown by a red start) lie within the high-performing region, indicating that the main noise-augmentation result is not driven by a narrow hyperparameter choice.}
+\caption{CNN hyperparameter sensitivity analysis. The retained defaults (shown by a red star) lie within the high-performing region, indicating that the main noise-augmentation result is not driven by a narrow hyperparameter choice.}
 \label{fig:cnn-hyperparameter-sensitivity}
 \end{figure}
 
@@ -453,12 +473,12 @@ The headline values reported in Chapter~\ref{ch:results} are computed on the hel
 \subsection{Statistical Testing}
 \label{sec:method-stats}
 
-To establish whether observed differences are statistically significant, each experiment is repeated over 5 independent random seeds with stratified 70/15/15 splits \parencite{kohavi1995crossval}. The resulting five accuracy estimates enable the reporting of mean $\pm$ standard deviation for all metrics.
+Two complementary resampling schemes are used, and they serve different purposes. For the main results grid, each experiment is repeated over 5 independent random seeds with stratified 70/15/15 splits, and the resulting five accuracy estimates give the mean $\pm$ standard deviation reported for all metrics. For the paired significance tests, a separate stratified 5-fold cross-validation \parencite{kohavi1995crossval} is run, in which each fold's test partition is disjoint from every other and each sample is held out exactly once; within each fold, a validation slice is carved from the training partition so that early stopping never observes the held-out data. Models are retrained from scratch for every fold, and the five paired fold estimates form the input to the paired $t$-tests. Disjoint folds are used here rather than repeated random splits because overlapping test sets would violate the independence assumption underlying the paired test and inflate significance \parencite{demsar2006statistical}.
 
 \subsection{Robustness Evaluation}
 \label{sec:method-robustness}
 
-Following the multi-severity paradigm of \textcite{hendrycks2019}, trained models are evaluated at noise severity multipliers of $0.5\times$, $1.0\times$, $1.5\times$, $2.0\times$, $2.5\times$, and $3.0\times$ applied to all noise parameters simultaneously, producing \emph{robustness curves} of accuracy and F1 against noise intensity. From these curves, three quantities are extracted in Chapter~\ref{ch:results}: a graceful degradation rate (slope of accuracy vs.\ severity), a crossover severity (the multiplier at which noise-trained models first overtake clean-trained models), and the robustness margin at $2\times$ and $3\times$ severity.
+Following the multi-severity paradigm of \textcite{hendrycks2019}, trained models are evaluated at noise severity multipliers of $0.0\times$ (noise-free reference), $0.5\times$, $1.0\times$, $1.5\times$, $2.0\times$, $2.5\times$, and $3.0\times$, applied to all noise parameters simultaneously, producing \emph{robustness curves} of accuracy and macro-F1 against noise intensity. The sweep is run separately for each of the three training regimes, since the purpose is not only to measure degradation but to establish how the regimes compare as conditions depart from those they were trained under. Three quantities are extracted in Chapter~\ref{ch:results}: the degradation from the training severity to $3\times$, the \emph{crossover severity} at which a randomised regime overtakes fixed-noise training, and the clean-domain ($0\times$) accuracy retained by each regime.
 
 \subsection{Ablation Protocol}
 \label{sec:method-ablation}
@@ -466,16 +486,20 @@ Following the multi-severity paradigm of \textcite{hendrycks2019}, trained model
 The ablation study isolates the contribution of each noise component, and the sensitivity of the conclusions to component ordering, through four complementary designs:
 
 \begin{enumerate}
-    \item \textbf{Core mismatch conditions}: the same clean$\to$clean, clean$\to$noisy, noisy$\to$noisy, and noisy$\to$clean matrix used in the main experiments, but instantiated within the Python-side ablation pipeline so that the full multi-component configuration can be compared directly against the ablation variants.
+    \item \textbf{Core mismatch conditions}: the clean$\to$clean, clean$\to$noisy, noisy$\to$noisy and noisy$\to$clean matrix, instantiated within the ablation pipeline so the full configuration can be compared directly against the variants.
 
-    \item \textbf{Single-component training}: four experiments, each training with only one noise component active. This isolates the standalone robustness benefit of each component.
+    \item \textbf{Single-component training}: four experiments, each with only one component active.
 
-    \item \textbf{Exhaustive subset ablation}: every non-empty subset of the four components is enumerated, covering all $2^4 - 1 = 15$ combinations (single-component, pairs, triples, and the full model). This exposes interactions between components that marginal single-component analysis cannot capture, e.g.\ whether two components together produce more (or less) robustness than the sum of their individual effects.
+    \item \textbf{Exhaustive subset ablation}: all $2^4 - 1 = 15$ non-empty subsets, exposing interactions that marginal single-component analysis cannot capture.
 
-    \item \textbf{Component-order ablation}: within each subset, the application order is varied across all physically admissible permutations under two constraints---quantisation is always applied last (it represents \gls{adc} digitisation, which terminates the signal chain), and contact-impedance precedes electrode-bias (the multiplicative interface effect physically precedes additive geometric error). This tests whether the conclusions are sensitive to the ordering choice fixed in Section~\ref{sec:method-noise-components}.
+    \item \textbf{Component-order ablation}: within each subset, all physically admissible orderings, subject to quantisation last (\gls{adc} digitisation terminates the chain) and contact impedance before electrode bias (the multiplicative interface effect precedes additive geometric error).
 \end{enumerate}
 
-For the core mismatch conditions, noisy evaluation uses the full four-component corruption to preserve comparability with the main robustness matrix. For single-component, subset, and ordering studies, training and evaluation use the same active component configuration, isolating the contribution of that component set without introducing an additional full-noise test mismatch.
+\paragraph{Dual evaluation.} Every configuration is scored twice, because the two available protocols answer different questions and---as Chapter~\ref{ch:results} shows---give opposite answers. \emph{Matched} evaluation tests a model on data corrupted by the same components it was trained with, measuring how difficult a world containing only those components would be. \emph{Deployment} evaluation tests it against the full four-component corruption, measuring what omitting components actually costs in the field.
+
+Only the second is operationally meaningful: physical hardware exhibits all four sources simultaneously, so a classifier cannot escape a corruption by having been trained without it. Matched evaluation silently adjusts the test distribution to suit the model, rewarding configurations that define an easier problem rather than those that transfer. It is the protocol implied by the ablations reviewed in Section~\ref{sec:lit-ml-concerns}, and is retained here only as a diagnostic. Evaluation being inexpensive relative to training, both are computed from a single run. Core mismatch conditions face the full corruption by construction and so have no separate deployment column.
+
+Throughout, corruption is applied in \emph{foundational mode}: noise is drawn once per training sample and held fixed across epochs, exactly as the pre-generated dataset behaves. This prevents the training regime and the active component set from varying together, which would otherwise confound the component being ablated with a change of regime. All variants inherit the same regularisation preset as the main noise-trained condition, leaving the component set as the only difference.
 
 \subsection{Noise Parameter Sensitivity}
 \label{sec:method-noise-sensitivity}

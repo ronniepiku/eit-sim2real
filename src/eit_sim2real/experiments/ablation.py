@@ -44,7 +44,6 @@ from eit_sim2real.constants import COMPONENT_LABELS, NOISE_COMPONENTS
 from eit_sim2real.data import load_mat_dataset, prepare_splits
 from eit_sim2real.data.noise import (
     NoiseConfig,
-    apply_noise_batch_vectorised,
     apply_noise_in_scaled_space,
 )
 from eit_sim2real.experiments.protocols import NOISY_CNN_PARAMS
@@ -71,6 +70,14 @@ class AblationResult:
     description: str = ""
     component_order: tuple[str, ...] | None = None
     train_time_s: float = 0.0
+    # Deployment-relevant evaluation: the model is trained on its own
+    # component subset but evaluated against the FULL four-component
+    # corruption, because real hardware always exhibits all error sources
+    # simultaneously. ``test_accuracy`` above is the matched-condition
+    # (train-subset -> test-same-subset) diagnostic. None where the two
+    # coincide (the full model) or do not apply (core mismatch conditions).
+    test_accuracy_full: float | None = None
+    test_f1_macro_full: float | None = None
 
 
 @dataclass
@@ -91,6 +98,8 @@ class AblationStudy:
                 "val_acc": r.val_accuracy,
                 "test_acc": r.test_accuracy,
                 "test_f1": r.test_f1_macro,
+                "test_acc_full": r.test_accuracy_full,
+                "test_f1_full": r.test_f1_macro_full,
                 "train_time_s": r.train_time_s,
                 "noise_order": " > ".join(r.component_order or ()),
                 "noise_n_components": sum(r.noise_config.values()),
@@ -596,15 +605,19 @@ def generate_ablation_report(
                 degradation_rates[comp] = accs[0] - accs[-1]
 
         if degradation_rates:
+            # degradation_rates is (acc@0x - acc@3x), so positive means accuracy
+            # fell. Report the signed accuracy change instead of prefixing a
+            # hardcoded "-", which rendered as "--0.0001" whenever a component
+            # improved accuracy with severity.
             worst_degrader = max(degradation_rates, key=degradation_rates.get)
             lines.append(
                 f"\n**Fastest degradation**: {COMPONENT_LABELS[worst_degrader]} "
-                f"(Δacc = -{degradation_rates[worst_degrader]:.4f} from 0x to 3x)"
+                f"(Δacc = {-degradation_rates[worst_degrader]:+.4f} from 0x to 3x)"
             )
             best_degrader = min(degradation_rates, key=degradation_rates.get)
             lines.append(
                 f"**Most robust to**: {COMPONENT_LABELS[best_degrader]} "
-                f"(Δacc = -{degradation_rates[best_degrader]:.4f} from 0x to 3x)"
+                f"(Δacc = {-degradation_rates[best_degrader]:+.4f} from 0x to 3x)"
             )
 
     # ── 4. Best ordering analysis ──
@@ -789,24 +802,46 @@ def run_ablation(
             current_seed=current_seed,
         ) -> AblationResult:
             """Train and evaluate a single ablation experiment."""
+            # ``noisy_training`` marks every regime whose training data carries
+            # the multi-component corruption, so they all receive the same
+            # regularisation preset as the main-grid noisy condition.
+            noisy_training = train_data in ("noisy_matlab", "noisy_python")
+
             if train_data == "clean":
                 X_tr = dataset_clean.X_train
                 y_tr = dataset_clean.y_train
                 X_v = dataset_clean.X_val
                 y_v = dataset_clean.y_val
-                train_noise_cfg = None
             elif train_data == "noisy_matlab":
                 X_tr = dataset_noisy.X_train
                 y_tr = dataset_noisy.y_train
                 X_v = dataset_noisy.X_val
                 y_v = dataset_noisy.y_val
-                train_noise_cfg = None
             elif train_data == "noisy_python":
-                X_tr = dataset_clean.X_train
+                # Persistent ("foundational mode") noise: the corruption is
+                # drawn ONCE per sample and baked into the training set, exactly
+                # as the pre-generated MATLAB noisy dataset behaves. Drawing
+                # fresh noise every batch instead (online domain randomisation)
+                # is a *different* training regime, reported separately as the
+                # "Augmented" condition, and one the augmentation-paradox result
+                # shows cannot learn to accommodate persistent electrode bias.
+                # Using it here would confound the component being ablated with
+                # a change of training regime.
+                if noise_cfg is None:
+                    raise ValueError("noisy_python training requires a noise_cfg")
+                train_rng = np.random.default_rng(current_seed + 1234)
+                val_rng = np.random.default_rng(current_seed + 5678)
+                X_tr = apply_noise_in_scaled_space(
+                    dataset_clean.X_train,
+                    dataset_clean.scaler,
+                    noise_cfg,
+                    rng=train_rng,
+                )
+                X_v = apply_noise_in_scaled_space(
+                    dataset_clean.X_val, dataset_clean.scaler, noise_cfg, rng=val_rng
+                )
                 y_tr = dataset_clean.y_train
-                X_v = dataset_clean.X_val
                 y_v = dataset_clean.y_val
-                train_noise_cfg = noise_cfg
             else:
                 raise ValueError(f"Unknown train_data: {train_data}")
 
@@ -839,45 +874,66 @@ def run_ablation(
                     epochs=epochs,
                     early_stopping_patience=early_stopping_patience,
                     device=device,
-                    noise_config=train_noise_cfg,
+                    # Noise is already baked into X_tr/X_v above; no online
+                    # augmentation, so every ablation variant differs from the
+                    # full-model reference only in which components are active.
+                    noise_config=None,
                     weight_decay=(
-                        NOISY_CNN_PARAMS["weight_decay"]
-                        if description in ("train_noisy_eval_noisy", "train_noisy_eval_clean")
-                        else 1e-4
+                        NOISY_CNN_PARAMS["weight_decay"] if noisy_training else 1e-4
                     ),
-                    dropout=(
-                        NOISY_CNN_PARAMS["dropout"]
-                        if description in ("train_noisy_eval_noisy", "train_noisy_eval_clean")
-                        else 0.3
-                    ),
+                    dropout=(NOISY_CNN_PARAMS["dropout"] if noisy_training else 0.3),
                     label_smoothing=(
-                        NOISY_CNN_PARAMS["label_smoothing"]
-                        if description in ("train_noisy_eval_noisy", "train_noisy_eval_clean")
-                        else 0.0
-                    ),
-                    input_scaler=(
-                        dataset_clean.scaler if train_noise_cfg is not None else None
+                        NOISY_CNN_PARAMS["label_smoothing"] if noisy_training else 0.0
                     ),
                 )
                 train_acc, _ = _evaluate_cnn(model, X_tr, y_tr, device=device)
                 val_acc, _ = _evaluate_cnn(model, X_v, y_v, device=device)
                 test_acc, test_f1 = _evaluate_cnn(model, X_te, y_te, device=device)
             else:
-                if train_noise_cfg is not None and train_noise_cfg.enabled:
-                    aug_rng = np.random.default_rng(current_seed)
-                    X_tr = apply_noise_in_scaled_space(
-                        X_tr,
-                        dataset_clean.scaler,
-                        train_noise_cfg,
-                        rng=aug_rng,
-                    )
-
+                # Baselines need no separate augmentation step: for
+                # ``noisy_python`` the corruption was already baked into X_tr
+                # above, matching the CNN path exactly.
                 model = get_baseline(model_name, random_state=current_seed)
                 model = train_baseline(model, X_tr, y_tr)
                 train_acc, val_acc, test_acc, test_f1 = _evaluate_sklearn(
                     model, X_tr, y_tr, X_v, y_v, X_te, y_te
                 )
             train_time = time.time() - start_time
+
+            # Deployment-relevant evaluation. A model trained on a component
+            # subset is additionally scored against the full four-component
+            # corruption, because real hardware exhibits all error sources at
+            # once: a training noise model that omits a component must still
+            # face that component at deployment. This is the leave-one-out
+            # ablation question ("what does omitting X cost in the field?"),
+            # whereas ``test_accuracy`` answers the matched-condition question
+            # ("how hard is a world containing only X?").
+            test_acc_full: float | None = None
+            test_f1_full: float | None = None
+            if (
+                eval_data == "noisy"
+                and noise_cfg is not None
+                and set(noise_cfg.active_components()) != set(NOISE_COMPONENTS)
+            ):
+                full_rng = np.random.default_rng(current_seed + 999)
+                X_te_full = apply_noise_in_scaled_space(
+                    dataset_clean.X_test,
+                    dataset_clean.scaler,
+                    full_noise,
+                    rng=full_rng,
+                )
+                if model_name == "cnn1d":
+                    test_acc_full, test_f1_full = _evaluate_cnn(
+                        model, X_te_full, dataset_clean.y_test, device=device
+                    )
+                else:
+                    y_pred_full = model.predict(X_te_full)
+                    test_acc_full = float(
+                        accuracy_score(dataset_clean.y_test, y_pred_full)
+                    )
+                    test_f1_full = float(
+                        f1_score(dataset_clean.y_test, y_pred_full, average="macro")
+                    )
 
             noise_flags = (
                 noise_cfg.component_flags()
@@ -896,10 +952,17 @@ def run_ablation(
                     noise_cfg.resolved_component_order() if noise_cfg else ()
                 ),
                 train_time_s=train_time,
+                test_accuracy_full=test_acc_full,
+                test_f1_macro_full=test_f1_full,
+            )
+            full_note = (
+                f", full-noise acc={test_acc_full:.4f}"
+                if test_acc_full is not None
+                else ""
             )
             logger.info(
-                f"  {description}: acc={test_acc:.4f}, f1={test_f1:.4f} "
-                f"({train_time:.1f}s)"
+                f"  {description}: acc={test_acc:.4f}, f1={test_f1:.4f}"
+                f"{full_note} ({train_time:.1f}s)"
             )
             return result
 
@@ -946,16 +1009,26 @@ def run_ablation(
             if device == "cuda":
                 torch.cuda.manual_seed_all(current_seed)
 
+            # Persistent full-noise training, matching the foundational-mode
+            # reference model rather than online per-batch randomisation.
+            sweep_rng = np.random.default_rng(current_seed + 1234)
+            sweep_val_rng = np.random.default_rng(current_seed + 5678)
+            X_sweep_train = apply_noise_in_scaled_space(
+                dataset_clean.X_train, dataset_clean.scaler, full_noise, rng=sweep_rng
+            )
+            X_sweep_val = apply_noise_in_scaled_space(
+                dataset_clean.X_val, dataset_clean.scaler, full_noise, rng=sweep_val_rng
+            )
             sweep_model, _ = train_cnn(
-                dataset_clean.X_train,
+                X_sweep_train,
                 dataset_clean.y_train,
-                dataset_clean.X_val,
+                X_sweep_val,
                 dataset_clean.y_val,
                 epochs=epochs,
                 early_stopping_patience=early_stopping_patience,
                 device=device,
-                noise_config=full_noise,
-                input_scaler=dataset_clean.scaler,
+                noise_config=None,
+                **NOISY_CNN_PARAMS,
             )
 
             for comp in NOISE_COMPONENTS:
@@ -1011,6 +1084,16 @@ def run_ablation(
         train_accs = [r.train_accuracy for r in results_list]
         val_accs = [r.val_accuracy for r in results_list]
         times = [r.train_time_s for r in results_list]
+        full_accs = [
+            r.test_accuracy_full
+            for r in results_list
+            if r.test_accuracy_full is not None
+        ]
+        full_f1s = [
+            r.test_f1_macro_full
+            for r in results_list
+            if r.test_f1_macro_full is not None
+        ]
 
         study.results.append(
             AblationResult(
@@ -1023,11 +1106,18 @@ def run_ablation(
                 description=template.description,
                 component_order=template.component_order,
                 train_time_s=float(np.mean(times)),
+                test_accuracy_full=float(np.mean(full_accs)) if full_accs else None,
+                test_f1_macro_full=float(np.mean(full_f1s)) if full_f1s else None,
             )
+        )
+        full_note = (
+            f", full-noise acc={np.mean(full_accs):.4f} ± {np.std(full_accs):.4f}"
+            if full_accs
+            else ""
         )
         logger.info(
             f"  {desc}: acc={np.mean(accs):.4f} ± {np.std(accs):.4f}, "
-            f"f1={np.mean(f1s):.4f} ± {np.std(f1s):.4f}"
+            f"f1={np.mean(f1s):.4f} ± {np.std(f1s):.4f}{full_note}"
         )
 
     # Aggregate severity sweep: mean across seeds
@@ -1068,6 +1158,8 @@ def run_ablation(
                     "model": r.model_name,
                     "test_acc": r.test_accuracy,
                     "test_f1": r.test_f1_macro,
+                    "test_acc_full": r.test_accuracy_full,
+                    "test_f1_full": r.test_f1_macro_full,
                     "val_acc": r.val_accuracy,
                     "train_time_s": r.train_time_s,
                 }

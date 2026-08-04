@@ -40,7 +40,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from sklearn.metrics import accuracy_score, f1_score
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import RobustScaler
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -713,7 +713,9 @@ def _build_results_dataframe(results: list[TrialResult]) -> pd.DataFrame:
             }
         )
     df = pd.DataFrame(rows)
-    sort_key = "objective_score" if "objective_score" in df.columns else "mean_robustness"
+    sort_key = (
+        "objective_score" if "objective_score" in df.columns else "mean_robustness"
+    )
     return df.sort_values(sort_key, ascending=False).reset_index(drop=True)
 
 
@@ -792,7 +794,11 @@ def train_final_model(
             optimizer, mode="min", patience=scheduler_patience, factor=scheduler_factor
         )
 
-        augment = best_config.noise_augmentation and noise_config is not None and tag == "noisy"
+        augment = (
+            best_config.noise_augmentation
+            and noise_config is not None
+            and tag == "noisy"
+        )
         aug_rng = np.random.default_rng(seed) if augment else None
 
         best_val_loss = float("inf")
@@ -1039,9 +1045,10 @@ def run_hyperparameter_sensitivity(
     ds_clean = prepare_splits(X_clean, y, random_state=seed)
     ds_noisy = prepare_splits(X_noisy, y, random_state=seed)
 
-    # Noisy test data rescaled into clean-scaler space for cross-condition eval
-    X_noisy_test_clean_space = rescale_cross_condition(
-        ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+    # Clean test data rescaled into noisy-scaler space, since every sweep below
+    # trains in the noisy feature space (foundational mode).
+    X_clean_test_noisy_space = rescale_cross_condition(
+        ds_clean.X_test, ds_clean.scaler, ds_noisy.scaler
     )
 
     results = {}
@@ -1067,12 +1074,18 @@ def run_hyperparameter_sensitivity(
             "values": [1.0, 1.5, 2.0, 2.5, 3.0],
             "default": 2.0,
             "label": "Max Severity (training)",
+            # Severity range only has meaning under online augmentation, where
+            # a fresh severity is drawn per batch. It is therefore swept on the
+            # augmented regime and reported as such, unlike the three sweeps
+            # above which probe the headline foundational-mode model.
+            "regime": "augmented",
         },
     }
 
     for param_name, sweep_info in hp_sweeps.items():
         accs_noisy = []
         accs_clean = []
+        regime = sweep_info.get("regime", "foundational")
 
         for val in sweep_info["values"]:
             torch.manual_seed(seed)
@@ -1080,13 +1093,10 @@ def run_hyperparameter_sensitivity(
             if device == "cuda":
                 torch.cuda.manual_seed_all(seed)
 
-            # Build training kwargs
             train_kwargs = {
                 "epochs": epochs,
                 "early_stopping_patience": early_stopping_patience,
                 "device": device,
-                "noise_config": noise_cfg,
-                "severity_range": (0.5, 2.0),
                 "weight_decay": 1e-3,
                 "dropout": 0.4,
                 "label_smoothing": 0.05,
@@ -1102,19 +1112,50 @@ def run_hyperparameter_sensitivity(
             elif param_name == "severity_range_max":
                 train_kwargs["severity_range"] = (0.5, val)
 
-            model, _ = train_cnn(
-                ds_clean.X_train,
-                ds_clean.y_train,
-                ds_clean.X_val,
-                ds_clean.y_val,
-                **train_kwargs,
-                input_scaler=ds_clean.scaler,
-            )
+            if regime == "augmented":
+                # Online domain randomisation in clean-scaler space.
+                model, _ = train_cnn(
+                    ds_clean.X_train,
+                    ds_clean.y_train,
+                    ds_clean.X_val,
+                    ds_clean.y_val,
+                    noise_config=noise_cfg,
+                    input_scaler=ds_clean.scaler,
+                    **train_kwargs,
+                )
+                X_te_noisy = rescale_cross_condition(
+                    ds_noisy.X_test, ds_noisy.scaler, ds_clean.scaler
+                )
+                X_te_clean = ds_clean.X_test
+            else:
+                # Foundational mode: train on the fixed pre-generated noisy
+                # dataset, the same regime as the headline result, so the sweep
+                # tests the model the dissertation actually reports.
+                model, _ = train_cnn(
+                    ds_noisy.X_train,
+                    ds_noisy.y_train,
+                    ds_noisy.X_val,
+                    ds_noisy.y_val,
+                    noise_config=None,
+                    **train_kwargs,
+                )
+                X_te_noisy = ds_noisy.X_test
+                X_te_clean = X_clean_test_noisy_space
 
-            y_pred_noisy = predict_cnn(model, X_noisy_test_clean_space, device)
-            y_pred_clean = predict_cnn(model, ds_clean.X_test, device)
-            accs_noisy.append(float(accuracy_score(ds_noisy.y_test, y_pred_noisy)))
-            accs_clean.append(float(accuracy_score(ds_clean.y_test, y_pred_clean)))
+            accs_noisy.append(
+                float(
+                    accuracy_score(
+                        ds_noisy.y_test, predict_cnn(model, X_te_noisy, device)
+                    )
+                )
+            )
+            accs_clean.append(
+                float(
+                    accuracy_score(
+                        ds_clean.y_test, predict_cnn(model, X_te_clean, device)
+                    )
+                )
+            )
 
         results[param_name] = {
             "values": sweep_info["values"],
@@ -1122,6 +1163,7 @@ def run_hyperparameter_sensitivity(
             "accuracies_clean": accs_clean,
             "label": sweep_info["label"],
             "default": sweep_info["default"],
+            "regime": regime,
         }
         logger.info(
             f"  {sweep_info['label']}: noisy range "
@@ -1170,13 +1212,16 @@ def run_hyperparameter_sensitivity(
         ax.set_xticklabels([f"{v}" for v in values], fontsize=9)
         ax.set_xlabel(data["label"])
         ax.set_ylabel("Test Accuracy")
-        ax.set_title(f"Sensitivity: {data['label']}")
+        regime_tag = " [augmented]" if data.get("regime") == "augmented" else ""
+        ax.set_title(f"Sensitivity: {data['label']}{regime_tag}")
         ax.legend(fontsize=9)
         ax.grid(True, alpha=0.3)
         ax.set_ylim(0, 1.05)
 
     fig.suptitle(
-        "CNN Hyperparameter Sensitivity (Augmented Training)", fontsize=13, y=1.01
+        "CNN Hyperparameter Sensitivity (Foundational-Mode Training)",
+        fontsize=13,
+        y=1.01,
     )
     fig.tight_layout()
     fig_path = figures_dir / "hyperparameter_sensitivity.png"
@@ -1255,7 +1300,9 @@ def main() -> None:
         logger.info(f"Dataset: {X_clean.shape[0]} samples, {X_clean.shape[1]} features")
 
         objective = args.objective or hp_cfg.get("objective", "noisy_f1")
-        trial_epochs = args.epochs or hp_cfg.get("epochs_per_trial", cfg["training"]["epochs"])
+        trial_epochs = args.epochs or hp_cfg.get(
+            "epochs_per_trial", cfg["training"]["epochs"]
+        )
         final_epochs = hp_cfg.get("final_model_epochs", cfg["training"]["epochs"])
         final_patience = hp_cfg.get(
             "final_early_stopping_patience",

@@ -30,6 +30,22 @@ DEFAULT_COMPONENT_ORDER = (
     "quantisation",
 )
 
+# Threshold below which a clean voltage-difference vector is treated as
+# zero-signal (the "no contact" class), triggering the noise-floor branch of
+# Equation (3.1) rather than the SNR-proportional branch.
+#
+# The no-contact class is exactly zero by construction in the MATLAB
+# generator, but any pipeline that applies noise in raw voltage space after a
+# scaler round-trip (inverse_transform -> transform, see
+# apply_noise_in_scaled_space) reintroduces a float32 residual of order
+# 1e-10. An exact ``> 0`` test therefore mistakes that residual for a real
+# signal and applies SNR-proportional noise ~7 orders of magnitude too small,
+# silently removing the baseline noise floor from the no-contact class.
+#
+# The margin is wide: measured round-trip residual is ~7e-11 while the
+# smallest genuine contact signal (light touch) has an L2 norm of ~7e-4.
+ZERO_SIGNAL_ATOL = 1e-6
+
 
 @dataclass
 class NoiseConfig:
@@ -252,7 +268,7 @@ def apply_noise(
             for i in range(n_samples):
                 noise = rng.standard_normal(n_meas)
                 signal_power = np.linalg.norm(X_noisy[i])
-                if signal_power > 0:
+                if signal_power > ZERO_SIGNAL_ATOL:
                     scale = (
                         signal_power
                         / np.linalg.norm(noise)
@@ -347,7 +363,7 @@ def apply_noise_batch_vectorised(
             signal_norms = np.linalg.norm(X_noisy, axis=1, keepdims=True)
             noise_norms = np.linalg.norm(noise, axis=1, keepdims=True)
             scale = np.where(
-                signal_norms > 0,
+                signal_norms > ZERO_SIGNAL_ATOL,
                 signal_norms / noise_norms * 10 ** (-effective_snr / 20),
                 config.noise_floor * n_meas / noise_norms,
             )

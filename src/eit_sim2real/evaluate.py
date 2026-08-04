@@ -823,19 +823,32 @@ def run_noise_parameter_sensitivity(
 
     ds = prepare_splits(X_clean, y, random_state=seed)
 
-    logger.info("  Training noise-augmented CNN (default params)...")
+    # Reference model is the foundational-mode classifier: noise drawn once per
+    # sample and held fixed, matching the headline noisy-trained condition.
+    # Training this with online per-batch randomisation instead would measure
+    # the sensitivity of a different (and, per the augmentation-paradox result,
+    # degenerate) model to the noise parameters.
+    logger.info(
+        "  Training foundational-mode CNN (persistent noise, default params)..."
+    )
     noise_cfg = NoiseConfig()
+    train_rng = np.random.default_rng(seed + 1234)
+    val_rng = np.random.default_rng(seed + 5678)
+    X_train_noisy = apply_noise_in_scaled_space(
+        ds.X_train, ds.scaler, noise_cfg, rng=train_rng
+    )
+    X_val_noisy = apply_noise_in_scaled_space(
+        ds.X_val, ds.scaler, noise_cfg, rng=val_rng
+    )
     model, _ = train_cnn(
-        ds.X_train,
+        X_train_noisy,
         ds.y_train,
-        ds.X_val,
+        X_val_noisy,
         ds.y_val,
         epochs=epochs,
         early_stopping_patience=early_stopping_patience,
         device=device,
-        noise_config=noise_cfg,
-        input_scaler=ds.scaler,
-        severity_range=(0.5, 2.0),
+        noise_config=None,
         weight_decay=1e-3,
         dropout=0.4,
         label_smoothing=0.05,
