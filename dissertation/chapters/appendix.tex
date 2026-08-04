@@ -9,25 +9,25 @@ This appendix provides supplementary figures and tables that support the finding
 \section{Training Convergence}
 \label{app:training-curves}
 
-Figures~\ref{fig:app-training-noisy}--\ref{fig:app-training-augmented} show the training and validation loss curves for the CNN under the key training regimes. The fixed-noise-trained model (Figure~\ref{fig:app-training-noisy}) converges smoothly within 60 epochs with clear validation loss minimisation, indicating effective learning of noise-corrupted representations. The augmented model (Figure~\ref{fig:app-training-augmented}) also converges stably---confirming that the augmentation paradox is not a training failure but a representation learning phenomenon: the model successfully learns a clean-signal extractor rather than failing to converge.
+Figures~\ref{fig:app-training-noisy}--\ref{fig:app-training-clean} show training and validation loss curves for the CNN under the key training regimes. All three converge stably, confirming that the accuracy differences reported in Chapter~\ref{ch:results} reflect what each regime learns rather than any failure to optimise. The noise-trained models converge more slowly than the clean-trained model, consistent with the more complex decision boundaries required when a large structured offset must be discounted.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{../results/figures/raw/cnn1d/noisy_train_noisy_eval/cnn1d_noisy_train_noisy_eval_training_curves.png}
+\includegraphics[width=0.75\textwidth]{results/figures/raw/cnn1d/noisy_train_noisy_eval/cnn1d_noisy_train_noisy_eval_training_curves.png}
 \caption{CNN training curves: fixed noisy training data, evaluated on noisy test data (Noisy$\to$Noisy condition). The model converges within approximately 60 epochs with smooth validation loss reduction.}
 \label{fig:app-training-noisy}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{../results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_training_curves.png}
-\caption{CNN training curves: online noise augmentation, evaluated on noisy test data (Augmented$\to$Noisy condition). Despite stable convergence and low training loss, the model achieves only 19.4\% test accuracy---demonstrating that the augmentation paradox arises from what the model \emph{learns}, not from training instability.}
+\includegraphics[width=0.75\textwidth]{results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_training_curves.png}
+\caption{CNN training curves: online noise augmentation, evaluated on noisy test data (Augmented$\to$Noisy condition). Convergence is stable, but to a lower plateau than fixed-noise training, reflecting the additional variability the model must accommodate when noise is resampled each epoch.}
 \label{fig:app-training-augmented}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{../results/figures/raw/cnn1d/clean_train_clean_eval/cnn1d_clean_train_clean_eval_training_curves.png}
+\includegraphics[width=0.75\textwidth]{results/figures/raw/cnn1d/clean_train_clean_eval/cnn1d_clean_train_clean_eval_training_curves.png}
 \caption{CNN training curves: clean training data, evaluated on clean test data (Clean$\to$Clean condition). Rapid convergence confirms the forward model produces well-separated class representations.}
 \label{fig:app-training-clean}
 \end{figure}
@@ -40,22 +40,22 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.65\textwidth]{../results/figures/raw/cnn1d/noisy_train_noisy_eval/cnn1d_noisy_train_noisy_eval_cm_test.png}
-\caption{Confusion matrix: CNN trained on noisy data, evaluated on noisy data (Noisy$\to$Noisy, 75.7\%). Principal confusions occur between light touch and point contact, and between firm press and distributed contact---classes with similar voltage magnitude but different spatial extent.}
+\includegraphics[width=0.65\textwidth]{results/figures/raw/cnn1d/noisy_train_noisy_eval/cnn1d_noisy_train_noisy_eval_cm_test.png}
+\caption{Confusion matrix: CNN trained on noisy data, evaluated on noisy data (Noisy$\to$Noisy, 75.8\%). Principal confusions involve point contact, the class with the smallest spatial footprint and the least faithful simulation (Section~\ref{sec:res-perclass}).}
 \label{fig:app-cm-noisy}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.65\textwidth]{../results/figures/raw/cnn1d/clean_train_noisy_eval/cnn1d_clean_train_noisy_eval_cm_test.png}
-\caption{Confusion matrix: CNN trained on clean data, evaluated on noisy data (Clean$\to$Noisy, 19.4\%). Predictions collapse primarily to a single class, demonstrating complete feature-space destruction rather than uniform random guessing.}
+\includegraphics[width=0.65\textwidth]{results/figures/raw/cnn1d/clean_train_noisy_eval/cnn1d_clean_train_noisy_eval_cm_test.png}
+\caption{Confusion matrix: CNN trained on clean data, evaluated on noisy data (Clean$\to$Noisy, 20.0\%). Predictions collapse primarily onto a single class, indicating complete loss of discriminative structure rather than uniform random guessing.}
 \label{fig:app-cm-clean-noisy}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.65\textwidth]{../results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_cm_test.png}
-\caption{Confusion matrix: CNN with online noise augmentation, evaluated on noisy data (Augmented$\to$Noisy, 19.4\%). The failure pattern closely mirrors Clean$\to$Noisy, confirming the model has learned a clean-signal extractor that cannot accommodate fixed test-time noise.}
+\includegraphics[width=0.65\textwidth]{results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_cm_test.png}
+\caption{Confusion matrix: CNN with online noise augmentation, evaluated on noisy data (Augmented$\to$Noisy, 69.5\%). The error structure closely resembles that of fixed-noise training (Figure~\ref{fig:app-cm-noisy}), indicating that the two regimes learn qualitatively similar representations and differ mainly in the sharpness of the resulting decision boundaries.}
 \label{fig:app-cm-augmented}
 \end{figure}
 
@@ -63,44 +63,63 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \section{Domain Shift Visualisation}
 \label{app:tsne}
 
-Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy feature spaces, providing qualitative insight into the distributional divergence quantified by MMD in Section~\ref{sec:res-extended}.
+Figures~\ref{fig:app-tsne}--\ref{fig:app-noise-decomposition} provide qualitative and quantitative views of the domain shift characterised in Section~\ref{sec:res-domain}.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/figures/tsne_clean_vs_noisy.png}
-\caption{t-SNE visualisation comparing clean (left) and noisy (right) feature distributions. Under noise, class clusters lose cohesion and overlap substantially---particularly light touch and point contact---consistent with the per-class vulnerability analysis.}
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{results/dataset_validation/figures/tsne_embedding_clean.png}
+    \caption{Clean measurements}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{results/dataset_validation/figures/tsne_embedding_noisy.png}
+    \caption{Noisy measurements}
+\end{subfigure}
+\caption{t-SNE embeddings of the clean and noisy feature spaces. Clean measurements form well-separated class clusters; under the full noise model the structure is dominated by the electrode-bias offset, and class clusters lose cohesion.}
 \label{fig:app-tsne}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/figures/tsne_per_component.png}
-\caption{t-SNE visualisation of per-component noise effects. Electrode bias (top-right) causes the most severe cluster disruption, consistent with its dominant contribution to MMD (0.387). Gaussian noise and quantisation produce minimal visible effect on cluster structure.}
-\label{fig:app-tsne-components}
+\includegraphics[width=0.8\textwidth]{results/dataset_validation/figures/noise_decomposition.png}
+\caption{Decomposition of measurement energy into signal, electrode-bias and residual components by class. The bias term accounts for effectively all noise energy and exceeds the touch signal itself for every class, which is the quantitative basis for the domain-gap analysis of Section~\ref{sec:res-domain}.}
+\label{fig:app-noise-decomposition}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{results/dataset_validation/figures/signal_vs_noise_comparison.png}
+\caption{Per-class signal and noise magnitudes. The touch signature is a small perturbation on a much larger structured offset; classification remains feasible only because that offset is block-structured and therefore separable.}
+\label{fig:app-signal-noise}
 \end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Ablation Details}
 \label{app:ablation}
 
+Figures~\ref{fig:app-ablation-single}--\ref{fig:app-ablation-ordering} supplement Section~\ref{sec:res-ablation}. They are reported under \emph{matched} evaluation, and are included principally to document the protocol whose conclusions Chapter~\ref{ch:results} shows to be misleading; the deployment-realistic results that supersede them are in Tables~\ref{tab:ablation-single} and~\ref{tab:ablation-subset}.
+
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{../results/figures/ablation/single_component_impact.png}
-\caption{Single-component ablation: accuracy when training and evaluating with only one noise component active. Gaussian-only training produces the lowest matched-condition accuracy (95.4\%) while electrode-bias-only performs best (98.0\%); all single components nonetheless remain within a narrow band, indicating no individual component is catastrophic in isolation.}
+\includegraphics[width=0.75\textwidth]{results/figures/ablation/single_component_impact.png}
+\caption{Single-component ablation under \emph{matched} evaluation, in which each model is tested on the same single component it was trained with. Read in isolation this figure is misleading: it ranks electrode bias worst (68.2\%) and Gaussian noise best (98.9\%), the reverse of the deployment-realistic ranking in Table~\ref{tab:ablation-single}. It is retained to make that discrepancy explicit.}
 \label{fig:app-ablation-single}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{../results/figures/ablation/component_subset_heatmap.png}
-\caption{Component subset heatmap showing accuracy for all 16 possible component combinations. Performance saturates at 3 components, with diminishing returns from the fourth---consistent with the overlap between Gaussian noise and quantisation effects at 16-bit resolution.}
+\includegraphics[width=0.75\textwidth]{results/figures/ablation/component_subset_heatmap.png}
+\caption{Matched-condition accuracy across all 15 non-empty component subsets. Subsets containing electrode bias cluster near 68--69\%, while those omitting it score far higher under matched evaluation precisely because they define an easier world---not because they are better training distributions (Section~\ref{sec:res-ablation}).}
 \label{fig:app-ablation-heatmap}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{../results/figures/ablation/ordering_impact.png}
-\caption{Component ordering impact on final accuracy. The minimal spread (0.25pp between best and worst permutation) confirms that the noise components contribute approximately independently, validating the compositional noise model design.}
+\includegraphics[width=0.75\textwidth]{results/figures/ablation/ordering_impact.png}
+\caption{Effect of component application order for the full four-component model, where the spread is modest (0.95\,pp between best and worst admissible permutation). The effect is considerably larger within two-component subsets (11.0\,pp), for the reasons given in Section~\ref{sec:res-ablation-order}.}
 \label{fig:app-ablation-ordering}
 \end{figure}
 
@@ -108,16 +127,18 @@ Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy f
 \section{Calibration and Confidence}
 \label{app:calibration}
 
+Figures~\ref{fig:app-reliability} and~\ref{fig:app-confidence} supplement the calibration analysis of Section~\ref{sec:res-calibration}.
+
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/figures/calibration_reliability_diagrams.png}
-\caption{Reliability diagrams for the CNN under clean and noisy evaluation. Under domain shift (Clean$\to$Noisy), predicted confidences cluster near 1.0 regardless of actual accuracy, producing ECE = 0.796. Matched-distribution training reduces ECE to 0.051.}
+\includegraphics[width=0.8\textwidth]{results/figures/calibration_reliability_diagrams.png}
+\caption{Reliability diagrams for the CNN under clean and noisy evaluation. Under domain shift (Clean$\to$Noisy) predicted confidences cluster near 1.0 regardless of actual accuracy, producing ECE~=~0.800 at 19.7\% accuracy. Matched-distribution training reduces ECE to 0.047.}
 \label{fig:app-reliability}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/figures/calibration_confidence_distributions.png}
+\includegraphics[width=0.8\textwidth]{results/figures/calibration_confidence_distributions.png}
 \caption{Distribution of predicted confidences under clean and noisy conditions. The bimodal distribution under domain shift (high confidence but low accuracy) represents the worst-case failure mode for safety-critical deployment.}
 \label{fig:app-confidence}
 \end{figure}
@@ -126,32 +147,27 @@ Figure~\ref{fig:app-tsne} presents t-SNE visualisations of the clean and noisy f
 \section{Sensitivity Analyses}
 \label{app:sensitivity}
 
+Figures~\ref{fig:app-noise-sensitivity} and~\ref{fig:app-hp-sensitivity} supplement Section~\ref{sec:res-sensitivity}, covering sensitivity to the noise-model parameters and to the training hyperparameters respectively.
+
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/figures/noise_parameter_sensitivity.png}
-\caption{Noise parameter sensitivity: CNN accuracy as each noise parameter is swept independently while others are held at default values. Accuracy remains above 97\% across all physically plausible ranges except extreme Gaussian noise (20\,dB SNR: 87.7\%).}
+\includegraphics[width=0.8\textwidth]{results/figures/noise_parameter_sensitivity.png}
+\caption{Noise parameter sensitivity: CNN accuracy as each noise parameter is swept independently while the others are held at default. Accuracy is flat across the full plausible range of \gls{snr} and contact impedance, but collapses at quadrupled electrode bias ($b_{\max} = 0.08$: 35.0\%) and at 8-bit \gls{adc} resolution (30.1\%). See Table~\ref{tab:noise-sensitivity}.}
 \label{fig:app-noise-sensitivity}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{../results/figures/hyperparameter_sensitivity.png}
-\caption{Hyperparameter sensitivity: CNN accuracy under sweeps of learning rate, dropout, weight decay, and severity range. Narrow accuracy ranges ($\pm$2pp) confirm that the noise augmentation benefit is robust to hyperparameter choices.}
+\includegraphics[width=0.8\textwidth]{results/figures/hyperparameter_sensitivity.png}
+\caption{Hyperparameter sensitivity: CNN accuracy under sweeps of learning rate, dropout, weight decay and training severity range. Accuracy varies by 2.2--5.4\,pp across all four sweeps, confirming that the reported findings are not an artefact of the specific training configuration.}
 \label{fig:app-hp-sensitivity}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.8\textwidth]{../results/figures/domain_gap_analysis.png}
-\caption{Domain gap analysis: per-feature MMD contributions and distributional divergence decomposition. Electrode bias dominates the gap structure, with clear block-periodic patterns corresponding to the 13 measurements per electrode.}
-\label{fig:app-domain-gap}
 \end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Exploratory Data Analysis}
 \label{app:eda}
 
-This appendix reports the empirical evidence underpinning the preprocessing decisions documented in Section~\ref{sec:method-eda}: choice of feature scaler, decision to retain the full 208-dimensional voltage vector, and decision not to deduplicate the no-contact class. All results were produced by the notebook \texttt{notebooks/eda\_analysis.ipynb}; the complete machine-readable decision log is supplied in \texttt{data/cleaned/eda\_decision\_log.json}.
+This appendix reports the empirical evidence underpinning the preprocessing decisions documented in Section~\ref{sec:method-eda}: choice of feature scaler, decision to retain the full 208-dimensional voltage vector, and decision not to deduplicate the no-contact class. All results were produced by the notebook \texttt{notebooks/eda\_analysis.ipynb}.
 
 \section{Comparison Protocol}
 \label{app:eda-protocol}
@@ -215,14 +231,7 @@ Paired Wilcoxon signed-rank tests across the 15 folds confirm that the differenc
 \section{Held-out Confirmation}
 \label{app:eda-holdout}
 
-Figure~\ref{fig:app-eda-holdout} confirms the cross-validation ranking on a stratified held-out set. The \texttt{RobustScaler} + full-features pipeline is the only configuration to combine the highest macro-F1 with low variance, which is the basis for adopting it as the default preprocessing path for all subsequent experiments in Chapter~\ref{ch:results}.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.85\textwidth]{../results/eda/final_pipeline_holdout.png}
-\caption{Held-out macro-F1 and balanced accuracy for all seven candidate preprocessing pipelines, evaluated on a stratified test partition disjoint from the cross-validation folds. The selected pipeline (\texttt{robust\_lr}) is highlighted; results match the cross-validation ranking in Table~\ref{tab:eda-pipelines}.}
-\label{fig:app-eda-holdout}
-\end{figure}
+The cross-validation ranking was confirmed on a stratified held-out partition disjoint from the cross-validation folds, which reproduced the ordering of Table~\ref{tab:eda-pipelines}. The \texttt{RobustScaler} + full-features pipeline is the only configuration combining the highest macro-F1 with low fold-to-fold variance, which is the basis for adopting it as the default preprocessing path for all subsequent experiments in Chapter~\ref{ch:results}.
 
 \section{Duplicate Audit}
 \label{app:eda-duplicates}

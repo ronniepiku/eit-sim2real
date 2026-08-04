@@ -31,14 +31,14 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.manifold import TSNE
 from sklearn.metrics import pairwise_distances
 
-from eit_sim2real.constants import CLASS_NAMES
+from eit_sim2real.constants import CLASS_NAMES, PROJECT_ROOT
 
 # Consistent plotting style for report figures.
 plt.style.use("seaborn-v0_8-whitegrid")
 sns.set_palette("colorblind")
 
-DEFAULT_DATA_PATH = Path(__file__).parent.parent / "data" / "eit_dataset_numpy.mat"
-DEFAULT_OUTPUT_DIR = Path(__file__).parent.parent / "results" / "dataset_validation"
+DEFAULT_DATA_PATH = PROJECT_ROOT / "data" / "eit_dataset_numpy.mat"
+DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "results" / "dataset_validation"
 DEFAULT_RECONSTRUCTION_DIR = DEFAULT_OUTPUT_DIR / "reconstructions"
 
 DEFAULT_CLASS_NAMES = CLASS_NAMES

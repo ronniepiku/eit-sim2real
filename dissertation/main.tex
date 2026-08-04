@@ -15,6 +15,10 @@
 
 % Graphics and figures
 \usepackage{graphicx}
+% Figure paths are written repo-root-relative (e.g. results/figures/...).
+% Searching {../} first lets the document compile from inside dissertation/,
+% while {./} keeps it working if compiled from the repository root.
+\graphicspath{{../}{./}}
 \usepackage{float}
 \usepackage{subcaption}
 \usepackage[table]{xcolor}
@@ -116,7 +120,7 @@
     {\large September 2026\par}
     \vspace{2cm}
     
-    {\large Word Count (from introduction to conclusions): 14,469\par}
+    {\large Word Count (from introduction to conclusions): 16,139\par}
 \end{titlepage}
 
 %% ─── Copyright ────────────────────────────────────────────────────────────────
@@ -140,13 +144,15 @@ Signed on behalf of the Department of Electronic and Electrical Engineering
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-Electrical Impedance Tomography (EIT) offers a promising sensing modality for electronic prosthetic skin, enabling wide-area tactile perception from a few boundary electrodes. However, classifiers trained on idealised simulation data fail when deployed in the real world. This dissertation investigates whether a physically motivated multi-component noise model (Gaussian measurement noise, contact impedance variation, electrode positioning bias, and quantisation) can bridge this gap through noise-augmented training.
+Electrical Impedance Tomography (EIT) offers a promising sensing modality for electronic prosthetic skin, enabling wide-area tactile perception from a few boundary electrodes. However, classifiers trained on idealised simulation data fail when deployed on real hardware. This dissertation investigates whether a physically motivated multi-component noise model (Gaussian measurement noise, contact impedance variation, electrode positioning bias, and quantisation) can bridge this gap, and---more precisely---which of these components such a model must contain.
 
-A synthetic data set of 25,000 EIT voltage measurements was generated in five touch classes using the EIDORS forward modelling framework, which simulates a 16-electrode ionic hydrogel prosthetic skin. Four classifiers (1D-CNN, MLP, SVM, Random Forest) were evaluated under systematic noise conditions with 5-fold cross-validation.
+A synthetic data set of 25,000 EIT voltage measurements across five touch classes was generated using the EIDORS forward modelling framework, simulating a 16-electrode ionic hydrogel prosthetic skin. Four classifiers (1D-CNN, MLP, SVM, Random Forest) were evaluated across a four-condition train/test matrix, with significance established by stratified 5-fold cross-validation and every noise component ablated under both matched and deployment-realistic evaluation.
 
-Results demonstrate that all models collapse to chance level ($\approx$20\%) under domain mismatch, but noise-matched training recovers substantial performance: the 1D-CNN achieves 75.7\% accuracy on noisy data (+55.5 percentage points over clean-trained). The standard Gaussian-only noise assumption produces artificially inflated results ($>$99\%), confirming that multi-component modelling is essential. Ablation reveals electrode bias dominates the domain gap (99.8\% of noise energy), while contact impedance causes the fastest degradation under severity scaling. Confidence calibration analysis identifies catastrophic overconfidence (ECE = 0.796) under domain shift, highlighting the need for uncertainty quantification in safety-critical deployment. Online noise augmentation paradoxically fails on fixed-noise evaluation, yet noise that persists per sample across epochs recovers performance even when drawn as an independent realisation---revealing that domain randomisation strategies require per-device noise persistence for sensor modalities with fixed per-device characteristics.
+All models collapse to chance ($\approx$20\%) under domain mismatch, irrespective of architecture or feature representation, identifying the gap as distributional rather than a limitation of model capacity. Noise-matched training recovers substantial performance, the 1D-CNN reaching 75.8\% $\pm$ 0.6 (+55.8 percentage points, $p_{\text{corr}} = 3.3\times10^{-7}$). Direct energy decomposition shows electrode positioning bias to account for effectively all noise energy, exceeding the light-touch signal by a factor of roughly 41; because that bias is block-structured rather than random, the task remains tractable and convolutional architectures gain a 17.9-point advantage over baselines treating measurements exchangeably.
 
-These findings provide the first systematic evidence that multi-component noise augmentation enables meaningful sim-to-real transfer for EIT tactile classification, offering actionable guidance for both noise model design and hardware prioritisation.
+The ablation yields the central result, and depends on how it is evaluated. Judged on matched conditions, Gaussian noise appears benign and electrode bias most damaging; judged against the full corruption a deployed device actually encounters, this reverses entirely---noise models omitting electrode bias perform at chance, while Gaussian noise plus electrode bias alone reaches 69.3\%, statistically level with the full four-component model. Contact impedance and quantisation contribute nothing measurable. Severity scaling reveals a trade-off rather than a winner: fixed-noise training peaks at its training severity but loses 15 points by 3$\times$, whereas randomised training is far flatter and overtakes it at approximately 2.2$\times$. Calibration analysis shows catastrophic overconfidence under domain shift (ECE~=~0.800 at 19.7\% accuracy) that is recovered under matched training (ECE~=~0.047), establishing miscalibration here as a symptom of domain shift rather than of architecture.
+
+These findings identify the minimal noise model required for deployable EIT tactile classification, provide hardware tolerances expressed in quantities engineers specify directly, and demonstrate that the evaluation protocol used in component ablation can invert the design guidance derived from it.
 
 %% ─── Acknowledgements ─────────────────────────────────────────────────────────
 \newpage

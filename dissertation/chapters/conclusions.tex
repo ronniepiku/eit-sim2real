@@ -2,58 +2,76 @@
 \chapter{Conclusions}
 \label{ch:conclusions}
 
-\section{Summary of Key Findings}
+\section{Summary of Findings}
 \label{sec:conc-summary}
 
-This dissertation investigated whether multi-component, physically-motivated noise augmentation improves classifier robustness for \gls{eit} tactile sensing, framing noise-matched training as domain randomisation for simulation-to-reality transfer. The principal simulation-backed findings are:
+This dissertation asked whether physically-motivated, multi-component noise augmentation can bridge the simulation-to-reality gap for \gls{eit} tactile classification, and which components such a noise model must contain. The principal findings are:
 
 \begin{enumerate}
-    \item The simulation-to-reality gap is severe and universal: all models collapse to chance level ($\approx$20\%) when trained on clean simulation data and evaluated under realistic multi-component noise, regardless of architecture or feature representation.
-    
-    \item Noise-matched training substantially bridges this gap: a 1D-CNN trained on noise-corrupted data achieves 75.7\% accuracy on noisy evaluation (+55.5pp over clean-trained), with graceful degradation to 93.3\% at 3$\times$ training severity.
-    
-    \item The standard Gaussian-only noise model assumed in prior \gls{eit} literature is insufficient to expose the real challenge: the clean-trained CNN retains $>$99\% accuracy under Gaussian noise alone, masking the vulnerability to electrode bias and contact impedance.
-    
-    \item Online noise augmentation (domain randomisation with per-epoch random noise) fails completely when the test-time noise is fixed---a fundamental insight about when domain randomisation strategies transfer to sensor modalities with fixed per-device characteristics.
-    
-    \item Electrode positioning bias dominates the domain gap (99.8\% of noise energy, MMD = 0.387), while contact impedance drives the fastest accuracy degradation under severity scaling. These provide actionable hardware design priorities.
-    
-    \item Models are catastrophically overconfident under domain shift (ECE = 0.796), identifying uncertainty quantification as a prerequisite for safety-critical prosthetic deployment.
+    \item \textbf{The gap is severe, universal, and distributional.} All four classifiers, across all three feature representations, collapse to chance ($\approx$20\%) when trained on clean simulation data and evaluated under realistic multi-component noise. Because the collapse is independent of architecture and representation, it cannot be addressed by model capacity.
+
+    \item \textbf{Noise-matched training substantially closes it.} A 1D-CNN trained on noise-corrupted data reaches 75.81\% $\pm$ 0.62 against 19.98\% $\pm$ 0.33 for the clean-trained equivalent, a gain of 55.8\,pp confirmed under independent 5-fold cross-validation ($p_{\text{corr}} = 3.3\times10^{-7}$).
+
+    \item \textbf{Electrode positioning bias dominates the gap.} It accounts for effectively 100\% of noise energy and exceeds the light-touch signal by a factor of roughly 41. Three independent analyses---component ablation, severity response and direct energy decomposition---converge on this conclusion.
+
+    \item \textbf{Modelling electrode bias is necessary; two components are sufficient.} Under deployment-realistic evaluation, every noise model omitting electrode bias performs at chance, while Gaussian noise combined with electrode bias reaches 69.25\%---statistically level with the full four-component model (68.98\%). Contact impedance and quantisation add nothing measurable at 16-bit resolution.
+
+    \item \textbf{The ablation evaluation protocol changes the conclusion.} Matched evaluation ranks the components in the opposite order to deployment evaluation, making Gaussian noise appear benign and electrode bias appear worst. Reporting matched results alone---the prevailing convention---inverts the resulting design guidance.
+
+    \item \textbf{Training regime is a characterised trade-off.} Fixed-noise training maximises accuracy at its training severity (75.95\% at 1$\times$) but loses 15.0\,pp by 3$\times$; randomised training is far flatter and overtakes it at approximately 2.2$\times$; mixed training best preserves clean-domain competence (70.40\%).
+
+    \item \textbf{The Gaussian-only noise model is inadequate.} Accuracy varies by less than 0.3\,pp across a 40\,dB SNR range, so robustness demonstrated under Gaussian-only augmentation is not evidence of deployable robustness.
+
+    \item \textbf{Domain shift, not architecture, causes miscalibration.} A clean-trained model reports 99.7\% confidence at 19.7\% accuracy (ECE~=~0.800), whereas the distribution-matched model is well calibrated (ECE~=~0.047).
 \end{enumerate}
+
+\section{Achievement of Objectives}
+\label{sec:conc-objectives}
+
+Objective~1 (configurable noise model) and Objective~2 (physics-informed dataset) were met as specified, with the noise model additionally validated by parameter sensitivity analysis and the dataset by a mesh convergence study. Objective~3 (classifier comparison) was met, establishing the CNN's advantage under noise and---unexpectedly---its instability on clean data, which is reported rather than concealed. Objective~4 (robustness evaluation) was met and extended beyond the original plan into a severity trade-off analysis identifying a crossover point between regimes. Objective~5 (ablation) was met, but only after the evaluation protocol was corrected: the originally planned matched-condition design would have produced the opposite conclusion, and that correction is itself among the more transferable outcomes of the work.
+
+\section{Contributions}
+\label{sec:conc-contributions}
+
+The work contributes: (i)~a quantitative characterisation of the \gls{eit} sim-to-real gap showing it to be dominated by one structured electrode-level error rather than diffuse stochastic noise; (ii)~identification of a \emph{minimal sufficient} noise model (Gaussian plus electrode bias) for deployable robustness; (iii)~a methodological correction to component ablation---evaluate against the full deployment corruption, not the ablated one---which reverses the conclusion and generalises beyond \gls{eit}; (iv)~hardware design priorities expressed as specified tolerances, identifying electrode placement and \gls{adc} bit depth as binding and measurement \gls{snr} as not; and (v)~an open, reproducible pipeline spanning data generation, training and evaluation.
 
 \section{Recommendations}
 \label{sec:conc-recommendations}
 
-Based on the quantitative findings, the following evidence-grounded recommendations are offered:
-
 \begin{itemize}
-    \item \textbf{For \gls{eit} researchers}: report robustness with multi-component noise (at minimum electrode bias + contact impedance), and treat Gaussian-only results as incomplete robustness evidence.
-    \item \textbf{For training strategy design}: use simultaneous multi-error training as the default benchmark pipeline, and keep component-wise training for mechanism-focused diagnostics. Apply Python-side synthetic noise in raw voltage space before re-scaling to preserve physical meaning.
-    \item \textbf{For hardware designers}: prioritise electrode-substrate interface control over further ADC precision increases; use electrode-placement tolerance as a primary quality-control target.
-    \item \textbf{For ML practitioners}: avoid per-epoch re-randomisation as the sole robustness strategy for fixed-device sensors; prefer persistence-aware augmentation and, where possible, device-specific calibration.
-    \item \textbf{For deployment-oriented studies}: pair noise-trained classifiers with explicit uncertainty quantification and target-domain calibration before making deployment claims.
+    \item \textbf{For \gls{eit} researchers:} report robustness under multi-component noise including electrode bias; treat Gaussian-only results as insufficient evidence of robustness.
+    \item \textbf{For ablation studies:} evaluate component-ablated models against the full deployment corruption. Matched evaluation answers a different and less useful question.
+    \item \textbf{For hardware designers:} budget electrode placement tolerance and \gls{adc} resolution ($\geq$12-bit) explicitly; front-end \gls{snr} and interface impedance uniformity can be relaxed considerably.
+    \item \textbf{For training strategy:} use fixed-noise training where the deployment noise level is known and stable, randomised training where it is uncertain, and mixed training as the default when the environment is uncharacterised.
+    \item \textbf{For deployment claims:} fit uncertainty quantification on target-domain data before making any reliability claim; raw softmax confidence is unusable under domain shift.
 \end{itemize}
 
 \section{Future Work}
 \label{sec:conc-future}
 
-Six directions emerge naturally from these findings, ordered by expected impact:
-
 \begin{enumerate}
-    \item \textbf{Foundational-vs-curriculum training comparison.} This work established simultaneous multi-error training as the strongest baseline for robustness, but did not exhaustively compare staged curricula (e.g., contact-impedance pretraining $\rightarrow$ electrode-bias adaptation $\rightarrow$ joint fine-tuning). A controlled study should quantify whether curriculum ordering offers optimisation benefits over direct foundational training while preserving joint-domain performance.
+    \item \textbf{Hardware validation, prioritising the bias distribution.} The decisive component is electrode bias, and the conclusions rest on an assumed uniform, independent distribution for it. Measuring the true distribution on a physical 16-electrode sensor---whether it is correlated across electrodes or heavy-tailed---is the highest-value next experiment, because an error there propagates to everything else.
 
-    \item \textbf{Device-specific noise calibration.} The fixed-bias augmentation experiment (Section~\ref{sec:res-memorisation}) demonstrated that per-device noise persistence---even with an independent noise realisation---recovers strong noisy-domain accuracy. Future work should explore few-shot calibration protocols where a small number of unlabelled measurements from the target device ($n \approx 10$--50) are used to estimate its specific electrode bias distribution, enabling training-time injection of device-matched, persistent noise characteristics.
-    
-    \item \textbf{Domain-adversarial adaptation.} Apply DANN \parencite{ganin2016} or ADDA \parencite{tzeng2017adda} using a small set ($n \approx 50$--100) of unlabelled measurements from the target hardware, explicitly aligning feature distributions without requiring labelled real data---the standard approach for bridging the domain gap characterised by MMD = 0.384.
-    
-    \item \textbf{Hardware validation across sensor morphologies.} Deploy the trained CNN on physical 16-electrode sensors to measure the true sim-to-real gap and validate whether the noise model's assumptions (Gaussian bias distributions, independence across electrodes) hold empirically. A particularly important comparison is conventional hydrogel versus silicone-encapsulated lattice hydrogel designs \parencite{yao2022, dong2025lattice}: this would quantify how much robustness gain comes from structural signal amplification versus foundational multi-error training. The different-draw test (Section~\ref{sec:res-memorisation}) provides simulation-level evidence against memorisation, but hardware validation remains essential to confirm that the parametric noise model captures the dominant real-world degradation modes.
-    
-    \item \textbf{Three-dimensional forward modelling and adaptive meshing.} The mesh convergence study (Section~\ref{sec:method-mesh}, Table~\ref{tab:mesh-convergence}) established that the point-contact class is intrinsically sub-mesh-scale at all 2D refinements tractable for this dataset size, requiring a nearest-element fallback to produce class-consistent signals. A 3D forward model with locally adaptive meshing near the contact region---using, for example, EIDORS' \texttt{ng\_mk\_*} Netgen interface with a contact-conditional refinement criterion---would resolve focal contacts as genuine spatially-extended perturbations rather than discrete element-level approximations. This is also the natural setting in which to address the 2D$\to$3D approximation error identified in Section~\ref{sec:disc-approx-error}, which is the largest uncharacterised forward-model discrepancy. The principal cost is computational: each 3D forward solve takes orders of magnitude longer than the 2D equivalent, requiring either GPU-accelerated solvers or reduced-order modelling to remain tractable at the dataset size used here.
-    
-    \item \textbf{Temporal modelling.} Extend to sequential frames using recurrent or temporal convolutional architectures, enabling drift compensation and dynamic touch detection \parencite{silvera-tawil2012eit}. Temporal redundancy may improve noise robustness by averaging out frame-to-frame variation while preserving persistent signals.
+    \item \textbf{Transfer across noise families.} The present results establish generalisation across \emph{realisations} but not across parametric \emph{forms}. Training on one bias distribution and testing on a structurally different one would bound true transfer.
+
+    \item \textbf{Three-dimensional forward modelling.} The 2D-to-3D reduction is the largest uncompensated approximation error and, unlike measurement noise, is deterministic and cannot be absorbed by randomisation. Locally adaptive meshing would additionally resolve the sub-mesh-scale point-contact class properly.
+
+    \item \textbf{Domain-adversarial adaptation.} With a small set of unlabelled target measurements, DANN \parencite{ganin2016} or ADDA \parencite{tzeng2017adda} could align feature distributions directly rather than relying on the source distribution to cover the target---the natural complement once hardware data exist.
+
+    \item \textbf{Temporal modelling.} Extending to sequential frames would allow drift compensation and dynamic touch detection, and temporal redundancy may improve robustness by averaging frame-to-frame variation while preserving persistent signals.
+
+    \item \textbf{Morphology-aware randomisation.} Given that \textcite{dong2025lattice} show sensor geometry materially alters observability, jointly randomising over morphology and measurement noise would test whether the minimal sufficient noise model identified here holds across sensor designs.
 \end{enumerate}
 
 \section{Reflections on the Research Process}
 \label{sec:conc-reflections}
 
-In retrospect, three methodological decisions would be revised if beginning this research anew. First, the fixed-bias augmentation experiment---ultimately conducted as a follow-up analysis (Section~\ref{sec:res-memorisation})---should have been included in the initial experimental design. Because the result (69.5\% noisy accuracy) ultimately \emph{resolves} the augmentation paradox---showing that per-device noise persistence, not exact realisation match, is the critical factor---having this evidence from the outset would have sharpened the experimental framing and motivated earlier investigation of persistence-preserving augmentation strategies. Second, the ablation study would benefit from full protocol harmonisation with the main experiment (same condition matrix and reporting schema) so component-level findings and primary performance results can be compared without caveats about evaluation setup. Third, earlier engagement with the MMD diagnostic---conducting domain gap analysis before rather than after the main experiments---would have informed the experimental design by revealing the dominance of electrode bias prior to model training, potentially motivating bias-specific mitigation strategies alongside the general noise augmentation approach. These reflections highlight the inherently iterative nature of empirical research, where findings from later analyses frequently suggest improvements to earlier design decisions.
+Three methodological lessons emerged, each from an error corrected during the work rather than from the original plan.
+
+The first concerns evaluation protocol. The ablation was initially designed to train and test each configuration on the same noise components---the intuitive reading of ``isolating a component''. That design produced a coherent but entirely inverted account of which components matter. Evaluating instead against the full corruption a deployed device would face changed the conclusion, not merely the numbers. In transfer settings the evaluation distribution encodes a claim about the deployment context, so choosing it casually is a substantive modelling error rather than a presentational detail.
+
+The second concerns internally consistent but unverified results. Several analyses were at one stage produced by a pipeline whose reference model had been trained under the wrong regime; the outputs were plausible, self-consistent and wrong. They were caught only by noticing that the severity sweep disagreed with the main results table for what should have been an identical measurement. Cross-checking analyses that ought to agree proved far more effective than scrutinising any single result.
+
+The third concerns provenance. Reconciling reported values against the files that generated them exposed inconsistencies that would otherwise have reached the final document. Re-deriving every reported figure from a single canonical set of outputs is tedious but is the only reliable defence against numbers drifting from their source as a project evolves.
+
+Were the project repeated, the deployment-realistic ablation protocol would have been adopted at the outset, and an automated consistency check between overlapping analyses built in from the start.

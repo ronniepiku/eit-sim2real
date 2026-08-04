@@ -18,12 +18,17 @@ def create_svm(random_state: int = 42) -> CalibratedClassifierCV:
 
     Hyperparameters chosen based on typical EIT classification literature.
     Uses CalibratedClassifierCV to provide predict_proba support.
+
+    Note on multi-class handling: scikit-learn's ``SVC`` always fits
+    one-vs-one internally. ``decision_function_shape`` only reshapes the
+    decision function output and does not change the fitted model, so it is
+    not set here to avoid implying a one-vs-rest decomposition that does not
+    occur.
     """
     svc = SVC(
         kernel="rbf",
         C=10.0,
         gamma="scale",
-        decision_function_shape="ovr",
         random_state=random_state,
     )
     return CalibratedClassifierCV(svc, ensemble=False)
@@ -49,13 +54,16 @@ def create_mlp(random_state: int = 42) -> MLPClassifier:
 
     Two hidden layers with 128 units each, matching the CNN's FC capacity.
     """
+    # ``learning_rate`` is deliberately omitted: scikit-learn only applies it
+    # when ``solver='sgd'``, so setting it alongside Adam would be a silent
+    # no-op that misrepresents the schedule actually used. Adam adapts its own
+    # per-parameter step sizes from ``learning_rate_init``.
     return MLPClassifier(
         hidden_layer_sizes=(128, 128),
         activation="relu",
         solver="adam",
         alpha=1e-4,
         batch_size=64,
-        learning_rate="adaptive",
         learning_rate_init=1e-3,
         max_iter=500,
         early_stopping=True,

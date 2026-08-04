@@ -129,10 +129,10 @@ def train_cnn(
         train_loss = train_correct = train_total = 0
 
         for X_batch, y_batch in train_loader:
-            if augment:
+            if augment and noise_config is not None and aug_rng is not None:
                 X_np = X_batch.numpy()
                 if severity_range is not None:
-                    noise_config.severity = float(aug_rng.uniform(*severity_range))  # type: ignore[union-attr]
+                    noise_config.severity = float(aug_rng.uniform(*severity_range))
                 if input_scaler is not None:
                     X_np = apply_noise_in_scaled_space(
                         X_np,
@@ -145,7 +145,7 @@ def train_cnn(
                         X_np,
                         noise_config,
                         rng=aug_rng,
-                    )  # type: ignore[arg-type]
+                    )
                 X_batch = torch.from_numpy(X_np).float()
 
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)

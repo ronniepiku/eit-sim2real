@@ -189,12 +189,67 @@ class TestApplyNoiseInScaledSpace:
             rng=np.random.default_rng(0),
         )
 
-        np.testing.assert_allclose(result, X_scaled)
+        # The scaler round-trip (inverse_transform -> transform) is performed in
+        # float32, so an exact comparison is not meaningful; allow one float32
+        # epsilon of relative drift.
+        np.testing.assert_allclose(result, X_scaled, rtol=1e-6, atol=1e-6)
 
 
 # ---------------------------------------------------------------------------
 # Extra coverage added during the codebase audit
 # ---------------------------------------------------------------------------
+
+
+class TestZeroSignalNoiseFloor:
+    """The no-contact class must receive the baseline noise floor.
+
+    Its clean vector is exactly zero, but a scaler round-trip leaves a ~1e-10
+    residual. An exact ``> 0`` test then mistakes that for signal and applies
+    SNR-proportional noise orders of magnitude too small, silently stripping
+    the noise floor from an entire class.
+    """
+
+    def _floor_cfg(self) -> NoiseConfig:
+        cfg = NoiseConfig.only("gaussian")
+        cfg.noise_floor = 1e-4
+        return cfg
+
+    def test_exact_zero_gets_noise_floor(self) -> None:
+        X = np.zeros((8, 208), dtype=np.float32)
+        out = apply_noise_batch_vectorised(
+            X, self._floor_cfg(), rng=np.random.default_rng(0)
+        )
+        # Expected L2 of the floor branch is noise_floor * n_meas.
+        assert np.linalg.norm(out, axis=1).mean() == pytest.approx(1e-4 * 208, rel=0.1)
+
+    def test_float_residual_still_gets_noise_floor(self) -> None:
+        """A near-zero residual must not be mistaken for a real signal."""
+        X = np.full((8, 208), 7e-11, dtype=np.float32)
+        out = apply_noise_batch_vectorised(
+            X, self._floor_cfg(), rng=np.random.default_rng(0)
+        )
+        assert np.linalg.norm(out, axis=1).mean() == pytest.approx(1e-4 * 208, rel=0.1)
+
+    def test_genuine_small_signal_uses_snr_branch(self) -> None:
+        """The smallest real contact signal must NOT trip the zero-signal path."""
+        rng = np.random.default_rng(0)
+        X = rng.standard_normal((8, 208)).astype(np.float32)
+        X = (X / np.linalg.norm(X, axis=1, keepdims=True) * 7e-4).astype(np.float32)
+        cfg = self._floor_cfg()
+        cfg.snr_db = 40.0
+        out = apply_noise_batch_vectorised(X, cfg, rng=np.random.default_rng(1))
+        # SNR branch => residual L2 ~ signal_L2 * 10^(-40/20) = 7e-4 * 0.01.
+        residual = np.linalg.norm(out - X, axis=1).mean()
+        assert residual == pytest.approx(7e-4 * 0.01, rel=0.2)
+
+    def test_reference_and_vectorised_agree_on_zero_signal(self) -> None:
+        X = np.zeros((8, 208), dtype=np.float32)
+        cfg = self._floor_cfg()
+        ref = apply_noise(X, cfg, rng=np.random.default_rng(3))
+        vec = apply_noise_batch_vectorised(X, cfg, rng=np.random.default_rng(3))
+        assert np.linalg.norm(ref, axis=1).mean() == pytest.approx(
+            np.linalg.norm(vec, axis=1).mean(), rel=0.15
+        )
 
 
 class TestAssertions:

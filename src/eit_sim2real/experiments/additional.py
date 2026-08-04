@@ -32,7 +32,6 @@ import argparse
 import json
 import logging
 import sys
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -40,6 +39,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 
 from eit_sim2real.configs import load_config
+from eit_sim2real.constants import PROJECT_ROOT
 from eit_sim2real.data import load_mat_dataset, prepare_splits
 from eit_sim2real.data.noise import (
     NoiseConfig,
@@ -60,7 +60,7 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 # Output directory
 # ─────────────────────────────────────────────────────────────────────────────
-RESULTS_DIR = Path(__file__).parent.parent / "results" / "additional_experiments"
+RESULTS_DIR = PROJECT_ROOT / "results" / "additional_experiments"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -291,7 +291,7 @@ def run_experiment_1_fixed_bias():
 
     set_seeds(42)
     cfg = load_config()
-    data_path = Path(__file__).parent.parent / cfg["data"]["path"]
+    data_path = PROJECT_ROOT / cfg["data"]["path"]
 
     # Load CLEAN data
     X_clean, y = load_mat_dataset(data_path, use_noisy=False)
@@ -433,7 +433,7 @@ def run_experiment_2_different_draw():
 
     set_seeds(42)
     cfg = load_config()
-    data_path = Path(__file__).parent.parent / cfg["data"]["path"]
+    data_path = PROJECT_ROOT / cfg["data"]["path"]
 
     # Load clean data and original noisy data
     X_clean, y = load_mat_dataset(data_path, use_noisy=False)
@@ -475,9 +475,7 @@ def run_experiment_2_different_draw():
     )
 
     # Load the existing noisy-trained CNN
-    model_path = (
-        Path(__file__).parent.parent / "results" / "models" / "cnn1d_noisy_best.pt"
-    )
+    model_path = PROJECT_ROOT / "results" / "models" / "cnn1d_noisy_best.pt"
     if not model_path.exists():
         logger.error(
             f"Model not found at {model_path}. "

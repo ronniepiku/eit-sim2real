@@ -1,5 +1,14 @@
 """Project-wide constants"""
 
+from pathlib import Path
+
+# Repository root, resolved from this file's location
+# (src/eit_sim2real/constants.py -> parents[2] == repo root).
+# Used so scripts resolve data/ and results/ correctly regardless of the
+# current working directory. Assumes an editable install, which is how the
+# project is installed (see docs/SETUP.md).
+PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
+
 NUM_CLASSES: int = 5
 
 CLASS_NAMES: list[str] = [
