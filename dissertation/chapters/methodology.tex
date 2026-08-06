@@ -127,7 +127,7 @@ Distributed contact & 8.47  & 26.05 & 46.40 & 103.30 & 0/20 \\
 \end{tabular}
 \end{table}
 
-For the three spatially extended classes the coarse-to-fine difference is 8--18\%, with perturbed-element counts growing roughly proportionally with refinement---the expected behaviour of a converging discretisation of a finite-area inclusion. Point contact behaves differently: its radius (0.02--0.05 on the unit disc) is intrinsically sub-mesh-scale, so even the fine mesh intersects only 2.45 elements on average and 4 of 20 samples intersect at most one. Its 77\% figure is therefore not a convergence statistic but a symptom of the contact being smaller than the discretisation can represent. Rather than refine indefinitely, the pipeline represents point contact through a nearest-element fallback (Section~\ref{sec:method-dataset-sampling}); the consequences are revisited in Section~\ref{sec:disc-limitations}. These figures are reproduced by \texttt{matlab/validate\_mesh\_convergence.m}.
+For the three spatially extended classes, the coarse-to-fine difference is 8--18\%, with perturbed-element counts growing roughly proportionally with refinement---the expected behaviour of a converging discretisation of a finite-area inclusion. Point contact behaves differently: its radius (0.02--0.05 on the unit disc) is intrinsically sub-mesh-scale, so even the fine mesh intersects only 2.45 elements on average, and 4 of 20 samples intersect at most one. Its 77\% figure is therefore not a convergence statistic but a symptom of the contact being smaller than the discretisation can represent. Rather than refine indefinitely, the pipeline represents point contact through a nearest-element fallback (Section~\ref{sec:method-dataset-sampling}); the consequences are revisited in Section~\ref{sec:disc-limitations}.
 
 \subsection{Material Model: Ionic Hydrogel}
 \label{sec:method-material}
@@ -171,9 +171,9 @@ Three design principles govern this parametrisation:
     \item \textbf{Contact geometry.} Radii follow Hertzian contact mechanics for soft elastomers: for $E^* \approx 150$\,kPa \parencite{kim2019} and forces of 0.1--4\,N, predicted contact radii span approximately 2--25\,mm on the unit-normalised mesh, consistent with Table~\ref{tab:class-params}.
 \end{enumerate}
 
-\paragraph{Position constraint.} Contact positions are restricted to $|x|, |y| \leq 0.4$ on the unit disc, for two reasons: \gls{eit} sensitivity is highly non-uniform, being far greater near the boundary electrodes than at the centre \parencite{adler2006}; and in a prosthetic the sensing surface is the top of the sensor rather than the electrode boundary. An earlier 70\% support allowed position-induced within-class variance to dominate the between-class conductivity differences, motivating the tighter constraint.
+\paragraph{Position constraint.} Contact positions are restricted to $|x|, |y| \leq 0.4$ on the unit disc, for two reasons: \gls{eit} sensitivity is highly non-uniform, being far greater near the boundary electrodes than at the centre \parencite{adler2006}; and in a prosthetic, the sensing surface is the top of the sensor rather than the electrode boundary. An earlier 70\% support allowed position-induced variance within the class to dominate the conductivity differences between-classes, motivating the tighter constraint.
 
-The conductivity magnitudes are \emph{physics-informed priors} rather than measured calibration constants, since no published study provides a complete gauge-factor calibration for ionic hydrogel under these conditions \parencite{costacornella2023}. They are best understood as literature-constrained assumptions ensuring physically plausible signal characteristics and class separability.
+Conductivity magnitudes are \emph{physics-informed priors} rather than measured calibration constants, since no published study provides a complete gauge-factor calibration for the ionic hydrogel under these conditions \parencite{costacornella2023}. They are best understood as literature-constrained assumptions ensuring physically plausible signal characteristics and class separability.
 
 \subsection{Data Representation}
 \label{sec:method-representation}
@@ -190,7 +190,7 @@ Each sample is represented as the voltage difference vector:
 \section{Noise Model}
 \label{sec:method-noise}
 
-The noise model comprises four independently configurable components, each capturing a distinct physical degradation source documented in the experimental \gls{eit} literature. This multi-component approach constitutes the primary methodological contribution of this dissertation, enabling systematic ablation to determine which noise sources most affect classifier robustness.
+The noise model comprises four independently configurable components, each capturing a distinct physical degradation source documented in the experimental \gls{eit} literature.
 
 \subsection{Design Rationale}
 \label{sec:method-noise-rationale}
@@ -199,9 +199,9 @@ Real \gls{eit} hardware corrupts measurements through multiple concurrent, stati
 
 Training with all four sources active simultaneously is termed the \emph{foundational mode}: the classifier is optimised on the joint corruption distribution rather than on isolated component distributions, so a single model is exposed to the co-occurring errors expected at deployment. This contrasts with component-wise strategies (training first for contact impedance, then for geometric bias), which are diagnostically useful but do not guarantee performance when all errors act together.
 
-Temporal drift is deliberately excluded. Drift is a \emph{sequential} phenomenon---baseline shift across frames over minutes to hours---that cannot be represented within a single static frame; modelling it as a spatial random walk across channels would introduce artefacts with no hardware counterpart. Addressing it requires sequential data and temporal models, identified as future work in Chapter~\ref{ch:conclusions}.
+Temporal drift is deliberately excluded. Drift is a \emph{sequential} phenomenon that cannot be represented within a single static frame. Modelling it as a spatial random walk across channels would introduce artefacts with no hardware counterpart. Addressing it requires sequential data and temporal models, identified as future work in Chapter~\ref{ch:conclusions}.
 
-The model \emph{structure} is material-agnostic: the functional forms derive from the physics of the measurement chain and electrode interface, not substrate chemistry. Between material platforms only the \emph{parametric magnitudes} change (e.g.\ $\sigma_z \approx 5\%$ for a rigid elastomer against $>20\%$ for a textile electrode), so the framework transfers to other \gls{eit} substrates through parameter changes alone---a claim tested by the sensitivity analysis of Section~\ref{sec:method-noise-sensitivity}.
+The model \emph{structure} is material-agnostic. The functional forms derive from the physics of the measurement chain and electrode interface, not substrate chemistry. Between material platforms only the \emph{parametric magnitudes} change (e.g.\ $\sigma_z \approx 5\%$ for a rigid elastomer against $>20\%$ for a textile electrode), so the framework transfers to other \gls{eit} substrates through parameter changes alone---a claim tested by the sensitivity analysis of Section~\ref{sec:method-noise-sensitivity}.
 
 \subsection{Component Specifications}
 \label{sec:method-noise-components}
@@ -304,12 +304,12 @@ The dataset comprises 25{,}000 samples (5{,}000 per class), generated using the 
     \item Store both clean and noisy vectors with the class label and generation metadata.
 \end{enumerate}
 
-Both clean and noisy voltage vectors are stored in the same dataset file, which enables the full four-condition evaluation matrix (Section~\ref{sec:method-eval-conditions}) without regenerating data. To quantify the influence of data volume on generalisation, a dataset-size sweep was performed and test accuracy was evaluated at increasing sample counts. As shown in Figure~\ref{fig:dataset-size-learning-curve}, performance improves substantially with larger datasets, followed by diminishing returns and an apparent plateau as sample count approaches $10^4$. To maximise model performance while preserving a practical generation budget, the final dataset size was set to 25{,}000 samples.
+Storing both clean and noisy vectors in the same file enables the four-condition evaluation matrix (Section~\ref{sec:method-eval-conditions}) without regenerating data. Dataset size was set empirically: a size sweep (Figure~\ref{fig:dataset-size-learning-curve}) shows noise-aware accuracy rising steeply then plateauing as the sample count approaches $10^4$, so 25{,}000 samples sits comfortably beyond the plateau within a practical generation budget. The clean-trained curve is flat at chance throughout, an early indication that no quantity of clean data addresses the domain shift.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.82\textwidth]{results/figures/dataset_size_learning_curve.png}
-\caption{Effect of dataset size on test accuracy. Accuracy increases strongly at smaller sample counts, then plateaus as dataset size approaches $10^4$, indicating diminishing marginal gains from additional data.}
+\caption{Effect of dataset size on test accuracy, evaluated on noisy data. The noise-aware model improves steeply then plateaus near $10^4$ samples; the clean-trained model remains at chance regardless of dataset size.}
 \label{fig:dataset-size-learning-curve}
 \end{figure}
 
@@ -333,22 +333,25 @@ Scaling is critical for the \gls{svm} and \gls{mlp} \parencite{lecun1998efficien
 \section{Model Architectures}
 \label{sec:method-models}
 
-Three classical ML baselines (\gls{svm}, \gls{rf}, \gls{mlp}) and a purpose-designed 1D-\gls{cnn} are evaluated. This selection enables comparison across the classical--deep learning spectrum under identical data conditions, addressing the gap identified in Section~\ref{sec:lit-ml-concerns}.
+Three classical baselines (\gls{svm}, \gls{rf}, \gls{mlp}) and a purpose-designed 1D-\gls{cnn} are evaluated, enabling comparison across the classical--deep spectrum under identical data conditions and addressing the gap identified in Section~\ref{sec:lit-ml-concerns}. Baseline configurations are given in Table~\ref{tab:baseline-params}; full settings are listed in Appendix~\ref{app:code}.
 
-\subsection{Support Vector Machine}
-\label{sec:method-svm}
-
-The \gls{svm} classifier uses a Radial Basis Function (RBF) kernel with regularisation parameter $C = 10$ and kernel coefficient $\gamma = \text{scale}$ (i.e., $\gamma = 1 / (n_{\text{features}} \cdot \text{Var}(\mathbf{X}))$). Multi-class classification uses the one-versus-one decomposition implemented by \texttt{scikit-learn}'s \texttt{SVC}, which fits $\binom{5}{2} = 10$ pairwise classifiers and aggregates them by voting. The relatively high $C$ value reflects the expectation of well-separated classes in the normalised feature space, penalising misclassification over margin maximisation \parencite{cortes1995}. Probability estimates are obtained by wrapping the classifier in \texttt{CalibratedClassifierCV} to support the calibration analysis.
-
-\subsection{Random Forest}
-\label{sec:method-rf}
-
-The \gls{rf} ensemble comprises 500 decision trees with no maximum depth constraint, minimum samples per split of 5, and minimum samples per leaf of 2. Trees are grown using Gini impurity with bootstrap aggregation. The large ensemble size (500 trees) ensures stable predictions and reliable feature importance estimates \parencite{breiman2001}.
-
-\subsection{Multi-Layer Perceptron}
-\label{sec:method-mlp}
-
-The \gls{mlp} uses two hidden layers of 128 units each (architecture: 208$\rightarrow$128$\rightarrow$128$\rightarrow$5) with ReLU activation, Adam optimiser ($\alpha_{\text{init}} = 10^{-3}$, with Adam's own per-parameter adaptive step sizes), L2 regularisation ($\lambda = 10^{-4}$), and batch size 64. Early stopping on a 10\% internal validation split prevents overfitting, with a maximum of 500 iterations. This architecture matches the fully-connected capacity of the \gls{cnn}'s classification head, enabling direct comparison of the effect of convolutional feature extraction versus raw feature classification.
+\begin{table}[htbp]
+\centering
+\caption{Baseline classifier configurations. Settings follow canonical references for each family and are held fixed across all conditions.}
+\label{tab:baseline-params}
+\small
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Model} & \textbf{Configuration} \\
+\midrule
+\gls{svm} & RBF kernel, $C = 10$, $\gamma = \text{scale}$; one-versus-one decomposition (10 pairwise classifiers, aggregated by voting) as implemented by \texttt{scikit-learn}'s \texttt{SVC}. The high $C$ reflects well-separated classes in the normalised space \parencite{cortes1995}. Probabilities obtained via \texttt{CalibratedClassifierCV} to support the calibration analysis. \\
+\midrule
+\gls{rf} & 500 trees, unlimited depth, min.\ 5 samples per split and 2 per leaf, Gini impurity, bootstrap aggregation. The large ensemble stabilises predictions \parencite{breiman2001}. \\
+\midrule
+\gls{mlp} & 208$\rightarrow$128$\rightarrow$128$\rightarrow$5, ReLU, Adam ($\alpha = 10^{-3}$), $L_2$ regularisation ($\lambda = 10^{-4}$), batch size 64, early stopping on a 10\% internal split. Matches the fully-connected capacity of the \gls{cnn} head, isolating the effect of convolutional feature extraction. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \subsection{1D Convolutional Neural Network}
 \label{sec:method-cnn}
@@ -452,23 +455,14 @@ To quantify the effect of noise augmentation, all models are evaluated under fou
 \end{tabular}
 \end{table}
 
-The diagonal entries represent matched train/test conditions. Clean$\to$Clean is an upper bound on what is achievable when training and deployment distributions coincide, while Noisy$\to$Noisy is the operationally relevant cell, since every real \gls{eit} measurement carries hardware noise and therefore corresponds to real-world performance. The off-diagonal entries quantify the failure mode and recovery. Clean$\to$Noisy measures the simulation-to-reality vulnerability that arises if a model trained on idealised simulation is deployed without augmentation, and Noisy$\to$Clean indicates whether noise-augmented training degrades performance on clean data. The benefit of noise augmentation is therefore most directly read as the improvement from Clean$\to$Noisy to Noisy$\to$Noisy.
+The diagonal entries are matched conditions: Clean$\to$Clean bounds what is achievable when training and deployment coincide, while Noisy$\to$Noisy is the operationally relevant cell, since every real measurement carries hardware noise. The off-diagonals quantify failure and recovery---Clean$\to$Noisy is the vulnerability incurred by deploying an unaugmented simulation-trained model, and Noisy$\to$Clean shows whether augmentation costs clean-data performance. The benefit of augmentation is read as the improvement from Clean$\to$Noisy to Noisy$\to$Noisy.
 
-Domain adaptation methods (e.g., DANN \parencite{ganin2016}, ADDA \parencite{tzeng2017adda}) are not employed as comparators because they require unlabelled samples from the target domain during training, which a purely simulation-based study cannot supply (Section~\ref{sec:lit-sim2real-counterargs}). Noise augmentation is therefore the appropriate first-step intervention as it enriches the source domain to encompass the target distribution rather than aligning to it.
+Domain adaptation methods \parencite{ganin2016, tzeng2017adda} are not used as comparators because they require unlabelled target-domain samples that a simulation-only study cannot supply. Noise augmentation is the appropriate first-step intervention, enriching the source domain to encompass the target rather than aligning to it.
 
 \subsection{Performance Metrics}
 \label{sec:method-metrics}
 
-Two primary metrics are reported:
-
-\begin{enumerate}
-    \item \textbf{Overall accuracy}: proportion of correctly classified samples across all classes.
-    \item \textbf{Macro-averaged F1 score}: harmonic mean of precision and recall, averaged equally across classes. This metric is preferred over accuracy when class-specific performance matters (e.g., failing to detect firm press in a prosthetic may have different consequences than misclassifying distributed contact).
-\end{enumerate}
-
-Per-class precision, recall, and F1 are additionally reported in confusion matrices to identify class-specific vulnerabilities (e.g., whether noise disproportionately affects classes with small spatial footprint).
-
-The headline values reported in Chapter~\ref{ch:results} are computed on the held-out test split and validation metrics are used only for learning-rate scheduling, early stopping, and model selection.
+Two metrics are reported: overall accuracy, and macro-averaged F1, which weights all classes equally and is therefore the more informative of the two where class-specific failure carries different consequences---as it does here, since the classes differ substantially in signal magnitude. Per-class precision, recall and F1 are reported in confusion matrices to expose class-specific vulnerability. All headline values are computed on the held-out test split; validation metrics serve only for scheduling, early stopping and model selection.
 
 \subsection{Statistical Testing}
 \label{sec:method-stats}
@@ -517,4 +511,6 @@ This addresses the fundamental concern that the noise model parameters are liter
 \section{Ethical, Economic, and Sustainability Considerations}
 \label{sec:method-ethics}
 
-This work uses exclusively synthetic data generated by physics-based simulation, so there was little concern surrounding the ethics of data collection and storage, but the downstream application carries significant ethical weight. Classifiers that fail silently under noise could endanger users (e.g., failure to detect harmful contact), a concern that the robustness evaluation framework developed here addresses directly by quantifying failure modes under degraded conditions. Economically, a simulation-first approach substantially lowers the barrier to \gls{eit} tactile sensing research because the entire pipeline uses only freely available software (EIDORS, Python, PyTorch) and standard computational hardware. This supports accessible research for institutions and populations without advanced fabrication facilities, directly addressing the accessibility concerns raised by \textcite{mcdonald2021}. The associated environmental cost is modest. Dataset generation requires approximately 10--20\,minutes of single-core MATLAB computation (MATLAB R2024b, Intel Core i7-12700H, 16\,GB RAM) and model training completes in under one hour on a consumer GPU (NVIDIA RTX 3060, 6\,GB VRAM) running Python 3.11 with PyTorch 2.12, yielding a carbon footprint negligible by deep-learning standards. More importantly, the simulation-first methodology reduces the need for iterative physical prototyping, thereby avoiding material and electronic waste from discarded sensor variants.
+Using exclusively synthetic data removes the usual concerns around collection and storage, but the downstream application carries real ethical weight. A classifier that fails \emph{silently} under noise could endanger a user by not detecting harmful contact---and the calibration results of Section~\ref{sec:res-calibration} show precisely this failure mode, a model reporting near-certainty at chance accuracy. Quantifying such failures rather than reporting only aggregate accuracy is therefore an ethical requirement as much as a methodological one, and is why calibration and per-class vulnerability are treated as primary results here.
+
+Economically, a simulation-first approach lowers the barrier to \gls{eit} research: the pipeline uses only freely available software (EIDORS, Python, PyTorch) on standard hardware, supporting institutions without fabrication facilities and speaking to the accessibility concerns raised by \textcite{mcdonald2021}---relevant given that limb loss disproportionately affects low- and middle-income populations. Environmental cost is modest: dataset generation takes 10--20\,minutes of single-core MATLAB computation and training under one hour on a consumer GPU (NVIDIA RTX 3060), negligible by deep-learning standards. More significantly, identifying which noise components matter (Section~\ref{sec:res-ablation}) reduces the iterative physical prototyping needed to reach a working design, avoiding material waste from discarded sensor variants.
