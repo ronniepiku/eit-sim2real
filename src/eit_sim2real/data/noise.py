@@ -426,3 +426,40 @@ def apply_noise_in_scaled_space(
     X_raw = scaler.inverse_transform(X_scaled)  # type: ignore[attr-defined]
     X_noisy_raw = apply_noise_batch_vectorised(X_raw, config, rng=rng)
     return scaler.transform(X_noisy_raw)  # type: ignore[attr-defined]
+
+
+def apply_noise_cross_scaler(
+    X_scaled: np.ndarray,
+    source_scaler: object,
+    target_scaler: object,
+    config: NoiseConfig,
+    rng: np.random.Generator | None = None,
+) -> np.ndarray:
+    """Apply physics noise in raw space, returning data in a *different* space.
+
+    Like :func:`apply_noise_in_scaled_space`, but the output is expressed in
+    ``target_scaler``'s feature space rather than the input's.
+
+    This matters when synthesising noise on top of clean measurements for a
+    model that operates in the noisy-data feature space. Because electrode
+    bias dominates the measurement energy, a scaler fitted on clean data has a
+    far smaller interquartile range than one fitted on noisy data (roughly
+    20x for this dataset). Round-tripping synthesised noise through the clean
+    scaler therefore presents the network with inputs an order of magnitude
+    larger than it would see in the main experiment grid, which costs accuracy
+    for reasons unrelated to the noise physics being studied.
+
+    Args:
+        X_scaled: Input features in ``source_scaler``'s space.
+        source_scaler: Scaler that produced ``X_scaled`` (used to recover raw
+            voltages).
+        target_scaler: Scaler defining the output feature space.
+        config: Noise configuration.
+        rng: NumPy random generator for reproducibility.
+
+    Returns:
+        Noisy features in ``target_scaler``'s feature space.
+    """
+    X_raw = source_scaler.inverse_transform(X_scaled)  # type: ignore[attr-defined]
+    X_noisy_raw = apply_noise_batch_vectorised(X_raw, config, rng=rng)
+    return target_scaler.transform(X_noisy_raw)  # type: ignore[attr-defined]
