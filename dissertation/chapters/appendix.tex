@@ -3,7 +3,7 @@
 \chapter{Supplementary Results}
 \label{app:supplementary}
 
-This appendix provides supplementary figures and tables that support the findings presented in Chapter~\ref{ch:results}. These include training convergence analyses, full confusion matrices across all conditions, t-SNE visualisations of the domain shift, and detailed ablation results.
+This appendix provides supplementary figures and tables supporting the findings of Chapter~\ref{ch:results}: training convergence, full confusion matrices, the signal--noise decomposition underlying the domain-gap analysis, detailed ablation results, predictive-confidence diagnostics and the sensitivity analyses.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Training Convergence}
@@ -60,27 +60,10 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────
-\section{Domain Shift Visualisation}
-\label{app:tsne}
+\section{Signal and Noise Decomposition}
+\label{app:decomposition}
 
-Figures~\ref{fig:app-tsne}--\ref{fig:app-noise-decomposition} provide qualitative and quantitative views of the domain shift characterised in Section~\ref{sec:res-domain}.
-
-\begin{figure}[htbp]
-\centering
-\begin{subfigure}[b]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{results/dataset_validation/figures/tsne_embedding_clean.png}
-    \caption{Clean measurements}
-\end{subfigure}
-\hfill
-\begin{subfigure}[b]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{results/dataset_validation/figures/tsne_embedding_noisy.png}
-    \caption{Noisy measurements}
-\end{subfigure}
-\caption{t-SNE embeddings of the clean and noisy feature spaces. Clean measurements form well-separated class clusters; under the full noise model the structure is dominated by the electrode-bias offset, and class clusters lose cohesion.}
-\label{fig:app-tsne}
-\end{figure}
+Figures~\ref{fig:app-noise-decomposition} and~\ref{fig:app-signal-noise} quantify the domain shift characterised in Section~\ref{sec:res-domain}.
 
 \begin{figure}[htbp]
 \centering
@@ -105,34 +88,34 @@ Figures~\ref{fig:app-ablation-single}--\ref{fig:app-ablation-ordering} supplemen
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/single_component_impact.png}
-\caption{Single-component ablation under \emph{matched} evaluation, in which each model is tested on the same single component it was trained with. Read in isolation this figure is misleading: it ranks electrode bias worst (68.2\%) and Gaussian noise best (98.9\%), the reverse of the deployment-realistic ranking in Table~\ref{tab:ablation-single}. It is retained to make that discrepancy explicit.}
+\caption{Single-component ablation under \emph{matched} evaluation, in which each model is tested on the same single component it was trained with. Read in isolation this figure is misleading: it ranks electrode bias worst (78.68\%) and Gaussian noise best (96.61\%), the reverse of the deployment-realistic ranking in Table~\ref{tab:ablation-single}. It is retained to make that discrepancy explicit.}
 \label{fig:app-ablation-single}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/component_subset_heatmap.png}
-\caption{Matched-condition accuracy across all 15 non-empty component subsets. Subsets containing electrode bias cluster near 68--69\%, while those omitting it score far higher under matched evaluation precisely because they define an easier world---not because they are better training distributions (Section~\ref{sec:res-ablation}).}
+\caption{Matched-condition accuracy across all 15 non-empty component subsets. Subsets containing electrode bias cluster within 75.3--77.8\%, while those omitting it reach 85.3--97.2\% under matched evaluation---higher precisely because they define an easier world, not because they are better training distributions. Under deployment evaluation the two groups separate in the opposite direction, at 54.7--76.9\% and 16.5--23.4\% respectively (Section~\ref{sec:res-ablation}).}
 \label{fig:app-ablation-heatmap}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/ordering_impact.png}
-\caption{Effect of component application order for the full four-component model, where the spread is modest (0.95\,pp between best and worst admissible permutation). The effect is considerably larger within two-component subsets (11.0\,pp), for the reasons given in Section~\ref{sec:res-ablation-order}.}
+\caption{Effect of component application order for the full four-component model, where the spread is modest (1.29\,pp between the best and worst admissible permutation). Ordering matters far more within two-component subsets, though only under deployment evaluation: reversing Gaussian and electrode bias costs 0.67\,pp matched but 21.6\,pp deployed, for the reasons given in Section~\ref{sec:res-ablation-order}.}
 \label{fig:app-ablation-ordering}
 \end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────
-\section{Calibration and Confidence}
+\section{Predictive Confidence}
 \label{app:calibration}
 
-Figures~\ref{fig:app-reliability} and~\ref{fig:app-confidence} supplement the calibration analysis of Section~\ref{sec:res-calibration}.
+Figures~\ref{fig:app-reliability} and~\ref{fig:app-confidence} supplement the confidence analysis of Section~\ref{sec:res-calibration}.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{results/figures/calibration_reliability_diagrams.png}
-\caption{Reliability diagrams for the CNN under clean and noisy evaluation. Under domain shift (Clean$\to$Noisy) predicted confidences cluster near 1.0 regardless of actual accuracy, producing ECE~=~0.800 at 19.7\% accuracy. Matched-distribution training reduces ECE to 0.047.}
+\caption{Reliability diagrams for the CNN under clean and noisy evaluation, plotting achieved accuracy against predicted confidence. Perfect correspondence follows the diagonal. Under domain shift (Clean$\to$Noisy) predictions cluster near confidence 1.0 regardless of accuracy, falling far below the diagonal; matched-distribution training restores the correspondence.}
 \label{fig:app-reliability}
 \end{figure}
 
@@ -167,7 +150,7 @@ Figures~\ref{fig:app-noise-sensitivity} and~\ref{fig:app-hp-sensitivity} supplem
 \chapter{Exploratory Data Analysis}
 \label{app:eda}
 
-This appendix reports the empirical evidence underpinning the preprocessing decisions documented in Section~\ref{sec:method-eda}: choice of feature scaler, decision to retain the full 208-dimensional voltage vector, and decision not to deduplicate the no-contact class. All results were produced by the notebook \texttt{notebooks/eda\_analysis.ipynb}.
+This appendix reports the empirical evidence underpinning the preprocessing decisions documented in Section~\ref{sec:method-eda}: choice of feature scaler, decision to retain the full 208-dimensional voltage vector, and decision not to deduplicate the no-contact class. Section~\ref{app:feature-reduction} then revisits the dimensionality-reduction decision under noise, where its consequences prove far larger than the clean-data margins suggest. Except where stated, results were produced by the notebook \texttt{notebooks/eda\_analysis.ipynb}.
 
 \section{Comparison Protocol}
 \label{app:eda-protocol}
@@ -205,28 +188,7 @@ Table~\ref{tab:eda-pipelines} reports the cross-validated macro-F1 and balanced 
 \end{tabularx}
 \end{table}
 
-\section{Statistical Significance}
-\label{app:eda-stats}
-
-Paired Wilcoxon signed-rank tests across the 15 folds confirm that the differences in Table~\ref{tab:eda-pipelines} are statistically meaningful despite their small absolute magnitude (Table~\ref{tab:eda-wilcoxon}). The very large effect sizes ($d > 2$ in all comparisons) reflect the fold-by-fold consistency of the ranking rather than the headline F1 gap.
-
-\begin{table}[htbp]
-\centering
-\caption{Paired Wilcoxon signed-rank tests comparing preprocessing pipelines across 15 cross-validation folds. Cohen's $d$ computed on paired fold-wise F1 differences.}
-\label{tab:eda-wilcoxon}
-\small
-\begin{tabularx}{\textwidth}{@{}l l r r r X@{}}
-\toprule
-\textbf{Pipeline A} & \textbf{Pipeline B} & \textbf{$\Delta$F1} & \textbf{Cohen's $d$} & \textbf{$p$-value} & \textbf{Conclusion} \\
-\midrule
-\texttt{robust\_lr} & \texttt{standard\_lr}   & $+0.005$ & $2.29$ & $< 0.001$ & Robust scaling preferred. \\
-\midrule
-\texttt{robust\_lr} & \texttt{corr090\_f\_lr} & $+0.014$ & $3.86$ & $< 0.001$ & Pruning hurts F1. \\
-\midrule
-\texttt{standard\_lr} & \texttt{corr090\_f\_lr} & $+0.009$ & $2.94$ & $< 0.001$ & Pruning hurts F1 under both scalers. \\
-\bottomrule
-\end{tabularx}
-\end{table}
+Although the absolute differences in Table~\ref{tab:eda-pipelines} are small, the ranking is consistent fold by fold: \texttt{robust\_lr} achieves the highest macro-F1 in every one of the 15 evaluations, and both correlation pruning and \gls{pca} rank below the full-feature pipelines in all of them. That consistency, rather than the size of the gap, is the basis for the selection.
 
 \section{Held-out Confirmation}
 \label{app:eda-holdout}
@@ -237,6 +199,55 @@ The cross-validation ranking was confirmed on a stratified held-out partition di
 \label{app:eda-duplicates}
 
 An exact-row duplicate audit on the full 25{,}000-sample dataset identified 4{,}999 duplicates within the no-contact class (Class~0) and zero duplicates across all four contact classes. The class-0 duplicates are a physically correct consequence of the homogeneous-baseline definition: every no-contact sample produces an identical conductivity image, and---in the clean (pre-noise) representation---an identical voltage difference vector of $\mathbf{0}$. Deduplication is therefore not applied. After noise injection, the class-0 samples become distinguishable through the Gaussian noise floor of Component~1 (Section~\ref{sec:method-noise-components}), so no clustering pathology arises during training.
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Effect of Feature Reduction}
+\label{app:feature-reduction}
+
+Dimensionality reduction was evaluated as an alternative to the full 208-dimensional representation. Table~\ref{tab:feature-reduction} reports the best model per condition across the three feature spaces.
+
+\begin{table}[htbp]
+\centering
+\caption{Best accuracy (\%) per condition across feature representations. Both reductions are fitted on clean training data.}
+\label{tab:feature-reduction}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Condition} & \textbf{Raw (208-D)} & \textbf{PCA (7-D)} & \textbf{LDA (4-D)} \\
+\midrule
+Clean$\to$Clean & 98.81 (MLP) & 93.56 (MLP) & 91.43 (RF) \\
+Clean$\to$Noisy & 22.57 (RF)  & 24.43 (RF)  & 20.10 (RF) \\
+Noisy$\to$Noisy & 75.81 (CNN) & 38.48 (SVM) & 38.14 (RF) \\
+Noisy$\to$Clean & 52.23 (CNN) & 45.42 (MLP) & 22.35 (RF) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On clean data both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need in order to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\chapter{Baseline Classifier Configurations}
+\label{app:baselines}
+
+Settings for the three classical baselines of Section~\ref{sec:method-models}. All are fixed \emph{a priori} from canonical practice for each model family and held constant across every experimental condition, so that the estimated effect of noise augmentation is not confounded with per-condition tuning effort.
+
+\begin{table}[htbp]
+\centering
+\caption{Baseline classifier configurations.}
+\label{tab:baseline-params}
+\small
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Model} & \textbf{Configuration} \\
+\midrule
+\gls{svm} & RBF kernel, $C = 10$, $\gamma = \text{scale}$; one-versus-one decomposition (10 pairwise classifiers aggregated by voting), as implemented by \texttt{scikit-learn}'s \texttt{SVC}. The high $C$ reflects well-separated classes in the normalised feature space \parencite{cortes1995}. Probability estimates obtained via \texttt{CalibratedClassifierCV}. \\
+\midrule
+\gls{rf} & 500 trees, unlimited depth, minimum 5 samples per split and 2 per leaf, Gini impurity, bootstrap aggregation. The large ensemble stabilises predictions \parencite{breiman2001}. \\
+\midrule
+\gls{mlp} & 208$\rightarrow$128$\rightarrow$128$\rightarrow$5, ReLU activation, Adam ($\alpha = 10^{-3}$), $L_2$ regularisation ($\lambda = 10^{-4}$), batch size 64, early stopping on a 10\% internal validation split, maximum 500 iterations. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Code Repository}
@@ -251,9 +262,9 @@ The full source code, trained models, and data generation pipeline are available
 \noindent The repository includes:
 \begin{itemize}
     \item MATLAB scripts for EIDORS-based dataset generation (\texttt{matlab/})
-    \item Python training and evaluation pipeline (\texttt{python/})
-    \item Configuration files for exact reproduction (\texttt{python/configs/config.yaml})
-    \item All trained model weights (\texttt{results/models/})
+    \item Python training and evaluation pipeline (\texttt{src/eit\_sim2real/})
+    \item Configuration files for exact reproduction (\texttt{src/eit\_sim2real/configs/config.yaml}, \texttt{matlab/configs/noise\_params.yaml})
+    \item All trained model weights and generated results (\texttt{results/})
     \item Jupyter notebook for exploratory data analysis (\texttt{notebooks/})
     \item Automated test suite (\texttt{tests/})
 \end{itemize}
