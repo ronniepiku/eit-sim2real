@@ -4,44 +4,49 @@
 
 This chapter details the experimental methodology employed to investigate noise-augmented training for \gls{eit} tactile classification. The research follows a simulation-based experimental design comprising four integrated stages: (1)~forward model configuration and mesh generation; (2)~physics-informed dataset synthesis with a configurable four-component noise model; (3)~model training under controlled noise conditions; and (4)~systematic evaluation including ablation and robustness analysis. Figure~\ref{fig:method-pipeline} illustrates the complete pipeline.
 
-The chapter is organised to follow the five objectives set out in Section~\ref{sec:intro-aims}: Objective~1 (noise model) is addressed in Section~\ref{sec:method-noise}; Objective~2 (dataset) in Sections~\ref{sec:method-simulation} and~\ref{sec:method-dataset}; Objective~3 (classifier comparison) in Sections~\ref{sec:method-models} and~\ref{sec:method-training}; and Objectives~4 and~5 (robustness evaluation and component ablation) in Section~\ref{sec:method-eval}.
+All code, configuration files, and trained models are made publicly available to support reproducibility, addressing the standardisation gap identified in Chapter~\ref{ch:literature_review}. The repository URL is recorded in Appendix~\ref{app:code}.
 
 \begin{figure}[htbp]
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
-    node distance=0.9cm and 1.0cm,
-    block/.style={rectangle, draw, rounded corners, text width=2.4cm, minimum height=1.0cm, align=center, font=\footnotesize},
+    node distance=1.7cm and 2.0cm,
+    block/.style={rectangle, draw, rounded corners, text width=2.5cm, minimum height=1.1cm,
+                  align=center, font=\footnotesize},
     arrow/.style={->, >=stealth, thick},
-    label/.style={font=\scriptsize\itshape, text width=1.9cm, align=center}
+    aug/.style={->, >=stealth, thick, dashed},
+    lab/.style={font=\scriptsize\itshape, inner sep=2pt}
 ]
-% Row 1: Data generation (MATLAB / EIDORS)
-\node[block, fill=blue!10] (mesh) {Mesh Generation\\(EIDORS)};
-\node[block, fill=blue!10, right=of mesh] (fwd) {Forward Solve\\($\sigma \to \mathbf{v}$)};
-\node[block, fill=orange!12, right=of fwd] (noise) {Noise Model\\(4 components)};
-\node[block, fill=green!10, right=of noise] (dataset) {Dataset\\(25{,}000 samples)};
+% ── Row 1: data generation (MATLAB / EIDORS), left to right ──
+\node[block, fill=blue!10]                   (mesh)     {Mesh \\Generation};
+\node[block, fill=blue!10,   right=of mesh]  (fwd)      {Forward Solve\\($\sigma \to \mathbf{v}$)};
+\node[block, fill=orange!12, right=of fwd]   (noise)    {Noise Model};
+\node[block, fill=green!10,  right=of noise] (dataset)  {Dataset \\Generation};
 
-% Row 2: ML pipeline (Python / PyTorch)
-\node[block, fill=purple!10, below=1.4cm of mesh] (split) {Stratified\\Split};
-\node[block, fill=purple!10, right=of split] (train) {Model Training\\(4 architectures)};
-\node[block, fill=red!10, right=of train] (eval) {Evaluation\\(4 conditions)};
-\node[block, fill=red!10, right=of eval] (ablation) {Ablation \&\\Robustness};
+% ── Row 2: ML pipeline (Python / PyTorch), right to left ──
+\node[block, fill=purple!10, below=of dataset] (split)  {Stratified Split\\+ RobustScaler};
+\node[block, fill=purple!10, left=of split]    (train)  {Model Training};
+\node[block, fill=red!10,    left=of train]    (eval)   {Evaluation};
+\node[block, fill=red!10,    left=of eval]     (ablation) {Ablation \& Robustness};
 
-% Arrows with data-artefact labels
-\draw[arrow] (mesh) -- node[above, label] {$\mathbf{fmdl},\, \mathbf{v}_h$} (fwd);
-\draw[arrow] (fwd) -- node[above, label] {$\Delta\mathbf{v}_{\text{clean}}$} (noise);
-\draw[arrow] (noise) -- node[above, label] {$\Delta\mathbf{v}_{\text{noisy}}$} (dataset);
-\draw[arrow] (dataset.south) -- ++(0,-0.5) -| (split.north);
-\draw[arrow] (split) -- (train);
-\draw[arrow] (train) -- (eval);
-\draw[arrow] (eval) -- (ablation);
+% ── Row 1 flow, labelled with the data artefact passed on ──
+\draw[arrow] (mesh)  -- node[lab, above] {$\mathbf{fmdl},\,\mathbf{v}_h$}    (fwd);
+\draw[arrow] (fwd)   -- node[lab, above] {$\Delta\mathbf{v}_{\text{clean}}$} (noise);
+\draw[arrow] (noise) -- node[lab, above] {$\Delta\mathbf{v}_{\text{noisy}}$} (dataset);
+
+% ── Hand-off to row 2, then right-to-left through the ML pipeline ──
+\draw[arrow] (dataset) -- (split);
+\draw[arrow] (split)   -- (train);
+\draw[arrow] (train)   -- (eval);
+\draw[arrow] (eval)    -- (ablation);
+
+% ── Second injection point: the same noise model re-applied at training time ──
+\draw[aug] (noise) -- node[lab, left, align=right] {online\\augmentation} (train);
 \end{tikzpicture}%
 }
-\caption{End-to-end methodology pipeline. Top row: MATLAB/EIDORS data generation with physics-informed noise injection. Bottom row: Python/PyTorch training and evaluation. Arrow labels denote the data artefacts passed between stages.}
+\caption{End-to-end methodology pipeline. The upper row is MATLAB/EIDORS data generation, read left to right; the lower row is the Python/PyTorch training and evaluation path, read right to left. Solid arrows carry the data artefacts named beside them. The dashed arrow marks the same noise model being re-applied at training time for the online-augmentation and ablation regimes, so noise enters the pipeline at two distinct points rather than one.}
 \label{fig:method-pipeline}
 \end{figure}
-
-All code, configuration files, and trained models are made publicly available to support reproducibility, addressing the standardisation gap identified in Chapter~\ref{ch:literature_review}. The repository URL is recorded in Appendix~\ref{app:code}.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{EIT Simulation Framework}
