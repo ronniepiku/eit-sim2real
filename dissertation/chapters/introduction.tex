@@ -16,14 +16,14 @@ Machine learning work has shown that direct classification of these voltage vect
 \section{The Simulation-to-Reality Challenge}
 \label{sec:intro-sim2real}
 
-The deployment gap is known as the \emph{simulation-to-reality} problem, where models trained on computationally generated data fail to maintain performance on physical hardware \parencite{pan2010survey}. \gls{eit} training data is almost exclusively produced through forward models such as EIDORS, which assume idealised electrode contact, homogeneous backgrounds, and noise-free boundary conditions \parencite{adler2006}. Real hardware is subject to compounding degradation sources---Gaussian measurement noise, contact impedance variation, electrode positioning bias, and quantisation effects \parencite{adler2006, vilhunen2002, kolehmainen1997}---yet noise augmentation in prior \gls{eit} studies remains limited to single-component additive Gaussian noise \parencite{chen2023, park2022skin}. Adjacent domains have developed mature responses to analogous problems: domain randomisation \parencite{tobin2017}, adversarial domain adaptation \parencite{ganin2016, tzeng2017adda}, and physically-grounded corruption benchmarks \parencite{hendrycks2019, rusak2020simple}. None has been applied to \gls{eit} tactile sensing, and no prior work has investigated whether multi-component, physically-motivated noise augmentation can bridge the gap between simulated training and noisy deployment.
+The deployment gap is known as the \emph{simulation-to-reality} problem, where models trained on computationally generated data fail to maintain performance on physical hardware \parencite{pan2010survey}. \gls{eit} training data is almost exclusively produced through forward models such as EIDORS, which assume idealised electrode contact, homogeneous backgrounds, and noise-free boundary conditions \parencite{adler2006}. Real hardware is subject to compounding degradation sources---Gaussian measurement noise, contact impedance variation, electrode positioning bias, and quantisation effects \parencite{adler2006, vilhunen2002, kolehmainen1997}---yet noise augmentation in prior \gls{eit} studies remains limited to single-component additive Gaussian noise \parencite{chen2023, park2022skin}. Adjacent domains have developed mature responses to analogous problems: domain randomisation \parencite{tobin2017}, adversarial domain adaptation \parencite{ganin2016, tzeng2017adda}, and physically grounded corruption benchmarks \parencite{hendrycks2019, rusak2020simple}. None has been applied to \gls{eit} tactile sensing, and no prior work has investigated whether multi-component, physically motivated noise augmentation can bridge the gap between simulated training and noisy deployment.
 
 \section{Research Gap}
 \label{sec:intro-gap}
 
-Chapter~\ref{ch:literature_review} identifies several interconnected gaps that collectively limit progress toward deployable \gls{eit} tactile systems---spanning simplistic noise models, the absence of systematic robustness evaluation, missing component-wise ablation, no calibration analysis, and the lack of a standardised benchmark (Table~\ref{tab:gaps-summary})---which no prior work addresses within a unified framework.
+Chapter~\ref{ch:literature_review} identifies several interconnected gaps that collectively limit progress toward deployable \gls{eit} tactile systems---spanning simplistic noise models, the absence of systematic robustness evaluation, missing component-wise ablation, unreported predictive confidence, and the lack of a standardised benchmark (Table~\ref{tab:gaps-summary})---which no prior work addresses within a unified framework.
 
-A further methodological gap concerns \emph{training regime design}. Existing studies either use single-noise augmentation or analyse components in isolation, but do not treat simultaneous multi-error training as the primary benchmark. This dissertation adopts a foundational mode in which all dominant error sources are present jointly during training, and asks which of them that mode actually requires.
+A further methodological gap concerns \emph{training regime design}. Existing studies either use single-noise augmentation or analyse components in isolation, but do not treat simultaneous multi-error training as the primary benchmark. This dissertation adopts what is termed here the \emph{foundational mode}---training on the joint distribution in which all dominant error sources act together, as they do at deployment, rather than on isolated single-error distributions---and asks which of those sources that mode actually requires.
 
 Underlying both is a question of evaluation protocol that the literature does not address. When a noise component is ablated, the resulting model may be tested either against the ablated corruption or against the full corruption a deployed device encounters. These are different questions, and Chapter~\ref{ch:results} shows they yield opposite answers. Because real hardware exhibits all error sources simultaneously, only the latter is operationally meaningful---yet the former is the convention.
 
@@ -33,58 +33,25 @@ Underlying both is a question of evaluation protocol that the literature does no
 This dissertation investigates whether incorporating a physically motivated, multi-component noise model during training improves classifier robustness when applied to noisy \gls{eit} tactile measurements, framing noise augmentation as domain randomisation \parencite{tobin2017} for simulation-to-reality transfer. The theoretical basis for this approach derives from domain adaptation theory \parencite{ben-david2010domain, pan2010survey}, which establishes that minimising the distributional divergence between training and deployment conditions directly reduces generalisation error. Specifically, the research addresses the following objectives:
 
 \begin{enumerate}
-    \item \textbf{Develop a configurable noise model} capturing four principal noise sources in real \gls{eit} systems: Gaussian measurement noise, contact impedance variation, electrode positioning bias, and quantisation noise. Each component is parameterised from values reported in the experimental literature \parencite{adler2006, vilhunen2002, kolehmainen1997}, with contact impedance and bias applied per-electrode to reflect the physical sensing structure.
-    
-    \item \textbf{Generate a physics-informed synthetic \gls{eit} dataset} using the EIDORS forward modelling framework \parencite{adler2006}, simulating a 16-electrode ionic hydrogel prosthetic skin sensing five touch classes (no contact, light touch, firm press, point contact, and distributed contact). Conductivity parameters derive from a pressure-based piezoresistive model consistent with the positive piezoresistive response of ionic hydrogels \parencite{costacornella2023}, with contact geometry informed by Hertzian mechanics \parencite{kim2019}.
-    
-    \item \textbf{Train and compare multiple classifiers}---a 1D-\gls{cnn}, \gls{svm} \parencite{cortes1995}, \gls{rf} \parencite{breiman2001}, and \gls{mlp}---on both clean and noise-augmented data, providing the first systematic comparison of classical and deep approaches under identical noise conditions for \gls{eit} classification.
-    
-    \item \textbf{Evaluate robustness} by testing trained models across noise severity levels, following the multi-corruption, multi-severity paradigm of \textcite{hendrycks2019}, and by comparing training regimes (fixed, randomised and mixed) to establish how the choice depends on how well the deployment environment is characterised. Confidence calibration \parencite{guo2017calibration} and per-class vulnerability profiling complete the characterisation.
+    \item \textbf{Develop a configurable multi-component noise model} capturing Gaussian measurement noise, contact impedance variation, electrode positioning bias and quantisation, each parameterised from the experimental \gls{eit} literature \parencite{adler2006, vilhunen2002, kolehmainen1997} and applied per-electrode.
 
-    \item \textbf{Conduct a component ablation} to determine which noise components a training-time model must contain, evaluating each ablated configuration against the full corruption encountered at deployment rather than against its own reduced corruption. Direct signal--noise energy decomposition, noise parameter sensitivity and hyperparameter sensitivity analyses provide independent corroboration and verify that the conclusions generalise beyond specific modelling choices.
+    \item \textbf{Generate a physics-informed synthetic dataset} via EIDORS forward modelling \parencite{adler2006}, simulating a 16-electrode ionic hydrogel skin across five touch classes.
+
+    \item \textbf{Compare classical and deep classifiers} under identical noise conditions.
+
+    \item \textbf{Evaluate robustness} across noise severities \parencite{hendrycks2019} and across training regimes (fixed, randomised, mixed), establishing how regime choice depends on how well the deployment environment is characterised.
+
+    \item \textbf{Determine which noise components a training model must contain}, evaluating each ablated configuration against the full corruption encountered at deployment rather than against its own reduced corruption.
 \end{enumerate}
 
 \section{Contributions}
 \label{sec:intro-contributions}
 
-Beyond achieving the research objectives, this work makes the following novel contributions:
+The work's novel contributions are: a \textbf{structured per-electrode noise model}, applying interface effects per-electrode rather than per-measurement and so reproducing the block-structured distortion real hardware exhibits; identification of a \textbf{minimal sufficient noise model}, establishing which components are necessary and which are redundant for deployable robustness; a \textbf{correction to ablation evaluation protocol}, showing that evaluating ablated models against the deployment corruption rather than the ablated one reverses which components appear to matter---a distinction not drawn in the existing literature and applicable beyond \gls{eit}; and an \textbf{open, reproducible pipeline} spanning data generation, training and evaluation, addressing the standardisation gap identified by \textcite{jiang2023}.
 
-\begin{itemize}
-    \item \textbf{A structured, per-electrode noise model.} The four-component noise model applies contact impedance and electrode bias \emph{per-electrode} rather than per-measurement, reflecting the physical electrode--substrate interface structure \parencite{vilhunen2002, kolehmainen1997}. This structural fidelity distinguishes the model from prior additive noise approaches \parencite{chen2023, park2022skin}.
-
-    \item \textbf{Identification of a minimal sufficient noise model.} Exhaustive subset ablation establishes that Gaussian measurement noise combined with electrode positioning bias captures essentially all achievable robustness, while contact impedance and quantisation contribute nothing measurable at standard \gls{adc} resolution. The two required components are shown to serve distinct and separable functions.
-
-    \item \textbf{A correction to ablation evaluation protocol.} Evaluating component-ablated models against the full deployment corruption, rather than against the ablated corruption, reverses the ranking of which noise components matter. This distinction is not drawn in the existing \gls{eit} literature, and it generalises to component ablations in other sensing modalities.
-
-    \item \textbf{Hardware tolerances expressed as design specifications.} Parameter sensitivity analysis converts the robustness findings into thresholds an engineer specifies directly---electrode placement tolerance and \gls{adc} bit depth are binding constraints, whereas measurement \gls{snr} and interface impedance uniformity can be relaxed considerably.
-
-    \item \textbf{The first paired comparison of classical and deep classifiers under matched multi-component noise} for \gls{eit} tactile sensing, including confidence calibration analysis \parencite{guo2017calibration} previously absent from the field.
-
-    \item \textbf{An open-source, end-to-end reproducible pipeline} spanning data generation (MATLAB/EIDORS), training (Python/PyTorch), evaluation, and visualisation, addressing the standardisation gap identified by \textcite{jiang2023}.
-\end{itemize}
-
-\section{Scope and Limitations}
+\section{Scope}
 \label{sec:intro-scope}
 
-The following scope constraints define the boundaries of this investigation:
-
-\begin{itemize}
-    \item \textbf{Simulation-only.} All data are generated via forward modelling; no physical hardware validation is performed. This is deliberate: the research question (``does noise-augmented training improve robustness?'') can be rigorously answered in simulation by controlling test-time corruption, whereas hardware validation conflates noise model accuracy with classifier robustness. Hardware transfer is positioned as future work (Chapter~\ref{ch:conclusions}).
-    
-    \item \textbf{Static single-frame classification.} Each sample represents an instantaneous measurement frame, meaning temporal dynamics are not modelled. This bounds the problem to the most common formulation in the \gls{eit} classification literature \parencite{park2022skin, chen2023}, while temporal extensions are identified as future work.
-    
-    \item \textbf{2D geometry.} The forward model uses a 2D circular cross-section rather than a 3D volume. This is computationally necessary for 25{,}000 forward solves and consistent with prior \gls{eit} classification work \parencite{chen2023, costacornella2023}, though it limits direct applicability to cylindrical prosthetic geometries.
-
-    \item \textbf{No sensor morphology optimisation.} This dissertation intentionally uses a conventional hydrogel geometry rather than lattice-structured silicone encapsulation designs \parencite{dong2025lattice}. Keeping hardware morphology fixed isolates robustness improvements attributable to noise-aware learning, instead of conflating them with sensor-structure effects.
-    
-    \item \textbf{Five-class taxonomy.} The class definitions represent archetypal prosthetic interactions but do not exhaustively cover all possible tactile events (e.g., shear, vibration, thermal contact). The taxonomy is informed by \textcite{silvera-tawil2012eit} and \textcite{park2022skin}.
-\end{itemize}
-
-These boundaries ensure that any robustness improvement can be attributed to the noise augmentation strategy rather than confounded by hardware variability or temporal modelling.
-
-\section{Dissertation Structure}
-\label{sec:intro-structure}
-
-Chapter~\ref{ch:literature_review} critically reviews electronic skin technologies, \gls{eit} sensing, machine learning for tactile classification, simulation-to-reality transfer and deployment considerations. Chapter~\ref{ch:methodology} details the simulation setup, noise model, dataset generation, architectures and evaluation framework. Chapter~\ref{ch:results} reports the findings, and Chapter~\ref{ch:discussion} interprets them against the objectives and prior literature. Chapter~\ref{ch:conclusions} evaluates the extent to which each objective was met and identifies future work.
+The study is deliberately bounded so that any robustness improvement is attributable to the training strategy rather than confounded by hardware or temporal variability. All data are generated by forward modelling with no hardware validation. The research question can be answered rigorously in simulation by controlling test-time corruption, whereas hardware validation would conflate noise-model accuracy with classifier robustness. Classification is static and single-frame, matching the dominant formulation in the \gls{eit} literature \parencite{park2022skin, chen2023} and excluding temporal effects such as drift. The forward model is a 2D cross-section, necessary for 25{,}000 forward solves per mesh. Sensor morphology is held fixed rather than optimised \parencite{dong2025lattice}, isolating algorithmic gains from structural ones. The five touch classes represent archetypal prosthetic interactions \parencite{silvera-tawil2012eit} but do not exhaust the space of tactile events. The consequences of these boundaries for interpreting the results are examined in Section~\ref{sec:disc-limitations}.
 
 

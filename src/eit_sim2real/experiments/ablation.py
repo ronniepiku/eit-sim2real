@@ -44,13 +44,13 @@ from eit_sim2real.constants import COMPONENT_LABELS, NOISE_COMPONENTS
 from eit_sim2real.data import load_mat_dataset, prepare_splits
 from eit_sim2real.data.noise import (
     NoiseConfig,
-    apply_noise_in_scaled_space,
+    apply_noise_cross_scaler,
 )
 from eit_sim2real.experiments.protocols import NOISY_CNN_PARAMS
 from eit_sim2real.models import get_baseline, train_baseline
 from eit_sim2real.models.cnn1d import EITConv1D
 from eit_sim2real.train import train_cnn
-from eit_sim2real.utils import get_device, predict_cnn
+from eit_sim2real.utils import get_device, predict_cnn, rescale_cross_condition
 
 logger = logging.getLogger(__name__)
 
@@ -827,26 +827,54 @@ def run_ablation(
                 # shows cannot learn to accommodate persistent electrode bias.
                 # Using it here would confound the component being ablated with
                 # a change of training regime.
+                # All synthesised-noise variants are expressed in the NOISY
+                # scaler's feature space -- the same space as the main grid's
+                # noisy->noisy condition -- rather than the clean scaler's.
+                # Electrode bias dominates the measurement energy, so a
+                # clean-fitted scaler has a ~20x smaller interquartile range;
+                # round-tripping through it would inflate the network's inputs
+                # by an order of magnitude and cost accuracy for reasons
+                # unrelated to the noise being ablated. Using one common,
+                # deployment-matched scaler keeps every variant mutually
+                # comparable AND comparable with Chapter 4's main results.
                 if noise_cfg is None:
                     raise ValueError("noisy_python training requires a noise_cfg")
                 train_rng = np.random.default_rng(current_seed + 1234)
                 val_rng = np.random.default_rng(current_seed + 5678)
-                X_tr = apply_noise_in_scaled_space(
+                X_tr = apply_noise_cross_scaler(
                     dataset_clean.X_train,
                     dataset_clean.scaler,
+                    dataset_noisy.scaler,
                     noise_cfg,
                     rng=train_rng,
                 )
-                X_v = apply_noise_in_scaled_space(
-                    dataset_clean.X_val, dataset_clean.scaler, noise_cfg, rng=val_rng
+                X_v = apply_noise_cross_scaler(
+                    dataset_clean.X_val,
+                    dataset_clean.scaler,
+                    dataset_noisy.scaler,
+                    noise_cfg,
+                    rng=val_rng,
                 )
                 y_tr = dataset_clean.y_train
                 y_v = dataset_clean.y_val
             else:
                 raise ValueError(f"Unknown train_data: {train_data}")
 
+            # Models trained on either the MATLAB noisy dataset or synthesised
+            # noise operate in the noisy scaler's space, so clean test data
+            # must be re-expressed in that space before evaluation.
+            model_in_noisy_space = train_data in ("noisy_matlab", "noisy_python")
+
             if eval_data == "clean":
-                X_te = dataset_clean.X_test
+                X_te = (
+                    rescale_cross_condition(
+                        dataset_clean.X_test,
+                        dataset_clean.scaler,
+                        dataset_noisy.scaler,
+                    )
+                    if model_in_noisy_space
+                    else dataset_clean.X_test
+                )
                 y_te = dataset_clean.y_test
             elif eval_data == "noisy_matlab":
                 X_te = dataset_noisy.X_test
@@ -854,9 +882,10 @@ def run_ablation(
             elif eval_data == "noisy":
                 eval_rng = np.random.default_rng(current_seed + 999)
                 eval_noise_cfg = noise_cfg if noise_cfg is not None else full_noise
-                X_te = apply_noise_in_scaled_space(
+                X_te = apply_noise_cross_scaler(
                     dataset_clean.X_test,
                     dataset_clean.scaler,
+                    dataset_noisy.scaler,
                     eval_noise_cfg,
                     rng=eval_rng,
                 )
@@ -916,9 +945,10 @@ def run_ablation(
                 and set(noise_cfg.active_components()) != set(NOISE_COMPONENTS)
             ):
                 full_rng = np.random.default_rng(current_seed + 999)
-                X_te_full = apply_noise_in_scaled_space(
+                X_te_full = apply_noise_cross_scaler(
                     dataset_clean.X_test,
                     dataset_clean.scaler,
+                    dataset_noisy.scaler,
                     full_noise,
                     rng=full_rng,
                 )
@@ -1013,11 +1043,19 @@ def run_ablation(
             # reference model rather than online per-batch randomisation.
             sweep_rng = np.random.default_rng(current_seed + 1234)
             sweep_val_rng = np.random.default_rng(current_seed + 5678)
-            X_sweep_train = apply_noise_in_scaled_space(
-                dataset_clean.X_train, dataset_clean.scaler, full_noise, rng=sweep_rng
+            X_sweep_train = apply_noise_cross_scaler(
+                dataset_clean.X_train,
+                dataset_clean.scaler,
+                dataset_noisy.scaler,
+                full_noise,
+                rng=sweep_rng,
             )
-            X_sweep_val = apply_noise_in_scaled_space(
-                dataset_clean.X_val, dataset_clean.scaler, full_noise, rng=sweep_val_rng
+            X_sweep_val = apply_noise_cross_scaler(
+                dataset_clean.X_val,
+                dataset_clean.scaler,
+                dataset_noisy.scaler,
+                full_noise,
+                rng=sweep_val_rng,
             )
             sweep_model, _ = train_cnn(
                 X_sweep_train,
@@ -1036,7 +1074,12 @@ def run_ablation(
                 comp_f1s = []
                 for sev in SEVERITY_LEVELS:
                     if sev == 0.0:
-                        X_te = dataset_clean.X_test
+                        # Noise-free reference, expressed in the model's space.
+                        X_te = rescale_cross_condition(
+                            dataset_clean.X_test,
+                            dataset_clean.scaler,
+                            dataset_noisy.scaler,
+                        )
                     else:
                         sweep_cfg = NoiseConfig(
                             enabled=True,
@@ -1047,9 +1090,10 @@ def run_ablation(
                             severity=sev,
                         )
                         rng = np.random.default_rng(current_seed + 777)
-                        X_te = apply_noise_in_scaled_space(
+                        X_te = apply_noise_cross_scaler(
                             dataset_clean.X_test,
                             dataset_clean.scaler,
+                            dataset_noisy.scaler,
                             sweep_cfg,
                             rng=rng,
                         )
