@@ -2,9 +2,7 @@
 \chapter{Findings and Results}
 \label{ch:results}
 
-This chapter reports the experimental findings against the objectives of Section~\ref{sec:intro-aims}. Section~\ref{sec:res-main} establishes the simulation-to-reality gap and the extent to which noise-aware training closes it. Section~\ref{sec:res-ablation} presents the noise-component ablation, which identifies the minimal noise model needed for deployable robustness. Section~\ref{sec:res-robustness} evaluates robustness beyond the training noise level, and Section~\ref{sec:res-extended} reports the supporting analyses: agreement between validation schemes, per-class vulnerability, the inadequacy of Gaussian-only noise, predictive confidence, direct characterisation of the domain gap, sensitivity to modelling assumptions, and generalisation across noise realisations.
-
-Unless stated otherwise, headline values are held-out test metrics reported as mean~$\pm$~standard deviation over five independent seeds with stratified 70/15/15 splits. The significance of the differences reported is established by a separate stratified 5-fold cross-validation on disjoint partitions rather than by hypothesis testing (Section~\ref{sec:method-stats}); the agreement between the two schemes is reported in Section~\ref{sec:res-stats}.
+This chapter reports the experimental findings against the objectives of Section~\ref{sec:intro-aims}. Section~\ref{sec:res-main} establishes the simulation-to-reality gap and the extent to which noise-aware training closes it. Section~\ref{sec:res-ablation} presents the noise-component ablation, which identifies the minimal noise model needed for deployable robustness. Section~\ref{sec:res-robustness} evaluates robustness beyond the training noise level, and Section~\ref{sec:res-extended} reports the supporting analyses.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{The Simulation-to-Reality Gap}
@@ -14,7 +12,7 @@ Table~\ref{tab:main-results-raw} reports all four classifiers across the four-co
 
 \begin{table}[htbp]
 \centering
-\caption{Classification accuracy (\%) on raw features (208-D) across the four evaluation conditions. Mean $\pm$ standard deviation over 5 seeds. Bold indicates the best model per condition.}
+\caption{Classification accuracy (\%) on raw features across the four evaluation conditions.}
 \label{tab:main-results-raw}
 \small
 \begin{tabular}{@{}lcccc@{}}
@@ -29,11 +27,11 @@ SVM  & 83.38 $\pm$ 0.43 & 20.00 $\pm$ 0.00 & 50.90 $\pm$ 0.72 & 51.66 $\pm$ 0.41
 \end{tabular}
 \end{table}
 
-Three findings follow. First, every model achieves strong clean-domain accuracy (83--99\%), confirming that the forward model produces class representations separable by both classical and deep approaches; the task itself is not the limiting factor. Second, \emph{every} model collapses to approximately chance ($\approx$20\%) under Clean$\to$Noisy. The collapse is architecture-independent and feature-representation-independent (Appendix~\ref{app:feature-reduction}), which identifies the gap as \emph{distributional} rather than a deficit of model capacity: no classifier can compensate at inference for a shift it never encountered during training. This is considerably more extreme than the corruption-induced degradations of up to 40\% reported for image classifiers by \textcite{hendrycks2019}.
+Three findings follow. First, every model achieves strong clean-domain accuracy (83--99\%), confirming that the forward model produces class representations separable by both classical and deep approaches. The task itself is not the limiting factor. Second, \emph{every} model collapses to approximately chance under Clean$\to$Noisy. The collapse is architecture-independent and feature-representation-independent (Appendix~\ref{app:feature-reduction}), which identifies the gap as \emph{distributional} rather than a deficit of model capacity. No classifier can compensate at inference for a shift it never encountered during training. This is considerably more extreme than the corruption-induced degradations of up to 40\% reported for image classifiers by \textcite{hendrycks2019}.
 
 Third, noise-aware training recovers a large fraction of the loss. The CNN reaches 75.81\% under Noisy$\to$Noisy, an improvement of 55.8 percentage points (pp) over the same architecture trained on clean data.
 
-The CNN outperforms the strongest baseline on noisy data by 17.9\,pp (RF, 57.85\%), consistent with the convolutional inductive bias being able to exploit the block-structured, per-electrode form of the dominant corruption (Section~\ref{sec:res-domain}), which fully connected and kernel methods treating the 208 measurements exchangeably cannot represent as compactly. On clean data, the ranking inverts: the MLP is best (98.81\%) while the CNN both underperforms it and is markedly unstable (std 6.89\%, per-seed range 83.4--99.4\%).
+The CNN outperforms the strongest baseline on noisy data by 17.9\,pp (RF, 57.85\%), consistent with the convolutional inductive bias being able to exploit the block-structured, per-electrode form of the dominant corruption (Section~\ref{sec:res-domain}), which fully connected and kernel methods treating the 208 measurements exchangeably cannot represent as compactly.
 
 \subsection{Training Regimes}
 \label{sec:res-regimes}
@@ -42,7 +40,7 @@ Table~\ref{tab:augmented-results} compares the three noise-aware training regime
 
 \begin{table}[htbp]
 \centering
-\caption{CNN accuracy (\%) on noisy evaluation by training regime, raw features. Mean $\pm$ standard deviation over 5 seeds.}
+\caption{CNN accuracy (\%) on noisy evaluation by training regime, raw features.}
 \label{tab:augmented-results}
 \small
 \begin{tabular}{@{}lc@{}}
@@ -58,17 +56,17 @@ Mixed (30\% clean + augmented) & 69.17 $\pm$ 0.68 \\
 
 Training on the fixed, pre-generated noisy dataset gives the highest noisy-domain accuracy (75.81\%), exceeding online augmentation by 6.3\,pp---an order of magnitude larger than the 0.62\,pp seed-to-seed spread of either condition, and reproduced under cross-validation (Section~\ref{sec:res-stats}). That advantage is, however, specific to the severity the model was trained at, and reverses at higher severities (Section~\ref{sec:res-robustness}).
 
-Since every real \gls{eit} measurement carries hardware noise, noisy evaluation is the operationally meaningful case and is used throughout. It is worth noting nonetheless that both fixed-noise and online-augmented training lose substantial accuracy on uncorrupted data (52.2\% and 40.2\%), because neither ever observes an uncorrupted measurement---the no-contact class in particular is seen only in perturbed form. Mixed training, retaining 30\% clean samples per batch, recovers this to 71.50\% for a cost of 0.3\,pp on noisy data, and is therefore the better-balanced choice where a device may be operated shortly after calibration.
+Since every real \gls{eit} measurement carries hardware noise, noisy evaluation is the operationally meaningful case and is used throughout. It is worth noting nonetheless that both fixed-noise and online-augmented training lose substantial accuracy on uncorrupted data (52.2\% and 40.2\%), because neither ever observes an uncorrupted measurement---the no-contact class in particular is seen only in perturbed form. Mixed training, retaining 30\% clean samples per batch, recovers this to 71.50\% for a cost of 0.3\, pp on noisy data, and is therefore the better-balanced choice where a device may be operated shortly after calibration.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Noise Component Ablation}
 \label{sec:res-ablation}
 
-The ablation asks which noise components a training-time model must include. This requires care in how each configuration is evaluated. A model trained with only component $X$ can be tested either on data corrupted by $X$ alone (\emph{matched}), or on data carrying the full four-component corruption (\emph{deployment}). Only the latter is operationally meaningful: real hardware exhibits all error sources simultaneously, so a training noise model that omits a component must nonetheless face that component in the field. Both are reported, because their disagreement is itself the principal finding.
+The ablation asks which noise components a training-time model must include. This requires care in how each configuration is evaluated. A model trained with only component $X$ can be tested either on data corrupted by $X$ alone (\emph{matched}), or on data carrying the full four-component corruption (\emph{deployment}). Only the latter is operationally meaningful, as real hardware exhibits all error sources simultaneously, so a training noise model that omits a component must nonetheless face that component in the field.
 
 \begin{table}[htbp]
 \centering
-\caption{Single-component ablation. Each CNN is trained with one noise component active and evaluated twice: on the same single component (matched) and on the full four-component corruption (deployment). Mean $\pm$ standard deviation over 5 seeds.}
+\caption{Single-component ablation. Each CNN is trained with one noise component active and evaluated twice: on the same single component (matched) and on the full four-component corruption (deployment).}
 \label{tab:ablation-single}
 \small
 \setlength{\tabcolsep}{8pt}
@@ -82,14 +80,14 @@ Contact impedance only  & 90.11 $\pm$ 3.85 & 19.72 $\pm$ 0.20 \\
 Electrode bias only     & 78.68 $\pm$ 0.85 & \textbf{57.79 $\pm$ 0.58} \\
 Quantisation only       & 92.89 $\pm$ 3.53 & 14.03 $\pm$ 5.50 \\
 \midrule
-Full four-component     & \multicolumn{2}{c}{76.62} \\
+Full four-component     & \multicolumn{2}{c}{75.81 $\pm$ 0.62} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The two columns rank the components in opposite orders, and the matched column is misleading. Judged on matched evaluation, electrode bias appears the \emph{most} damaging component (78.68\%, lowest of the four) while Gaussian noise appears benign (96.61\%). Judged on deployment evaluation the conclusion reverses entirely: models trained on Gaussian noise, contact impedance or quantisation alone all perform at or below chance (14.03--20.88\%), whereas the electrode-bias model retains 57.79\%. The matched column measures the difficulty of an artificial world containing a single corruption, not the value of modelling that corruption. Reporting it alone---the convention in the studies reviewed in Section~\ref{sec:lit-ml-concerns}---would invert the design guidance derived from it.
+The two columns rank the components in opposite orders, and the matched column is misleading. Judged on matched evaluation, electrode bias appears the \emph{most} damaging component (78.68\%, lowest of the four) while Gaussian noise appears benign (96.61\%). Judged on deployment evaluation the conclusion reverses. Models trained on Gaussian noise, contact impedance or quantisation alone all perform at or below chance, whereas the electrode-bias model retains 57.79\%. The matched column measures the difficulty of an artificial world containing a single corruption, not the value of modelling that corruption.
 
-Two complementary claims follow. Electrode bias is \emph{necessary}: every configuration omitting it collapses to chance under realistic conditions, irrespective of how well it scores in its own matched world. Quantisation-only training is the extreme case, falling below chance (14.03\%) with high variance across seeds, indicating that a model trained on a corruption which is negligible at deployment learns a representation that is not merely uninformative but actively unstable. Electrode bias alone is nonetheless \emph{not sufficient}: at 57.79\% it falls 18.8\,pp short of the full model, so robust deployment requires the dominant structured error to be modelled jointly with the remaining sources---the empirical justification for training on all error sources simultaneously rather than sequentially.
+Two complementary claims follow. Electrode bias is \emph{necessary}. Every configuration omitting it collapses to chance under realistic conditions, irrespective of how well it scores in its own matched world. Quantisation-only training is the extreme case, falling below chance (14.03\%) with high variance across seeds, indicating that a model trained on a corruption which is negligible at deployment learns a representation that is not merely uninformative but actively damaging. Electrode bias alone is nonetheless \emph{not sufficient}. At 57.79\% it falls 18.8\, pp short of the full model, so robust deployment requires the dominant structured error to be modelled jointly with the remaining sources.
 
 \subsection{The Minimal Sufficient Noise Model}
 \label{sec:res-ablation-minimal}
@@ -98,7 +96,7 @@ Enumerating all component subsets identifies how much of the noise model is actu
 
 \begin{table}[htbp]
 \centering
-\caption{Best component subset at each size, ranked by deployment (full-noise) accuracy. Means over 5 seeds. Adding components beyond Gaussian~+~electrode bias yields no measurable gain.}
+\caption{Best component subset at each size, ranked by deployment accuracy.}
 \label{tab:ablation-subset}
 \small
 \setlength{\tabcolsep}{8pt}
@@ -107,35 +105,35 @@ Enumerating all component subsets identifies how much of the noise model is actu
 \toprule
 \textbf{$n$} & \textbf{Best subset} & \textbf{Deployment (\%)} & \textbf{Matched (\%)} \\
 \midrule
-1 & Electrode bias                                & 56.85 & 77.33 \\
-2 & Gaussian + electrode bias                     & \textbf{76.53} & 76.73 \\
-3 & Gaussian + electrode bias + quantisation      & 76.90 & 77.04 \\
-4 & All four components                           & \multicolumn{2}{c}{76.62} \\
+1 & Electrode bias                                & 56.85 $\pm$ 1.89 & 77.33 $\pm$ 1.69 \\
+2 & Gaussian + electrode bias                     & \textbf{76.53 $\pm$ 0.52} & 76.73 $\pm$ 0.81 \\
+3 & Gaussian + electrode bias + quantisation      & 76.90 $\pm$ 0.80 & 77.04 $\pm$ 0.37 \\
+4 & All four components                           & \multicolumn{2}{c}{75.81 $\pm$ 0.62} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-A two-component model of Gaussian noise and electrode bias reaches 76.53\%---indistinguishable from the best three-component subset (76.90\%), from the full four-component model (76.62\%), and from the 75.81\% obtained on the pre-generated noisy dataset in Table~\ref{tab:main-results-raw}. Contact impedance and quantisation contribute no measurable deployable robustness once the other two are present, so the noise model can be halved without cost.
+A two-component model of Gaussian noise and electrode bias reaches 76.53\%---indistinguishable from the best three-component subset (76.90\%), from the full four-component model. Contact impedance and quantisation contribute no measurable deployable robustness once the other two are present, so the noise model can be halved without cost.
 
-This sufficiency claim is scoped to the four-component family---it establishes that the other two are redundant \emph{given} this noise model, not that two components would suffice against the fuller set of error sources catalogued in Table~\ref{tab:error-sources}. The necessity result for electrode bias carries no such caveat, since adding further error sources could only strengthen it.
+This sufficiency claim is scoped to the four-component family. It establishes that the other two are redundant \emph{given} this noise model, not that two components would suffice against the fuller set of error sources catalogued in Table~\ref{tab:error-sources}. The necessity result for electrode bias carries no such caveat, since adding further error sources could only strengthen it.
 
-The electrode-bias-only configuration is trained in both the single-component and subset enumerations, which provides an incidental replication estimate: two independent five-seed runs of an identical configuration give 57.79\% $\pm$ 0.58 and 56.85\% $\pm$ 1.89 under deployment evaluation. That 0.94\,pp difference sets the practical resolution of the ablation, and is why the 76.53--76.90\% spread across the two-, three- and four-component models is read as agreement rather than as an ordering.
+The electrode-bias-only configuration is trained in both the single-component and subset enumerations, which provides an incidental replication estimate. Two independent five-seed runs of an identical configuration give 57.79\% $\pm$ 0.58 and 56.85\% $\pm$ 1.89 under deployment evaluation. That 0.94\, pp difference sets the practical resolution of the ablation, and is why the spread across the two-, three- and four-component models is read as agreement rather than as an ordering.
 
-Each required component has a distinct role. Electrode bias supplies the dominant structured distortion defining the domain shift (Section~\ref{sec:res-domain}). Gaussian noise supplies the measurement noise floor, which matters disproportionately for the no-contact class: without it, no-contact samples are exact zero vectors in training but carry noise at test time, rendering the class undetectable. The per-component severity sweep isolates this directly---enabling Gaussian noise at any non-zero severity raises accuracy from 53.8\% to 73.9\%, a gain of 20.1\,pp corresponding almost exactly to the 20\% of samples in that class (Figure~\ref{fig:severity-sweep}).
+Each required component has a distinct role. Electrode bias supplies the dominant structured distortion defining the domain shift (Section~\ref{sec:res-domain}). Gaussian noise supplies the measurement noise floor, which matters disproportionately for the no-contact class. Without it, no-contact samples are exact zero vectors in training but carry noise at test time, rendering the class undetectable. The per-component severity sweep isolates this directly, enabling Gaussian noise at any non-zero severity to raise accuracy from 53.8\% to 73.9\%, a gain of 20.1\, pp corresponding almost exactly to the 20\% of samples in that class (Figure~\ref{fig:severity-sweep}).
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{results/figures/ablation/per_component_severity_sweep.png}
-\caption{Per-component severity sweep. A CNN trained on the full noise model at 1$\times$ severity is evaluated with only one component active at varying severity. Enabling Gaussian noise recovers the no-contact class (a step of $\approx$20\,pp, independent of severity), while electrode bias is the only component whose severity materially degrades accuracy.}
+\includegraphics[width=1\textwidth]{results/figures/ablation/per_component_severity_sweep.png}
+\caption{Per-component severity sweep. A CNN trained on the full noise model at 1$\times$ severity is evaluated with only one component active at varying severity. Enabling Gaussian noise recovers the no-contact class (a step of $\approx$20\, pp, independent of severity), while electrode bias is the only component whose severity materially degrades accuracy.}
 \label{fig:severity-sweep}
 \end{figure}
 
 \subsection{Sensitivity to Component Ordering}
 \label{sec:res-ablation-order}
 
-Because the components are applied compositionally, their order can alter the resulting distribution. For the full four-component model the effect is modest (1.29\,pp between the best and worst admissible ordering, 76.62\% versus 75.33\%). Within two-component subsets it is substantial: Gaussian~$\to$~electrode bias achieves 76.53\%, whereas electrode bias~$\to$~Gaussian achieves only 54.98\%---a difference of 21.6\,pp for the same two components.
+Because the components are applied compositionally, their order can alter the resulting distribution. For the full four-component model the effect is modest (1.29\, pp between the best and worst admissible ordering, 76.62\% versus 75.33\%). Within two-component subsets it is substantial. Gaussian~$\to$~electrode bias achieves 76.53\%, whereas electrode bias~$\to$~Gaussian achieves only 54.98\%---a difference of 21.6\, pp for the same two components.
 
-This follows from the Gaussian component being specified relative to signal amplitude (Equation~\ref{eq:noise-gaussian}) rather than as an absolute magnitude. Applied first, its scale is set by the clean voltage difference; applied after the bias, its scale is set by signal-plus-bias, which for these data is roughly forty times larger (Section~\ref{sec:res-domain}). The later ordering therefore injects far more Gaussian energy and produces a training distribution matching deployment less closely. The effect is an artefact of the parameterisation rather than of the physics, but it is a practical caution for compositional noise models: where any component is defined relative to the running signal, ordering is not a free choice, and the physically motivated signal-chain order adopted in Section~\ref{sec:method-noise-components} should be preserved.
+This follows from the Gaussian component being specified relative to signal amplitude (Equation~\ref{eq:noise-gaussian}) rather than as an absolute magnitude. Applied first, its scale is set by the clean voltage difference. Applied after the bias, its scale is set by signal-plus-bias, which for these data is roughly forty times larger (Section~\ref{sec:res-domain}). The later ordering therefore injects far more Gaussian energy and produces a training distribution matching deployment less closely. The effect is an artefact of the parametrisation rather than of the physics, but it is a practical caution for compositional noise models, where any component is defined relative to the running signal, ordering is not a free choice, and the physically motivated signal-chain order adopted in Section~\ref{sec:method-noise-components} should be preserved.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Robustness Under Severity Scaling}
@@ -146,13 +144,13 @@ Figure~\ref{fig:noise-type-sweep} evaluates each training regime across noise se
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{results/figures/noise_type_severity_sweep.png}
-\caption{Accuracy and macro-F1 against noise severity for the three training regimes. The dotted line marks 1$\times$, the severity at which the fixed-noise model was trained. Fixed-noise training peaks at its training severity and degrades steadily beyond it; randomised regimes are substantially flatter and overtake it at approximately 2.2$\times$.}
+\caption{Accuracy and macro-F1 against noise severity for the three training regimes. The dotted line marks 1$\times$, the severity at which the fixed-noise model was trained. Fixed-noise training peaks at its training severity and degrades steadily beyond it. Randomised regimes are substantially flatter and overtake it at approximately 2.2$\times$.}
 \label{fig:noise-type-sweep}
 \end{figure}
 
 \begin{table}[htbp]
 \centering
-\caption{Accuracy (\%) against noise severity multiplier by training regime.}
+\caption{Accuracy against noise severity multiplier by training regime.}
 \label{tab:severity-sweep}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -160,73 +158,38 @@ Figure~\ref{fig:noise-type-sweep} evaluates each training regime across noise se
 \toprule
 \textbf{Regime} & \textbf{0$\times$} & \textbf{0.5$\times$} & \textbf{1$\times$} & \textbf{1.5$\times$} & \textbf{2$\times$} & \textbf{2.5$\times$} & \textbf{3$\times$} \\
 \midrule
-Fixed noisy         & 55.15 & 75.52 & \textbf{75.95} & 73.95 & \textbf{70.75} & 66.32 & 60.99 \\
-Online augmentation & 41.44 & 67.60 & 68.91 & 68.96 & 68.67 & \textbf{68.19} & \textbf{67.55} \\
+Fixed noisy         & 55.15 & 75.52 & \textbf{75.95} & 73.95 & 70.75 & 66.32 & 60.99 \\
+Online augmentation & 41.44 & 67.60 & 68.91 & 68.96 & 68.67 & \textbf{68.19} & 67.55\\
 Mixed               & \textbf{70.40} & 69.25 & 69.79 & 69.79 & 69.25 & 68.88 & 68.35 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The regimes exhibit a clear trade-off between peak accuracy and breadth of robustness (Table~\ref{tab:severity-sweep}). Fixed-noise training is best at the severity it was trained on (75.95\% at 1$\times$) but degrades monotonically thereafter, losing 15.0\,pp by 3$\times$. The randomised regimes, trained across severities sampled from $[0.5, 2.0]$, are markedly flatter: online augmentation varies by only 1.4\,pp between 1$\times$ and 3$\times$. The curves cross at approximately 2.2$\times$, beyond which randomisation is superior.
+The regimes exhibit a clear trade-off between peak accuracy and breadth of robustness (Table~\ref{tab:severity-sweep}). Fixed-noise training is best at the severity it was trained on (75.95\% at 1$\times$) but degrades monotonically thereafter, losing 15.0\, pp by 3$\times$. The randomised regimes, trained across severities sampled from $[0.5, 2.0]$, are markedly flatter. Online augmentation varies by only 1.4\, pp between 1$\times$ and 3$\times$. The curves cross at approximately 2.2$\times$, beyond which randomisation is superior.
 
-This is the behaviour domain randomisation predicts \parencite{tobin2017}: distributing training capacity across a range of conditions costs accuracy at any single condition but buys insensitivity across the range. The practical consequence is a design decision rather than a universally correct answer. Where the deployment noise level is known and stable---a calibrated laboratory instrument---fixed-noise training at the measured level is preferable. Where it is uncertain, drifting, or varies between devices, randomised training sacrifices approximately 6\,pp at nominal conditions to avoid a 15\,pp loss at elevated ones. Mixed training additionally retains clean-domain competence (70.40\% at 0$\times$ against 41.44\% for online augmentation), making it the most defensible default when the deployment environment is uncharacterised.
+This is the behaviour domain randomisation predicts \parencite{tobin2017}. Distributing training capacity across a range of conditions costs accuracy at any single condition but buys insensitivity across the range. The practical consequence is a design decision rather than a universally correct answer. Where the deployment noise level is known and stable, fixed-noise training at the measured level is preferable. Where it is uncertain, drifting, or varies between devices, randomised training sacrifices approximately 6\, pp at nominal conditions to avoid a 15\, pp loss at elevated ones. Mixed training additionally retains clean-domain competence (70.40\% at 0$\times$ against 41.44\% for online augmentation), making it the most defensible default when the deployment environment is uncharacterised.
 
-The 0$\times$ column is informative in itself. All three regimes lose accuracy on perfectly clean data, most severely online augmentation. As established in Section~\ref{sec:res-ablation-minimal}, this is largely the no-contact class: a model trained only on corrupted measurements has never observed a true zero vector.
+The 0$\times$ column is informative in itself. All three regimes lose accuracy on perfectly clean data, most severely online augmentation. As established in Section~\ref{sec:res-ablation-minimal}, this is largely the no-contact class. A model trained only on corrupted measurements has never observed a true zero vector.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Supporting Analyses}
 \label{sec:res-extended}
-
-\subsection{Significance of the Reported Differences}
-\label{sec:res-stats}
-
-The independent 5-fold cross-validation reproduces the headline results closely: Clean$\to$Noisy 19.66\% $\pm$ 0.79, Noisy$\to$Noisy 75.58\% $\pm$ 0.76 and Augmented$\to$Noisy 69.16\% $\pm$ 0.25, against 19.98\%, 75.81\% and 69.50\% from the multi-seed protocol. Since the two schemes vary different things---folds vary the data partition, seeds vary partition and initialisation together---agreement of this closeness establishes that the differences reflect the training condition and not either source of variability. Every headline comparison in this chapter therefore rests on two independent resampling schemes, with the folds additionally testing each sample exactly once.
-
-The one condition where they diverge is Clean$\to$Clean: 96.26\% $\pm$ 1.89 under cross-validation against 94.00\% $\pm$ 6.89 across seeds. The gap is itself informative, isolating the CNN's clean-domain instability as an \emph{initialisation} effect rather than a data-partition one. The larger multi-seed spread is the more conservative estimate and is the one quoted in Table~\ref{tab:main-results-raw}.
-
-All differences discussed in this chapter exceed the seed-to-seed standard deviation by a wide margin: the 55.8\,pp recovery from noise-aware training is roughly ninety times the 0.62\,pp spread of the noisy-trained condition, and even the narrowest comparison examined---6.3\,pp between fixed-noise and online augmentation---is ten times it.
 
 \subsection{Per-Class Vulnerability}
 \label{sec:res-perclass}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{results/figures/per_class_robustness.png}
+\includegraphics[width=1\textwidth]{results/figures/per_class_robustness.png}
 \caption{Per-class accuracy against noise severity for the noise-augmented CNN. Point contact is the weakest class throughout; the no-contact class is undetectable at 0$\times$ severity because it appears as an exact zero vector never encountered in training.}
 \label{fig:per-class}
 \end{figure}
 
 Per-class behaviour (Figure~\ref{fig:per-class}) is not uniform, and the ordering is physically interpretable when read against the signal magnitudes of Table~\ref{tab:noise-decomposition}. \emph{Point contact} is the weakest class at every severity (39\% at 0.5$\times$ falling to 29\% at 3$\times$), consistent with two compounding factors: it has the second-smallest voltage signature ($L_2 = 0.0058$) and, as established by the mesh convergence study (Section~\ref{sec:method-mesh}), it is intrinsically sub-mesh-scale, making it the class whose simulation is least faithful. Its poor classification should therefore be attributed partly to the model and partly to the fidelity limits of its representation.
 
-\emph{Firm press} and \emph{distributed contact}, the two largest-amplitude classes, are the most reliably recovered among the contact classes. \emph{Light touch} improves slightly with severity (75.7\% to 90.9\%), which appears counter-intuitive but follows from the same mechanism as the Gaussian result above: additional noise makes the smallest-signal classes distinguishable from the no-contact class rather than being absorbed into it. Accuracy for \emph{no contact} is 0\% at 0$\times$ and $\geq$97\% at every non-zero severity, again reflecting that a noise-trained model does not recognise a noiseless zero vector.
+\emph{Firm press} and \emph{distributed contact}, the two largest-amplitude classes, are the most reliably recovered among the contact classes. \emph{Light touch} improves slightly with severity (75.7\% to 90.9\%), which appears counter-intuitive but follows from the same mechanism as the Gaussian result above. Additional noise makes the smallest-signal classes distinguishable from the no-contact class rather than being absorbed into it. Accuracy for \emph{no contact} is 0\% at 0$\times$ and $\geq$97\% at every non-zero severity, again reflecting that a noise-trained model does not recognise a noiseless zero vector.
 
-The safety implication is specific. The transition most relevant to prosthetic grasp control---detecting the onset of contact---is reliable under the noise conditions the model was trained for, but the class carrying the highest local pressure (point contact) is the least reliable, and its confusion is with other contact classes rather than with no-contact. A controller could therefore be expected to detect \emph{that} contact has occurred more reliably than to characterise \emph{what kind}.
-
-\subsection{Inadequacy of the Gaussian-Only Noise Model}
-\label{sec:res-gaussian}
-
-Table~\ref{tab:gaussian-only} evaluates the noise model used almost universally in prior \gls{eit} work.
-
-\begin{table}[htbp]
-\centering
-\caption{CNN accuracy (\%) under Gaussian-only noise at varying SNR. Accuracy is essentially invariant across a 40\,dB range.}
-\label{tab:gaussian-only}
-\small
-\begin{tabular}{@{}lccccc@{}}
-\toprule
-\textbf{Model} & \textbf{60\,dB} & \textbf{50\,dB} & \textbf{40\,dB} & \textbf{30\,dB} & \textbf{20\,dB} \\
-\midrule
-CNN (clean-trained)        & 79.7 & 79.7 & 79.7 & 79.7 & 79.6 \\
-CNN (Gaussian-augmented)   & 72.5 & 72.6 & 72.5 & 72.7 & 72.8 \\
-CNN (full-noise-augmented) & 78.9 & 78.9 & 78.9 & 78.7 & 78.8 \\
-Random Forest              & 91.0 & 91.1 & 90.8 & 90.8 & 90.7 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Accuracy varies by under 0.3\,pp across a 40\,dB range---four orders of magnitude in noise power---for every model tested. A clean-trained classifier that collapses to 19.98\% under the full noise model is essentially unaffected by Gaussian corruption even at 20\,dB, since additive zero-mean noise is largely absorbed by batch normalisation \parencite{ioffe2015batchnorm} and does not disturb the geometry separating the classes.
-
-This governs how the accuracies reported in the reviewed literature should be read: robustness demonstrated under Gaussian-only augmentation \parencite{chen2023, park2022skin} is not evidence of robustness to the distortions that dominate real measurements. A model can be entirely robust to Gaussian noise and still fail completely on hardware.
+The safety implication is specific. The transition most relevant to prosthetic grasp control, detecting the onset of contact, is reliable under the noise conditions the model was trained for, but the class carrying the highest local pressure (point contact) is the least reliable, and its confusion is with other contact classes rather than with no-contact. A controller could therefore be expected to detect \emph{that} contact has occurred more reliably than to characterise \emph{what kind}.
 
 \subsection{Predictive Confidence}
 \label{sec:res-calibration}
@@ -235,7 +198,7 @@ The Bayesian tradition in \gls{eit} treats quantified uncertainty as integral to
 
 \begin{table}[htbp]
 \centering
-\caption{Mean predicted confidence against actual accuracy. A trustworthy classifier keeps the two close; under domain shift they diverge almost completely.}
+\caption{Mean predicted confidence against actual accuracy.}
 \label{tab:calibration}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -250,37 +213,7 @@ Augmented CNN $\to$ noisy  & 64.4\% & 68.8\% & $-4.4$ \\
 \end{tabular}
 \end{table}
 
-In its own domain the clean-trained model is trustworthy: 96.4\% confidence against 93.8\% accuracy. Outside it the correspondence collapses entirely---99.7\% confidence at 19.7\% accuracy, an 80-point gap. This is the most dangerous failure mode available to a safety-critical classifier, because the softmax carries no warning that the model has left its domain: neither a user nor an automatic grasp controller could detect the failure from the model's own outputs. The noise-augmented model shows the opposite pattern on noisy data, where confidence slightly \emph{understates} accuracy (64.4\% against 68.8\%). Overconfidence is therefore a symptom of \emph{domain shift} rather than an intrinsic property of the architecture, refining the general observation of \textcite{guo2017calibration} that modern networks are overconfident by construction. Since the deployment distribution is never known exactly, however, confidence values from a simulation-trained classifier should not be relied upon until validated against target hardware.
-
-\subsection{Characterising the Domain Gap}
-\label{sec:res-domain}
-
-The dominance of electrode bias established by ablation can be verified directly from the data, independently of classifier performance. Decomposing the measurement vectors into signal and noise contributions (Table~\ref{tab:noise-decomposition}) shows how extreme the imbalance is.
-
-\begin{table}[htbp]
-\centering
-\caption{Signal and noise energy decomposition by class ($L_2$ norms, means over the dataset). Electrode bias accounts for essentially all noise energy and exceeds the touch signal itself by a factor of 4.6 to 41 depending on class.}
-\label{tab:noise-decomposition}
-\small
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-\textbf{Class} & \textbf{Signal} & \textbf{Total noise} & \textbf{Bias} & \textbf{Signal:residual} \\
-\midrule
-No contact          & 0.0000 & 0.1669 & 0.1656 & --- \\
-Light touch         & 0.0040 & 0.1655 & 0.1655 & 11.3 \\
-Firm press          & 0.0248 & 0.1657 & 0.1657 & 11.5 \\
-Point contact       & 0.0058 & 0.1657 & 0.1657 & 11.3 \\
-Distributed contact & 0.0359 & 0.1654 & 0.1653 & 11.9 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Electrode bias accounts for effectively 100\% of total noise energy in every class, and exceeds the touch signal itself by a wide margin: for light touch the bias norm (0.1655) is approximately \textbf{41 times} the signal norm (0.0040), and even for the largest class it remains 4.6 times larger. The touch signature is a small perturbation on a much larger structured offset (Appendix~\ref{app:decomposition}).
-
-Classification is nevertheless feasible because the bias is \emph{structured} rather than random---constant within each electrode's measurement block, varying only between electrodes---so that once removed, the signal-to-residual ratio is a comfortable 11.3--11.9 across all contact classes. The learning problem is therefore not extracting a signal from overwhelming random noise but discounting a large, low-dimensional, block-structured offset: precisely the structure a convolutional kernel spanning adjacent measurements can represent, which explains the CNN's 17.9\,pp advantage over the exchangeable baselines.
-
-This corroborates the ablation from an independent direction---electrode bias must be modelled because it \emph{is} the domain gap in energy terms---and a further line of support is external. Electrode positioning and contact impedance are the error sources for which the \gls{eit} community has developed dedicated compensation machinery \parencite{kolehmainen1997, vilhunen2002}. That an energy argument over simulated measurements recovers the priority ordering the experimental literature arrived at independently indicates the noise model, though incomplete, is not arbitrary: it identifies the mechanism the field already treats as its hardest.
+In its own domain, the clean-trained model is trustworthy (96.4\% confidence against 93.8\% accuracy). Outside it, the correspondence collapses entirely (99.7\% confidence at 19.7\% accuracy, an 80-point gap). This is the most dangerous failure mode available to a safety-critical classifier, because the softmax carries no warning that the model has left its domain. Neither a user nor an automatic grasp controller could detect the failure from the model's own outputs. The noise-augmented model shows the opposite pattern on noisy data, where confidence slightly \emph{understates} accuracy (64.4\% against 68.8\%). Overconfidence is therefore a symptom of \emph{domain shift} rather than an intrinsic property of the architecture, refining the general observation of \textcite{guo2017calibration} that modern networks are overconfident by construction. Since the deployment distribution is never known exactly, however, confidence values from a simulation-trained classifier should not be relied upon until validated against target hardware.
 
 \subsection{Sensitivity to Modelling Assumptions}
 \label{sec:res-sensitivity}
@@ -310,7 +243,7 @@ Because the noise parameters are literature-constrained rather than measured (Se
 \end{tabular}
 \end{table}
 
-The conclusions are insensitive to SNR and to contact impedance across their full plausible ranges (variation $<$0.5\,pp)---reassuring for contact impedance in particular, the parameter least well constrained by the literature (Section~\ref{sec:method-noise-components}). Two parameters do matter. Accuracy collapses to 35.0\% when electrode bias is quadrupled to $b_{\max} = 0.08$, and to 30.1\% at 8-bit ADC resolution. Both are interpretable: the former pushes the structured offset far beyond the amplitude at which the model learned to discount it, while the latter raises the quantisation step until it becomes comparable to the touch signal itself, which for light touch is only 0.0040.
+The conclusions are insensitive to SNR and to contact impedance across their full plausible ranges (variation $<$0.5\,pp). This is reassuring for contact impedance in particular, the parameter least well constrained by the literature (Section~\ref{sec:method-noise-components}). Two parameters do matter. Accuracy collapses to 35.0\% when electrode bias is quadrupled to $b_{\max} = 0.08$, and to 30.1\% at 8-bit ADC resolution. Both are interpretable, as the former pushes the structured offset far beyond the amplitude at which the model learned to discount it, while the latter raises the quantisation step until it becomes comparable to the touch signal itself, which for light touch is only 0.0040.
 
 These thresholds are the most directly actionable results for hardware design, because they are expressed in quantities an engineer specifies. Electrode-placement tolerance and ADC bit depth both require explicit budgets; SNR and electrode--substrate impedance uniformity, which typically receive the most attention, can be relaxed considerably without measurable cost. Hyperparameter sensitivity is correspondingly modest---accuracy varies by 2.2--5.4\,pp across learning rate, dropout, weight decay and training severity range (Appendix~\ref{app:sensitivity})---confirming that the findings are not an artefact of the specific training configuration.
 
