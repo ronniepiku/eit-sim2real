@@ -11,7 +11,7 @@
 
 The clinical demand motivating this work (Section~\ref{sec:intro-background}) has driven extensive research into e-skin platforms. The core engineering challenge is replicating biological skin within a manufacturable substrate, combining mechanical compliance and durability, multimodal sensing, high spatial resolution over large areas, and robustness to long-term drift \parencite{chortos2016, hammock2013, shih2020}.
 
-\textcite{choo2023} systematically review machine learning in prosthetics and orthotics, reporting high accuracy on narrow, well-instrumented clinical tasks but finding that inconsistent reporting of patient characteristics, sample sizes and evaluation protocols prevents cross-study comparison and leaves generalisation across users unestablished.
+\textcite{choo2023} systematically reviews machine learning in prosthetics and orthotics, reporting high accuracy on narrow, well-instrumented clinical tasks but finding that inconsistent reporting of patient characteristics, sample sizes and evaluation protocols prevents cross-study comparison and leaves generalisation across users unestablished.
 
 \subsection{Material Platforms for Electronic Skin}
 \label{sec:lit-eskin-materials}
@@ -46,6 +46,8 @@ The central insight is that while each platform introduces \emph{different} domi
 \subsection{A Comparative View of Sensing Modalities}
 \label{sec:lit-eskin-modalities}
 
+The choice of modality determines the nature of the sim-to-real challenge. Piezoresistive and capacitive arrays suffer discrete sensor failures localised to the affected taxel, whereas in \gls{eit} every boundary measurement is a function of the conductivity field as a whole, so a disturbance at one electrode perturbs the entire measurement vector. Corruption is therefore distributed and structured rather than sparse and local, which motivates a modality-specific noise model. \gls{eit} also needs only current injection and voltage measurement \parencite{silvera-tawil2015}, whereas fibre Bragg grating systems require expensive optical interrogators \parencite{massari2022}, and its lower spatial resolution is acceptable when the required output is a touch \emph{category} rather than a spatial map. \textcite{silvera-tawil2012eit} demonstrated one of the earliest \gls{eit} touch-modality classifiers, establishing the feasibility of direct classification but relying on handcrafted representations. Table 2.2 provides a comparison between all sensing modalities.
+
 \begin{table}[htbp]
 \centering
 \caption[Comparison of sensing modalities for electronic skin]{Comparison of sensing modalities for electronic skin.}
@@ -68,8 +70,6 @@ Acoustic tomography & Complementary to EIT & Complex hardware, noise & \textcite
 \end{tabularx}
 \end{table}
 
-The choice of modality determines the nature of the sim-to-real challenge. Piezoresistive and capacitive arrays suffer discrete sensor failures localised to the affected taxel, whereas in \gls{eit} every boundary measurement is a function of the conductivity field as a whole, so a disturbance at one electrode perturbs the entire measurement vector. Corruption is therefore distributed and structured rather than sparse and local, which motivates a modality-specific noise model. \gls{eit} also needs only current injection and voltage measurement \parencite{silvera-tawil2015} where fibre Bragg grating systems require expensive optical interrogators \parencite{massari2022}, and its lower spatial resolution is acceptable when the required output is a touch \emph{category} rather than a spatial map. \textcite{silvera-tawil2012eit} demonstrated one of the earliest \gls{eit} touch-modality classifiers, establishing the feasibility of direct classification but relying on handcrafted representations.
-
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Electrical Impedance Tomography for Tactile Sensing}
 \label{sec:lit-eit}
@@ -89,12 +89,12 @@ The choice of modality determines the nature of the sim-to-real challenge. Piezo
 \subsection{EIT Measurement Patterns and Data Representation}
 \label{sec:lit-eit-patterns}
 
-For $n_e$ electrodes, the adjacent drive pattern injects current through neighbouring pairs and measures across the remainder, yielding $n_e(n_e-3)$ measurements per frame, or $16 \times 13 = 208$ for a 16-electrode system \parencite{adler2009}. \textcite{park2022ert} show that measurements contribute unequally, proposing adaptive acquisition of the most informative patterns to reduce time and energy; the approach adds complexity and its selection criterion assumes a known noise model, which the present work shows is precisely what is usually mis-specified.
+For $n_e$ electrodes, the adjacent drive pattern injects current through neighbouring pairs and measures across the remainder, yielding $n_e(n_e-3)$ measurements per frame, or $16 \times 13 = 208$ for a 16-electrode system \parencite{adler2009}. \textcite{park2022ert} show that measurements contribute unequally, proposing adaptive acquisition of the most informative patterns to reduce time and energy; the approach adds complexity, and its selection criterion assumes a known noise model, which the present work shows is precisely what is usually mis-specified.
 
 \subsection{EIDORS}
 \label{sec:lit-eit-eidors}
 
-EIDORS provides standardised forward models, inverse solvers and meshing tools for \gls{eit}, though \textcite{adler2006} caution that its flexibility invites misuse. Those cautions apply equally to ML models trained on EIDORS data, which inherit the forward model's assumptions of homogeneous background, idealised electrode contact and noise-free boundaries. Mitigation is detailed in Section~\ref{sec:method-mesh} and evaluated in Section~\ref{sec:disc-approx-error}.
+EIDORS provides standardised forward models, inverse solvers and meshing tools for \gls{eit}, though \textcite{adler2006} cautions that its flexibility invites misuse. Those cautions apply equally to ML models trained on EIDORS data, which inherit the forward model's assumptions of homogeneous background, idealised electrode contact and noise-free boundaries. Mitigation is detailed in Section~\ref{sec:method-mesh} and evaluated in Section~\ref{sec:disc-approx-error}.
 
 \subsection{EIT-Based Electronic Skin Systems}
 \label{sec:lit-eit-eskin}
@@ -127,7 +127,7 @@ Table~\ref{tab:eit-systems} summarises recent \gls{eit}-based tactile sensing sy
 \end{tabularx}
 \end{sidewaystable}
 
-\textcite{chen2023} propose CNN-enhanced Tikhonov regularisation for \gls{eit} pressure reconstruction, showing that pure end-to-end ML is more noise-sensitive than hybrid methods, but train only with additive Gaussian noise at \gls{snr}~=~10~dB and evaluate on a single split. \textcite{dong2025lattice} show that sensor morphology alters \gls{eit} observability before any ML optimisation, a lattice architecture improving 12-class classification to a reported 99.6\%. This complicates cross-paper comparison, since morphology gains are not commensurable with gains from noise-aware training on a fixed sensor, and their augmentation also remains Gaussian-only.
+\textcite{chen2023} propose CNN-enhanced Tikhonov regularisation for \gls{eit} pressure reconstruction, showing that pure end-to-end ML is more noise-sensitive than hybrid methods, but train only with additive Gaussian noise at \gls{snr}~=~10~dB and evaluate on a single split. \textcite{dong2025lattice} show that sensor morphology alters \gls{eit} observability before any ML optimisation, with a lattice architecture improving 12-class classification to a reported 99.6\%. This complicates cross-paper comparison, since morphology gains are not commensurable with gains from noise-aware training on a fixed sensor, and their augmentation also remains Gaussian-only.
 
 \textcite{costacornella2023} characterise an ionic--electronic dual-conductivity hydrogel in a 16-electrode configuration with a feedforward network for localisation, establishing that ionic hydrogels produce measurable conductivity \emph{decreases} under load. No gauge-factor calibration is provided, and evaluation uses 500 samples on a single 80/10/10 split, leaving both the force-to-conductivity mapping and noise robustness uncharacterised. \textcite{kim2024} observe gradual degradation over 10,000 cycles and identify temperature as a key noise source; their ultrathin elastomer ($E \sim$150~kPa) informs the Hertzian contact geometry used in Chapter~\ref{ch:methodology}.
 
@@ -138,14 +138,14 @@ Table~\ref{tab:eit-systems} summarises recent \gls{eit}-based tactile sensing sy
 \subsection{Classical Machine Learning Approaches}
 \label{sec:lit-ml-classical}
 
-Classical methods dominated tactile classification before deep learning. \glspl{svm} \parencite{cortes1995} are effective in high-dimensional spaces with limited data, \textcite{rahiminejad2021} reporting near-perfect accuracy on spike-encoded features. \glspl{rf} \parencite{breiman2001} offer complementary advantages in feature-importance ranking, resistance to overfitting through ensemble averaging, and scale invariance. \glspl{mlp} bridge classical and deep learning; \textcite{costacornella2023} used a feedforward network for \gls{eit} localisation on 500 samples with a single split, achieving reasonable clean-data accuracy, but with no noise, no ablation and no repeated splits it remains unknown whether such compact architectures survive real measurement distortions.
+Classical methods dominated tactile classification before deep learning. \glspl{svm} \parencite{cortes1995} are effective in high-dimensional spaces with limited data, \textcite{rahiminejad2021} reporting near-perfect accuracy on spike-encoded features. \glspl{rf} \parencite{breiman2001} offer complementary advantages in feature-importance ranking, resistance to overfitting through ensemble averaging, and scale invariance. \glspl{mlp} bridge classical and deep learning; \textcite{costacornella2023} used a feedforward network for \gls{eit} localisation on 500 samples with a single split, achieving reasonable clean-data accuracy, but with no noise, no ablation and no repeated splits, it remains unknown whether such compact architectures survive real measurement distortions.
 
 Chapter~\ref{ch:methodology} adopts all three as baselines on that basis, but does not inherit their hyperparameters, since reported configurations are tuned to different datasets and no reviewed study specifies settings for five-class touch classification from 208-dimensional voltage vectors. Baseline settings are fixed \emph{a priori} from canonical practice and held constant across conditions, so the effect of noise augmentation is not confounded with per-condition tuning effort (Section~\ref{sec:method-training-baselines}).
 
 \subsection{Convolutional Neural Networks for Tactile Data}
 \label{sec:lit-ml-cnn}
 
-CNNs dominate tactile classification through their capacity to learn hierarchical features without manual engineering \parencite{lecun2015}, which suits \gls{eit} data where the mapping from voltage patterns to contact is highly nonlinear. \textcite{park2022skin} report 98.7\% on 5-class touch classification from \gls{eit} voltage vectors, but without hyperparameter optimisation, repeated validation or noise testing. For 1D voltage-difference vectors a 1D-CNN is architecturally natural, treating the measurement as a single-channel signal in which kernels learn local patterns across adjacent electrode pairs, with residual connections \parencite{he2016} a candidate extension.
+CNNs dominate tactile classification through their capacity to learn hierarchical features without manual engineering \parencite{lecun2015}, which suits \gls{eit} data where the mapping from voltage patterns to contact is highly nonlinear. \textcite{park2022skin} report 98.7\% on 5-class touch classification from \gls{eit} voltage vectors, but without hyperparameter optimisation, repeated validation or noise testing. For 1D voltage-difference vectors, a 1D-CNN is architecturally natural, treating the measurement as a single-channel signal in which kernels learn local patterns across adjacent electrode pairs, with residual connections \parencite{he2016} as a candidate extension.
 
 \subsection{Deep Learning for EIT Reconstruction}
 \label{sec:lit-ml-dl-eit}
@@ -166,13 +166,13 @@ Several concerns recur \emph{systematically}, catalogued against the present wor
 \subsection{Origin of the Gap in EIT Systems}
 \label{sec:lit-sim2real-origin}
 
-The simulation-to-reality gap arises when models trained on computationally generated data fail on data from physical hardware. \textcite{ben-david2010domain} formalise this: target-domain error is bounded by source-domain error plus the distributional divergence between domains, so reducing that divergence directly improves generalisation. In \gls{eit} the divergence has several compounding origins.
+The simulation-to-reality gap arises when models trained on computationally generated data fail on data from physical hardware. \textcite{ben-david2010domain} formalise this: target-domain error is bounded by source-domain error plus the distributional divergence between domains, so reducing that divergence directly improves generalisation. In \gls{eit}, the divergence has several compounding origins.
 
-\emph{Measurement noise} is statistically richer than the additive Gaussian model usually assumed. Instrumentation \gls{snr} is typically 40--60\,dB \parencite{adler2006}, but electrode--skin contact impedance additionally imposes multiplicative, spatially varying distortion \parencite{vilhunen2002}, electrode positioning errors impose systematic bias \parencite{kolehmainen1997}, and skin-impedance change drives temporal drift \parencite{boone1996}. \emph{Material non-idealities} compound this: real substrates show moisture-dependent conductivity \parencite{park2022skin, tao2023}, temperature sensitivity and fatigue \parencite{kim2024}. \emph{Model simplifications} such as 2D approximations, idealised electrode models and homogeneous backgrounds \parencite{adler2006} introduce further systematic bias that random augmentation cannot compensate, a point developed in Section~\ref{sec:disc-approx-error}.
+\emph{Measurement noise} is statistically richer than the additive Gaussian model usually assumed. Instrumentation \gls{snr} is typically 40--60\,dB \parencite{adler2006}, but electrode--skin contact impedance additionally imposes multiplicative, spatially varying distortion \parencite{vilhunen2002}, electrode positioning errors impose systematic bias \parencite{kolehmainen1997}, and skin-impedance change drives temporal drift \parencite{boone1996}. \emph{Material non-idealities} compound this: real substrates show moisture-dependent conductivity \parencite{park2022skin, tao2023}, temperature sensitivity and fatigue \parencite{kim2024}. \emph{Model simplifications} such as 2D approximations, idealised electrode models and homogeneous backgrounds \parencite{adler2006} introduce further systematic bias that random augmentation cannot compensate for, a point developed in Section~\ref{sec:disc-approx-error}.
 
-\paragraph{Which sources a noise model can capture.} Table~\ref{tab:error-sources} states which of these fall within the scope of a per-frame static noise model. Sources stationary within a frame can be represented as a stochastic perturbation of the measurement vector, whereas those defined by change \emph{across} frames, or by deformation of the domain itself, cannot. \textcite{shih2020} note the growing use of recurrent architectures for sequential contact dynamics, but no reviewed study applies them to compensate progressive drift.
+\paragraph{Which sources a noise model can capture.} Table~\ref{tab:error-sources} states which of these fall within the scope of a per-frame static noise model. Sources stationary within a frame can be represented as a stochastic perturbation of the measurement vector, whereas those defined by change \emph{across} frames, or by deformation of the domain itself, cannot. \textcite{shih2020} note the growing use of recurrent architectures for sequential contact dynamics, but no reviewed study applies them to compensate for progressive drift.
 
-The sources the field has invested most effort in compensating, electrode positioning and contact impedance, for which dedicated estimation procedures exist \parencite{kolehmainen1997, vilhunen2002}, are precisely those within scope, which is the basis for expecting a static model to capture a substantial share of the gap despite its incompleteness. That these long-documented modelling errors are seldom represented in the training distributions of modern ML-based \gls{eit} studies is the gap this dissertation addresses.
+The sources the field has invested most effort in compensating for, electrode positioning and contact impedance, for which dedicated estimation procedures exist \parencite{kolehmainen1997, vilhunen2002}, are precisely those within scope, which is the basis for expecting a static model to capture a substantial share of the gap despite its incompleteness. That these long-documented modelling errors are seldom represented in the training distributions of modern ML-based \gls{eit} studies is the gap this dissertation addresses.
 
 \begin{table}[htbp]
 \centering
@@ -181,7 +181,7 @@ The sources the field has invested most effort in compensating, electrode positi
 \small
 \begin{tabularx}{\textwidth}{@{}lcX@{}}
 \toprule
-\textbf{Source} & \textbf{In scope} & \textbf{Basis / reason for exclusion} \\
+\textbf{Source} & \textbf{In scope} & \textbf{Reason for exclusion} \\
 \midrule
 Thermal and amplifier noise      & Yes & SNR 40--80\,dB reported for laboratory instrumentation \parencite{adler2006} \\
 \midrule
@@ -209,7 +209,7 @@ Motion artefacts, mains pickup   & No  & Non-stationary or environment-specific 
 \subsection{Domain Adaptation and Randomisation}
 \label{sec:lit-sim2real-da}
 
-\textcite{tobin2017} introduced domain randomisation, transferring object detection from simulation to physical robots without real training data, on the principle that if sufficient variability is introduced in simulation the real distribution becomes a subset of the training distribution. \textcite{ganin2016} proposed domain-adversarial training, and \textcite{tzeng2017adda} extended this with ADDA, aligning latent distributions without target labels. In the taxonomy of \textcite{pan2010survey}, noise augmentation most closely resembles instance-based transfer. Neither adaptation approach has been applied to \gls{eit} tactile sensing, and both require paired data this study does not have.
+\textcite{tobin2017} introduced domain randomisation, transferring object detection from simulation to physical robots without real training data, on the principle that if sufficient variability is introduced in simulation, the real distribution becomes a subset of the training distribution. \textcite{ganin2016} proposed domain-adversarial training, and \textcite{tzeng2017adda} extended this with ADDA, aligning latent distributions without target labels. In the taxonomy of \textcite{pan2010survey}, noise augmentation most closely resembles instance-based transfer. Neither adaptation approach has been applied to \gls{eit} tactile sensing, and both require paired data that this study does not have.
 
 \textcite{hendrycks2019} introduced ImageNet-C, showing that state-of-the-art classifiers suffer catastrophic drops under corruptions humans handle trivially, and establishing the multi-severity evaluation paradigm adopted in Chapter~\ref{ch:methodology}. \textcite{rusak2020simple} showed that simple Gaussian augmentation provides limited corruption robustness, while diverse physically grounded strategies substantially outperform it.
 
@@ -230,12 +230,12 @@ Three conditions under which noise augmentation may fail warrant attention. The 
 \subsection{Scalability and Power Constraints}
 \label{sec:lit-deployment-scale}
 
-Prosthetic systems operate within tight power, weight and computational budgets, and \textcite{jiang2024fista} argue that classical algorithms suit embedded deployment better than deep learning. The challenge extends beyond computation: \textcite{shih2020} note that greater sensor density means more wiring and reduced flexibility, and \textcite{koo2024} that interconnects limit packing density. \gls{eit} addresses this by sensing distributively from few boundary electrodes \parencite{silvera-tawil2015}, at the cost of an ill-posed reconstruction.
+Prosthetic systems operate within tight power, weight and computational budgets, and \textcite{jiang2024fista} argue that classical algorithms suit embedded deployment better than deep learning. The challenge extends beyond computation: \textcite{shih2020} note that greater sensor density means more wiring and reduced flexibility, and \textcite{koo2024} note that interconnects limit packing density. \gls{eit} addresses this by sensing distributively from few boundary electrodes \parencite{silvera-tawil2015}, at the cost of an ill-posed reconstruction.
 
 \subsection{Ethical and Societal Considerations}
 \label{sec:lit-deployment-ethics}
 
-Tactile-sensing prosthetics raise ethical considerations the literature largely overlooks. Restoring touch has documented psychological benefits \parencite{biddiss2007} but raises questions of sensory overload and consent for neural interfacing \parencite{chortos2016}. More pressingly, \textcite{mcdonald2021} document that limb loss disproportionately affects low- and middle-income populations, so high-cost sensing risks widening healthcare inequality rather than reducing it. This work addresses accessibility indirectly through an open-source pipeline requiring no fabrication facilities, though the broader ethical dimensions deserve more systematic attention than the engineering literature affords them.
+Tactile-sensing prosthetics raise ethical considerations the literature largely overlooks. Restoring touch has documented psychological benefits \parencite{biddiss2007} but raises questions of sensory overload and consent for neural interfacing \parencite{chortos2016}. More pressingly, \textcite{mcdonald2021} documents that limb loss disproportionately affects low- and middle-income populations, so high-cost sensing risks widening healthcare inequality rather than reducing it. This work addresses accessibility indirectly through an open-source pipeline requiring no fabrication facilities, though the broader ethical dimensions deserve more systematic attention than the engineering literature affords them.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Summary and Identification of Research Gaps}

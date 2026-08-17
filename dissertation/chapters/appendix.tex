@@ -60,34 +60,14 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────
-\section{Signal and Noise Decomposition}
-\label{app:decomposition}
-
-Figures~\ref{fig:app-noise-decomposition} and~\ref{fig:app-signal-noise} decompose the measurement energy underlying the domain shift, supporting the decomposition of Section~\ref{sec:res-domain}. Values are $L_2$ norms averaged over the dataset, computed by \texttt{scripts/characterise\_noise.py} and tabulated in \texttt{results/dataset\_validation/tables/noise\_characterisation.csv}. For light touch the electrode-bias norm (0.1655) is approximately 41 times the signal norm (0.0040); for the largest class, distributed contact, it remains 4.6 times larger. Once the bias is discounted, the signal-to-residual ratio is 11.3--11.9 across the four contact classes.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.8\textwidth]{results/dataset_validation/figures/noise_decomposition.png}
-\caption[Decomposition of measurement energy by class]{Decomposition of measurement energy into signal, electrode-bias and residual components by class. The bias term accounts for effectively all noise energy and exceeds the touch signal itself for every class, which is the quantitative basis for identifying electrode bias as the dominant domain shift (Section~\ref{sec:res-domain}).}
-\label{fig:app-noise-decomposition}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.8\textwidth]{results/dataset_validation/figures/signal_vs_noise_comparison.png}
-\caption[Per-class signal and noise magnitudes]{Per-class signal and noise magnitudes. The touch signature is a small perturbation on a much larger structured offset; classification remains feasible only because that offset is block-structured and therefore separable.}
-\label{fig:app-signal-noise}
-\end{figure}
-
-%% ─────────────────────────────────────────────────────────────────────────────
 \section{Corroboration by Cross-Validation}
 \label{app:crossval}
 
-All headline results in Chapter~\ref{ch:results} are reported over five independent seeds with stratified 70/15/15 splits. As an independent check on that protocol, a stratified 5-fold cross-validation \parencite{kohavi1995crossval} was also run, in which each fold's test partition is disjoint from every other and every sample is held out exactly once; within each fold a validation slice is carved from the training partition, so early stopping never observes held-out data, and models are retrained from scratch per fold. Table~\ref{tab:app-crossval} compares the two schemes.
+All headline results in Chapter~\ref{ch:results} are reported over five independent seeds with stratified 70/15/15 splits. As an independent check on that protocol, a stratified 5-fold cross-validation \parencite{kohavi1995crossval} was also run, in which each fold's test partition is disjoint from every other, and every sample is held out exactly once; within each fol,d a validation slice is carved from the training partition, so early stopping never observes held-out data, and models are retrained from scratch per fold. Table~\ref{tab:app-crossval} compares the two schemes.
 
 \begin{table}[htbp]
 \centering
-\caption[Multi-seed protocol against 5-fold cross-validation]{CNN accuracy (\%) under the multi-seed protocol used throughout Chapter~\ref{ch:results} against an independent stratified 5-fold cross-validation. The two schemes vary different things: folds vary the data partition, seeds vary partition and initialisation together.}
+\caption[Multi-seed protocol against 5-fold cross-validation]{CNN accuracy (\%) under the multi-seed protocol used throughout Chapter~\ref{ch:results} against an independent stratified 5-fold cross-validation. The two schemes vary different things: folds vary the data partition, and seeds vary the partition and initialisation together.}
 \label{tab:app-crossval}
 \small
 \setlength{\tabcolsep}{8pt}
@@ -134,25 +114,25 @@ Random Forest (Gaussian-trained) & 91.0 & 91.1 & 90.8 & 90.8 & 90.7 \\
 
 Accuracy varies by under 0.5\,pp across a 40\,dB range, four orders of magnitude in noise power, for every model tested. A clean-trained classifier that collapses to 19.98\% under the full four-component noise model is essentially unaffected by Gaussian corruption even at 20\,dB, since additive zero-mean noise is largely absorbed by batch normalisation \parencite{ioffe2015batchnorm} and does not disturb the geometry separating the classes.
 
-This governs how the accuracies reported in the reviewed literature should be read. Robustness demonstrated under Gaussian-only augmentation \parencite{chen2023, park2022skin} is not evidence of robustness to the distortions that dominate real measurements, and is the basis for the recommendation in Section~\ref{sec:conc-recommendations} that multi-component noise including electrode bias be treated as the minimum standard for such a claim. The result is consistent with the ablation of Section~\ref{sec:res-ablation}, where a Gaussian-only training model reaches only 20.88\% under deployment-realistic evaluation.
+This governs how the accuracies reported in the reviewed literature should be read. Robustness demonstrated under Gaussian-only augmentation \parencite{chen2023, park2022skin} is not evidence of robustness to the distortions that dominate real measurements, and is the basis for the recommendation in Section~\ref{sec:conc-recommendations} that multi-component noise, including electrode biases, be treated as the minimum standard for such a claim. The result is consistent with the ablation of Section~\ref{sec:res-ablation}, where a Gaussian-only training model reaches only 20.88\% under deployment-realistic evaluation.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Ablation Details}
 \label{app:ablation}
 
-Figures~\ref{fig:app-ablation-single}--\ref{fig:app-ablation-ordering} supplement Section~\ref{sec:res-ablation}. They are reported under \emph{matched} evaluation, and are included principally to document the protocol whose conclusions Chapter~\ref{ch:results} shows to be misleading; the deployment-realistic results that supersede them are in Tables~\ref{tab:ablation-single} and~\ref{tab:ablation-subset}.
+Figures~\ref{fig:app-ablation-single}--\ref{fig:app-ablation-ordering} supplement Section~\ref{sec:res-ablation}. They are reported under \emph{matched} evaluation and are included principally to document the protocol whose conclusions Chapter~\ref{ch:results} shows to be misleading; the deployment-realistic results that supersede them are in Tables~\ref{tab:ablation-single} and~\ref{tab:ablation-subset}.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/single_component_impact.png}
-\caption[Single-component ablation under matched evaluation]{Single-component ablation under \emph{matched} evaluation, in which each model is tested on the same single component it was trained with. Read in isolation this figure is misleading: it ranks electrode bias worst (78.68\%) and Gaussian noise best (96.61\%), the reverse of the deployment-realistic ranking in Table~\ref{tab:ablation-single}. It is retained to make that discrepancy explicit.}
+\caption[Single-component ablation under matched evaluation]{Single-component ablation under \emph{matched} evaluation, in which each model is tested on the same single component it was trained with. Read in isolation, this figure is misleading: it ranks electrode bias worst (78.68\%) and Gaussian noise best (96.61\%), the reverse of the deployment-realistic ranking in Table~\ref{tab:ablation-single}. It is retained to make that discrepancy explicit.}
 \label{fig:app-ablation-single}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/component_subset_heatmap.png}
-\caption[Matched-condition accuracy across component subsets]{Matched-condition accuracy across all 15 non-empty component subsets. Subsets containing electrode bias cluster within 75.3--77.8\%, while those omitting it reach 85.3--97.2\% under matched evaluation---higher precisely because they define an easier world, not because they are better training distributions. Under deployment evaluation the two groups separate in the opposite direction, at 54.7--76.9\% and 16.5--23.4\% respectively (Section~\ref{sec:res-ablation}).}
+\caption[Matched-condition accuracy across component subsets]{Matched-condition accuracy across all 15 non-empty component subsets. Subsets containing the electrode bias cluster within 75.3--77.8\%, while those omitting it reach 85.3--97.2\% under matched evaluation---higher precisely because they define an easier world, not because they are better training distributions. Under deployment evaluation, the two groups separate in the opposite direction, at 54.7--76.9\% and 16.5--23.4\% respectively (Section~\ref{sec:res-ablation}).}
 \label{fig:app-ablation-heatmap}
 \end{figure}
 
@@ -163,31 +143,12 @@ Figures~\ref{fig:app-ablation-single}--\ref{fig:app-ablation-ordering} supplemen
 \label{fig:app-ablation-ordering}
 \end{figure}
 
-%% ─────────────────────────────────────────────────────────────────────────────
-\section{Predictive Confidence}
-\label{app:calibration}
-
-Figures~\ref{fig:app-reliability} and~\ref{fig:app-confidence} supplement the confidence analysis of Section~\ref{sec:res-calibration}.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.8\textwidth]{results/figures/calibration_reliability_diagrams.png}
-\caption[Reliability diagrams under clean and noisy evaluation]{Reliability diagrams for the CNN under clean and noisy evaluation, plotting achieved accuracy against predicted confidence. Perfect correspondence follows the diagonal. Under domain shift (Clean$\to$Noisy) predictions cluster near confidence 1.0 regardless of accuracy, falling far below the diagonal; matched-distribution training restores the correspondence.}
-\label{fig:app-reliability}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.8\textwidth]{results/figures/calibration_confidence_distributions.png}
-\caption[Distribution of predicted confidences]{Distribution of predicted confidences under clean and noisy conditions. The bimodal distribution under domain shift (high confidence but low accuracy) represents the worst-case failure mode for safety-critical deployment.}
-\label{fig:app-confidence}
-\end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Sensitivity Analyses}
 \label{app:sensitivity}
 
-Figures~\ref{fig:app-noise-sensitivity} and~\ref{fig:app-hp-sensitivity} supplement Section~\ref{sec:res-sensitivity}, covering sensitivity to the noise-model parameters and to the training hyperparameters respectively.
+Figures~\ref{fig:app-noise-sensitivity} and~\ref{fig:app-hp-sensitivity} supplement Section~\ref{sec:res-sensitivity}, covering sensitivity to the noise-model parameters and to the training hyperparameters, respectively.
 
 \begin{figure}[htbp]
 \centering
@@ -212,7 +173,7 @@ This appendix reports the empirical evidence underpinning the preprocessing deci
 \section{Comparison Protocol}
 \label{app:eda-protocol}
 
-Seven candidate preprocessing pipelines were compared using a logistic-regression probe under a \texttt{RepeatedStratifiedKFold} cross-validation design ($k=5$, $n_{\text{repeats}} = 3$, fixed seed $42$), yielding 15 paired evaluations per pipeline. The probe is deliberately simple: its purpose is to provide a fast, model-agnostic surface on which to compare \emph{preprocessing} effects without confounding from architecture tuning. The leakage-safe protocol fits the scaler and any reduction transform on the training partition of each fold and applies the fitted transform to the held-out partition.
+Seven candidate preprocessing pipelines were compared using a logistic-regression probe under a \texttt{RepeatedStratifiedKFold} cross-validation design ($k=5$, $n_{\text{repeats}} = 3$, fixed seed $42$), yielding 15 paired evaluations per pipeline. The probe is deliberately simple: its purpose is to provide a fast, model-agnostic surface on which to compare \emph{preprocessing} effects without confounding from architecture tuning. The leakage-safe protocol fits the scaler and any reduction transform on the training partition of each fold,d and applies the fitted transform to the held-out partition.
 
 \section{Pipeline Comparison}
 \label{app:eda-pipelines}
@@ -280,7 +241,7 @@ Noisy$\to$Clean & 52.23 (CNN) & 45.42 (MLP) & 22.35 (RF) \\
 \end{tabular}
 \end{table}
 
-On clean data both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need in order to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
+On clean data, both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise,e they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Baseline Classifier Configurations}

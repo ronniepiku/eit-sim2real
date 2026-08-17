@@ -111,9 +111,9 @@ The simulated substrate models an ionic hydrogel layer, following the material s
 \label{fig:park-hydrogel-structure}
 \end{figure}
 
-Two considerations motivate this choice over the conductive elastomers that Table~\ref{tab:material-comparison} rates more durable. First, comparability: hydrogel is the substrate used by the most directly comparable \gls{eit} e-skin studies \parencite{park2022skin, costacornella2023, jiang2024fista}. Second, parameterisation: \textcite{costacornella2023} provide piezoresistive characterisation in an \gls{eit} configuration, whereas no equivalent exists for elastomers here.
+Two considerations motivate this choice over the conductive elastomers that Table~\ref{tab:material-comparison} rates as more durable. First, comparability: hydrogel is the substrate used by the most directly comparable \gls{eit} e-skin studies \parencite{park2022skin, costacornella2023, jiang2024fista}. Second, parameterisation: \textcite{costacornella2023} provides piezoresistive characterisation in an \gls{eit} configuration, whereas no equivalent exists for elastomers here.
 
-The forward model assigns conductivity $\sigma < \sigma_0$ within the contact region, the decrease scaling with applied pressure. Background conductivity is normalised to $\sigma_0 = 1.0$\,S/m, standard in EIDORS-based studies \parencite{adler2006}, which does not affect the voltage \emph{difference} vectors used for classification since these depend only on the contrast ratio $\sigma / \sigma_0$.
+The forward model assigns conductivity $\sigma < \sigma_0$ within the contact region, with the decrease scaling with applied pressure. Background conductivity is normalised to $\sigma_0 = 1.0$\,S/m, standard in EIDORS-based studies \parencite{adler2006}, which does not affect the voltage \emph{difference} vectors used for classification since these depend only on the contrast ratio $\sigma / \sigma_0$.
 
 \subsection{Touch Class Definitions}
 \label{sec:method-classes}
@@ -181,7 +181,7 @@ All components operate on the voltage difference vector $\Delta\mathbf{v} \in \m
 \label{eq:noise-gaussian}
 \end{equation}
 
-\noindent where $\hat{\mathbf{n}} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, SNR~=~40\,dB, $n_{\text{floor}} = 10^{-4}$\,V and $N = 208$. The signal-dependent form scales noise with measurement amplitude, consistent with the 40--80\,dB range reported by \textcite{adler2006} for laboratory instrumentation. The noise floor is essential: without it the no-contact class remains an exact zero vector, a deterministic cluster with no hardware counterpart.
+\noindent where $\hat{\mathbf{n}} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, SNR~=~40\,dB, $n_{\text{floor}} = 10^{-4}$\,V and $N = 208$. The signal-dependent form scales noise with measurement amplitude, consistent with the 40--80\,dB range reported by \textcite{adler2006} for laboratory instrumentation. The noise floor is essential, as without it, the no-contact class remains an exact zero vector, a deterministic cluster with no hardware counterpart.
 
 \paragraph{Component 2: Electrode contact impedance variation.} Models imperfect and spatially varying electrode--substrate contact, producing multiplicative per-electrode distortion.
 
@@ -219,7 +219,7 @@ Table~\ref{tab:noise-params} consolidates all noise parameters with their physic
 
 \begin{table}[htbp]
 \centering
-\caption[Noise model parameters and literature sources]{Noise model parameters. All values derive from experimental EIT literature.}
+\caption[Noise model parameters and literature sources]{Noise model parameters. All values are derived from experimental EIT literature.}
 \label{tab:noise-params}
 \small
 \begin{tabularx}{\textwidth}{@{}l l l X@{}}
@@ -261,7 +261,7 @@ Storing both vectors enables the four-condition evaluation matrix (Section~\ref{
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=1\textwidth]{results/figures/dataset_size_learning_curve.png}
-\caption[Effect of dataset size on accuracy and F1]{Effect of dataset size on test accuracy (left) and F1 Score (right), evaluated on noisy data. The noise-aware model improves steeply then plateaus near $10^4$ samples; the clean-trained model remains at chance regardless of dataset size.}
+\caption[Effect of dataset size on accuracy and F1]{Effect of dataset size on test accuracy (left) and F1 Score (right), evaluated on noisy data. The noise-aware model improves steeply, then plateaus near $10^4$ samples; the clean-trained model remains at chance regardless of dataset size.}
 \label{fig:dataset-size-learning-curve}
 \end{figure}
 
@@ -275,15 +275,15 @@ The dataset is partitioned 70/15/15 into training, validation and test sets by s
 
 Preprocessing decisions were determined empirically using a \texttt{RepeatedStratifiedKFold} ($k=5$, $n_{\text{repeats}}=3$) protocol yielding 15 paired evaluations per pipeline, with supporting tables in Appendix~\ref{app:eda}.
 
-\paragraph{Feature scaling.} Features are normalised with \texttt{RobustScaler} (median subtraction, interquartile-range scaling), fitted \emph{exclusively} on the training split to prevent leakage. It was preferred over \texttt{StandardScaler} empirically, achieving macro-F1 $0.718 \pm 0.004$ against $0.713 \pm 0.004$. Where noise is injected on the Python side, perturbations are applied in raw voltage space and re-transformed with the training-fitted scaler, preserving the physical interpretation of the noise model while keeping inputs in a consistent feature space.
+Features are normalised with \texttt{RobustScaler} (median subtraction, interquartile-range scaling), fitted \emph{exclusively} on the training split to prevent leakage. It was preferred over \texttt{StandardScaler} empirically, achieving macro-F1 $0.718 \pm 0.004$ against $0.713 \pm 0.004$. Where noise is injected on the Python side, perturbations are applied in raw voltage space and re-transformed with the training-fitted scaler, preserving the physical interpretation of the noise model while keeping inputs in a consistent feature space.
 
-\paragraph{Dimensionality reduction.} The full 208-dimensional vector is retained. Two reductions were tested and rejected: correlation pruning at $\rho = 0.75$ cost 3.5\,pp macro-F1 and \gls{pca} at 95.3\% variance cost 4.5\,pp, each ranking below the full-feature pipeline in all 15 folds. Aggressive reduction destroys the local structure the convolutional filters exploit, and Appendix~\ref{app:feature-reduction} shows this matters far more under noise than these clean-data margins suggest.
+The full 208-dimensional vector is retained. Two reductions were tested and rejected: correlation pruning at $\rho = 0.75$ cost 3.5\,pp macro-F1 and \gls{pca} at 95.3\% variance cost 4.5\,pp, each ranking below the full-feature pipeline in all 15 folds. Aggressive reduction destroys the local structure the convolutional filters exploit, and Appendix~\ref{app:feature-reduction} shows this matters far more under noise than these clean-data margins suggest.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Model Architectures}
 \label{sec:method-models}
 
-Three classical baselines and a purpose-designed 1D-\gls{cnn} are evaluated under identical data conditions, addressing the gap identified in Section~\ref{sec:lit-ml-concerns}. The baselines are an \gls{svm} with RBF kernel \parencite{cortes1995}, a 500-tree \gls{rf} \parencite{breiman2001}, and an \gls{mlp} sized to match the fully connected capacity of the \gls{cnn} head, so the comparison isolates the effect of convolutional feature extraction. Their full configurations are tabulated in Appendix~\ref{app:baselines}.
+Three classical baselines and a purpose-designed 1D-\gls{cnn} are evaluated under identical data conditions, addressing the gap identified in Section~\ref{sec:lit-ml-concerns}. The baselines are an \gls{svm} with an RBF kernel \parencite{cortes1995}, a 500-tree \gls{rf} \parencite{breiman2001}, and an \gls{mlp} sized to match the fully connected capacity of the \gls{cnn} head, so the comparison isolates the effect of convolutional feature extraction. Their full configurations are tabulated in Appendix~\ref{app:baselines}.
 
 \subsection{1D Convolutional Neural Network}
 \label{sec:method-cnn}
@@ -320,7 +320,7 @@ The architecture treats the 208-element voltage vector as a single-channel 1D si
 \subsection{CNN Training}
 \label{sec:method-training-cnn}
 
-The CNN is trained using the Adam optimiser \parencite{kingma2015adam} with learning rate $\eta = 10^{-3}$, weight decay $\lambda = 10^{-4}$, and batch size 64 for a maximum of 200 epochs. Two safeguards, with values determined experimentally, prevent overfitting: ReduceLROnPlateau reduces $\eta$ by factor 0.5 after 10 epochs without validation loss improvement, and early stopping halts training after 40 such epochs \parencite{prechelt1998early}, always retaining the best model.
+The CNN is trained using the Adam optimiser \parencite{kingma2015adam} with learning rate $\eta = 10^{-3}$, weight decay $\lambda = 10^{-4}$, and batch size 64 for a maximum of 200 epochs. Two safeguards, with values determined experimentally, prevent overfitting: ReduceLROnPlateau reduces $\eta$ by a factor of 0.5 after 10 epochs without validation loss improvement, and early stopping halts training after 40 such epochs \parencite{prechelt1998early}, always retaining the best model.
 
 For noise-augmented training, label smoothing ($\epsilon = 0.05$) \parencite{muller2019labelsmooth} and increased dropout ($p = 0.4$) \parencite{srivastava2014dropout} complement noise augmentation as a regularisation strategy. Online domain randomisation \parencite{tobin2017} samples fresh noise draws each batch, with perturbations applied in raw voltage space before re-scaling into the model input space, so the noise model retains its physical interpretation.
 
@@ -330,12 +330,12 @@ The loss function is cross-entropy over the five classes:
 \label{eq:loss}
 \end{equation}
 
-\noindent where $y_{i,c}$ is the one-hot encoded true label and $\hat{y}_{i,c}$ are the raw logits. Cross-entropy suits single-label multi-class classification with five mutually exclusive touch classes, and combined with the softmax output it penalises confident misclassification strongly.
+\noindent where $y_{i,c}$ is the one-hot encoded true label and $\hat{y}_{i,c}$ are the raw logits. Cross-entropy suits single-label multi-class classification with five mutually exclusive touch classes, and combined with the softmax output, it penalises confident misclassification strongly.
 
 \subsection{Hyperparameter Selection}
 \label{sec:method-training-baselines}
 
-Baseline models are trained on the same training split using scikit-learn \parencite{cortes1995, breiman2001}. The \gls{mlp} uses its own internal early stopping with the \gls{svm} and \gls{rf} models trained to convergence.
+Baseline models are trained on the same training split using scikit-learn \parencite{cortes1995, breiman2001}. The \gls{mlp} uses its own internal early stopping, while the \gls{svm} and \gls{rf} models are trained to convergence.
 
 Hyperparameters for all four families are fixed \emph{a priori} rather than tuned per condition. A condition-specific search would confound the estimated effect of noise augmentation with changes in capacity and regularisation, and would bias comparisons toward whichever condition received the larger search budget, a known source of inflated effect sizes \parencite{caruana2006empirical, henderson2018reproducibility}. Settings follow canonical references for each family \parencite{cortes1995, breiman2001, lecun1998efficient}. To confirm the augmentation benefit is not a hyperparameter artefact, learning rate, dropout \parencite{srivastava2014dropout} and weight decay are swept separately, each retrained from scratch (Figure~\ref{fig:cnn-hyperparameter-sensitivity}).
 
@@ -369,23 +369,23 @@ To quantify the effect of noise augmentation, all models are evaluated under fou
 \toprule
 & \textbf{Evaluate on Clean} & \textbf{Evaluate on Noisy} \\
 \midrule
-\textbf{Train on Clean} & Ceiling (upper bound) & Vulnerability (sim-to-real gap) \\
+\textbf{Train on Clean} & Ceiling & Vulnerability (sim-to-real gap) \\
 \textbf{Train on Noisy} & Generalisation & Robustness (target condition) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Noisy$\to$Noisy is the operationally relevant cell, since every real measurement carries hardware noise, and the benefit of augmentation is read as the improvement from Clean$\to$Noisy to Noisy$\to$Noisy. Domain adaptation methods \parencite{ganin2016, tzeng2017adda} are not used as comparators because they require unlabelled target-domain samples a simulation-only study cannot supply. Noise augmentation enriches the source domain to encompass the target rather than aligning to it, and is the appropriate first-step intervention.
+Noisy$\to$Noisy is the operationally relevant cell, since every real measurement carries hardware noise, and the benefthat it of augmentation is read as the improvement from Clean$\to$Noisy to Noisy$\to$Noisy. Domain adaptation methods \parencite{ganin2016, tzeng2017adda} are not used as comparators because they require unlabelled target-domain samples a simulation-only study cannot supply. Noise augmentation enriches the source domain to encompass the target rather than aligning to it, and is the appropriate first-step intervention.
 
 \subsection{Performance Metrics}
 \label{sec:method-metrics}
 
-Two metrics are reported: overall accuracy, and macro-averaged F1, which weights all classes equally and is the more informative where class-specific failure carries different consequences, as it does here since the classes differ substantially in signal magnitude. Per-class precision, recall and F1 appear in confusion matrices. All headline values are computed on the held-out test split; validation metrics serve only for scheduling, early stopping and model selection.
+Two metrics are reported: overall accuracy and macro-averaged F1, which weights all classes equally and is more informative where class-specific failure carries different consequences, as it does here since the classes differ substantially in signal magnitude. Per-class precision, recall and F1 appear in confusion matrices. All headline values are computed on the held-out test split; validation metrics serve only for scheduling, early stopping and model selection.
 
 \subsection{Validation Protocol}
 \label{sec:method-stats}
 
-Each experiment is repeated over 5 independent random seeds with stratified 70/15/15 splits \parencite{kohavi1995crossval}, giving the mean $\pm$ standard deviation reported throughout. Seeds vary both the data partition and the weight initialisation, so the reported spread bounds the combined effect of the two, and models are retrained from scratch for each. Within every run a validation slice is carved from the training partition, so early stopping never observes held-out data.
+Each experiment is repeated over 5 independent random seeds with stratified 70/15/15 splits \parencite{kohavi1995crossval}, giving the mean $\pm$ standard deviation reported throughout. Seeds vary both the data partition and the weight initialisation, so the reported spread bounds the combined effect of the two, and models are retrained from scratch for each. Within every run, a validation slice is carved from the training partition, so early stopping never observes held-out data.
 
 \subsection{Robustness Evaluation}
 \label{sec:method-robustness}
@@ -395,7 +395,7 @@ Following the multi-severity paradigm of \textcite{hendrycks2019}, trained model
 \subsection{Ablation Protocol}
 \label{sec:method-ablation}
 
-The ablation isolates the contribution of each noise component, and the sensitivity of the conclusions to component ordering, through four complementary designs:
+The ablation isolates the contribution of each noise component, and the sensitivity of the conclusions to component ordering through four complementary designs:
 
 \begin{enumerate}
     \item \textbf{Core mismatch conditions}: the four-condition matrix instantiated within the ablation pipeline, so the full configuration can be compared directly against the variants.
@@ -407,7 +407,7 @@ The ablation isolates the contribution of each noise component, and the sensitiv
     \item \textbf{Component-order ablation}: within each subset, all physically admissible orderings, subject to quantisation last (\gls{adc} digitisation terminates the chain) and contact impedance before electrode bias (the multiplicative interface effect precedes additive geometric error).
 \end{enumerate}
 
-\paragraph{Dual evaluation.} Every configuration is scored twice, because the two available protocols answer different questions and, as Chapter~\ref{ch:results} shows, give opposite answers. \emph{Matched} evaluation tests a model on data corrupted by the same components it was trained with, measuring how difficult a world containing only those components would be. \emph{Deployment} evaluation tests it against the full four-component corruption, measuring what omitting components costs in the field.
+Every configuration is scored twice, because the two available protocols answer different questions and, as Chapter~\ref{ch:results} shows, give opposite answers. \emph{Matched} evaluation tests a model on data corrupted by the same components it was trained with, measuring how difficult a world containing only those components would be. \emph{Deployment} evaluation tests it against the full four-component corruption, measuring what omitting components costs in the field.
 
 Only the second is operationally meaningful, since physical hardware exhibits all four sources simultaneously. Matched evaluation silently adjusts the test distribution to suit the model, rewarding configurations that define an easier problem rather than those that transfer. It is the protocol implied by the ablations reviewed in Section~\ref{sec:lit-ml-concerns}, and is retained here only as a diagnostic.
 
