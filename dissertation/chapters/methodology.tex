@@ -111,7 +111,7 @@ The simulated substrate models an ionic hydrogel layer, following the material s
 \label{fig:park-hydrogel-structure}
 \end{figure}
 
-Two considerations motivate this choice over the conductive elastomers that Table~\ref{tab:material-comparison} rates more durable. First, comparability: hydrogel is the substrate used by the most directly comparable \gls{eit} e-skin studies \parencite{park2022skin, costacornella2023, zhang2022fista}. Second, parameterisation: \textcite{costacornella2023} provide piezoresistive characterisation in an \gls{eit} configuration, whereas no equivalent exists for elastomers here.
+Two considerations motivate this choice over the conductive elastomers that Table~\ref{tab:material-comparison} rates more durable. First, comparability: hydrogel is the substrate used by the most directly comparable \gls{eit} e-skin studies \parencite{park2022skin, costacornella2023, jiang2024fista}. Second, parameterisation: \textcite{costacornella2023} provide piezoresistive characterisation in an \gls{eit} configuration, whereas no equivalent exists for elastomers here.
 
 The forward model assigns conductivity $\sigma < \sigma_0$ within the contact region, the decrease scaling with applied pressure. Background conductivity is normalised to $\sigma_0 = 1.0$\,S/m, standard in EIDORS-based studies \parencite{adler2006}, which does not affect the voltage \emph{difference} vectors used for classification since these depend only on the contrast ratio $\sigma / \sigma_0$.
 
@@ -147,7 +147,7 @@ Three design principles govern this parameterisation:
 
     \item \textbf{Pressure-driven conductivity change.} The conductivity drop is proportional to local pressure $P = F/(\pi r^2)$ rather than force alone, which separates the classes physically: point contact (small area, high pressure) produces the largest per-element $\Delta\sigma$ and distributed contact (large area, low pressure) the smallest. Point and distributed contacts therefore have comparable total signal energy but different spatial distributions, so the task requires resolving both amplitude and spatial extent.
 
-    \item \textbf{Contact geometry.} Radii follow Hertzian contact mechanics for soft elastomers: for $E^* \approx 150$\,kPa \parencite{kim2019} and forces of 0.1--4\,N, predicted contact radii span approximately 2--25\,mm on the unit-normalised mesh, consistent with Table~\ref{tab:class-params}.
+    \item \textbf{Contact geometry.} Radii follow Hertzian contact mechanics for soft elastomers: for $E^* \approx 150$\,kPa \parencite{kim2024} and forces of 0.1--4\,N, predicted contact radii span approximately 2--25\,mm on the unit-normalised mesh, consistent with Table~\ref{tab:class-params}.
 \end{enumerate}
 
 \paragraph{Position constraint.} Contact positions are restricted to $|x|, |y| \leq 0.4$ on the unit disc, since \gls{eit} sensitivity is far greater near the boundary electrodes than at the centre \parencite{adler2006}, and in a prosthetic the sensing surface is the top of the sensor rather than the electrode boundary. Under an earlier, wider constraint ($|x|, |y| \leq 0.7$), within-class variation induced by contact position dominated the conductivity differences between classes, motivating the tighter bound.
@@ -165,14 +165,14 @@ The noise model comprises four independently configurable components, each captu
 \subsection{Design Rationale}
 \label{sec:method-noise-rationale}
 
-Real \gls{eit} hardware corrupts measurements through multiple concurrent, statistically distinct processes \parencite{adler2006, vilhunen2002, boone1996}, whereas prior work models at most one during augmentation, invariably Gaussian noise \parencite{chen2023, park2022skin}. Training with all four dominant per-frame distortions active simultaneously is termed the \emph{foundational mode}: the classifier is optimised on the joint corruption distribution rather than on isolated component distributions, so a single model is exposed to the co-occurring errors expected at deployment.
+Real \gls{eit} hardware corrupts measurements through multiple concurrent, statistically distinct processes \parencite{adler2006, vilhunen2002, boone1996}, whereas prior work models at most one during augmentation, invariably Gaussian noise \parencite{chen2023, park2022skin}. Training with all four dominant per-frame distortions active simultaneously is termed the \emph{foundational mode}: the classifier is optimised on the joint corruption distribution, so a single model is exposed to the co-occurring errors expected at deployment.
 
-Temporal drift is deliberately excluded, being a \emph{sequential} phenomenon that cannot be represented within a single static frame; modelling it as a spatial random walk across channels would introduce artefacts with no hardware counterpart. Addressing it requires sequential data, identified as future work in Chapter~\ref{ch:conclusions}.
+Temporal drift is deliberately excluded, being a \emph{sequential} phenomenon that cannot be represented within a single static frame; modelling it as a spatial random walk across channels would introduce artefacts with no hardware counterpart. Addressing it requires sequential data (Chapter~\ref{ch:conclusions}).
 
 \subsection{Component Specifications}
 \label{sec:method-noise-components}
 
-All components operate on the voltage difference vector $\Delta\mathbf{v} \in \mathbb{R}^{208}$ and are applied sequentially in a fixed order (Gaussian $\to$ contact impedance $\to$ bias $\to$ quantisation) reflecting the physical signal chain: measurement noise enters at the analogue front-end, followed by electrode-level effects, geometric bias, and finally digitisation. The contact-impedance and electrode-bias components are applied \emph{per-electrode} rather than per-measurement, since these are properties of the electrode--substrate interface. Each of the 16 electrodes carries a single value mapped to blocks of the measurement vector, producing the block-structured distortion real hardware exhibits.
+All components operate on the voltage difference vector $\Delta\mathbf{v} \in \mathbb{R}^{208}$ and are applied sequentially in a fixed order (Gaussian $\to$ contact impedance $\to$ bias $\to$ quantisation) reflecting the physical signal chain: measurement noise enters at the analogue front-end, followed by electrode-level effects, geometric bias, and finally digitisation. The contact-impedance and electrode-bias components are applied \emph{per-electrode} rather than per-measurement, since these are properties of the interface. Each of the 16 electrodes carries a single value mapped to blocks of the measurement vector, producing the block-structured distortion real hardware exhibits.
 
 \paragraph{Component 1: Gaussian measurement noise.} Models the aggregate effect of thermal noise, amplifier noise, and electromagnetic interference in the analogue measurement chain \parencite{adler2006, boone1996}.
 
@@ -181,7 +181,7 @@ All components operate on the voltage difference vector $\Delta\mathbf{v} \in \m
 \label{eq:noise-gaussian}
 \end{equation}
 
-\noindent where $\hat{\mathbf{n}} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, SNR~=~40\,dB, $n_{\text{floor}} = 10^{-4}$\,V and $N = 208$. The signal-dependent form scales noise with measurement amplitude, consistent with the 40--80\,dB \textcite{adler2006} report for laboratory instrumentation. The noise floor is essential: without it the no-contact class remains an exact zero vector, a deterministic cluster with no hardware counterpart.
+\noindent where $\hat{\mathbf{n}} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, SNR~=~40\,dB, $n_{\text{floor}} = 10^{-4}$\,V and $N = 208$. The signal-dependent form scales noise with measurement amplitude, consistent with the 40--80\,dB range reported by \textcite{adler2006} for laboratory instrumentation. The noise floor is essential: without it the no-contact class remains an exact zero vector, a deterministic cluster with no hardware counterpart.
 
 \paragraph{Component 2: Electrode contact impedance variation.} Models imperfect and spatially varying electrode--substrate contact, producing multiplicative per-electrode distortion.
 
@@ -418,10 +418,4 @@ Throughout, corruption is applied in \emph{foundational mode}: noise is drawn on
 
 Each parameter was swept independently with the others held at default: SNR $\{60,50,40,30,20\}$\,dB; contact impedance $\sigma_z \in \{5,10,15,20,25\}\%$; electrode bias $b_{\max} \in \{0.005,0.01,0.02,0.04,0.08\}$; \gls{adc} resolution $\{8,10,12,14,16\}$ bits. This addresses the concern that the parameters are literature-constrained rather than directly measured: if the conclusions hold across the plausible range of each, they do not depend on a particular calibration assumption.
 
-%% ─────────────────────────────────────────────────────────────────────────────
-\section{Ethical, Economic, and Sustainability Considerations}
-\label{sec:method-ethics}
-
-Using exclusively synthetic data removes the usual concerns around collection and storage, but the downstream application carries real ethical weight. A classifier that fails \emph{silently} under noise could endanger a user by not detecting harmful contact, and Section~\ref{sec:res-calibration} shows precisely this failure mode. Quantifying such failures rather than reporting only aggregate accuracy is therefore an ethical requirement as much as a methodological one, and is why predictive confidence and per-class vulnerability are treated as primary results.
-
-Economically, a simulation-first approach lowers the barrier to \gls{eit} research, using only freely available software on standard hardware and so supporting institutions without fabrication facilities. This speaks to the accessibility concerns of \textcite{mcdonald2021}, which matter given that limb loss disproportionately affects low- and middle-income populations. Environmental cost is modest, with dataset generation taking 10--20\,minutes and training under an hour on a consumer GPU, and identifying which noise components matter reduces the iterative physical prototyping needed to reach a working design.
+Using exclusively synthetic data removes the usual concerns around collection and storage. The ethical, economic and sustainability implications of the work are evaluated against its findings in Section~\ref{sec:disc-ethics}.

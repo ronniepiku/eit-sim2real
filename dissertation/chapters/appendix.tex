@@ -63,12 +63,12 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \section{Signal and Noise Decomposition}
 \label{app:decomposition}
 
-Figures~\ref{fig:app-noise-decomposition} and~\ref{fig:app-signal-noise} decompose the measurement energy underlying the domain shift, supporting the component ablation of Section~\ref{sec:res-ablation}. Values are $L_2$ norms averaged over the dataset, computed by \texttt{scripts/characterise\_noise.py} and tabulated in \texttt{results/dataset\_validation/tables/noise\_characterisation.csv}. For light touch the electrode-bias norm (0.1655) is approximately 41 times the signal norm (0.0040); for the largest class, distributed contact, it remains 4.6 times larger. Once the bias is discounted, the signal-to-residual ratio is 11.3--11.9 across the four contact classes.
+Figures~\ref{fig:app-noise-decomposition} and~\ref{fig:app-signal-noise} decompose the measurement energy underlying the domain shift, supporting the decomposition of Section~\ref{sec:res-domain}. Values are $L_2$ norms averaged over the dataset, computed by \texttt{scripts/characterise\_noise.py} and tabulated in \texttt{results/dataset\_validation/tables/noise\_characterisation.csv}. For light touch the electrode-bias norm (0.1655) is approximately 41 times the signal norm (0.0040); for the largest class, distributed contact, it remains 4.6 times larger. Once the bias is discounted, the signal-to-residual ratio is 11.3--11.9 across the four contact classes.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{results/dataset_validation/figures/noise_decomposition.png}
-\caption[Decomposition of measurement energy by class]{Decomposition of measurement energy into signal, electrode-bias and residual components by class. The bias term accounts for effectively all noise energy and exceeds the touch signal itself for every class, which is the quantitative basis for identifying electrode bias as the dominant domain shift (Section~\ref{sec:res-ablation}).}
+\caption[Decomposition of measurement energy by class]{Decomposition of measurement energy into signal, electrode-bias and residual components by class. The bias term accounts for effectively all noise energy and exceeds the touch signal itself for every class, which is the quantitative basis for identifying electrode bias as the dominant domain shift (Section~\ref{sec:res-domain}).}
 \label{fig:app-noise-decomposition}
 \end{figure}
 
@@ -280,7 +280,7 @@ Noisy$\to$Clean & 52.23 (CNN) & 45.42 (MLP) & 22.35 (RF) \\
 \end{tabular}
 \end{table}
 
-On clean data both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-ablation}), so the information a model would need in order to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
+On clean data both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need in order to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Baseline Classifier Configurations}
