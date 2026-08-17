@@ -12,7 +12,7 @@ Table~\ref{tab:main-results-raw} reports all four classifiers across the four-co
 
 \begin{table}[htbp]
 \centering
-\caption{Classification accuracy (\%) on raw features across the four evaluation conditions.}
+\caption[Classification accuracy across the four evaluation conditions]{Classification accuracy (\%) on raw features across the four evaluation conditions.}
 \label{tab:main-results-raw}
 \small
 \begin{tabular}{@{}lcccc@{}}
@@ -38,7 +38,7 @@ The CNN outperforms the strongest baseline on noisy data by 17.9\,pp (RF, 57.85\
 
 \begin{table}[htbp]
 \centering
-\caption{CNN accuracy (\%) on noisy evaluation by training regime, raw features.}
+\caption[CNN accuracy on noisy evaluation by training regime]{CNN accuracy (\%) on noisy evaluation by training regime, raw features.}
 \label{tab:augmented-results}
 \small
 \begin{tabular}{@{}lc@{}}
@@ -64,7 +64,7 @@ The ablation asks which noise components a training-time model must include. Thi
 
 \begin{table}[htbp]
 \centering
-\caption{Single-component ablation. Each CNN is trained with one noise component active and evaluated twice: on the same single component (matched) and on the full four-component corruption (deployment).}
+\caption[Single-component noise ablation]{Single-component ablation. Each CNN is trained with one noise component active and evaluated twice: on the same single component (matched) and on the full four-component corruption (deployment).}
 \label{tab:ablation-single}
 \small
 \setlength{\tabcolsep}{8pt}
@@ -94,7 +94,7 @@ Enumerating all component subsets identifies how much of the noise model is actu
 
 \begin{table}[htbp]
 \centering
-\caption{Best component subset at each size, ranked by deployment accuracy.}
+\caption[Best component subset at each size]{Best component subset at each size, ranked by deployment accuracy.}
 \label{tab:ablation-subset}
 \small
 \setlength{\tabcolsep}{8pt}
@@ -122,7 +122,7 @@ Each required component has a distinct role. Electrode bias supplies the dominan
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=1\textwidth]{results/figures/ablation/per_component_severity_sweep.png}
-\caption{Per-component severity sweep. A CNN trained on the full noise model at 1$\times$ severity is evaluated with only one component active at varying severity. Enabling Gaussian noise recovers the no-contact class (a step of $\approx$20\,pp, independent of severity), while electrode bias is the only component whose severity materially degrades accuracy.}
+\caption[Per-component severity sweep]{Per-component severity sweep. A CNN trained on the full noise model at 1$\times$ severity is evaluated with only one component active at varying severity. Enabling Gaussian noise recovers the no-contact class (a step of $\approx$20\,pp, independent of severity), while electrode bias is the only component whose severity materially degrades accuracy.}
 \label{fig:severity-sweep}
 \end{figure}
 
@@ -142,13 +142,13 @@ Each training regime was evaluated across noise severities from 0$\times$ (clean
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{results/figures/noise_type_severity_sweep.png}
-\caption{Accuracy and macro-F1 against noise severity for the three training regimes. The dotted line marks 1$\times$, the severity at which the fixed-noise model was trained. Fixed-noise training peaks at its training severity and degrades steadily beyond it. Randomised regimes are substantially flatter and overtake it at approximately 2.2$\times$.}
+\caption[Accuracy and macro-F1 against noise severity]{Accuracy and macro-F1 against noise severity for the three training regimes. The dotted line marks 1$\times$, the severity at which the fixed-noise model was trained. Fixed-noise training peaks at its training severity and degrades steadily beyond it. Randomised regimes are substantially flatter and overtake it at approximately 2.2$\times$.}
 \label{fig:noise-type-sweep}
 \end{figure}
 
 \begin{table}[htbp]
 \centering
-\caption{Accuracy against noise severity multiplier by training regime.}
+\caption[Accuracy against noise severity multiplier]{Accuracy against noise severity multiplier by training regime.}
 \label{tab:severity-sweep}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -179,7 +179,7 @@ The 0$\times$ column is informative in itself. All three regimes lose accuracy o
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=1\textwidth]{results/figures/per_class_robustness.png}
-\caption{Per-class accuracy against noise severity for the noise-augmented CNN. Point contact is the weakest class throughout; the no-contact class is undetectable at 0$\times$ severity because it appears as an exact zero vector never encountered in training.}
+\caption[Per-class accuracy against noise severity]{Per-class accuracy against noise severity for the noise-augmented CNN. Point contact is the weakest class throughout; the no-contact class is undetectable at 0$\times$ severity because it appears as an exact zero vector never encountered in training.}
 \label{fig:per-class}
 \end{figure}
 
@@ -196,7 +196,7 @@ The Bayesian tradition in \gls{eit} treats quantified uncertainty as integral to
 
 \begin{table}[htbp]
 \centering
-\caption{Mean predicted confidence against actual accuracy.}
+\caption[Mean predicted confidence against actual accuracy]{Mean predicted confidence against actual accuracy.}
 \label{tab:calibration}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -220,7 +220,7 @@ Because the noise parameters are literature-constrained rather than measured (Se
 
 \begin{table}[htbp]
 \centering
-\caption{CNN accuracy (\%) as each noise parameter is varied independently, others held at default. Default settings in bold.}
+\caption[CNN accuracy under independent noise parameter variation]{CNN accuracy (\%) as each noise parameter is varied independently, others held at default. Default settings in bold.}
 \label{tab:noise-sensitivity}
 \small
 \setlength{\tabcolsep}{5pt}

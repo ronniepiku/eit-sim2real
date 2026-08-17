@@ -42,7 +42,7 @@ This chapter details the simulation-based experimental design summarised in Figu
 \draw[aug] (noise) -- node[lab, left, align=right] {online\\augmentation} (train);
 \end{tikzpicture}%
 }
-\caption{End-to-end methodology pipeline. The upper row is MATLAB/EIDORS data generation, read left to right; the lower row is the Python/PyTorch training and evaluation path, read right to left. Solid arrows carry the data artefacts named beside them. The dashed arrow marks the same noise model being re-applied at training time for the online-augmentation and ablation regimes, so noise enters the pipeline at two distinct points rather than one.}
+\caption[End-to-end methodology pipeline]{End-to-end methodology pipeline. The upper row is MATLAB/EIDORS data generation, read left to right; the lower row is the Python/PyTorch training and evaluation path, read right to left. Solid arrows carry the data artefacts named beside them. The dashed arrow marks the same noise model being re-applied at training time for the online-augmentation and ablation regimes, so noise enters the pipeline at two distinct points rather than one.}
 \label{fig:method-pipeline}
 \end{figure}
 
@@ -61,7 +61,7 @@ Mesh selection was evidence-based rather than assumed. Three matched noisy datas
 
 \begin{table}[htbp]
 \centering
-\caption{Cross-mesh CNN performance (\%) under matched training protocol. Rows denote training mesh, columns denote test mesh.}
+\caption[Cross-mesh CNN performance]{Cross-mesh CNN performance (\%) under matched training protocol. Rows denote training mesh, columns denote test mesh.}
 \label{tab:mesh-cross-matrix}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -83,7 +83,7 @@ Mesh selection was evidence-based rather than assumed. Three matched noisy datas
 
 \begin{table}[htbp]
 \centering
-\caption{Computational profile by training mesh.}
+\caption[Computational profile by training mesh]{Computational profile by training mesh.}
 \label{tab:mesh-compute}
 \small
 \setlength{\tabcolsep}{7pt}
@@ -107,7 +107,7 @@ The simulated substrate models an ionic hydrogel layer, following the material s
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{results/figures/Hydrogel.png}
-\caption{Concept of biomimetic multilayer structure for robotic skin. (A) Comparison between the biomimetic multilayer structure based on hydrogel-elastomer hybrids and human skin. Both structures consist of an elastic, tough outermost layer (elastomeric skin and dermal layer) and a thick, compliant cushioning layer (hydrogel and hypodermis). Sensing elements were also evenly distributed deep in the multilayer structure. (B) The multilayer structure allows the robotic skin to achieve appropriate material properties and dimensions for the protection function. (C) Because the hydrogel layer is compliant and electrically conductive, it can be used as a pressure-sensitive material. In addition, dynamic tactile stimuli (light touch) can be measured by detecting vibrations generated on the surface and transmitted through the multilayer structure. (D) Scalable design based on distributed sensing elements with a large and overlapping receptive field. (E) The biomimetic robotic skin can be repaired with an adhesive after damage to restore its structure and function. Reproduced from \textcite{park2022skin}.}
+\caption[Biomimetic multilayer structure of the hydrogel substrate]{Concept of biomimetic multilayer structure for robotic skin. (A) Comparison between the biomimetic multilayer structure based on hydrogel-elastomer hybrids and human skin. Both structures consist of an elastic, tough outermost layer (elastomeric skin and dermal layer) and a thick, compliant cushioning layer (hydrogel and hypodermis). Sensing elements were also evenly distributed deep in the multilayer structure. (B) The multilayer structure allows the robotic skin to achieve appropriate material properties and dimensions for the protection function. (C) Because the hydrogel layer is compliant and electrically conductive, it can be used as a pressure-sensitive material. In addition, dynamic tactile stimuli (light touch) can be measured by detecting vibrations generated on the surface and transmitted through the multilayer structure. (D) Scalable design based on distributed sensing elements with a large and overlapping receptive field. (E) The biomimetic robotic skin can be repaired with an adhesive after damage to restore its structure and function. Reproduced from \textcite{park2022skin}.}
 \label{fig:park-hydrogel-structure}
 \end{figure}
 
@@ -122,7 +122,7 @@ Five touch classes represent the principal interaction modalities encountered in
 
 \begin{table}[htbp]
 \centering
-\caption{Touch class parameterisation. Conductivity and radius ranges are sampled uniformly for each generated sample. $\Delta\sigma$ denotes the percentage decrease from the homogeneous baseline.}
+\caption[Touch class parameterisation]{Touch class parameterisation. Conductivity and radius ranges are sampled uniformly for each generated sample. $\Delta\sigma$ denotes the percentage decrease from the homogeneous baseline.}
 \label{tab:class-params}
 \small
 \setlength{\tabcolsep}{8pt}
@@ -219,7 +219,7 @@ Table~\ref{tab:noise-params} consolidates all noise parameters with their physic
 
 \begin{table}[htbp]
 \centering
-\caption{Noise model parameters. All values derive from experimental EIT literature.}
+\caption[Noise model parameters and literature sources]{Noise model parameters. All values derive from experimental EIT literature.}
 \label{tab:noise-params}
 \small
 \begin{tabularx}{\textwidth}{@{}l l l X@{}}
@@ -261,7 +261,7 @@ Storing both vectors enables the four-condition evaluation matrix (Section~\ref{
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=1\textwidth]{results/figures/dataset_size_learning_curve.png}
-\caption{Effect of dataset size on test accuracy (left) and F1 Score (right), evaluated on noisy data. The noise-aware model improves steeply then plateaus near $10^4$ samples; the clean-trained model remains at chance regardless of dataset size.}
+\caption[Effect of dataset size on accuracy and F1]{Effect of dataset size on test accuracy (left) and F1 Score (right), evaluated on noisy data. The noise-aware model improves steeply then plateaus near $10^4$ samples; the clean-trained model remains at chance regardless of dataset size.}
 \label{fig:dataset-size-learning-curve}
 \end{figure}
 
@@ -292,7 +292,7 @@ The 1D-CNN, designated \texttt{EITConv1D}, is purpose-designed for voltage diffe
 
 \begin{table}[htbp]
 \centering
-\caption{1D-CNN architecture for EIT touch classification. ``BN'' denotes batch normalisation; $B$ is the batch dimension. The adaptive average pool collapses the temporal dimension, making the head independent of input length.}
+\caption[1D-CNN architecture]{1D-CNN architecture for EIT touch classification. ``BN'' denotes batch normalisation; $B$ is the batch dimension. The adaptive average pool collapses the temporal dimension, making the head independent of input length.}
 \label{tab:cnn-architecture}
 \small
 \begin{tabularx}{\textwidth}{@{}l l X@{}}
@@ -342,7 +342,7 @@ Hyperparameters for all four families are fixed \emph{a priori} rather than tune
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.82\textwidth]{results/figures/hyperparameter_sensitivity.png}
-\caption{CNN hyperparameter sensitivity analysis. The retained defaults (shown by a red star) lie within the high-performing region, indicating that the main noise-augmentation result is not driven by a narrow hyperparameter choice.}
+\caption[CNN hyperparameter sensitivity]{CNN hyperparameter sensitivity analysis. The retained defaults (shown by a red star) lie within the high-performing region, indicating that the main noise-augmentation result is not driven by a narrow hyperparameter choice.}
 \label{fig:cnn-hyperparameter-sensitivity}
 \end{figure}
 
@@ -362,7 +362,7 @@ To quantify the effect of noise augmentation, all models are evaluated under fou
 
 \begin{table}[htbp]
 \centering
-\caption{Four-condition evaluation matrix. Each cell represents a distinct experiment.}
+\caption[Four-condition evaluation matrix]{Four-condition evaluation matrix. Each cell represents a distinct experiment.}
 \label{tab:eval-conditions}
 \small
 \begin{tabular}{@{}lcc@{}}
