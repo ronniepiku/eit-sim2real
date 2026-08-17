@@ -3,7 +3,7 @@
 \chapter{Supplementary Results}
 \label{app:supplementary}
 
-This appendix provides supplementary figures and tables supporting the findings of Chapter~\ref{ch:results}: training convergence, full confusion matrices, the signal--noise decomposition underlying the domain-gap analysis, detailed ablation results, predictive-confidence diagnostics and the sensitivity analyses.
+This appendix provides supplementary figures and tables supporting the findings of Chapter~\ref{ch:results}: training convergence, full confusion matrices, the signal--noise decomposition underlying the domain-gap analysis, corroboration of the validation protocol by an independent cross-validation (Section~\ref{app:crossval}), the inadequacy of Gaussian-only augmentation (Section~\ref{app:gaussian-only}), detailed ablation results, predictive-confidence diagnostics and the sensitivity analyses.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Training Convergence}
@@ -63,12 +63,12 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \section{Signal and Noise Decomposition}
 \label{app:decomposition}
 
-Figures~\ref{fig:app-noise-decomposition} and~\ref{fig:app-signal-noise} quantify the domain shift characterised in Section~\ref{sec:res-domain}.
+Figures~\ref{fig:app-noise-decomposition} and~\ref{fig:app-signal-noise} decompose the measurement energy underlying the domain shift, supporting the component ablation of Section~\ref{sec:res-ablation}. Values are $L_2$ norms averaged over the dataset, computed by \texttt{scripts/characterise\_noise.py} and tabulated in \texttt{results/dataset\_validation/tables/noise\_characterisation.csv}. For light touch the electrode-bias norm (0.1655) is approximately 41 times the signal norm (0.0040); for the largest class, distributed contact, it remains 4.6 times larger. Once the bias is discounted, the signal-to-residual ratio is 11.3--11.9 across the four contact classes.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{results/dataset_validation/figures/noise_decomposition.png}
-\caption{Decomposition of measurement energy into signal, electrode-bias and residual components by class. The bias term accounts for effectively all noise energy and exceeds the touch signal itself for every class, which is the quantitative basis for the domain-gap analysis of Section~\ref{sec:res-domain}.}
+\caption{Decomposition of measurement energy into signal, electrode-bias and residual components by class. The bias term accounts for effectively all noise energy and exceeds the touch signal itself for every class, which is the quantitative basis for identifying electrode bias as the dominant domain shift (Section~\ref{sec:res-ablation}).}
 \label{fig:app-noise-decomposition}
 \end{figure}
 
@@ -78,6 +78,63 @@ Figures~\ref{fig:app-noise-decomposition} and~\ref{fig:app-signal-noise} quantif
 \caption{Per-class signal and noise magnitudes. The touch signature is a small perturbation on a much larger structured offset; classification remains feasible only because that offset is block-structured and therefore separable.}
 \label{fig:app-signal-noise}
 \end{figure}
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Corroboration by Cross-Validation}
+\label{app:crossval}
+
+All headline results in Chapter~\ref{ch:results} are reported over five independent seeds with stratified 70/15/15 splits. As an independent check on that protocol, a stratified 5-fold cross-validation \parencite{kohavi1995crossval} was also run, in which each fold's test partition is disjoint from every other and every sample is held out exactly once; within each fold a validation slice is carved from the training partition, so early stopping never observes held-out data, and models are retrained from scratch per fold. Table~\ref{tab:app-crossval} compares the two schemes.
+
+\begin{table}[htbp]
+\centering
+\caption{CNN accuracy (\%) under the multi-seed protocol used throughout Chapter~\ref{ch:results} against an independent stratified 5-fold cross-validation. The two schemes vary different things: folds vary the data partition, seeds vary partition and initialisation together.}
+\label{tab:app-crossval}
+\small
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Condition} & \textbf{5 seeds} & \textbf{5-fold CV} \\
+\midrule
+Clean$\to$Clean       & 94.00 $\pm$ 6.89 & 96.26 $\pm$ 1.89 \\
+Clean$\to$Noisy       & 19.98 $\pm$ 0.33 & 19.66 $\pm$ 0.79 \\
+Noisy$\to$Noisy       & 75.81 $\pm$ 0.62 & 75.58 $\pm$ 0.76 \\
+Noisy$\to$Clean       & 52.23 $\pm$ 1.94 & 52.52 $\pm$ 1.31 \\
+Augmented$\to$Noisy   & 69.50 $\pm$ 0.62 & 69.16 $\pm$ 0.25 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The two schemes agree closely on every condition, which establishes that the reported differences reflect the training condition rather than either source of sampling variability. The one divergence is Clean$\to$Clean, where cross-validation gives 96.26\% $\pm$ 1.89 against 94.00\% $\pm$ 6.89 across seeds. That gap is itself informative, isolating the CNN's clean-domain instability as an \emph{initialisation} effect rather than a data-partition one. The larger multi-seed spread is the more conservative estimate and is the figure quoted in Table~\ref{tab:main-results-raw}.
+
+Every difference discussed in Chapter~\ref{ch:results} exceeds the seed-to-seed standard deviation by a wide margin: the 55.8\,pp recovery from noise-aware training is roughly ninety times the 0.62\,pp spread of the noisy-trained condition, and the narrowest comparison examined, the 6.3\,pp between fixed-noise and online augmentation, is ten times it.
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Inadequacy of the Gaussian-Only Noise Model}
+\label{app:gaussian-only}
+
+Table~\ref{tab:app-gaussian-only} evaluates the noise model used almost universally in prior \gls{eit} work, sweeping Gaussian noise alone across a 40\,dB range of \gls{snr}.
+
+\begin{table}[htbp]
+\centering
+\caption{CNN and Random Forest accuracy (\%) under Gaussian-only noise at varying SNR. Accuracy is essentially invariant across the full range for every model tested.}
+\label{tab:app-gaussian-only}
+\small
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Model} & \textbf{60\,dB} & \textbf{50\,dB} & \textbf{40\,dB} & \textbf{30\,dB} & \textbf{20\,dB} \\
+\midrule
+CNN (clean-trained)              & 79.7 & 79.7 & 79.7 & 79.7 & 79.6 \\
+CNN (Gaussian-augmented)         & 72.5 & 72.6 & 72.5 & 72.7 & 72.8 \\
+CNN (full-noise-augmented)       & 78.9 & 78.9 & 78.9 & 78.7 & 78.8 \\
+Random Forest (Gaussian-trained) & 91.0 & 91.1 & 90.8 & 90.8 & 90.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Accuracy varies by under 0.5\,pp across a 40\,dB range, four orders of magnitude in noise power, for every model tested. A clean-trained classifier that collapses to 19.98\% under the full four-component noise model is essentially unaffected by Gaussian corruption even at 20\,dB, since additive zero-mean noise is largely absorbed by batch normalisation \parencite{ioffe2015batchnorm} and does not disturb the geometry separating the classes.
+
+This governs how the accuracies reported in the reviewed literature should be read. Robustness demonstrated under Gaussian-only augmentation \parencite{chen2023, park2022skin} is not evidence of robustness to the distortions that dominate real measurements, and is the basis for the recommendation in Section~\ref{sec:conc-recommendations} that multi-component noise including electrode bias be treated as the minimum standard for such a claim. The result is consistent with the ablation of Section~\ref{sec:res-ablation}, where a Gaussian-only training model reaches only 20.88\% under deployment-realistic evaluation.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Ablation Details}
@@ -223,7 +280,7 @@ Noisy$\to$Clean & 52.23 (CNN) & 45.42 (MLP) & 22.35 (RF) \\
 \end{tabular}
 \end{table}
 
-On clean data both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need in order to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
+On clean data both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-ablation}), so the information a model would need in order to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Baseline Classifier Configurations}
