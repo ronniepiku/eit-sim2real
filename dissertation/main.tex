@@ -49,7 +49,7 @@
 \usepackage{url}
 
 % Harvard (Bath) referencing style
-\usepackage[style=bath, backend=biber, sorting=nyt]{biblatex}
+\usepackage[style=bath, backend=biber, sorting=nyt, url=true, eprint=true, doi=true]{biblatex}
 \addbibresource{references.bib}
 
 % Captions
@@ -118,7 +118,7 @@
     {\large September 2026\par}
     \vspace{2cm}
     
-    {\large Word Count (from introduction to conclusions): 10,998\par}
+    {\large Word Count (from introduction to conclusions): 10,992\par}
 
 \end{titlepage}
 
@@ -147,7 +147,7 @@ Electrical Impedance Tomography (EIT) offers a promising sensing modality for el
 
 A synthetic dataset of 25,000 EIT voltage measurements across five touch classes was generated using the EIDORS forward modelling framework, simulating a 16-electrode ionic hydrogel prosthetic skin. Four classifiers were evaluated over five independent seeds with stratified splits, and every noise component was ablated under both matched and deployment-realistic evaluation.
 
-All models collapse to chance under domain mismatch, irrespective of architecture or feature representation, identifying the gap as distributional rather than a limitation of model capacity; noise-matched training recovers it, the 1D-CNN reaching 75.8\% $\pm$ 0.6, a gain of 55.8 percentage points. Component ablation supplies the central result. Noise models omitting electrode positioning bias perform at chance, whereas Gaussian noise plus electrode bias alone reaches 76.5\%, level with the full four-component model, so the noise model can be halved without cost. Severity scaling reveals a trade-off, fixed-noise training peaking at its training severity but losing 15.0 percentage points by 3$\times$, whereas randomised training is far flatter and overtakes it near 2.2$\times$. Under domain shift the models are also confidently wrong, reporting 99.7\% mean confidence at 19.7\% accuracy---a failure mode with direct safety implications that matched training resolves.
+All models collapse to chance under domain mismatch, irrespective of architecture or feature representation, identifying the gap as distributional rather than a limitation of model capacity; noise-matched training recovers it, the 1D-CNN reaching 75.8\% $\pm$ 0.6, a gain of 55.8 percentage points. Component ablation supplies the central result. Noise models omitting electrode positioning bias perform at chance, whereas Gaussian noise plus electrode bias alone reaches 76.5\%, level with the full four-component model. Excluding the degenerate no-contact class separates the two roles: electrode bias alone suffices to discriminate contact types, Gaussian noise being required only to make contact detectable. A permutation ablation confirms the architectural advantage is caused by the block structure of the corruption, costing the CNN 30.3 percentage points while leaving exchangeable baselines unchanged. Severity scaling reveals a trade-off, fixed-noise training peaking at its training severity but losing 15.0 percentage points by 3$\times$, whereas randomised training is far flatter and overtakes it near 2.2$\times$. Under domain shift the models are also confidently wrong, reporting 99.7\% mean confidence at 19.7\% accuracy, a failure mode with direct safety implications that matched training resolves.
 
 These findings identify the minimal noise model required for deployable EIT tactile classification, and demonstrate that the evaluation protocol conventionally used in component ablation can invert the design guidance derived from it.
 

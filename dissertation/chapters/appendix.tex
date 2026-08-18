@@ -3,7 +3,7 @@
 \chapter{Supplementary Results}
 \label{app:supplementary}
 
-This appendix provides supplementary figures and tables supporting the findings of Chapter~\ref{ch:results}: training convergence, full confusion matrices, the signal--noise decomposition underlying the domain-gap analysis, corroboration of the validation protocol by an independent cross-validation (Section~\ref{app:crossval}), the inadequacy of Gaussian-only augmentation (Section~\ref{app:gaussian-only}), detailed ablation results, predictive-confidence diagnostics and the sensitivity analyses.
+This appendix provides supplementary figures and tables supporting the findings of Chapter~\ref{ch:results}: training convergence, full confusion matrices, corroboration of the validation protocol by an independent cross-validation (Section~\ref{app:crossval}), the inadequacy of Gaussian-only augmentation (Section~\ref{app:gaussian-only}), detailed ablation results, predictive-confidence diagnostics and the sensitivity analyses.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Training Convergence}
@@ -63,7 +63,7 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \section{Corroboration by Cross-Validation}
 \label{app:crossval}
 
-All headline results in Chapter~\ref{ch:results} are reported over five independent seeds with stratified 70/15/15 splits. As an independent check on that protocol, a stratified 5-fold cross-validation \parencite{kohavi1995crossval} was also run, in which each fold's test partition is disjoint from every other, and every sample is held out exactly once; within each fol,d a validation slice is carved from the training partition, so early stopping never observes held-out data, and models are retrained from scratch per fold. Table~\ref{tab:app-crossval} compares the two schemes.
+All headline results in Chapter~\ref{ch:results} are reported over five independent seeds with stratified 70/15/15 splits. As an independent check on that protocol, a stratified 5-fold cross-validation \parencite{kohavi1995crossval} was also run, in which each fold's test partition is disjoint from every other, and every sample is held out exactly once; within each fold a validation slice is carved from the training partition, so early stopping never observes held-out data, and models are retrained from scratch per fold. Table~\ref{tab:app-crossval} compares the two schemes.
 
 \begin{table}[htbp]
 \centering
@@ -132,7 +132,7 @@ Figures~\ref{fig:app-ablation-single}--\ref{fig:app-ablation-ordering} supplemen
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/component_subset_heatmap.png}
-\caption[Matched-condition accuracy across component subsets]{Matched-condition accuracy across all 15 non-empty component subsets. Subsets containing the electrode bias cluster within 75.3--77.8\%, while those omitting it reach 85.3--97.2\% under matched evaluation---higher precisely because they define an easier world, not because they are better training distributions. Under deployment evaluation, the two groups separate in the opposite direction, at 54.7--76.9\% and 16.5--23.4\% respectively (Section~\ref{sec:res-ablation}).}
+\caption[Matched-condition accuracy across component subsets]{Matched-condition accuracy across all 15 non-empty component subsets. Subsets containing the electrode bias cluster within 75.3--77.8\%, while those omitting it reach 85.3--97.2\% under matched evaluation, higher precisely because they define an easier world rather than better training distributions. Under deployment evaluation, the two groups separate in the opposite direction, at 54.7--76.9\% and 16.5--23.4\% respectively (Section~\ref{sec:res-ablation}).}
 \label{fig:app-ablation-heatmap}
 \end{figure}
 
@@ -173,7 +173,7 @@ This appendix reports the empirical evidence underpinning the preprocessing deci
 \section{Comparison Protocol}
 \label{app:eda-protocol}
 
-Seven candidate preprocessing pipelines were compared using a logistic-regression probe under a \texttt{RepeatedStratifiedKFold} cross-validation design ($k=5$, $n_{\text{repeats}} = 3$, fixed seed $42$), yielding 15 paired evaluations per pipeline. The probe is deliberately simple: its purpose is to provide a fast, model-agnostic surface on which to compare \emph{preprocessing} effects without confounding from architecture tuning. The leakage-safe protocol fits the scaler and any reduction transform on the training partition of each fold,d and applies the fitted transform to the held-out partition.
+Seven candidate preprocessing pipelines were compared using a logistic-regression probe under a \texttt{RepeatedStratifiedKFold} cross-validation design ($k=5$, $n_{\text{repeats}} = 3$, fixed seed $42$), yielding 15 paired evaluations per pipeline. The probe is deliberately simple: its purpose is to provide a fast, model-agnostic surface on which to compare \emph{preprocessing} effects without confounding from architecture tuning. The leakage-safe protocol fits the scaler and any reduction transform on the training partition of each fold and applies the fitted transform to the held-out partition.
 
 \section{Pipeline Comparison}
 \label{app:eda-pipelines}
@@ -216,7 +216,7 @@ The cross-validation ranking was confirmed on a stratified held-out partition di
 \section{Duplicate Audit}
 \label{app:eda-duplicates}
 
-An exact-row duplicate audit on the full 25{,}000-sample dataset identified 4{,}999 duplicates within the no-contact class (Class~0) and zero duplicates across all four contact classes. The class-0 duplicates are a physically correct consequence of the homogeneous-baseline definition: every no-contact sample produces an identical conductivity image, and---in the clean (pre-noise) representation---an identical voltage difference vector of $\mathbf{0}$. Deduplication is therefore not applied. After noise injection, the class-0 samples become distinguishable through the Gaussian noise floor of Component~1 (Section~\ref{sec:method-noise-components}), so no clustering pathology arises during training.
+An exact-row duplicate audit on the full 25{,}000-sample dataset identified 4{,}999 duplicates within the no-contact class (Class~0) and zero duplicates across all four contact classes. The class-0 duplicates are a physically correct consequence of the homogeneous-baseline definition: every no-contact sample produces an identical conductivity image, and, in the clean (pre-noise) representation, an identical voltage difference vector of $\mathbf{0}$. Deduplication is therefore not applied. After noise injection, the class-0 samples become distinguishable through the Gaussian noise floor of Component~1 (Section~\ref{sec:method-noise-components}), so no clustering pathology arises during training.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Effect of Feature Reduction}
@@ -241,7 +241,7 @@ Noisy$\to$Clean & 52.23 (CNN) & 45.42 (MLP) & 22.35 (RF) \\
 \end{tabular}
 \end{table}
 
-On clean data, both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise,e they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
+On clean data, both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Baseline Classifier Configurations}

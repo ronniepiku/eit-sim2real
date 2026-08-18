@@ -31,7 +31,25 @@ Three findings follow. First, every model achieves strong clean-domain accuracy 
 
 Third, noise-aware training recovers a large fraction of the loss. The CNN reaches 75.81\% under Noisy$\to$Noisy, an improvement of 55.8 percentage points (pp) over the same architecture trained on clean data.
 
-The CNN outperforms the strongest baseline on noisy data by 17.9\,pp (RF, 57.85\%), consistent with the convolutional inductive bias being able to exploit the block-structured, per-electrode form of the dominant corruption (Section~\ref{sec:res-ablation}), which fully connected and kernel methods treating the 208 measurements exchangeably cannot represent as compactly.
+The CNN outperforms the strongest baseline on noisy data by 17.9\,pp (RF, 57.85\%). The natural explanation is that convolutional kernels exploit the block-structured, per-electrode form of the dominant corruption (Section~\ref{sec:res-ablation}), and this is directly testable. Applying a fixed permutation to the 208 measurement indices, identically to training and test data and \emph{after} noise injection, preserves information content exactly while destroying adjacency. The CNN then loses 30.2\,pp, whereas the three exchangeable baselines are unaffected, the \gls{svm} to the decimal place (Table~\ref{tab:permutation}). The permuted CNN falls below both \gls{rf} and \gls{mlp}, so without block structure the convolutional prior is not merely uninformative but actively harmful.
+
+\begin{table}[htbp]
+\centering
+\caption[Permutation ablation]{Accuracy (\%) on noisy evaluation before and after a fixed permutation of the measurement vector, applied after noise injection. CNN values are means over 5 seeds; baselines are deterministic given the split.}
+\label{tab:permutation}
+\small
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Model} & \textbf{Original} & \textbf{Permuted} & \textbf{Change} \\
+\midrule
+CNN & \textbf{76.21 $\pm$ 0.52} & \textbf{45.97 $\pm$ 1.37} & \textbf{$-$30.24} \\
+RF  & 60.03 & 59.12 & $-$0.91 \\
+MLP & 56.96 & 56.99 & $+$0.03 \\
+SVM & 52.53 & 52.53 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Training Regimes}
 \label{sec:res-regimes}
@@ -54,7 +72,7 @@ Mixed (30\% clean + augmented) & 69.17 $\pm$ 0.68 \\
 
 Training on the fixed, pre-generated noisy dataset gives the highest noisy-domain accuracy (75.81\%), exceeding online augmentation by 6.3\,pp, an order of magnitude larger than the 0.62\,pp seed-to-seed spread of either condition. That advantage is, however, specific to the severity the model was trained at, and reverses at higher severities (Section~\ref{sec:res-robustness}).
 
-Since every real \gls{eit} measurement carries hardware noise, noisy evaluation is the operationally meaningful case and is used throughout. Both fixed-noise and online-augmented training nonetheless lose substantial accuracy on uncorrupted data (52.2\% and 40.2\%), because neither ever observes an uncorrupted measurement, the no-contact class in particular being seen only in perturbed form. Mixed training, retaining 30\% clean samples per batch, recovers this to 71.50\% for a cost of 0.3\,pp on noisy data.
+Since every real \gls{eit} measurement carries hardware noise, noisy evaluation is the operationally meaningful case and is used throughout. Both fixed-noise and online-augmented training nonetheless lose accuracy on uncorrupted data (52.2\% and 40.2\%), because neither ever observes an uncorrupted measurement, the no-contact class in particular being seen only in perturbed form. Mixed training, retaining 30\% clean samples per batch, recovers this to 71.50\% for a cost of 0.3\,pp on noisy data.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Noise Component Ablation}
@@ -111,6 +129,28 @@ Distributed contact & 0.0359 & 0.1654 & 0.1653 & 11.9 \\
 \end{tabular}
 \end{table}
 
+\subsection{Cancellation of Electrode Bias Under Differencing}
+\label{sec:res-rho}
+
+Both \textcite{kolehmainen1997} and \textcite{boone1996} report that difference imaging tolerates electrode error that stays constant between the reference and measurement frames, becoming vulnerable only when it changes between them. The model above applies bias directly to $\Delta\mathbf{v}$, which assumes no such cancellation. Writing the per-electrode offset as a shared component plus independent parts, the shared term cancels exactly and the residual acting on $\Delta\mathbf{v}$ scales as $(1-\rho)$, where $\rho$ is the fraction common to both frames. Sweeping $\rho$ therefore tests the assumption directly.
+
+\begin{table}[htbp]
+\centering
+\caption[Sensitivity to inter-frame bias cancellation]{CNN accuracy (\%) against $\rho$, the fraction of electrode bias common to the reference and measurement frames and therefore cancelled by differencing. Means over 5 seeds. $\rho = 0$ is the model used throughout; $\rho = 1$ is static misplacement.}
+\label{tab:rho-sweep}
+\small
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{$\rho$} & \textbf{0.00} & \textbf{0.25} & \textbf{0.50} & \textbf{0.75} & \textbf{0.90} & \textbf{1.00} \\
+\midrule
+Accuracy & 75.80 & 76.46 & 77.47 & 78.53 & 82.85 & \textbf{96.99} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The response is strongly non-linear (Table~\ref{tab:rho-sweep}). Accuracy moves by under 2\,pp across the first half of the range, and even at $\rho = 0.9$ a 14\,pp deficit against the fully cancelled case remains. Only perfect cancellation removes the gap, and that requires identical electrode positions and interface state at both acquisitions, which is the condition \textcite{boone1996} identify as failing in practice through drift. The headline result is therefore insensitive to this assumption everywhere except a physically unrealisable limit, and the $\rho = 0$ value reproduces the main grid to 0.01\,pp, confirming the two pipelines agree.
+
 \subsection{The Minimal Sufficient Noise Model}
 \label{sec:res-ablation-minimal}
 
@@ -135,13 +175,35 @@ Enumerating all component subsets identifies how much of the noise model is actu
 \end{tabular}
 \end{table}
 
-A two-component model of Gaussian noise and electrode bias reaches 76.53\%, indistinguishable from the best three-component subset (76.90\%) and from the full four-component model. Contact impedance and quantisation contribute no measurable deployable robustness once the other two are present, so the noise model can be halved without cost.
+A two-component model of Gaussian noise and electrode bias reaches 76.53\%, indistinguishable from the best three-component subset (76.90\%) and from the full four-component model. Contact impedance and quantisation contribute no measurable deployable robustness once the other two are present.
 
-This sufficiency claim is scoped to the four-component family: it establishes that the other two are redundant \emph{given} this noise model, not that two components would suffice against the fuller set of error sources in Table~\ref{tab:error-sources}. The necessity result for electrode bias carries no such caveat, since adding further sources could only strengthen it.
+The claim is scoped to the four-component family: it establishes that the other two are redundant \emph{given} this noise model, not that two would suffice against the fuller set of error sources in Table~\ref{tab:error-sources}. The necessity result for electrode bias carries no such caveat, since further sources could only strengthen it.
 
-The electrode-bias-only configuration is trained in both the single-component and subset enumerations, providing an incidental replication estimate: two independent five-seed runs of an identical configuration give 57.79\% $\pm$ 0.58 and 56.85\% $\pm$ 1.89 under deployment evaluation. That 0.94\,pp difference sets the practical resolution of the ablation, and is why the spread across the two-, three- and four-component models is read as agreement rather than as an ordering.
+The electrode-bias-only configuration is trained in both enumerations, giving an incidental replication estimate: two independent five-seed runs return 57.79\% and 56.85\%. That 0.94\,pp difference sets the practical resolution of the ablation, and is why the spread across the two-, three- and four-component models is read as agreement rather than an ordering.
 
-Each required component has a distinct role. Electrode bias supplies the dominant structured distortion defining the domain shift (Section~\ref{sec:res-domain}). Gaussian noise supplies the measurement noise floor, which matters disproportionately for the no-contact class: without it, no-contact samples are exact zero vectors in training but carry noise at test time, rendering the class undetectable. The per-component severity sweep isolates this: Gaussian noise at any non-zero severity raises accuracy from 53.8\% to 73.9\%, a gain of 20.1\,pp corresponding almost exactly to the 20\% of samples in that class (Figure~\ref{fig:severity-sweep}).
+Each required component has a distinct role. Electrode bias supplies the dominant structured distortion defining the domain shift (Section~\ref{sec:res-domain}). Gaussian noise supplies the measurement noise floor, which matters disproportionately for the no-contact class: without it, no-contact samples are exact zero vectors in training but carry noise at test time, rendering the class undetectable. The per-component severity sweep isolates this: Gaussian noise at any non-zero severity raises accuracy by 20.1\,pp, corresponding almost exactly to the 20\% of samples in that class (Figure~\ref{fig:severity-sweep}).
+
+That mechanism suggests the two-component result decomposes further. Since the no-contact class is an exact zero vector by construction, the measured value of Gaussian noise may be confined to rescuing it rather than conferring robustness. Repeating the subset ablation on the four contact classes alone tests this (Table~\ref{tab:no-contact}).
+
+\begin{table}[htbp]
+\centering
+\caption[Subset ablation excluding the no-contact class]{Deployment accuracy (\%) on the four contact classes only, chance $=25$\%. Means over 5 seeds. Electrode bias alone matches the full model once the degenerate class is removed.}
+\label{tab:no-contact}
+\small
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Training noise} & \textbf{Deployment (\%)} \\
+\midrule
+Gaussian only        & 25.07 $\pm$ 0.13 \\
+Electrode bias only  & 70.53 $\pm$ 0.66 \\
+Gaussian + bias      & 71.21 $\pm$ 0.44 \\
+Full four-component  & 69.79 $\pm$ 1.50 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Electrode bias alone now matches the full model (70.53\% against 69.79\%), and adding Gaussian changes it by 0.68\,pp, within the combined seed spread, while Gaussian alone sits exactly at chance. The sufficiency result therefore separates into two claims: electrode bias alone suffices to \emph{discriminate} contact types, and Gaussian noise is required only so that contact can be \emph{detected} at all, because a model trained without a noise floor cannot recognise a noisy vector as the no-contact state. The minimal model is one component for discrimination plus a noise floor for detection.
 
 \begin{figure}[htbp]
 \centering

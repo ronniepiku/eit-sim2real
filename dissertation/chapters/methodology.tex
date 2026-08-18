@@ -2,7 +2,7 @@
 \chapter{Research Methods}
 \label{ch:methodology}
 
-This chapter details the simulation-based experimental design summarised in Figure~\ref{fig:method-pipeline}. All code, configuration files and trained models are publicly available, addressing the standardisation gap identified in Chapter~\ref{ch:literature_review}; the repository URL is recorded in Appendix~\ref{app:code}.
+This chapter details the simulation-based design summarised in Figure~\ref{fig:method-pipeline}. All code, configuration files and trained models are publicly available, addressing the standardisation gap of Chapter~\ref{ch:literature_review}; the repository URL is in Appendix~\ref{app:code}.
 
 \begin{figure}[htbp]
 \centering
@@ -57,7 +57,9 @@ The \gls{eit} forward problem is solved using EIDORS v3.12-ng \parencite{adler20
 
 The domain is a 2D circular cross-section representing a transverse slice of a prosthetic forearm sensor, discretised using \texttt{mk\_common\_model('d2C', 16)}: medium refinement, two-dimensional, circular tank with CEM. This canonical EIDORS reference family was preferred over a custom mesh so that methodological contributions are not confounded with bespoke meshing choices \parencite{adler2006, adler2009}. A 2D formulation was retained for tractability at dataset scale (25,000 forward solves per mesh) and for consistency with prior \gls{eit} classification work.
 
-Mesh selection was evidence-based rather than assumed. Three matched noisy datasets were generated at coarse (\texttt{c}), medium (\texttt{d}) and fine (\texttt{f}) refinement with identical class definitions, noise model, splits and hyperparameters; one CNN was trained per mesh and evaluated on all three test meshes (Table~\ref{tab:mesh-cross-matrix}). Training on \texttt{c} gives the highest in-mesh score but the largest cross-mesh variation (8.35\,pp), whereas \texttt{d} and \texttt{f} transfer more stably (4.37 and 3.47\,pp). Mesh \texttt{d} is retained as it balances literature comparability against stable cross-mesh behaviour. Model complexity is identical across meshes and runtimes are of the same order (Table~\ref{tab:mesh-compute}), so the decision rests on generalisation rather than cost.
+
+Mesh selection was evidence-based rather than assumed. Three matched noisy datasets were generated at coarse (\texttt{c}), medium (\texttt{d}) and fine (\texttt{f}) refinement with identical class definitions, noise model, splits and hyperparameters; one CNN was trained per mesh and evaluated on all three (Table~\ref{tab:mesh-cross-matrix}). Training on \texttt{c} gives the highest in-mesh score but the largest cross-mesh variation (8.35\,pp), whereas \texttt{d} and \texttt{f} transfer more stably (4.37 and 3.47\,pp). Mesh \texttt{d} is retained as it balances literature comparability against stable cross-mesh behaviour, and since complexity and runtime are comparable (Table~\ref{tab:mesh-compute}), the decision rests on generalisation rather than cost.
+
 
 \begin{table}[htbp]
 \centering
@@ -181,7 +183,7 @@ All components operate on the voltage difference vector $\Delta\mathbf{v} \in \m
 \label{eq:noise-gaussian}
 \end{equation}
 
-\noindent where $\hat{\mathbf{n}} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, SNR~=~40\,dB, $n_{\text{floor}} = 10^{-4}$\,V and $N = 208$. The signal-dependent form scales noise with measurement amplitude, consistent with the 40--80\,dB range reported by \textcite{adler2006} for laboratory instrumentation. The noise floor is essential, as without it, the no-contact class remains an exact zero vector, a deterministic cluster with no hardware counterpart.
+\noindent where $\hat{\mathbf{n}} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, SNR~=~40\,dB, $n_{\text{floor}} = 10^{-4}$\,V and $N = 208$. The signal-dependent form scales noise with measurement amplitude. No agreed instrumentation figure exists, published \gls{eit} studies adding noise anywhere between 10 and 65\,dB \parencite{chen2023, dong2025lattice}, so 40\,dB is a nominal mid-range value, swept in Section~\ref{sec:method-noise-sensitivity}. The noise floor is essential, as without it, the no-contact class remains an exact zero vector, a deterministic cluster with no hardware counterpart.
 
 \paragraph{Component 2: Electrode contact impedance variation.} Models imperfect and spatially varying electrode--substrate contact, producing multiplicative per-electrode distortion.
 
@@ -190,9 +192,9 @@ All components operate on the voltage difference vector $\Delta\mathbf{v} \in \m
 \label{eq:noise-impedance}
 \end{equation}
 
-\noindent where $e(i)$ maps measurement $i$ to its electrode block ($e \in \{1, \ldots, 16\}$), so each electrode contributes a single factor to all measurements it participates in, producing block-structured multiplicative distortion. The log-normal form guarantees $z_e > 0$ and yields the asymmetric variation reported by \textcite{vilhunen2002}, who found 5--20\% variation materially affects reconstruction.
+\noindent where $e(i)$ maps measurement $i$ to its electrode block ($e \in \{1, \ldots, 16\}$), so each electrode contributes a single factor to all measurements it participates in, producing block-structured multiplicative distortion. The log-normal form guarantees $z_e > 0$ and yields asymmetric variation about unity. \textcite{vilhunen2002} show that contact impedance cannot be neglected in static imaging and must be estimated jointly with the interior admittivity, which is why it is modelled explicitly here.
 
-The $\sigma_z = 10\%$ default derives from \textcite{vilhunen2002}, characterising metal electrodes on saline phantoms, and is the least well-constrained parameter in the model. No published study provides electrode--hydrogel contact-impedance \emph{variation} data suitable for direct parameterisation \parencite{costacornella2023, park2022skin}, though the physical analogy of a metal electrode contacting an ionic conductor supports the same order of magnitude. The sensitivity analysis therefore sweeps $\sigma_z \in [5\%, 25\%]$ explicitly (Section~\ref{sec:method-noise-sensitivity}).
+The $\sigma_z = 10\%$ default is a nominal value rather than a measured one, and is the least well-constrained parameter in the model. No published study provides electrode--hydrogel contact-impedance \emph{variation} data suitable for direct parameterisation \parencite{costacornella2023, park2022skin}, though the physical analogy of a metal electrode contacting an ionic conductor supports the same order of magnitude. The sensitivity analysis therefore sweeps $\sigma_z \in [5\%, 25\%]$ explicitly (Section~\ref{sec:method-noise-sensitivity}).
 
 \paragraph{Component 3: Electrode positioning bias.} Models systematic measurement error from imprecise electrode placement on the physical substrate.
 
@@ -201,7 +203,7 @@ The $\sigma_z = 10\%$ default derives from \textcite{vilhunen2002}, characterisi
 \label{eq:noise-bias}
 \end{equation}
 
-\noindent where each electrode receives an independently drawn fixed offset, reflecting that placement error at one site is unrelated to the others, and producing block-structured additive bias. \textcite{kolehmainen1997} showed that positioning errors of 1--2\,mm produce exactly such structured bias in boundary voltages; an independent per-electrode draw captures this more faithfully than a linear gradient across measurements. The independence assumption is revisited as a limitation in Section~\ref{sec:disc-limitations}, since this component proves to dominate the domain gap.
+\noindent where each electrode receives an independently drawn fixed offset, reflecting that placement error at one site is unrelated to the others, and producing block-structured additive bias. \textcite{kolehmainen1997} identify electrode placement as a dominant modelling error in static imaging, and an independent per-electrode draw captures its block structure more faithfully than a linear gradient across measurements. The independence assumption is revisited as a limitation in Section~\ref{sec:disc-limitations}, since this component proves to dominate the domain gap.
 
 \paragraph{Component 4: Quantisation noise.} Models the finite precision of the analogue-to-digital converter (ADC) as additive uniform noise bounded by half the least-significant bit, which is the standard statistical model for a mid-tread uniform quantiser operating well above its noise floor \parencite{widrow1996quantization}.
 
@@ -226,13 +228,13 @@ Table~\ref{tab:noise-params} consolidates all noise parameters with their physic
 \toprule
 \textbf{Component} & \textbf{Parameter} & \textbf{Value} & \textbf{Source} \\
 \midrule
-Gaussian & SNR & 40\,dB & \textcite{adler2006}: 40--80\,dB range \\
+Gaussian & SNR & 40\,dB & Nominal; swept 20--60\,dB (Section~\ref{sec:method-noise-sensitivity}) \\
 \midrule
 Gaussian & Noise floor & $10^{-4}$\,V & Typical EIT baseline noise \\
 \midrule
-Contact impedance & $\sigma_z$ & 10\% & \textcite{vilhunen2002}: 5--20\% variation \\
+Contact impedance & $\sigma_z$ & 10\% & Nominal; swept 5--25\% (Section~\ref{sec:method-noise-sensitivity}) \\
 \midrule
-Electrode bias & $b_{\max}$ & 0.02 & \textcite{kolehmainen1997}: 1--2\,mm error \\
+Electrode bias & $b_{\max}$ & 0.02 & Nominal; swept 0.005--0.08 (Section~\ref{sec:method-noise-sensitivity}) \\
 \midrule
 Quantisation & bits / $V_{\text{range}}$ & 16 / 1.0\,V & Typical EIT ADC specifications \\
 \bottomrule
@@ -311,7 +313,9 @@ Linear (output)                  & $(B, 5)$        & --- \\
 \end{tabularx}
 \end{table}
 
-The architecture treats the 208-element voltage vector as a single-channel 1D signal, since adjacent measurements correspond to spatially related electrode pairs. Three blocks of (Conv1D, BN, ReLU, MaxPool) with kernel size $k=5$ provide a local receptive field across 2--3 electrode pairs, batch normalisation \parencite{ioffe2015batchnorm} stabilises training, and adaptive average pooling \parencite{lecun2015} makes the head length-agnostic. Dropout ($p=0.3$, raised to $0.4$ for noise-augmented training) \parencite{srivastava2014dropout} regularises only the fully connected head. The 69,189 trainable parameters are three orders of magnitude fewer than networks such as ResNet-50 \parencite{he2016}, reflecting the lower dimensionality of \gls{eit} data.
+
+The architecture treats the 208-element voltage vector as a single-channel 1D signal, since adjacent measurements correspond to spatially related electrode pairs. Three blocks of (Conv1D, BN, ReLU, MaxPool) with kernel size $k=5$ span 2--3 electrode pairs, batch normalisation \parencite{ioffe2015batchnorm} stabilises training, and adaptive average pooling \parencite{lecun2015} makes the head length-agnostic. Dropout ($p=0.3$, raised to $0.4$ for noise-augmented training) \parencite{srivastava2014dropout} regularises the fully connected head. The 69,189 parameters are three orders of magnitude fewer than networks such as ResNet-50 \parencite{he2016}.
+
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Training Protocol}
@@ -375,7 +379,9 @@ To quantify the effect of noise augmentation, all models are evaluated under fou
 \end{tabular}
 \end{table}
 
-Noisy$\to$Noisy is the operationally relevant cell, since every real measurement carries hardware noise, and the benefthat it of augmentation is read as the improvement from Clean$\to$Noisy to Noisy$\to$Noisy. Domain adaptation methods \parencite{ganin2016, tzeng2017adda} are not used as comparators because they require unlabelled target-domain samples a simulation-only study cannot supply. Noise augmentation enriches the source domain to encompass the target rather than aligning to it, and is the appropriate first-step intervention.
+
+Noisy$\to$Noisy is the operationally relevant cell, since every real measurement carries hardware noise, and the benefit of augmentation is read as the improvement from Clean$\to$Noisy to Noisy$\to$Noisy. Domain adaptation methods \parencite{ganin2016, tzeng2017adda} are not used as comparators because they require unlabelled target-domain samples a simulation-only study cannot supply.
+
 
 \subsection{Performance Metrics}
 \label{sec:method-metrics}
@@ -390,7 +396,9 @@ Each experiment is repeated over 5 independent random seeds with stratified 70/1
 \subsection{Robustness Evaluation}
 \label{sec:method-robustness}
 
-Following the multi-severity paradigm of \textcite{hendrycks2019}, trained models are evaluated at noise severity multipliers from $0.0\times$ (noise-free reference) to $3.0\times$ in steps of $0.5\times$, applied to all noise parameters simultaneously. The sweep is run separately for each training regime, establishing how they compare as conditions depart from those they were trained under. Three quantities are extracted in Chapter~\ref{ch:results}: the degradation from the training severity to $3\times$, the \emph{crossover severity} at which a randomised regime overtakes fixed-noise training, and the clean-domain accuracy each regime retains.
+
+Following the multi-severity paradigm of \textcite{hendrycks2019}, trained models are evaluated at severity multipliers from $0.0\times$ to $3.0\times$ in steps of $0.5\times$, applied to all noise parameters simultaneously and run separately for each training regime. Three quantities are extracted in Chapter~\ref{ch:results}: the degradation from training severity to $3\times$, the \emph{crossover severity} at which a randomised regime overtakes fixed-noise training, and the clean-domain accuracy each regime retains.
+
 
 \subsection{Ablation Protocol}
 \label{sec:method-ablation}
@@ -409,7 +417,7 @@ The ablation isolates the contribution of each noise component, and the sensitiv
 
 Every configuration is scored twice, because the two available protocols answer different questions and, as Chapter~\ref{ch:results} shows, give opposite answers. \emph{Matched} evaluation tests a model on data corrupted by the same components it was trained with, measuring how difficult a world containing only those components would be. \emph{Deployment} evaluation tests it against the full four-component corruption, measuring what omitting components costs in the field.
 
-Only the second is operationally meaningful, since physical hardware exhibits all four sources simultaneously. Matched evaluation silently adjusts the test distribution to suit the model, rewarding configurations that define an easier problem rather than those that transfer. It is the protocol implied by the ablations reviewed in Section~\ref{sec:lit-ml-concerns}, and is retained here only as a diagnostic.
+Only the second is operationally meaningful, since hardware exhibits all four sources simultaneously. Matched evaluation silently adjusts the test distribution to suit the model, rewarding configurations that define an easier problem rather than those that transfer. It is retained here only as a diagnostic.
 
 Throughout, corruption is applied in \emph{foundational mode}: noise is drawn once per training sample and held fixed across epochs, as the pre-generated dataset behaves. This prevents the training regime and the active component set from varying together. All variants inherit the same regularisation preset as the main noise-trained condition, leaving the component set as the only difference.
 

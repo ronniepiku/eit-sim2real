@@ -11,10 +11,18 @@ The noise model has 4 independently-configurable components:
 3. Electrode positioning bias (per-electrode, additive)
 4. Quantisation noise (ADC resolution)
 
+Parameter values are nominal rather than measured. The cited works establish
+that each mechanism exists and matters, not the specific magnitudes used here;
+the magnitudes are bounded instead by the sensitivity sweeps in
+experiments/ablation.py.
+
 References:
-    [1] Adler & Lionheart (2006) - SNR 40-80 dB for lab EIT
-    [2] Vilhunen et al. (2002) - 5-20% contact impedance variation
-    [3] Kolehmainen et al. (1997) - 1-2 mm electrode positioning errors
+    [1] Adler & Lionheart (2006) - EIDORS forward modelling, additive noise
+    [2] Vilhunen et al. (2002) - contact impedance must be modelled/estimated
+    [3] Kolehmainen et al. (1997) - electrode placement as a modelling error
+    [4] Boone & Holder (1996) - difference imaging tolerates *constant*
+        electrode error; vulnerability arises when it changes between the
+        reference and measurement frames. This motivates bias_correlation.
 """
 
 from dataclasses import dataclass
@@ -72,6 +80,18 @@ class NoiseConfig:
     electrode_bias_enabled: bool = True
     max_bias: float = 0.02
 
+    # Fraction of the electrode bias common to the reference and measurement
+    # frames, and therefore cancelled by difference imaging.
+    #
+    # dv = (v_contact + b_cont) - (v_baseline + b_base). Writing
+    # b_cont = rho*b_shared + (1-rho)*b2 and b_base = rho*b_shared + (1-rho)*b1,
+    # the shared term cancels exactly and the residual acting on dv scales as
+    # (1 - rho). rho = 0 is fully independent bias between frames (the model
+    # used throughout the main results); rho = 1 is static misplacement, which
+    # difference imaging removes entirely (Boone & Holder 1996;
+    # Kolehmainen et al. 1997).
+    bias_correlation: float = 0.0
+
     # Quantisation noise
     quantisation_enabled: bool = True
     adc_bits: int = 16
@@ -105,6 +125,9 @@ class NoiseConfig:
             n_electrodes=raw.get("contact_impedance", {}).get("n_electrodes", 16),
             electrode_bias_enabled=raw.get("electrode_bias", {}).get("enabled", True),
             max_bias=raw.get("electrode_bias", {}).get("max_bias", 0.02),
+            bias_correlation=raw.get("electrode_bias", {}).get(
+                "bias_correlation", 0.0
+            ),
             quantisation_enabled=raw.get("quantisation", {}).get("enabled", True),
             adc_bits=raw.get("quantisation", {}).get("adc_bits", 16),
             voltage_range=raw.get("quantisation", {}).get("voltage_range", 1.0),
@@ -127,6 +150,7 @@ class NoiseConfig:
             n_electrodes=cfg.get("n_electrodes", 16),
             electrode_bias_enabled=cfg.get("electrode_bias_enabled", True),
             max_bias=cfg.get("max_bias", 0.02),
+            bias_correlation=cfg.get("bias_correlation", 0.0),
             quantisation_enabled=cfg.get("quantisation_enabled", True),
             adc_bits=cfg.get("adc_bits", 16),
             voltage_range=cfg.get("voltage_range", 1.0),
@@ -293,7 +317,9 @@ def apply_noise(
                     )
                 X_noisy[i] *= impedance_vec
         elif component == "electrode_bias":
-            effective_bias = config.max_bias * severity
+            effective_bias = (
+                config.max_bias * severity * (1.0 - config.bias_correlation)
+            )
             for i in range(n_samples):
                 elec_bias = effective_bias * (2 * rng.random(n_elec) - 1)
                 bias_vec = np.repeat(elec_bias, int(np.round(meas_per_elec)))
@@ -383,7 +409,9 @@ def apply_noise_batch_vectorised(
                 )
             X_noisy *= impedance_matrix
         elif component == "electrode_bias":
-            effective_bias = config.max_bias * severity
+            effective_bias = (
+                config.max_bias * severity * (1.0 - config.bias_correlation)
+            )
             elec_bias = effective_bias * (2 * rng.random((n_samples, n_elec)) - 1)
             bias_matrix = np.repeat(elec_bias, meas_per_elec, axis=1)[:, :n_meas]
             if bias_matrix.shape[1] < n_meas:
