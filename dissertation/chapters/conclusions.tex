@@ -5,73 +5,50 @@
 \section{Summary of Findings}
 \label{sec:conc-summary}
 
-This dissertation asked whether physically motivated, multi-component noise augmentation can bridge the simulation-to-reality gap for \gls{eit} tactile classification, and which components such a noise model must contain. The principal findings are:
+This dissertation asked whether physically motivated, multi-component noise augmentation can bridge the simulation-to-reality gap for \gls{eit} tactile classification, and which components such a model must contain.
 
 \begin{enumerate}
-    \item \textbf{The gap is severe, universal, and distributional.} All four classifiers, across all three feature representations, collapse to chance ($\approx$20\%) when trained on clean data and evaluated under realistic multi-component noise. Because the collapse is independent of architecture and representation, it cannot be addressed by model capacity.
+    \item \textbf{The gap is severe, universal and distributional.} All four classifiers, across all three feature representations, collapse to chance when trained on clean data and evaluated under realistic multi-component noise. Being independent of architecture and representation, the collapse cannot be addressed by model capacity.
 
-    \item \textbf{Noise-matched training substantially closes it.} A 1D-CNN reaches 75.81\% $\pm$ 0.62 against 19.98\% $\pm$ 0.33 for the clean-trained equivalent---a gain of 55.8\,pp, reproduced under independent 5-fold cross-validation.
+    \item \textbf{Noise-matched training substantially closes it.} A 1D-CNN reaches 75.81\% against 19.98\% for the clean-trained equivalent, a gain of 55.8\,pp.
 
     \item \textbf{Electrode positioning bias dominates the gap}, accounting for effectively all noise energy and exceeding the light-touch signal by a factor of roughly 41. Component ablation, severity response and direct energy decomposition converge on this independently.
 
-    \item \textbf{Modelling electrode bias is necessary; two components suffice within the modelled family.} Under deployment-realistic evaluation every noise model omitting electrode bias performs at or below chance, while Gaussian noise plus electrode bias reaches 76.53\%---level with the full four-component model and with the headline result. Contact impedance and quantisation add nothing measurable at 16-bit resolution, so the noise model can be halved without cost. The necessity result is robust to the noise model's incompleteness; the sufficiency result is scoped to it.
+    \item \textbf{Modelling electrode bias is necessary; two components suffice, and they play separate roles.} Every noise model omitting electrode bias performs at or below chance, while Gaussian noise plus electrode bias reaches 76.53\%, level with the full four-component model. Excluding the degenerate no-contact class separates the roles: electrode bias alone suffices to discriminate contact types, Gaussian noise being required only to make contact detectable at all.
 
-    \item \textbf{The ablation evaluation protocol changes the conclusion.} Matched evaluation ranks the components in the opposite order to deployment evaluation, making Gaussian noise appear benign and electrode bias appear worst. Reporting matched results alone---the prevailing convention---inverts the design guidance drawn from them.
+
+\item \textbf{The architectural advantage is caused by block structure, and the gap survives partial cancellation.} A fixed permutation of the measurement vector, information-preserving but adjacency-destroying, costs the CNN 30.2\,pp while leaving the exchangeable baselines unchanged. Sweeping the fraction of electrode bias common to the reference and measurement frames leaves accuracy within 2\,pp up to 50\% cancellation, with a 14\,pp deficit remaining at 90\%.
+
+
+    \item \textbf{The ablation evaluation protocol changes the conclusion.} Matched evaluation ranks the components in the opposite order to deployment evaluation, making Gaussian noise appear benign and electrode bias worst, so reporting matched results alone inverts the design guidance drawn from them.
 
     \item \textbf{Training regime is a characterised trade-off.} Fixed-noise training maximises accuracy at its training severity (75.95\% at 1$\times$) but loses 15.0\,pp by 3$\times$, whereas randomised training is far flatter and overtakes it at approximately 2.2$\times$.
-
-    \item \textbf{The Gaussian-only noise model is inadequate.} Accuracy varies by under 0.3\,pp across a 40\,dB \gls{snr} range, so robustness demonstrated under Gaussian-only augmentation is not evidence of deployable robustness.
-
-    \item \textbf{Domain shift, not architecture, makes models confidently wrong.} A clean-trained model reports 99.7\% confidence at 19.7\% accuracy; under matched training, confidence and accuracy correspond closely.
 \end{enumerate}
 
 \section{Achievement of Objectives}
 \label{sec:conc-objectives}
 
-Objective~1 (configurable noise model) and Objective~2 (physics-informed dataset) were met as specified, with the noise model additionally validated by parameter sensitivity analysis and the dataset by a mesh convergence study. Objective~3 (classifier comparison) was met, establishing the CNN's advantage under noise and---unexpectedly---its instability on clean data, which is reported rather than concealed. Objective~4 (robustness evaluation) was met and extended beyond the original plan into a severity trade-off analysis identifying a crossover point between regimes. Objective~5 (ablation) was met, but only after the evaluation protocol was corrected: the originally planned matched-condition design would have produced the opposite conclusion, and that correction is itself among the more transferable outcomes of the work.
+Objectives~1 and~2 were met as specified, the noise model additionally validated by parameter sensitivity analysis and the dataset by a mesh convergence study. Objective~3 established the CNN's advantage under noise, now traced to block structure by permutation, and Objective~4 was extended into a severity trade-off analysis identifying a crossover between regimes. Objective~5 was met only after the evaluation protocol was corrected: the originally planned matched-condition design would have produced the opposite conclusion, and that correction is itself among the more transferable outcomes of the work.
 
-\section{Contributions}
-\label{sec:conc-contributions}
+Of the contributions claimed in Section~\ref{sec:intro-contributions}, the structured per-electrode noise model, the minimal sufficient model and the ablation-protocol correction are all established above, with the sensitivity analysis bounding the regime in which they hold.
 
-The work contributes: (i)~a quantitative characterisation of the \gls{eit} sim-to-real gap showing it to be dominated by one structured electrode-level error rather than diffuse stochastic noise; (ii)~identification of a \emph{minimal sufficient} noise model (Gaussian plus electrode bias) for deployable robustness; (iii)~a methodological correction to component ablation---evaluate against the full deployment corruption, not the ablated one---which reverses the conclusion and generalises beyond \gls{eit}; (iv)~a parameter sensitivity analysis bounding the regime in which these findings hold, which identifies electrode placement tolerance and \gls{adc} bit depth---rather than measurement \gls{snr}---as the assumptions the conclusions actually depend on; and (v)~an open, reproducible pipeline spanning data generation, training and evaluation.
-
-\section{Recommendations}
+\section{Recommendations and Future Work}
 \label{sec:conc-recommendations}
 
-\begin{itemize}
-    \item \textbf{For \gls{eit} researchers:} report robustness under multi-component noise including electrode bias; treat Gaussian-only results as insufficient evidence of robustness.
-    \item \textbf{For ablation studies:} evaluate component-ablated models against the full deployment corruption. Matched evaluation answers a different and less useful question.
-    \item \textbf{For hardware designers:} treat electrode placement tolerance and \gls{adc} resolution ($\geq$12-bit in these simulations) as the parameters warranting an explicit budget, and front-end \gls{snr} and interface impedance uniformity as candidates for relaxation---subject to confirmation on hardware, since the sweep varies one simulated parameter at a time.
-    \item \textbf{For training strategy:} use fixed-noise training where the deployment noise level is known and stable, randomised training where it is uncertain, and mixed training as the default when the environment is uncharacterised.
-    \item \textbf{For deployment claims:} fit uncertainty quantification on target-domain data before making any reliability claim; raw softmax confidence is unusable under domain shift.
-\end{itemize}
+Two findings can be adopted immediately at no cost. Component ablations should be evaluated against the full corruption a deployed device meets rather than the reduced corruption trained on, which applies generally and not only to \gls{eit}. And Gaussian-only augmentation should no longer be accepted as evidence of robustness, with multi-component noise including electrode bias the minimum standard.
 
-\section{Future Work}
-\label{sec:conc-future}
+Two design choices follow. The training regime should be selected by how well the deployment environment is characterised rather than by peak accuracy at any one severity: fixed noise where the level is known and stable, randomisation where it is uncertain, and mixed training by default. In hardware, electrode placement tolerance and \gls{adc} resolution ($\geq$12 bits here) warrant explicit budgets, while front-end \gls{snr} and interface impedance uniformity can be relaxed, though that ordering needs confirming on a physical device first.
 
-\begin{enumerate}
-    \item \textbf{Hardware validation, prioritising the bias distribution.} The decisive component is electrode bias, and the conclusions rest on an assumed uniform, independent distribution for it. Measuring the true distribution on a physical 16-electrode sensor---whether it is correlated across electrodes or heavy-tailed---is the highest-value next experiment, because an error there propagates to everything else.
+That qualification identifies the priority: validation against real measurements. Every conclusion about electrode bias rests on an assumed uniform, independent per-electrode distribution, so measuring the true distribution on a fabricated 16-electrode skin would either confirm these results or propagate an error through all of them. Until then, the accuracies reported here remain matched-distribution figures rather than demonstrated sim-to-real performance.
 
-    \item \textbf{Transfer across noise families.} The present results establish generalisation across \emph{realisations} but not across parametric \emph{forms}. Training on one bias distribution and testing on a structurally different one would bound true transfer.
+Three further extensions address model fidelity. \textbf{Three-dimensional forward modelling} would remove the largest deterministic approximation error, which randomisation cannot absorb. \textbf{Temporal modelling} over sequential frames would admit drift compensation and make representable the slow-varying sources excluded here by construction (Table~\ref{tab:error-sources}). \textbf{Morphology-aware randomisation} would test whether the minimal sufficient model survives a change of sensor design \parencite{dong2025lattice}.
 
-    \item \textbf{Three-dimensional forward modelling.} The 2D-to-3D reduction is the largest uncompensated approximation error and, unlike measurement noise, is deterministic and cannot be absorbed by randomisation. Locally adaptive meshing would additionally resolve the sub-mesh-scale point-contact class properly.
-
-    \item \textbf{Domain-adversarial adaptation.} With a small set of unlabelled target measurements, DANN \parencite{ganin2016} or ADDA \parencite{tzeng2017adda} could align feature distributions directly rather than relying on the source distribution to cover the target---the natural complement once hardware data exist.
-
-    \item \textbf{Temporal modelling.} Extending to sequential frames would allow drift compensation and dynamic touch detection, and temporal redundancy may improve robustness by averaging frame-to-frame variation while preserving persistent signals.
-
-    \item \textbf{Morphology-aware randomisation.} Given that \textcite{dong2025lattice} show sensor geometry materially alters observability, jointly randomising over morphology and measurement noise would test whether the minimal sufficient noise model identified here holds across sensor designs.
-\end{enumerate}
 
 \section{Reflections on the Research Process}
 \label{sec:conc-reflections}
 
-Three methodological lessons emerged, each from an error corrected during the work rather than from the original plan.
+Two methodological lessons emerged, each from an error corrected during the work rather than from the original plan.
 
-The first concerns evaluation protocol. The ablation was initially designed to train and test each configuration on the same noise components---the intuitive reading of ``isolating a component''. That design produced a coherent but entirely inverted account of which components matter. Evaluating instead against the full corruption a deployed device would face changed the conclusion, not merely the numbers. In transfer settings the evaluation distribution encodes a claim about the deployment context, so choosing it casually is a substantive modelling error rather than a presentational detail.
+The first concerns evaluation protocol. The ablation was initially designed to train and test each configuration on the same noise components, the intuitive reading of ``isolating a component'', and that design produced a coherent but entirely inverted account of which components matter. In transfer settings the evaluation distribution encodes a claim about the deployment context, so choosing it casually is a substantive modelling error rather than a presentational detail.
 
-The second concerns internally consistent but unverified results. Several analyses were at one stage produced by a pipeline whose reference model had been trained under the wrong regime; the outputs were plausible, self-consistent and wrong. They were caught only by noticing that the severity sweep disagreed with the main results table for what should have been an identical measurement. Cross-checking analyses that ought to agree proved far more effective than scrutinising any single result.
-
-The third concerns provenance. Reconciling reported values against the files that generated them exposed inconsistencies that would otherwise have reached the final document. Re-deriving every reported figure from a single canonical set of outputs is tedious but is the only reliable defence against numbers drifting from their source as a project evolves.
-
-Were the project repeated, the deployment-realistic ablation protocol would have been adopted at the outset, and an automated consistency check between overlapping analyses built in from the start.
+The second concerns internally consistent but unverified results. Several analyses were at one stage produced by a pipeline whose reference model had been trained under the wrong regime, so the outputs were plausible, self-consistent and wrong. They were caught only by noticing that the severity sweep disagreed with the main results table for what should have been an identical measurement. Cross-checking analyses that ought to agree proved far more effective than scrutinising any single result, and were the project repeated that check would be automated.

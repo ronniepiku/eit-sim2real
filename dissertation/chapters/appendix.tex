@@ -1,9 +1,9 @@
-%% Appendices
+% % Appendices
 
 \chapter{Supplementary Results}
 \label{app:supplementary}
 
-This appendix provides supplementary figures and tables supporting the findings of Chapter~\ref{ch:results}: training convergence, full confusion matrices, the signal--noise decomposition underlying the domain-gap analysis, detailed ablation results, predictive-confidence diagnostics and the sensitivity analyses.
+This appendix provides supplementary figures and tables supporting the findings of Chapter~\ref{ch:results}: training convergence, full confusion matrices, corroboration of the validation protocol by an independent cross-validation (Section~\ref{app:crossval}), the inadequacy of Gaussian-only augmentation (Section~\ref{app:gaussian-only}), detailed ablation results, predictive-confidence diagnostics and the sensitivity analyses.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Training Convergence}
@@ -14,21 +14,21 @@ Figures~\ref{fig:app-training-noisy}--\ref{fig:app-training-clean} show training
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/raw/cnn1d/noisy_train_noisy_eval/cnn1d_noisy_train_noisy_eval_training_curves.png}
-\caption{CNN training curves: fixed noisy training data, evaluated on noisy test data (Noisy$\to$Noisy condition). The model converges within approximately 60 epochs with smooth validation loss reduction.}
+\caption[CNN training curves: fixed noisy training]{CNN training curves: fixed noisy training data, evaluated on noisy test data (Noisy$\to$Noisy condition). The model converges within approximately 60 epochs with smooth validation loss reduction.}
 \label{fig:app-training-noisy}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_training_curves.png}
-\caption{CNN training curves: online noise augmentation, evaluated on noisy test data (Augmented$\to$Noisy condition). Convergence is stable, but to a lower plateau than fixed-noise training, reflecting the additional variability the model must accommodate when noise is resampled each epoch.}
+\caption[CNN training curves: online noise augmentation]{CNN training curves: online noise augmentation, evaluated on noisy test data (Augmented$\to$Noisy condition). Convergence is stable, but to a lower plateau than fixed-noise training, reflecting the additional variability the model must accommodate when noise is resampled each epoch.}
 \label{fig:app-training-augmented}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/raw/cnn1d/clean_train_clean_eval/cnn1d_clean_train_clean_eval_training_curves.png}
-\caption{CNN training curves: clean training data, evaluated on clean test data (Clean$\to$Clean condition). Rapid convergence confirms the forward model produces well-separated class representations.}
+\caption[CNN training curves: clean training]{CNN training curves: clean training data, evaluated on clean test data (Clean$\to$Clean condition). Rapid convergence confirms the forward model produces well-separated class representations.}
 \label{fig:app-training-clean}
 \end{figure}
 
@@ -41,108 +41,126 @@ Figures~\ref{fig:app-cm-noisy}--\ref{fig:app-cm-clean-noisy} present the full co
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.65\textwidth]{results/figures/raw/cnn1d/noisy_train_noisy_eval/cnn1d_noisy_train_noisy_eval_cm_test.png}
-\caption{Confusion matrix: CNN trained on noisy data, evaluated on noisy data (Noisy$\to$Noisy, 75.8\%). Principal confusions involve point contact, the class with the smallest spatial footprint and the least faithful simulation (Section~\ref{sec:res-perclass}).}
+\caption[Confusion matrix: noisy-trained, noisy evaluation]{Confusion matrix: CNN trained on noisy data, evaluated on noisy data (Noisy$\to$Noisy, 75.8\%). Principal confusions involve point contact, the class with the smallest spatial footprint and the least faithful simulation (Section~\ref{sec:res-perclass}).}
 \label{fig:app-cm-noisy}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.65\textwidth]{results/figures/raw/cnn1d/clean_train_noisy_eval/cnn1d_clean_train_noisy_eval_cm_test.png}
-\caption{Confusion matrix: CNN trained on clean data, evaluated on noisy data (Clean$\to$Noisy, 20.0\%). Predictions collapse primarily onto a single class, indicating complete loss of discriminative structure rather than uniform random guessing.}
+\caption[Confusion matrix: clean-trained, noisy evaluation]{Confusion matrix: CNN trained on clean data, evaluated on noisy data (Clean$\to$Noisy, 20.0\%). Predictions collapse primarily onto a single class, indicating complete loss of discriminative structure rather than uniform random guessing.}
 \label{fig:app-cm-clean-noisy}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.65\textwidth]{results/figures/raw/cnn1d/augmented_train_noisy_eval/cnn1d_augmented_train_noisy_eval_cm_test.png}
-\caption{Confusion matrix: CNN with online noise augmentation, evaluated on noisy data (Augmented$\to$Noisy, 69.5\%). The error structure closely resembles that of fixed-noise training (Figure~\ref{fig:app-cm-noisy}), indicating that the two regimes learn qualitatively similar representations and differ mainly in the sharpness of the resulting decision boundaries.}
+\caption[Confusion matrix: online augmentation, noisy evaluation]{Confusion matrix: CNN with online noise augmentation, evaluated on noisy data (Augmented$\to$Noisy, 69.5\%). The error structure closely resembles that of fixed-noise training (Figure~\ref{fig:app-cm-noisy}), indicating that the two regimes learn qualitatively similar representations and differ mainly in the sharpness of the resulting decision boundaries.}
 \label{fig:app-cm-augmented}
 \end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────
-\section{Signal and Noise Decomposition}
-\label{app:decomposition}
+\section{Corroboration by Cross-Validation}
+\label{app:crossval}
 
-Figures~\ref{fig:app-noise-decomposition} and~\ref{fig:app-signal-noise} quantify the domain shift characterised in Section~\ref{sec:res-domain}.
+All headline results in Chapter~\ref{ch:results} are reported over five independent seeds with stratified 70/15/15 splits. As an independent check on that protocol, a stratified 5-fold cross-validation \parencite{kohavi1995crossval} was also run, in which each fold's test partition is disjoint from every other, and every sample is held out exactly once; within each fold a validation slice is carved from the training partition, so early stopping never observes held-out data, and models are retrained from scratch per fold. Table~\ref{tab:app-crossval} compares the two schemes.
 
-\begin{figure}[htbp]
+\begin{table}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{results/dataset_validation/figures/noise_decomposition.png}
-\caption{Decomposition of measurement energy into signal, electrode-bias and residual components by class. The bias term accounts for effectively all noise energy and exceeds the touch signal itself for every class, which is the quantitative basis for the domain-gap analysis of Section~\ref{sec:res-domain}.}
-\label{fig:app-noise-decomposition}
-\end{figure}
+\caption[Multi-seed protocol against 5-fold cross-validation]{CNN accuracy (\%) under the multi-seed protocol used throughout Chapter~\ref{ch:results} against an independent stratified 5-fold cross-validation. The two schemes vary different things: folds vary the data partition, and seeds vary the partition and initialisation together.}
+\label{tab:app-crossval}
+\small
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Condition} & \textbf{5 seeds} & \textbf{5-fold CV} \\
+\midrule
+Clean$\to$Clean       & 94.00 $\pm$ 6.89 & 96.26 $\pm$ 1.89 \\
+Clean$\to$Noisy       & 19.98 $\pm$ 0.33 & 19.66 $\pm$ 0.79 \\
+Noisy$\to$Noisy       & 75.81 $\pm$ 0.62 & 75.58 $\pm$ 0.76 \\
+Noisy$\to$Clean       & 52.23 $\pm$ 1.94 & 52.52 $\pm$ 1.31 \\
+Augmented$\to$Noisy   & 69.50 $\pm$ 0.62 & 69.16 $\pm$ 0.25 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\begin{figure}[htbp]
+The two schemes agree closely on every condition, which establishes that the reported differences reflect the training condition rather than either source of sampling variability. The one divergence is Clean$\to$Clean, where cross-validation gives 96.26\% $\pm$ 1.89 against 94.00\% $\pm$ 6.89 across seeds. That gap is itself informative, isolating the CNN's clean-domain instability as an \emph{initialisation} effect rather than a data-partition one. The larger multi-seed spread is the more conservative estimate and is the figure quoted in Table~\ref{tab:main-results-raw}.
+
+Every difference discussed in Chapter~\ref{ch:results} exceeds the seed-to-seed standard deviation by a wide margin: the 55.8\,pp recovery from noise-aware training is roughly ninety times the 0.62\,pp spread of the noisy-trained condition, and the narrowest comparison examined, the 6.3\,pp between fixed-noise and online augmentation, is ten times it.
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Inadequacy of the Gaussian-Only Noise Model}
+\label{app:gaussian-only}
+
+Table~\ref{tab:app-gaussian-only} evaluates the noise model used almost universally in prior \gls{eit} work, sweeping Gaussian noise alone across a 40\,dB range of \gls{snr}.
+
+\begin{table}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{results/dataset_validation/figures/signal_vs_noise_comparison.png}
-\caption{Per-class signal and noise magnitudes. The touch signature is a small perturbation on a much larger structured offset; classification remains feasible only because that offset is block-structured and therefore separable.}
-\label{fig:app-signal-noise}
-\end{figure}
+\caption[Accuracy under Gaussian-only noise at varying SNR]{CNN and Random Forest accuracy (\%) under Gaussian-only noise at varying SNR. Accuracy is essentially invariant across the full range for every model tested.}
+\label{tab:app-gaussian-only}
+\small
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Model} & \textbf{60\,dB} & \textbf{50\,dB} & \textbf{40\,dB} & \textbf{30\,dB} & \textbf{20\,dB} \\
+\midrule
+CNN (clean-trained)              & 79.7 & 79.7 & 79.7 & 79.7 & 79.6 \\
+CNN (Gaussian-augmented)         & 72.5 & 72.6 & 72.5 & 72.7 & 72.8 \\
+CNN (full-noise-augmented)       & 78.9 & 78.9 & 78.9 & 78.7 & 78.8 \\
+Random Forest (Gaussian-trained) & 91.0 & 91.1 & 90.8 & 90.8 & 90.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Accuracy varies by under 0.5\,pp across a 40\,dB range, four orders of magnitude in noise power, for every model tested. A clean-trained classifier that collapses to 19.98\% under the full four-component noise model is essentially unaffected by Gaussian corruption even at 20\,dB, since additive zero-mean noise is largely absorbed by batch normalisation \parencite{ioffe2015batchnorm} and does not disturb the geometry separating the classes.
+
+This governs how the accuracies reported in the reviewed literature should be read. Robustness demonstrated under Gaussian-only augmentation \parencite{chen2023, park2022skin} is not evidence of robustness to the distortions that dominate real measurements, and is the basis for the recommendation in Section~\ref{sec:conc-recommendations} that multi-component noise, including electrode biases, be treated as the minimum standard for such a claim. The result is consistent with the ablation of Section~\ref{sec:res-ablation}, where a Gaussian-only training model reaches only 20.88\% under deployment-realistic evaluation.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Ablation Details}
 \label{app:ablation}
 
-Figures~\ref{fig:app-ablation-single}--\ref{fig:app-ablation-ordering} supplement Section~\ref{sec:res-ablation}. They are reported under \emph{matched} evaluation, and are included principally to document the protocol whose conclusions Chapter~\ref{ch:results} shows to be misleading; the deployment-realistic results that supersede them are in Tables~\ref{tab:ablation-single} and~\ref{tab:ablation-subset}.
+Figures~\ref{fig:app-ablation-single}--\ref{fig:app-ablation-ordering} supplement Section~\ref{sec:res-ablation}. They are reported under \emph{matched} evaluation and are included principally to document the protocol whose conclusions Chapter~\ref{ch:results} shows to be misleading; the deployment-realistic results that supersede them are in Tables~\ref{tab:ablation-single} and~\ref{tab:ablation-subset}.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/single_component_impact.png}
-\caption{Single-component ablation under \emph{matched} evaluation, in which each model is tested on the same single component it was trained with. Read in isolation this figure is misleading: it ranks electrode bias worst (78.68\%) and Gaussian noise best (96.61\%), the reverse of the deployment-realistic ranking in Table~\ref{tab:ablation-single}. It is retained to make that discrepancy explicit.}
+\caption[Single-component ablation under matched evaluation]{Single-component ablation under \emph{matched} evaluation, in which each model is tested on the same single component it was trained with. Read in isolation, this figure is misleading: it ranks electrode bias worst (78.68\%) and Gaussian noise best (96.61\%), the reverse of the deployment-realistic ranking in Table~\ref{tab:ablation-single}. It is retained to make that discrepancy explicit.}
 \label{fig:app-ablation-single}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/component_subset_heatmap.png}
-\caption{Matched-condition accuracy across all 15 non-empty component subsets. Subsets containing electrode bias cluster within 75.3--77.8\%, while those omitting it reach 85.3--97.2\% under matched evaluation---higher precisely because they define an easier world, not because they are better training distributions. Under deployment evaluation the two groups separate in the opposite direction, at 54.7--76.9\% and 16.5--23.4\% respectively (Section~\ref{sec:res-ablation}).}
+\caption[Matched-condition accuracy across component subsets]{Matched-condition accuracy across all 15 non-empty component subsets. Subsets containing the electrode bias cluster within 75.3--77.8\%, while those omitting it reach 85.3--97.2\% under matched evaluation, higher precisely because they define an easier world rather than better training distributions. Under deployment evaluation, the two groups separate in the opposite direction, at 54.7--76.9\% and 16.5--23.4\% respectively (Section~\ref{sec:res-ablation}).}
 \label{fig:app-ablation-heatmap}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/ordering_impact.png}
-\caption{Effect of component application order for the full four-component model, where the spread is modest (1.29\,pp between the best and worst admissible permutation). Ordering matters far more within two-component subsets, though only under deployment evaluation: reversing Gaussian and electrode bias costs 0.67\,pp matched but 21.6\,pp deployed, for the reasons given in Section~\ref{sec:res-ablation-order}.}
+\caption[Effect of component application order]{Effect of component application order for the full four-component model, where the spread is modest (1.29\,pp between the best and worst admissible permutation). Ordering matters far more within two-component subsets, though only under deployment evaluation: reversing Gaussian and electrode bias costs 0.67\,pp matched but 21.6\,pp deployed, for the reasons given in Section~\ref{sec:res-ablation-order}.}
 \label{fig:app-ablation-ordering}
 \end{figure}
 
-%% ─────────────────────────────────────────────────────────────────────────────
-\section{Predictive Confidence}
-\label{app:calibration}
-
-Figures~\ref{fig:app-reliability} and~\ref{fig:app-confidence} supplement the confidence analysis of Section~\ref{sec:res-calibration}.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.8\textwidth]{results/figures/calibration_reliability_diagrams.png}
-\caption{Reliability diagrams for the CNN under clean and noisy evaluation, plotting achieved accuracy against predicted confidence. Perfect correspondence follows the diagonal. Under domain shift (Clean$\to$Noisy) predictions cluster near confidence 1.0 regardless of accuracy, falling far below the diagonal; matched-distribution training restores the correspondence.}
-\label{fig:app-reliability}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.8\textwidth]{results/figures/calibration_confidence_distributions.png}
-\caption{Distribution of predicted confidences under clean and noisy conditions. The bimodal distribution under domain shift (high confidence but low accuracy) represents the worst-case failure mode for safety-critical deployment.}
-\label{fig:app-confidence}
-\end{figure}
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Sensitivity Analyses}
 \label{app:sensitivity}
 
-Figures~\ref{fig:app-noise-sensitivity} and~\ref{fig:app-hp-sensitivity} supplement Section~\ref{sec:res-sensitivity}, covering sensitivity to the noise-model parameters and to the training hyperparameters respectively.
+Figures~\ref{fig:app-noise-sensitivity} and~\ref{fig:app-hp-sensitivity} supplement Section~\ref{sec:res-sensitivity}, covering sensitivity to the noise-model parameters and to the training hyperparameters, respectively.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{results/figures/noise_parameter_sensitivity.png}
-\caption{Noise parameter sensitivity: CNN accuracy as each noise parameter is swept independently while the others are held at default. Accuracy is flat across the full plausible range of \gls{snr} and contact impedance, but collapses at quadrupled electrode bias ($b_{\max} = 0.08$: 35.0\%) and at 8-bit \gls{adc} resolution (30.1\%). See Table~\ref{tab:noise-sensitivity}.}
+\caption[Noise parameter sensitivity]{Noise parameter sensitivity: CNN accuracy as each noise parameter is swept independently while the others are held at default. Accuracy is flat across the full plausible range of \gls{snr} and contact impedance, but collapses at quadrupled electrode bias ($b_{\max} = 0.08$: 35.0\%) and at 8-bit \gls{adc} resolution (30.1\%). See Table~\ref{tab:noise-sensitivity}.}
 \label{fig:app-noise-sensitivity}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{results/figures/hyperparameter_sensitivity.png}
-\caption{Hyperparameter sensitivity: CNN accuracy under sweeps of learning rate, dropout, weight decay and training severity range. Accuracy varies by 2.2--5.4\,pp across all four sweeps, confirming that the reported findings are not an artefact of the specific training configuration.}
+\caption[Hyperparameter sensitivity]{Hyperparameter sensitivity: CNN accuracy under sweeps of learning rate, dropout, weight decay and training severity range. Accuracy varies by 2.2--5.4\,pp across all four sweeps, confirming that the reported findings are not an artefact of the specific training configuration.}
 \label{fig:app-hp-sensitivity}
 \end{figure}
 
@@ -164,7 +182,7 @@ Table~\ref{tab:eda-pipelines} reports the cross-validated macro-F1 and balanced 
 
 \begin{table}[htbp]
 \centering
-\caption{Cross-validated comparison of preprocessing pipelines (15 paired folds, logistic-regression probe). \texttt{robust\_lr} = \texttt{RobustScaler} + full 208 features; \texttt{standard\_lr} = \texttt{StandardScaler} + full features; \texttt{corr$\rho$} = correlation-based feature pruning at threshold $\rho$; \texttt{pca95} = \gls{pca} retaining 95\% variance (7 components); \texttt{lda\_classifier} = \gls{lda}-transformed features (4 components).}
+\caption[Cross-validated comparison of preprocessing pipelines]{Cross-validated comparison of preprocessing pipelines (15 paired folds, logistic-regression probe). \texttt{robust\_lr} = \texttt{RobustScaler} + full 208 features; \texttt{standard\_lr} = \texttt{StandardScaler} + full features; \texttt{corr$\rho$} = correlation-based feature pruning at threshold $\rho$; \texttt{pca95} = \gls{pca} retaining 95\% variance (7 components); \texttt{lda\_classifier} = \gls{lda}-transformed features (4 components).}
 \label{tab:eda-pipelines}
 \small
 \begin{tabularx}{\textwidth}{@{}l r r X@{}}
@@ -198,7 +216,7 @@ The cross-validation ranking was confirmed on a stratified held-out partition di
 \section{Duplicate Audit}
 \label{app:eda-duplicates}
 
-An exact-row duplicate audit on the full 25{,}000-sample dataset identified 4{,}999 duplicates within the no-contact class (Class~0) and zero duplicates across all four contact classes. The class-0 duplicates are a physically correct consequence of the homogeneous-baseline definition: every no-contact sample produces an identical conductivity image, and---in the clean (pre-noise) representation---an identical voltage difference vector of $\mathbf{0}$. Deduplication is therefore not applied. After noise injection, the class-0 samples become distinguishable through the Gaussian noise floor of Component~1 (Section~\ref{sec:method-noise-components}), so no clustering pathology arises during training.
+An exact-row duplicate audit on the full 25{,}000-sample dataset identified 4{,}999 duplicates within the no-contact class (Class~0) and zero duplicates across all four contact classes. The class-0 duplicates are a physically correct consequence of the homogeneous-baseline definition: every no-contact sample produces an identical conductivity image, and, in the clean (pre-noise) representation, an identical voltage difference vector of $\mathbf{0}$. Deduplication is therefore not applied. After noise injection, the class-0 samples become distinguishable through the Gaussian noise floor of Component~1 (Section~\ref{sec:method-noise-components}), so no clustering pathology arises during training.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Effect of Feature Reduction}
@@ -208,7 +226,7 @@ Dimensionality reduction was evaluated as an alternative to the full 208-dimensi
 
 \begin{table}[htbp]
 \centering
-\caption{Best accuracy (\%) per condition across feature representations. Both reductions are fitted on clean training data.}
+\caption[Best accuracy per condition across feature representations]{Best accuracy (\%) per condition across feature representations. Both reductions are fitted on clean training data.}
 \label{tab:feature-reduction}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -223,7 +241,7 @@ Noisy$\to$Clean & 52.23 (CNN) & 45.42 (MLP) & 22.35 (RF) \\
 \end{tabular}
 \end{table}
 
-On clean data both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need in order to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
+On clean data, both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Baseline Classifier Configurations}
@@ -233,7 +251,7 @@ Settings for the three classical baselines of Section~\ref{sec:method-models}. A
 
 \begin{table}[htbp]
 \centering
-\caption{Baseline classifier configurations.}
+\caption[Baseline classifier configurations]{Baseline classifier configurations.}
 \label{tab:baseline-params}
 \small
 \begin{tabularx}{\textwidth}{@{}lX@{}}
