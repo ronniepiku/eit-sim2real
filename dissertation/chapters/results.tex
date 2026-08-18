@@ -31,6 +31,29 @@ Three findings follow. First, every model achieves strong clean-domain accuracy 
 
 Third, noise-aware training recovers a large fraction of the loss. The CNN reaches 75.81\% under Noisy$\to$Noisy, an improvement of 55.8 percentage points (pp) over the same architecture trained on clean data.
 
+Reconstruction makes the same collapse visible. Figure~\ref{fig:reconstructions} inverts representative single frames back onto the mesh. Clean measurements localise every contact class distinctly, confirming that the forward model produces physically coherent fields and that the classes are genuinely separable in image space. The same frames under the full four-component corruption reconstruct to artefact, with no recoverable contact location, and the quadrant seams visible throughout are the per-electrode block structure of the dominant error appearing in the image domain. Direct classification retains 75.81\% where reconstruction retains nothing, which is the practical case for bypassing the inverse problem.
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}{\textwidth}
+\centering
+\includegraphics[width=\textwidth]{results/dataset_validation/reconstructions/random_reconstructed_class_images_clean.png}
+\caption[Clean measurements]{Clean measurements.}
+\label{fig:recon-clean}
+\end{subfigure}
+
+\vspace{0.3cm}
+
+\begin{subfigure}{\textwidth}
+\centering
+\includegraphics[width=\textwidth]{results/dataset_validation/reconstructions/random_reconstructed_class_images_noisy.png}
+\caption[Under four-component corruption]{The same frames under the full four-component corruption.}
+\label{fig:recon-noisy}
+\end{subfigure}
+\caption[Reconstructions from clean and noisy measurements]{Difference reconstructions of randomly drawn single frames from each class, solved with a one-step linearised Gauss--Newton method under a Laplace smoothness prior (hyperparameter 0.003). Clean frames localise each contact class; the same frames under the four-component noise model yield no recoverable contact location, and the quadrant seams expose the per-electrode block structure of the corruption. The dissertation classifies the boundary voltages directly and never solves this inverse problem; the reconstructions are shown to characterise the measurement corruption, not as a proposed method.}
+\label{fig:reconstructions}
+\end{figure}
+
 The CNN outperforms the strongest baseline on noisy data by 17.9\,pp (RF, 57.85\%). The natural explanation is that convolutional kernels exploit the block-structured, per-electrode form of the dominant corruption (Section~\ref{sec:res-ablation}), and this is directly testable. Applying a fixed permutation to the 208 measurement indices, identically to training and test data and \emph{after} noise injection, preserves information content exactly while destroying adjacency. The CNN then loses 30.2\,pp, whereas the three exchangeable baselines are unaffected, the \gls{svm} to the decimal place (Table~\ref{tab:permutation}). The permuted CNN falls below both \gls{rf} and \gls{mlp}, so without block structure the convolutional prior is not merely uninformative but actively harmful.
 
 \begin{table}[htbp]
