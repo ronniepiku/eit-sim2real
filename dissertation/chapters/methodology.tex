@@ -221,7 +221,7 @@ Table~\ref{tab:noise-params} consolidates all noise parameters with their physic
 
 \begin{table}[htbp]
 \centering
-\caption[Noise model parameters and literature sources]{Noise model parameters. All values are derived from experimental EIT literature.}
+\caption[Noise model parameters]{Noise model parameters. The cited works establish that each mechanism matters; the magnitudes are nominal and bounded by the sweeps of Section~\ref{sec:method-noise-sensitivity}.}
 \label{tab:noise-params}
 \small
 \begin{tabularx}{\textwidth}{@{}l l l X@{}}
@@ -424,6 +424,9 @@ Throughout, corruption is applied in \emph{foundational mode}: noise is drawn on
 \subsection{Noise Parameter Sensitivity}
 \label{sec:method-noise-sensitivity}
 
-Each parameter was swept independently with the others held at default: SNR $\{60,50,40,30,20\}$\,dB; contact impedance $\sigma_z \in \{5,10,15,20,25\}\%$; electrode bias $b_{\max} \in \{0.005,0.01,0.02,0.04,0.08\}$; \gls{adc} resolution $\{8,10,12,14,16\}$ bits. This addresses the concern that the parameters are literature-constrained rather than directly measured: if the conclusions hold across the plausible range of each, they do not depend on a particular calibration assumption.
+Each parameter was swept independently with the others held at default: SNR $\{60,50,40,30,20\}$\,dB; contact impedance $\sigma_z \in \{5,10,15,20,25\}\%$; electrode bias $b_{\max} \in \{0.005,0.01,0.02,0.04,0.08\}$; \gls{adc} resolution $\{8,10,12,14,16\}$ bits. This addresses the concern that the parameters are nominal rather than measured: if the conclusions hold across the plausible range of each, they do not depend on a particular calibration assumption.
+
+\subsection{Data and Ethical Considerations}
+\label{sec:method-ethics}
 
 Using exclusively synthetic data removes the usual concerns around collection and storage. The ethical, economic and sustainability implications of the work are evaluated against its findings in Section~\ref{sec:disc-ethics}.

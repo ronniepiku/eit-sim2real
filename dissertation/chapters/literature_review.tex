@@ -167,8 +167,7 @@ The distinction between reconstruction and classification matters. This work ado
 
 
 
-Several concerns recur \emph{systematically}, catalogued in Table~
-ef{tab:gaps-summary}. Reported accuracies rest predominantly on single train/test splits \parencite{park2022skin, tao2023, yu2024, chen2023}; training data come from single phantoms; and design choices are seldom isolated by ablation. None of the studies reviewed here evaluates against a standardised corruption benchmark comparable to ImageNet-C \parencite{hendrycks2019}, and 	extcite{goodfellow2015adversarial} established that perturbation vulnerability is intrinsic to high-dimensional models.
+Several concerns recur \emph{systematically}, catalogued in Table~\ref{tab:gaps-summary}. Reported accuracies rest predominantly on single train/test splits \parencite{park2022skin, tao2023, yu2024, chen2023}; training data come from single phantoms; and design choices are seldom isolated by ablation. None of the studies reviewed here evaluates against a standardised corruption benchmark comparable to ImageNet-C \parencite{hendrycks2019}, and \textcite{goodfellow2015adversarial} established that perturbation vulnerability is intrinsic to high-dimensional models.
 
 
 
@@ -196,7 +195,7 @@ The sources the field has invested most effort in compensating for, electrode po
 \small
 \begin{tabularx}{\textwidth}{@{}lcX@{}}
 \toprule
-\textbf{Source} & \textbf{In scope} & \textbf{Reason for exclusion} \\
+\textbf{Source} & \textbf{In scope} & \textbf{Rationale} \\
 \midrule
 Thermal and amplifier noise      & Yes & Additive noise in the analogue chain; modelled at fixed \gls{snr} \parencite{adler2006} \\
 \midrule
@@ -225,8 +224,7 @@ Motion artefacts, mains pickup   & No  & Non-stationary or environment-specific 
 \label{sec:lit-sim2real-da}
 
 
-\textcite{tobin2017} introduced domain randomisation, transferring detection from simulation to physical robots on the principle that with sufficient simulated variability the real distribution becomes a subset of the training distribution. \textcite{ganin2016} proposed domain-adversarial training and \textcite{tzeng2017adda} extended it with ADDA. In the taxonomy of \textcite{pan2010survey}, noise augmentation resembles instance-based transfer. Neither appears in the \gls{eit} tactile studies of Table~
-ef{tab:eit-systems}, and both need paired data this study lacks.
+\textcite{tobin2017} introduced domain randomisation, transferring detection from simulation to physical robots on the principle that with sufficient simulated variability the real distribution becomes a subset of the training distribution. \textcite{ganin2016} proposed domain-adversarial training and \textcite{tzeng2017adda} extended it with ADDA. In the taxonomy of \textcite{pan2010survey}, noise augmentation resembles instance-based transfer. Neither appears in the \gls{eit} tactile studies of Table~\ref{tab:eit-systems}, and both need paired data this study lacks.
 
 
 \textcite{hendrycks2019} introduced ImageNet-C, showing that state-of-the-art classifiers suffer catastrophic drops under corruptions humans handle trivially, and establishing the multi-severity evaluation paradigm adopted in Chapter~\ref{ch:methodology}. \textcite{rusak2020simple} showed that simple Gaussian augmentation provides limited corruption robustness, while diverse physically grounded strategies substantially outperform it.
