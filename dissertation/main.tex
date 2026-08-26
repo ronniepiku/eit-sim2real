@@ -107,9 +107,11 @@
     {\large MSc Artificial Intelligence in Engineering and Design\par}
     \vspace{1cm}
 
-    {\large\textbf{Decleration of AI Use}\par}
-    \noindent
-    I acknowledge that this work is my own. I used Claude Opus Anthropic, \url{https://claude.ai}) to take notes from sources, develop the code base, suggest a report outline, convert structured notes into paragraphs, proofread and condense content and finally format the bibliography. \cite{claude2026}.
+    {\large\textbf{Declaration of AI Use}\par}
+    \begin{minipage}{0.85\textwidth}
+    \centering\small
+    I acknowledge that this work is my own. I used Claude Opus \parencite{claude2026}, available at \url{https://claude.ai}, to take notes from sources, develop the code base, suggest a report outline, convert structured notes into paragraphs, proofread and condense content and format the bibliography.
+    \end{minipage}
     \vspace{1cm}
     
     {\large\textbf{Supervisor}\par}
@@ -147,13 +149,13 @@ Signed on behalf of the Department of Electronic and Electrical Engineering
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-Electrical Impedance Tomography (EIT) offers a promising sensing modality for electronic prosthetic skin, enabling touch perception in prosthetic limbs. However, classifiers trained on idealised simulation data fail when deployed on real hardware. This dissertation aims to develop a physically motivated multi-component noise model to bridge this gap, identify via ablation which components are necessary under deployment-realistic conditions rather than matched evaluation, and assess the robustness of the resulting models.
+Electrical Impedance Tomography (EIT) offers a promising sensing modality for electronic prosthetic skin, but classifiers trained on idealised simulation data fail on real hardware. This dissertation develops a physically motivated multi-component noise model to bridge this gap, identifies via ablation which components are necessary under deployment-realistic rather than matched evaluation, and assesses the resulting models' robustness.
 
-A synthetic dataset of 25,000 EIT voltage measurements across five touch classes was generated to simulate a 16-electrode ionic hydrogel prosthetic skin. Four classifiers were evaluated over five independent seeds with stratified splits, and each noise component was ablated under both matched and deployment-realistic evaluation settings.
+A synthetic dataset of 25,000 EIT voltage measurements across five touch classes simulated a 16-electrode ionic hydrogel skin. Four classifiers were evaluated over five seeds with stratified splits, each noise component ablated under matched and deployment-realistic settings.
 
-All models collapse to chance under domain mismatch, irrespective of architecture or feature representation. Noise-matched training recovers it, with the 1D-CNN reaching 75.8\% $\pm$ 0.6, a gain of 55.8 percentage points. Component ablation supplies the central result. Noise models omitting electrode positioning bias perform at chance, whereas Gaussian noise plus electrode bias alone reaches 76.5\%, level with the full four-component model. Severity scaling reveals a trade-off: fixed-noise training peaks at its training severity but loses 15.0 percentage points by 3$\times$, whereas randomised training is far flatter and overtakes it near 2.2$\times$. Under domain shift, the models are also confidently wrong, reporting 99.7\% mean confidence at 19.7\% accuracy, a failure mode with direct safety implications that matched training resolves.
+All models collapse to chance under domain mismatch, regardless of architecture or feature representation, but noise-matched training recovers this, the 1D-CNN reaching 75.8\% $\pm$ 0.6, a 55.8-point gain. Component ablation supplies the central result: models omitting electrode positioning bias perform at chance, whereas Gaussian noise plus electrode bias alone reaches 76.5\%, level with the full model. Severity scaling reveals a trade-off: fixed-noise training peaks at its training severity but loses 15.0 points by 3$\times$, while randomised training is far flatter, overtaking it near 2.2$\times$. Under domain shift the models are also confidently wrong, reporting 99.7\% mean confidence at 19.7\% accuracy, a safety-critical failure matched training resolves.
 
-These findings identify the minimal noise model required for deployable EIT tactile classification, and demonstrate that the evaluation protocol conventionally used in component ablation can invert the design guidance derived from it.
+These findings identify the minimal noise model required for deployable EIT tactile classification, and show that the evaluation protocol conventionally used in component ablation can invert the design guidance it produces.
 
 %% ─── Acknowledgements ─────────────────────────────────────────────────────────
 \newpage

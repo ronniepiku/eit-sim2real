@@ -3,7 +3,53 @@
 \chapter{Supplementary Results}
 \label{app:supplementary}
 
-This appendix provides supplementary figures and tables supporting the findings of Chapter~\ref{ch:results}: training convergence, full confusion matrices, corroboration of the validation protocol by an independent cross-validation (Section~\ref{app:crossval}), the inadequacy of Gaussian-only augmentation (Section~\ref{app:gaussian-only}), detailed ablation results, predictive-confidence diagnostics and the sensitivity analyses.
+This appendix provides supplementary figures and tables supporting the methodology of Chapter~\ref{ch:methodology} and the findings of Chapter~\ref{ch:results}: mesh selection (Section~\ref{app:mesh}), training convergence, full confusion matrices, corroboration of the validation protocol by an independent cross-validation (Section~\ref{app:crossval}), generalisation across noise realisations (Section~\ref{app:memorisation}), the bias-cancellation derivation (Section~\ref{app:rho}), the inadequacy of Gaussian-only augmentation (Section~\ref{app:gaussian-only}), detailed ablation results, predictive-confidence diagnostics and the sensitivity analyses.
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Mesh Selection}
+\label{app:mesh}
+
+Three matched noisy datasets were generated at coarse (\texttt{c}), medium (\texttt{d}) and fine (\texttt{f}) refinement with identical class definitions, noise model, splits and hyperparameters; one CNN was trained per mesh and evaluated on all three (Table~\ref{tab:mesh-cross-matrix}). Training on \texttt{c} gives the highest in-mesh score but the largest cross-mesh variation (8.35\,pp), whereas \texttt{d} and \texttt{f} transfer more stably (4.37 and 3.47\,pp). Mesh \texttt{d} is retained as it balances literature comparability against stable cross-mesh behaviour, and since complexity and runtime are comparable (Table~\ref{tab:mesh-compute}), the decision rests on generalisation rather than cost (Section~\ref{sec:method-mesh}).
+
+\begin{table}[htbp]
+\centering
+\caption[Cross-mesh CNN performance]{Cross-mesh CNN performance (\%) under matched training protocol. Rows denote training mesh, columns denote test mesh.}
+\label{tab:mesh-cross-matrix}
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}l c c c c c@{}}
+\toprule
+\textbf{Train mesh} & \textbf{Test c} & \textbf{Test d} & \textbf{Test f} & \textbf{Mean} & \textbf{Range} \\
+\midrule
+\texttt{c} (Accuracy) & 83.92 & 75.57 & 77.09 & 78.86 & 8.35 \\
+\texttt{d} (Accuracy) & 79.44 & 75.07 & 75.76 & 76.76 & 4.37 \\
+\texttt{f} (Accuracy) & 78.77 & 75.31 & 76.88 & 76.99 & 3.47 \\
+\midrule
+\texttt{c} (Macro-F1) & 84.02 & 74.88 & 76.86 & 78.59 & 9.14 \\
+\texttt{d} (Macro-F1) & 79.52 & 74.90 & 75.67 & 76.57 & 4.62 \\
+\texttt{f} (Macro-F1) & 78.33 & 74.13 & 76.06 & 76.17 & 4.20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption[Computational profile by training mesh]{Computational profile by training mesh.}
+\label{tab:mesh-compute}
+\small
+\setlength{\tabcolsep}{7pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}l c c c c@{}}
+\toprule
+\textbf{Train mesh} & \textbf{Train time (s)} & \textbf{Inference (ms/sample)} & \textbf{Parameters} & \textbf{Peak memory (MB)} \\
+\midrule
+\texttt{c} & 277.15 & 0.0149 & 69{,}189 & 61.45 \\
+\texttt{d} & 275.00 & 0.0104 & 69{,}189 & 36.90 \\
+\texttt{f} & 275.28 & 0.0105 & 69{,}189 & 36.90 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 %% ─────────────────────────────────────────────────────────────────────────────
 \section{Training Convergence}
@@ -89,6 +135,35 @@ The two schemes agree closely on every condition, which establishes that the rep
 Every difference discussed in Chapter~\ref{ch:results} exceeds the seed-to-seed standard deviation by a wide margin: the 55.8\,pp recovery from noise-aware training is roughly ninety times the 0.62\,pp spread of the noisy-trained condition, and the narrowest comparison examined, the 6.3\,pp between fixed-noise and online augmentation, is ten times it.
 
 %% ─────────────────────────────────────────────────────────────────────────────
+\section{Generalisation Across Noise Realisations}
+\label{app:memorisation}
+
+Supplementary detail for Section~\ref{sec:res-memorisation}. The trained noisy-domain CNN was evaluated on ten independently generated noisy test sets, each with entirely different electrode-bias vectors, contact-impedance factors and Gaussian realisations. Accuracy was 75.61\% $\pm$ 0.17\% across the ten draws, against 74.37\% on the original MATLAB-generated test set. The variation across realisations is far smaller than any effect discussed in Chapter~\ref{ch:results}. That the alternative draws score marginally \emph{higher} reflects the small implementation difference between the MATLAB and Python noise paths, and bounds it at approximately 1.2\,pp.
+
+A CNN was also trained with noise sampled once per training sample and held fixed across all epochs, mimicking a population of devices each with its own persistent electrode characteristics. It achieved 69.09\% on noisy evaluation and 69.47\% on an independent draw, a 0.41\,pp difference from online augmentation (69.50\%) smaller than the seed-to-seed spread of either condition. Whether training noise persists per sample or is redrawn each epoch therefore has no measurable effect on deployed accuracy.
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Cancellation of Electrode Bias Under Differencing}
+\label{app:rho}
+
+Supplementary derivation and results for Section~\ref{sec:res-rho}. Writing the per-electrode offset as a shared component plus independent parts, the shared term cancels exactly under differencing and the residual acting on $\Delta\mathbf{v}$ scales as $(1-\rho)$, where $\rho$ is the fraction common to both frames. Table~\ref{tab:rho-sweep} sweeps $\rho$ to test this directly.
+
+\begin{table}[htbp]
+\centering
+\caption[Sensitivity to inter-frame bias cancellation]{CNN accuracy (\%) against $\rho$, the fraction of electrode bias common to the reference and measurement frames and therefore cancelled by differencing. Means over 5 seeds. $\rho = 0$ is the model used throughout; $\rho = 1$ is static misplacement.}
+\label{tab:rho-sweep}
+\small
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{$\rho$} & \textbf{0.00} & \textbf{0.25} & \textbf{0.50} & \textbf{0.75} & \textbf{0.90} & \textbf{1.00} \\
+\midrule
+Accuracy & 75.80 & 76.46 & 77.47 & 78.53 & 82.85 & \textbf{96.99} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ─────────────────────────────────────────────────────────────────────────────
 \section{Inadequacy of the Gaussian-Only Noise Model}
 \label{app:gaussian-only}
 
@@ -139,7 +214,7 @@ Figures~\ref{fig:app-ablation-single}--\ref{fig:app-ablation-ordering} supplemen
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{results/figures/ablation/ordering_impact.png}
-\caption[Effect of component application order]{Effect of component application order for the full four-component model, where the spread is modest (1.29\,pp between the best and worst admissible permutation). Ordering matters far more within two-component subsets, though only under deployment evaluation: reversing Gaussian and electrode bias costs 0.67\,pp matched but 21.6\,pp deployed, for the reasons given in Section~\ref{sec:res-ablation-order}.}
+\caption[Effect of component application order]{Effect of component application order for the full four-component model, where the spread is modest (1.29\,pp between the best and worst admissible permutation). Ordering matters far more within two-component subsets, though only under deployment evaluation: reversing Gaussian and electrode bias costs 0.67\,pp matched but 21.6\,pp deployed (Section~\ref{sec:res-ablation-order}). The cause is that the Gaussian component is specified relative to signal amplitude (Equation~\ref{eq:noise-gaussian}): applied after the bias rather than before, its scale is set by signal-plus-bias, roughly forty times larger for light touch (Section~\ref{sec:res-domain}), injecting far more Gaussian energy and matching deployment less closely.}
 \label{fig:app-ablation-ordering}
 \end{figure}
 
@@ -206,12 +281,7 @@ Table~\ref{tab:eda-pipelines} reports the cross-validated macro-F1 and balanced 
 \end{tabularx}
 \end{table}
 
-Although the absolute differences in Table~\ref{tab:eda-pipelines} are small, the ranking is consistent fold by fold: \texttt{robust\_lr} achieves the highest macro-F1 in every one of the 15 evaluations, and both correlation pruning and \gls{pca} rank below the full-feature pipelines in all of them. That consistency, rather than the size of the gap, is the basis for the selection.
-
-\section{Held-out Confirmation}
-\label{app:eda-holdout}
-
-The cross-validation ranking was confirmed on a stratified held-out partition disjoint from the cross-validation folds, which reproduced the ordering of Table~\ref{tab:eda-pipelines}. The \texttt{RobustScaler} + full-features pipeline is the only configuration combining the highest macro-F1 with low fold-to-fold variance, which is the basis for adopting it as the default preprocessing path for all subsequent experiments in Chapter~\ref{ch:results}.
+Although the absolute differences in Table~\ref{tab:eda-pipelines} are small, the ranking is consistent fold by fold: \texttt{robust\_lr} achieves the highest macro-F1 in every one of the 15 evaluations, and both correlation pruning and \gls{pca} rank below the full-feature pipelines in all of them. That consistency, rather than the size of the gap, is the basis for the selection. The ranking was further confirmed on a stratified held-out partition disjoint from the cross-validation folds, which reproduced the same ordering, so \texttt{RobustScaler} with the full feature set is adopted as the default preprocessing path for all subsequent experiments in Chapter~\ref{ch:results}.
 
 \section{Duplicate Audit}
 \label{app:eda-duplicates}
@@ -241,10 +311,13 @@ Noisy$\to$Clean & 52.23 (CNN) & 45.42 (MLP) & 22.35 (RF) \\
 \end{tabular}
 \end{table}
 
-On clean data, both reductions remain competitive---\gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
+On clean data, both reductions remain competitive: \gls{lda} retains 91.43\% with only four dimensions, confirming that the class-discriminative structure is genuinely low-dimensional. Under noise they are actively harmful, halving Noisy$\to$Noisy accuracy from 75.81\% to approximately 38\%. Because the projections are estimated from the covariance of \emph{clean} data, they retain only the directions that separate classes in the absence of noise; the dominant corruption acts along different directions (Section~\ref{sec:res-domain}), so the information a model would need to discount it is discarded before training begins. This is a concrete instance of the result of \textcite{ben-david2010domain} that minimising source-domain error is insufficient when the target distribution differs.
 
 %% ─────────────────────────────────────────────────────────────────────────────
-\chapter{Baseline Classifier Configurations}
+\chapter{Implementation Details}
+\label{app:implementation}
+
+\section{Baseline Classifier Configurations}
 \label{app:baselines}
 
 Settings for the three classical baselines of Section~\ref{sec:method-models}. All are fixed \emph{a priori} from canonical practice for each model family and held constant across every experimental condition, so that the estimated effect of noise augmentation is not confounded with per-condition tuning effort.
@@ -268,7 +341,7 @@ Settings for the three classical baselines of Section~\ref{sec:method-models}. A
 \end{table}
 
 %% ─────────────────────────────────────────────────────────────────────────────
-\chapter{Code Repository}
+\section{Code Repository}
 \label{app:code}
 
 The full source code, trained models, and data generation pipeline are available at:
