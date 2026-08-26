@@ -39,6 +39,8 @@ function results = generate_validation_reconstructions(data_path, output_dir, n_
         mkdir(output_dir);
     end
 
+    rng(42);  % Fixed seed for reproducibility, consistent with the rest of the pipeline
+
     data = load(data_path, 'dataset_X_clean', 'dataset_X_noisy', 'dataset_y', 'config');
     class_names = {'No contact', 'Light touch', 'Firm press', 'Point contact', 'Distributed'};
     class_ids = 1:5;
@@ -150,11 +152,11 @@ function save_reconstruction_grid(images, class_names, fig_title, file_prefix)
         subplot(2, 3, i);
         show_slices(images{i});
         axis image off;
-        title(class_names{i}, 'FontWeight', 'normal');
+        title(class_names{i}, 'FontWeight', 'bold', 'Color', 'k', 'FontSize', 11);
         caxis(clim);
     end
 
-    sgtitle(fig_title, 'FontWeight', 'bold');
+    sgtitle(fig_title, 'FontWeight', 'bold', 'Color', 'k', 'FontSize', 13);
     set(fig, 'PaperPositionMode', 'auto');
     print(fig, [file_prefix '.png'], '-dpng', '-r300');
     print(fig, [file_prefix '.pdf'], '-dpdf', '-painters');

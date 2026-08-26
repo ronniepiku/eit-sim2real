@@ -92,9 +92,9 @@ s = slide()
 tb(s, 0.85, 2.15, 11.6, 0.4, "MSc Artificial Intelligence in Engineering and Design",
    size=15, bold=True, color=BLUE)
 tb(s, 0.85, 2.75, 11.2, 1.9,
-   "Towards Simulation-to-Reality Transfer\nin EIT Tactile Sensing",
+   "A Physically Motivated Noise Model for\nRobust EIT Tactile Classification",
    size=40, bold=True, line=1.1)
-tb(s, 0.85, 4.55, 11.2, 0.5, "A noise-augmented deep learning approach",
+tb(s, 0.85, 4.55, 11.2, 0.5, "Under simulated domain shift",
    size=21, color=MUTED)
 tb(s, 0.85, 5.65, 11.2, 1.0,
    "Ronald Piku       Supervisor: Prof. Manuchehr Soleimani\n"

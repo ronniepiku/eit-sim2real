@@ -1,5 +1,5 @@
 # EE52037 — 7-minute presentation script
-**Ronald Piku · Towards Simulation-to-Reality Transfer in EIT Tactile Sensing**
+**Ronald Piku · A Physically Motivated Noise Model for Robust EIT Tactile Classification Under Simulated Domain Shift**
 
 Target ~6:50 at a normal speaking pace (~135 words/min). Total 923 words,
 leaving roughly ten seconds of headroom against the 7-minute limit.

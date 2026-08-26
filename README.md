@@ -1,4 +1,4 @@
-# Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach
+# A Physically Motivated Noise Model for Robust EIT Tactile Classification Under Simulated Domain Shift
 
 [![CI](https://github.com/ronniepiku/eit-sim2real/actions/workflows/ci.yml/badge.svg)](https://github.com/ronniepiku/eit-sim2real/actions/workflows/ci.yml)
 
@@ -268,8 +268,8 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for development workflow details.
 
 ```bibtex
 @mastersthesis{piku2026eit,
-  title   = {Towards Simulation-to-Reality Transfer in {EIT} Tactile Sensing:
-             A Noise-Augmented Deep Learning Approach},
+  title   = {A Physically Motivated Noise Model for Robust {EIT} Tactile
+             Classification Under Simulated Domain Shift},
   author  = {Piku, Ronald},
   year    = {2026},
   school  = {University of Bath}

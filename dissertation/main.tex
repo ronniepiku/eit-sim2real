@@ -66,7 +66,7 @@
 % Appendix
 \usepackage[toc,page]{appendix}
 
-% Glossary / abbreviations
+% Glossary/abbreviations
 \usepackage[acronym, toc]{glossaries}
 \makeglossaries
 
@@ -85,7 +85,7 @@
 \newacronym{dnn}{DNN}{Deep Neural Network}
 
 %% ─── Document Metadata ────────────────────────────────────────────────────────
-\title{Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach}
+\title{A Physically Motivated Noise Model for Robust EIT Tactile Classification Under Simulated Domain Shift}
 \author{Ronald Piku}
 \date{September 2026}
 
@@ -95,18 +95,22 @@
 %% ─── Title Page ───────────────────────────────────────────────────────────────
 \begin{titlepage}
     \centering
-    \vspace*{2cm}
     
     {\Large\bfseries Ronald Piku\par}
     \vspace{1cm}
     
-    {\LARGE\bfseries Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach\par}
+    {\LARGE\bfseries A Physically Motivated Noise Model for Robust EIT Tactile Classification Under Simulated Domain Shift\par}
     \vspace{2cm}
     
     {\large A dissertation submitted to the degree of Master of Science\par}
     \vspace{0.5cm}
     {\large MSc Artificial Intelligence in Engineering and Design\par}
-    \vspace{2cm}
+    \vspace{1cm}
+
+    {\large\textbf{Decleration of AI Use}\par}
+    \noindent
+    I acknowledge that this work is my own. I used Claude Opus Anthropic, \url{https://claude.ai}) to take notes from sources, develop the code base, suggest a report outline, convert structured notes into paragraphs, proofread and condense content and finally format the bibliography. \cite{claude2026}.
+    \vspace{1cm}
     
     {\large\textbf{Supervisor}\par}
     {\large Professor Manuchehr Soleimani\par}
@@ -118,7 +122,7 @@
     {\large September 2026\par}
     \vspace{2cm}
     
-    {\large Word Count (Abstract to Conclusions): 11,829\par}
+    {\large Word Count: 12,826\par}
 
 \end{titlepage}
 
@@ -143,7 +147,7 @@ Signed on behalf of the Department of Electronic and Electrical Engineering
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-Electrical Impedance Tomography (EIT) offers a promising sensing modality for electronic prosthetic skin, enabling touch perception in prosthetic limbs. However, classifiers trained on idealised simulation data fail when deployed on real hardware. This dissertation aims to develop a physically motivated multi-component noise model to bridge this gap, run an ablation study to identify the significance of each noise component and evaluate the robustness of such models.
+Electrical Impedance Tomography (EIT) offers a promising sensing modality for electronic prosthetic skin, enabling touch perception in prosthetic limbs. However, classifiers trained on idealised simulation data fail when deployed on real hardware. This dissertation aims to develop a physically motivated multi-component noise model to bridge this gap, identify via ablation which components are necessary under deployment-realistic conditions rather than matched evaluation, and assess the robustness of the resulting models.
 
 A synthetic dataset of 25,000 EIT voltage measurements across five touch classes was generated to simulate a 16-electrode ionic hydrogel prosthetic skin. Four classifiers were evaluated over five independent seeds with stratified splits, and each noise component was ablated under both matched and deployment-realistic evaluation settings.
 

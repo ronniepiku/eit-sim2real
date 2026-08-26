@@ -217,7 +217,7 @@ The $\sigma_z = 10\%$ default is a nominal value rather than a measured one, and
 \subsection{Parameter Summary and Ablation Design}
 \label{sec:method-noise-summary}
 
-Table~\ref{tab:noise-params} consolidates all noise parameters with their physical sources and literature justification.
+Table~\ref{tab:noise-params} consolidates all noise parameters with their physical sources.
 
 \begin{table}[htbp]
 \centering
@@ -424,9 +424,14 @@ Throughout, corruption is applied in \emph{foundational mode}: noise is drawn on
 \subsection{Noise Parameter Sensitivity}
 \label{sec:method-noise-sensitivity}
 
-Each parameter was swept independently with the others held at default: SNR $\{60,50,40,30,20\}$\,dB; contact impedance $\sigma_z \in \{5,10,15,20,25\}\%$; electrode bias $b_{\max} \in \{0.005,0.01,0.02,0.04,0.08\}$; \gls{adc} resolution $\{8,10,12,14,16\}$ bits. This addresses the concern that the parameters are nominal rather than measured: if the conclusions hold across the plausible range of each, they do not depend on a particular calibration assumption.
+Each parameter was swept independently with the others held at default:
 
-\subsection{Data and Ethical Considerations}
-\label{sec:method-ethics}
+\begin{itemize}
+    \item SNR: $\{60, 50, 40, 30, 20\}$\,dB
+    \item Contact impedance: $\sigma_z \in \{5, 10, 15, 20, 25\}\%$
+    \item Electrode bias: $b_{\max} \in \{0.005, 0.01, 0.02, 0.04, 0.08\}$
+    \item \gls{adc} resolution: $\{8, 10, 12, 14, 16\}$ bits
+\end{itemize}
 
-Using exclusively synthetic data removes the usual concerns around collection and storage. The ethical, economic and sustainability implications of the work are evaluated against its findings in Section~\ref{sec:disc-ethics}.
+\noindent This addresses the concern that the parameters are nominal rather than measured: if the conclusions hold across the plausible range of each, they do not depend on a particular calibration assumption.
+

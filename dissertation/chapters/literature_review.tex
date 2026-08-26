@@ -18,6 +18,8 @@ The clinical demand motivating this work (Section~\ref{sec:intro-background}) ha
 
 The choice of substrate constrains sensing performance, durability and wearability. Table~\ref{tab:material-comparison} evaluates the dominant platforms against four criteria bearing on prosthetic deployment.
 
+\textbf{Hydrogels} (illustrated in Figure~\ref{fig:lit-hydrogel-structure}) approximate biological tissue most closely in compliance and biocompatibility \parencite{park2022skin, tao2023}, and ionic hydrogels exhibit a \emph{positive piezoresistive response}: compression disrupts ion transport, raising local resistance under load \parencite{costacornella2023}. \textcite{dong2025lattice} show silicone encapsulation improves sensitivity, though testing extends only to $\sim$100 cycles. \textbf{Conductive elastomers} remove moisture dependence at the cost of non-linearity, though \textcite{kim2024} document fatigue-driven degradation, confirming that no platform eliminates drift. \textbf{Printed arrays} \parencite{yu2024} are scalable but limited to 81 discrete taxels, incompatible with distributed \gls{eit} sensing.
+
 \begin{table}[htbp]
 \centering
 \caption[Comparison of electronic skin material platforms]{Comparative assessment of electronic skin material platforms for prosthetic applications.}
@@ -37,10 +39,6 @@ Printed arrays & Good & Moderate & High sensitivity but low resolution & Excelle
 \bottomrule
 \end{tabularx}
 \end{table}
-
-
-
-\textbf{Hydrogels} (illustrated in Figure~\ref{fig:lit-hydrogel-structure}) approximate biological tissue most closely in compliance and biocompatibility \parencite{park2022skin, tao2023}, and ionic hydrogels exhibit a \emph{positive piezoresistive response}: compression disrupts ion transport, raising local resistance under load \parencite{costacornella2023}. \textcite{dong2025lattice} show silicone encapsulation improves sensitivity, though testing extends only to $\sim$100 cycles. \textbf{Conductive elastomers} remove moisture dependence at the cost of non-linearity, though \textcite{kim2024} document fatigue-driven degradation, confirming that no platform eliminates drift. \textbf{Printed arrays} \parencite{yu2024} are scalable but limited to 81 discrete taxels, incompatible with distributed \gls{eit} sensing.
 
 \begin{figure}[htbp]
 \centering
@@ -109,7 +107,7 @@ Acoustic tomography & Complementary to EIT & Complex hardware, noise & \textcite
 
     % --- touch perturbation ---
     \fill[orange!45] (-0.4,0.5) circle (0.55);
-    \draw[->, thin] (-0.4,0.5) -- ++(-1.6,0.9) node[left, font=\scriptsize, align=right] {touch contact\\$\sigma(\mathbf{x})<\sigma_0$};
+    \draw[->, thin] (-0.88,0.77) -- ++(-2.14,1.20) node[left, font=\scriptsize, align=right] {touch contact\\$\sigma(\mathbf{x})<\sigma_0$};
 
     % --- 16 boundary electrodes ---
     \foreach \i in {0,...,15} {
@@ -119,13 +117,13 @@ Acoustic tomography & Complementary to EIT & Complex hardware, noise & \textcite
     % --- current injection pair: electrodes 0 and 1 ---
     \node[circle, draw, fill=red!80!black, inner sep=0pt, minimum size=4.5pt] at (E0) {};
     \node[circle, draw, fill=red!80!black, inner sep=0pt, minimum size=4.5pt] at (E1) {};
-    \draw[->, thick, red!70!black] (E0) to[bend left=35] node[midway, font=\scriptsize, above right] {$I$} (E1);
-    \draw[->, thick, red!70!black] (E0) to[bend left=60] (E1);
+    \draw[->, thick, red!70!black] (E0) to[bend left=35] (E1);
+    \node[font=\scriptsize, red!70!black] at (11.25:2.15) {$I$};
 
     % --- voltage measurement pair: electrodes 8 and 9 ---
     \node[circle, draw, fill=blue!70!black, inner sep=0pt, minimum size=4.5pt] at (E8) {};
     \node[circle, draw, fill=blue!70!black, inner sep=0pt, minimum size=4.5pt] at (E9) {};
-    \draw[dashed, thick, blue!60!black] (E8) -- (E9);
+    \draw[dashed, thick, blue!60!black] (E8) to[bend left=35] (E9);
     \node[font=\scriptsize, blue!60!black] at (191.25:3.55) {$\Delta V$};
 
     % --- domain/boundary labels ---
