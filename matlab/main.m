@@ -2,8 +2,8 @@
 % Generates a simulated EIT dataset with physically-motivated noise for
 % training touch classifiers.
 %
-% Dissertation: "Towards Simulation-to-Reality Transfer in EIT Tactile
-% Sensing: A Noise-Augmented Deep Learning Approach"
+% Dissertation: "A Physically Motivated Noise Model for Robust EIT Tactile
+% Classification Under Simulated Domain Shift"
 %
 % This script generates both clean and noisy voltage difference vectors
 % for 5 touch classes, with balanced class sampling.

@@ -66,7 +66,7 @@
 % Appendix
 \usepackage[toc,page]{appendix}
 
-% Glossary / abbreviations
+% Glossary/abbreviations
 \usepackage[acronym, toc]{glossaries}
 \makeglossaries
 
@@ -85,7 +85,7 @@
 \newacronym{dnn}{DNN}{Deep Neural Network}
 
 %% ─── Document Metadata ────────────────────────────────────────────────────────
-\title{Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach}
+\title{A Physically Motivated Noise Model for Robust EIT Tactile Classification Under Simulated Domain Shift}
 \author{Ronald Piku}
 \date{September 2026}
 
@@ -95,21 +95,27 @@
 %% ─── Title Page ───────────────────────────────────────────────────────────────
 \begin{titlepage}
     \centering
-    \vspace*{2cm}
     
     {\Large\bfseries Ronald Piku\par}
     \vspace{1cm}
     
-    {\LARGE\bfseries Towards Simulation-to-Reality Transfer in EIT Tactile Sensing: A Noise-Augmented Deep Learning Approach\par}
+    {\LARGE\bfseries A Physically Motivated Noise Model for Robust EIT Tactile Classification Under Simulated Domain Shift\par}
     \vspace{2cm}
     
     {\large A dissertation submitted to the degree of Master of Science\par}
     \vspace{0.5cm}
     {\large MSc Artificial Intelligence in Engineering and Design\par}
-    \vspace{2cm}
+    \vspace{1cm}
+
+    {\large\textbf{Declaration of AI Use}\par}
+    \begin{minipage}{0.85\textwidth}
+    \centering\small
+    I acknowledge that this work is my own. I used Claude Opus \parencite{claude2026}, available at \url{https://claude.ai}, to take notes from sources, develop the code base, suggest a report outline, convert structured notes into paragraphs, proofread and condense content and format the bibliography.
+    \end{minipage}
+    \vspace{1cm}
     
     {\large\textbf{Supervisor}\par}
-    {\large Manuchehr Soleimani\par}
+    {\large Professor Manuchehr Soleimani\par}
     \vspace{2cm}
     
     {\large The University of Bath\par}
@@ -118,7 +124,7 @@
     {\large September 2026\par}
     \vspace{2cm}
     
-    {\large Word Count (from introduction to conclusions): 10,992\par}
+    {\large Word Count: 12,826\par}
 
 \end{titlepage}
 
@@ -132,7 +138,7 @@
 \noindent Attention is drawn to the fact that the copyright of this thesis rests with the author. A copy of this dissertation has been supplied on condition that anyone who consults it is understood to recognise that its copyright rests with the author and that they must not copy it or use material from it except as permitted by law or with the consent of the author.
 
 \vspace{1cm}
-\noindent This thesis may be made available for consultation within the University Library and may be photocopied or lent to other libraries for the purposes of consultation with effect from \rule{3cm}{0.4pt}.
+\noindent This thesis may be made available for consultation within the University Library and may be photocopied or lent to other libraries for the purposes of consultation with effect from 1st September 2026.
 
 \vspace{2cm}
 \noindent\rule{8cm}{0.4pt}\\
@@ -143,13 +149,13 @@ Signed on behalf of the Department of Electronic and Electrical Engineering
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-Electrical Impedance Tomography (EIT) offers a promising sensing modality for electronic prosthetic skin, enabling wide-area tactile perception from a few boundary electrodes. However, classifiers trained on idealised simulation data fail when deployed on real hardware. This dissertation investigates whether a physically motivated multi-component noise model can bridge this gap, and which of these components such a model must contain.
+Electrical Impedance Tomography (EIT) offers a promising sensing modality for electronic prosthetic skin, but classifiers trained on idealised simulation data fail on real hardware. This dissertation develops a physically motivated multi-component noise model to bridge this gap, identifies via ablation which components are necessary under deployment-realistic rather than matched evaluation, and assesses the resulting models' robustness.
 
-A synthetic dataset of 25,000 EIT voltage measurements across five touch classes was generated using the EIDORS forward modelling framework, simulating a 16-electrode ionic hydrogel prosthetic skin. Four classifiers were evaluated over five independent seeds with stratified splits, and every noise component was ablated under both matched and deployment-realistic evaluation.
+A synthetic dataset of 25,000 EIT voltage measurements across five touch classes simulated a 16-electrode ionic hydrogel skin. Four classifiers were evaluated over five seeds with stratified splits, each noise component ablated under matched and deployment-realistic settings.
 
-All models collapse to chance under domain mismatch, irrespective of architecture or feature representation, identifying the gap as distributional rather than a limitation of model capacity; noise-matched training recovers it, the 1D-CNN reaching 75.8\% $\pm$ 0.6, a gain of 55.8 percentage points. Component ablation supplies the central result. Noise models omitting electrode positioning bias perform at chance, whereas Gaussian noise plus electrode bias alone reaches 76.5\%, level with the full four-component model. Excluding the degenerate no-contact class separates the two roles: electrode bias alone suffices to discriminate contact types, Gaussian noise being required only to make contact detectable. A permutation ablation confirms the architectural advantage is caused by the block structure of the corruption, costing the CNN 30.3 percentage points while leaving exchangeable baselines unchanged. Severity scaling reveals a trade-off, fixed-noise training peaking at its training severity but losing 15.0 percentage points by 3$\times$, whereas randomised training is far flatter and overtakes it near 2.2$\times$. Under domain shift the models are also confidently wrong, reporting 99.7\% mean confidence at 19.7\% accuracy, a failure mode with direct safety implications that matched training resolves.
+All models collapse to chance under domain mismatch, regardless of architecture or feature representation, but noise-matched training recovers this, the 1D-CNN reaching 75.8\% $\pm$ 0.6, a 55.8-point gain. Component ablation supplies the central result: models omitting electrode positioning bias perform at chance, whereas Gaussian noise plus electrode bias alone reaches 76.5\%, level with the full model. Severity scaling reveals a trade-off: fixed-noise training peaks at its training severity but loses 15.0 points by 3$\times$, while randomised training is far flatter, overtaking it near 2.2$\times$. Under domain shift the models are also confidently wrong, reporting 99.7\% mean confidence at 19.7\% accuracy, a safety-critical failure matched training resolves.
 
-These findings identify the minimal noise model required for deployable EIT tactile classification, and demonstrate that the evaluation protocol conventionally used in component ablation can invert the design guidance derived from it.
+These findings identify the minimal noise model required for deployable EIT tactile classification, and show that the evaluation protocol conventionally used in component ablation can invert the design guidance it produces.
 
 %% ─── Acknowledgements ─────────────────────────────────────────────────────────
 \newpage
