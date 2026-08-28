@@ -1,179 +1,182 @@
-# EE52037 — 7-minute presentation script
+# EE52037 — presentation script
 **Ronald Piku · A Physically Motivated Noise Model for Robust EIT Tactile Classification Under Simulated Domain Shift**
 
-Target ~6:50 at a normal speaking pace (~135 words/min). Total 923 words,
-leaving roughly ten seconds of headroom against the 7-minute limit.
-Timings assume you pause briefly on each slide change — those pauses are already
-in the budget. If you naturally speak fast, slow down rather than adding words.
+Total 951 words ≈ **7:03 at 135 words/min** (range: 6.6–7.6 min across 125–145 wpm). Slide 11 (References) is not narrated — let it sit on screen during the closing line.
 
-Markers show elapsed time at the *start* of each slide.
+Markers show elapsed time at the *start* of each slide, at 135 wpm.
 
 ---
 
-## Slide 1 — Title · 0:00 · ~8s
+## Slide 1 — Title – 0:00 – ~12s
 
-I'm Ronald Piku. This project asks why EIT touch classifiers that work in
-simulation fail on real hardware.
+Hi, I'm Ronald Piku. Thank you for joining me as I present my dissertation: a physically motivated noise model for robust EIT tactile classification under simulated domain shift.
 
 ---
 
-## Slide 2 — The problem · 0:08 · ~45s
+## Slide 2 — Introduction – 0:12 – ~23s
+
+Here's how this presentation is structured. First, I define the problem this
+creates and what I mean by the simulation-to-reality gap. Then three results
+follow: what closes that gap, how it was evaluated, and the smallest noise
+model that still works. Finally, I review the conclusions and discuss the
+work's limitations.
+
+---
+
+## Slide 3 — The problem – 0:35 – ~56s
 
 Around fifty-eight million people live with limb loss, and more than a third
-abandon a powered prosthetic hand. The most cited reason is that it gives
-nothing back. You cannot feel whether you're holding an egg or crushing it.
+abandon a powered prosthetic arm — the most cited reason is that the device
+itself has no sense of touch, so it can't tell when or how it is being
+handled.
 
-The sensing approach here is Electrical Impedance Tomography. Take a sheet of
-soft conductive material, put sixteen electrodes round the edge, pass a small
-current across it and measure the voltages. Where somebody presses, the
-resistance changes and the voltages shift. One sheet, no wiring through the
-sensing surface, which is what makes it attractive for a prosthetic.
+Electrical Impedance Tomography, or EIT, gives it that awareness. As Figure 1
+shows, sixteen electrodes sit around a soft sensing disc covering the arm,
+modelled on an ionic hydrogel skin (Costa Cornellà et al., 2023) for its
+sensing fidelity, even though it isn't the most durable option available.
+Inject a small current between one pair, measure the voltage at another —
+where somebody presses, that voltage shifts, and the full set of
+measurements is a vector you can feed straight into a classifier.
 
 ---
 
-## Slide 3 — Where the field is · 0:53 · ~48s
+## Slide 4 — Where the field is – 1:32 – ~47s
 
-Published EIT touch classifiers report ninety-eight or ninety-nine per cent
+Published EIT touch classifiers report ninety-eight, ninety-nine per cent
 accuracy, almost all trained on simulated measurements, because labelled real
-data is slow and expensive.
+data is expensive to collect.
 
-But a simulator gives you a perfect measurement and hardware does not. Four
-things get added. Thermal noise in the amplifiers. Contact impedance, which
-differs electrode to electrode. Errors in where the electrodes physically sit.
-And quantisation, from the converter.
+But a simulator gives you a perfect measurement, and hardware never does —
+the same gap Tobin and colleagues closed in robotics and computer vision by
+training on deliberately varied simulation, and the gap this research aims to
+close for EIT. Within EIT, four sources dominate: thermal noise, contact
+impedance, electrode placement, and quantisation.
 
-When prior work adds noise at all, it adds Gaussian noise — the easy one. My
-question was whether that's enough, and if not, which of the four actually
-matter.
-
----
-
-## Slide 4 — The gap, made visible · 1:41 · ~42s
-
-Here's the problem before any machine learning. On the left, five touches
-reconstructed from clean simulated measurements. You can see where the finger is
-in each one.
-
-On the right, the same five with the noise switched on. The contact has gone.
-And what replaced it isn't random speckle — it has structure, those quadrant
-seams, because the dominant error attaches to individual electrodes, and each
-electrode feeds a whole block of measurements. That structure matters, and I'll
-come back to it.
+When prior work adds noise at all, it's almost always just Gaussian noise.
+This project asks whether that's enough, and if not, which of the four
+actually matter.
 
 ---
 
-## Slide 5 — Result 1 · 2:23 · ~38s
+## Slide 5 — The gap, made visible – 2:19 – ~35s
 
-I generated twenty-five thousand simulated touches and trained four classifiers
-on clean data. On clean test data the network reaches ninety-four per cent — the published
-result reproduces. Show it realistic measurements and it falls to twenty, which
-with five classes is exactly guessing. It hasn't degraded; it has stopped
-working.
+Before any classification, here's the problem in one picture. On the left,
+Figure 2 shows five touch types reconstructed from clean simulated
+measurements: you can see exactly where the contact is in each one, and each
+class is clearly separable by its pressure intensity and contact area.
 
-That held for all four classifiers and all three feature representations, so
-it's not fixed by a bigger model. Train on realistic noise instead and you
-recover seventy-six per cent.
-
----
-
-## Slide 6 — Result 2, the main contribution · 3:01 · ~65s
-
-Now the main contribution, which began as my own mistake.
-
-To find which noise sources matter, you remove them one at a time. The question
-is what you then test against. The intuitive choice — the one I made first, and
-the one the literature uses — is to test each model on the same noise it was
-trained with. That's the blue bars. Read them and you'd conclude Gaussian noise
-is harmless at ninety-seven per cent, and electrode placement is the worst thing
-on the list.
-
-The orange bars test those same models against the full corruption a real device
-produces. The ranking inverts. Gaussian-only drops to chance. The electrode-bias
-model is the only one that survives.
-
-Blue is measuring the difficulty of an artificial world containing one problem.
-It rewards a model for defining an easier test for itself. Had I reported only
-that column, every piece of design guidance in my dissertation would have been
-backwards.
+On the right, the same five with realistic noise switched on. The clear
+distinction between classes has gone — real-world classification is
+difficult even to the human eye, let alone a classifier.
 
 ---
 
-## Slide 7 — Result 3 · 4:06 · ~52s
+## Slide 6 — Result 1 – 2:54 – ~47s
 
-Using the correct protocol, two of the four components carry everything.
-Electrode bias plus Gaussian noise reaches seventy-six and a half — level with
-the full four-component model. So the noise model halves.
+To see how serious this gap is, I trained four classifiers — a random
+forest, a support vector machine, a multilayer perceptron and a 1D
+convolutional neural network — each on 25,000 simulated touches, clean and
+noisy in three combinations.
 
-But I was suspicious of *why* Gaussian noise was needed, because the no-contact
-class in simulation is an exact vector of zeros. It's degenerate. So I removed
-that class and re-ran on the four real touches. Electrode bias alone then
-matches the full model, and adding Gaussian changes nothing.
-
-So Gaussian noise was never providing robustness. It was making a class that's
-perfectly zero in training recognisable when it arrives noisy. One component to
-discriminate between touches, a noise floor to detect touch at all. That's
-sharper than my original claim, and less flattering.
+As Figure 3 shows, on clean data the network reaches ninety-four per cent,
+close to published results. Trained clean but tested noisy, it collapses to
+twenty per cent — as good as guessing. Train and test on noisy data instead,
+and it recovers to seventy-six: a fifty-five-point gain. That pattern held
+for all four classifiers, so it isn't something a bigger model fixes on its
+own.
 
 ---
 
-## Slide 8 — Testing my own work · 4:58 · ~57s
+## Slide 7 — Result 2, the main contribution – 3:41 – ~51s
 
-Two things in that argument were assumptions rather than evidence, so I tested
-them.
+The ablation study tests each noise source alone. There are two ways to
+score it.
 
-First, I claimed the network wins by exploiting the block structure. That was an
-inference about my own model. So I shuffled the measurement order — identical
-information, adjacency destroyed. The network loses thirty points. The other
-three don't move, and the support vector machine is identical to the decimal
-place, which confirms no information was lost. Demonstrated, not asserted.
+Test each model on the same noise it trained with — the blue bars in Figure
+4 — and Gaussian noise looks harmless at ninety-seven per cent, electrode
+bias the most damaging.
 
-Second, and less comfortably: two of the papers I cite show this kind of
-electrode error largely cancels when you subtract a reference frame, which is
-what my pipeline does. If that held here, my central result would be inflated.
-So I made the cancelling fraction a parameter and swept it. It holds until
-cancellation is essentially perfect — which is the condition those same papers
-say fails in practice.
+Or test against the full corruption a real device produces — the orange
+bars. The story reverses: electrode bias is the only source anywhere close
+to surviving, the rest fall close to chance. That's not a surprise from
+nowhere — electrode positioning error is already flagged in the EIT
+literature as a dominant modelling error (Kolehmainen et al., 1997). This
+result confirms it, under the correct protocol.
 
 ---
 
-## Slide 9 — Limitations · 5:55 · ~40s
+## Slide 8 — Result 3 – 4:32 – ~57s
 
-On the boundaries. I can claim which noise sources matter and why, that the
-conventional protocol inverts that answer, a tested mechanism for the
-architecture result, and a pipeline anyone can rerun.
+Using the correct protocol, two of the four components carry everything:
+electrode bias plus Gaussian noise reaches 76.5 per cent, level with the full
+model — the noise model halves with no loss of accuracy.
 
-I cannot claim any of it survives hardware. Every number is simulated. My
-electrode bias is independent per electrode; on a stretched sheet it would be
-correlated, and measuring that covariance is the first experiment I'd run. And
-seventy-six per cent isn't deployable — detecting that contact happened is
+That decomposes further. The 'no contact' class in simulation is an exact
+vector of zeros, so I removed it and reran on the four real touches alone.
+Electrode bias alone then matches the full model — Gaussian noise was never
+providing robustness, just making a class that's zero in training
+recognisable when it arrives noisy.
+
+Figure 5 shows why that matters: no-contact is recovered perfectly, a direct
+consequence of that Gaussian floor, while point contact is the weakest
+class. One component to discriminate between touches, a noise floor to
+detect touch at all.
+
+---
+
+## Slide 9 — Limitations – 5:28 – ~54s
+
+To be upfront about the boundaries: I can claim which noise sources matter
+and why, that the conventional protocol inverts that answer, a mechanism for
+the architecture result that's tested rather than assumed, and a pipeline
+anyone can rerun.
+
+I cannot claim any of it survives contact with hardware. Every number is
+simulated in 2D — a real device isn't, and I only classify single, static
+frames, so drift over time isn't represented at all. My electrode bias is
+drawn independently per electrode, and on a stretched sheet it would be
+spatially correlated — measuring that covariance is the first experiment I'd
+run next. And seventy-six per cent isn't deployable: detecting contact is
 reliable, saying which touch it was is not.
 
 ---
 
-## Slide 10 — Close · 6:35 · ~15s
+## Slide 10 — Close – 6:22 – ~31s
 
-Noise-aware training closes most of the gap, but only if you test against the
-world the device will actually meet. The conventional alternative gives you the
-opposite answer, confidently.
+To pull that together: realistic noise collapses accuracy from ninety-four
+to twenty per cent, and training on it recovers seventy-six. How you
+evaluate an ablation decides its conclusion, not just its result — the
+finding I'd defend hardest.
 
-Thank you.
+In one sentence: noise-aware training closes most of the gap, but only if
+you test it against the world the device will actually meet. Thank you, I'm
+happy to take questions.
+
+---
+
+## Slide 11 — References – 6:53 – ~10s, not narrated
+
+Full references for every claim in this talk, in Harvard style, are listed
+here for anyone who would like to follow up.
 
 ---
 
 ## Recording notes
 
-- **Pace.** The budget assumes ~135 wpm. Record slide 6 first as a calibration
-  test: if it runs longer than 70 seconds you are over budget everywhere.
-- **Slide 6 and slide 8 carry the marks.** Critical Thinking and Argumentation is
-  70% of this assessment. Those two slides are where you demonstrate ownership of
-  the work and willingness to test yourself. Do not rush them to save time
-  elsewhere — cut slide 2 or 3 instead.
-- **Say "my own mistake" out loud on slide 6.** It is not a weakness to admit;
-  the marking sheet explicitly rewards research reflexivity, and a correction you
-  found yourself is stronger evidence of understanding than a result that went
-  right first time.
-- **Numbers to land clearly:** 94 → 20 → 76 (slide 5); the inversion (slide 6);
-  30-point drop (slide 8). Everything else can be approximate in delivery.
-- **If you overrun**, cut in this order: the "no wiring" clause on slide 2, the
-  four-component list on slide 3 (the slide already shows it), then the last
-  sentence of slide 5. Never cut from slides 6, 7 or 8.
+- **Slides 7 and 8 carry the marks.** Critical Thinking and Argumentation is
+  70% of this assessment. Slide 7 is the protocol-inversion finding (the
+  main contribution) and slide 8 decomposes it further with the confusion
+  matrix. Do not rush these to save time elsewhere.
+- **Rehearsal note on research reflexivity.** The self-testing content that
+  used to be its own slide (the permutation test and the ρ-sweep,
+  confirming the CNN's advantage is really about measurement structure, and
+  that the electrode-bias result isn't inflated by cancellation) is no
+  longer in the pre-recorded deck. Both checks are still in the
+  dissertation (Section on testing assumptions) and are strong, concrete
+  material for the 13-minute viva if a question about evidence or
+  robustness comes up — keep them ready to describe verbally.
+- **Numbers to land clearly:** 94 → 20 → 76 (slide 6); the matched vs
+  deployment inversion (slide 7); the no-contact recovery in the confusion
+  matrix (slide 8).
+- **Slide 11 (References)** needs no delivery time — say the thank-you/
+  questions line while it's on screen.
